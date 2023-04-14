@@ -114,7 +114,7 @@ blobs:
     url: https://github.com/Infineon/wifi-host-driver/raw/release-v2.5.0/WiFi_Host_Driver/resources/clm/COMPONENT_4343W/4343WA1-mfgtest.clm_blob
     description: "Wi-Fi CLM for CYW4343W (mfgtest) Device"
     doc-url: https://github.com/Infineon/wifi-host-driver
-  
+
   #CYW43438 Device
   #firmware
   - path: img/whd/resources/firmware/COMPONENT_43438/43438A1.bin
@@ -179,7 +179,7 @@ blobs:
     version: '2.5.0'
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/wifi-host-driver/raw/release-v2.5.0/WiFi_Host_Driver/resources/clm/COMPONENT_43439/43439A0.clm_blob
-    description: "Wi-Fi CLM for CYW43439 Device"    
+    description: "Wi-Fi CLM for CYW43439 Device"
     doc-url: https://github.com/Infineon/wifi-host-driver
   #clm (mfgtest)
   - path: img/whd/resources/clm/COMPONENT_43439/43439A0-mfgtest.clm_blob
@@ -200,7 +200,7 @@ blobs:
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/wifi-host-driver/raw/release-v2.5.0/WiFi_Host_Driver/resources/firmware/COMPONENT_4373/4373A0.bin
     description: "Wi-Fi Firmware for CYW4373 Device"
-    doc-url: https://github.com/Infineon/wifi-host-driver    
+    doc-url: https://github.com/Infineon/wifi-host-driver
   #firmware (mfgtest)
   - path: img/whd/resources/firmware/COMPONENT_4373/4373A0-mfgtest.bin
     sha256: e347f14bf028cd8ff73b687ac6d54bbfe9e820dadacb5592cd14c83736e3a842
@@ -273,3 +273,22 @@ blobs:
     url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.1.1/COMPONENT_HCI-UART/firmware/COMPONENT_4373/COMPONENT_STERLING-LWB5plus/CYW4373A0_001.001.025.0090.0129_UART_M2.hcd
     description: "Bluetooth Controller FW for MURATA-1YN Module"
     doc-url: https://github.com/Infineon/btstack-integration
+
+# bless
+  - path: img/bluetooth/firmware/COMPONENT_BLESS_CONTROLLER/cy_ble_stack_controller.a
+    sha256: 6278ee76b34e04ab0a82c3254b150c6c78375f3e9dea08b593899a865dd7cb6a
+    type: img
+    version: '3.60.0.725'
+    license-path: ./LICENSE.txt
+    url: https://github.com/Infineon/bless/raw/latest-v3.X/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_controller.a
+    description: "BLESS Bluetooth Controller FW"
+    doc-url: https://github.com/Infineon/bless
+
+  - path: img/bluetooth/firmware/COMPONENT_BLESS_CONTROLLER/cy_ble_stack_manager.a
+    sha256: f04c54d7761319df06569c65017d1e0733e2bf4dc007be16582ab26aeadba137
+    type: img
+    version: '3.60.0.725'
+    license-path: ./LICENSE.txt
+    url: https://github.com/Infineon/bless/raw/latest-v3.X/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_manager.a
+    description: "BLESS Bluetooth Controller FW"
+    doc-url: https://github.com/Infineon/bless
