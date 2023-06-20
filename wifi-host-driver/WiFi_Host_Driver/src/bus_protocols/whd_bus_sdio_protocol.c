@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,8 +23,8 @@
  *  sending/receiving raw packets etc
  */
 
-#include <stdlib.h>
 #include "cybsp.h"
+#include "whd_utils.h"
 #if (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SDIO_INTERFACE)
 
 #include "cyabs_rtos.h"
@@ -146,7 +146,7 @@ uint32_t whd_bus_sdio_attach(whd_driver_t whd_driver, whd_sdio_config_t *whd_sdi
         return WHD_WLAN_BADARG;
     }
 
-    whd_bus_info = (whd_bus_info_t *)malloc(sizeof(whd_bus_info_t) );
+    whd_bus_info = (whd_bus_info_t *)whd_mem_malloc(sizeof(whd_bus_info_t) );
 
     if (whd_bus_info == NULL)
     {
@@ -157,7 +157,7 @@ uint32_t whd_bus_sdio_attach(whd_driver_t whd_driver, whd_sdio_config_t *whd_sdi
 
     whd_driver->bus_if = whd_bus_info;
 
-    whd_driver->bus_priv = (struct whd_bus_priv *)malloc(sizeof(struct whd_bus_priv) );
+    whd_driver->bus_priv = (struct whd_bus_priv *)whd_mem_malloc(sizeof(struct whd_bus_priv) );
 
     if (whd_driver->bus_priv == NULL)
     {
@@ -211,12 +211,12 @@ void whd_bus_sdio_detach(whd_driver_t whd_driver)
 {
     if (whd_driver->bus_if != NULL)
     {
-        free(whd_driver->bus_if);
+        whd_mem_free(whd_driver->bus_if);
         whd_driver->bus_if = NULL;
     }
     if (whd_driver->bus_priv != NULL)
     {
-        free(whd_driver->bus_priv);
+        whd_mem_free(whd_driver->bus_priv);
         whd_driver->bus_priv = NULL;
     }
 }
@@ -494,7 +494,7 @@ whd_result_t whd_bus_sdio_init(whd_driver_t whd_driver)
     }
     if (whd_driver->aligned_addr == NULL)
     {
-        if ( (aligned_addr = malloc(WHD_LINK_MTU) ) == NULL )
+        if ( (aligned_addr = whd_mem_malloc(WHD_LINK_MTU) ) == NULL )
         {
             WPRINT_WHD_ERROR( ("Memory allocation failed for aligned_addr in %s \n", __FUNCTION__) );
             return WHD_MALLOC_FAILURE;
@@ -504,14 +504,14 @@ whd_result_t whd_bus_sdio_init(whd_driver_t whd_driver)
     result = whd_chip_specific_init(whd_driver);
     if (result != WHD_SUCCESS)
     {
-        free(whd_driver->aligned_addr);
+        whd_mem_free(whd_driver->aligned_addr);
         whd_driver->aligned_addr = NULL;
     }
     CHECK_RETURN(result);
     result = whd_ensure_wlan_bus_is_up(whd_driver);
     if (result != WHD_SUCCESS)
     {
-        free(whd_driver->aligned_addr);
+        whd_mem_free(whd_driver->aligned_addr);
         whd_driver->aligned_addr = NULL;
     }
     CHECK_RETURN(result);
@@ -529,7 +529,7 @@ whd_result_t whd_bus_sdio_deinit(whd_driver_t whd_driver)
 {
     if (whd_driver->aligned_addr)
     {
-        free(whd_driver->aligned_addr);
+        whd_mem_free(whd_driver->aligned_addr);
         whd_driver->aligned_addr = NULL;
     }
 
@@ -922,7 +922,7 @@ static whd_result_t whd_bus_sdio_cmd53(whd_driver_t whd_driver, whd_bus_transfer
 
     arg.value = 0;
     arg.cmd53.function_number = (uint32_t)(function & BUS_FUNCTION_MASK);
-    arg.cmd53.register_address = (uint32_t)(address & WHD_BIT_MASK(17) );
+    arg.cmd53.register_address = (uint32_t)(address & BIT_MASK(17) );
     arg.cmd53.op_code = (uint32_t)1;
     arg.cmd53.rw_flag = (uint32_t)( (direction == BUS_WRITE) ? 1 : 0 );
 
@@ -943,7 +943,7 @@ static whd_result_t whd_bus_sdio_cmd53(whd_driver_t whd_driver, whd_bus_transfer
     }
     else
     {
-        arg.cmd53.count = (uint32_t)( (data_size / (uint16_t)SDIO_64B_BLOCK) & WHD_BIT_MASK(9) );
+        arg.cmd53.count = (uint32_t)( (data_size / (uint16_t)SDIO_64B_BLOCK) & BIT_MASK(9) );
         if ( (uint32_t)(arg.cmd53.count * (uint16_t)SDIO_64B_BLOCK) < data_size )
         {
             ++arg.cmd53.count;
@@ -1493,8 +1493,12 @@ static void whd_bus_sdio_oob_irq_handler(void *arg, cyhal_gpio_irq_event_t event
 static whd_result_t whd_bus_sdio_register_oob_intr(whd_driver_t whd_driver)
 {
     const whd_oob_config_t *config = &whd_driver->bus_priv->sdio_config.oob_config;
+	whd_result_t result;
 
-    cyhal_gpio_init(config->host_oob_pin, CYHAL_GPIO_DIR_INPUT, CYHAL_GPIO_DRIVE_NONE, 0);
+    result = cyhal_gpio_init(config->host_oob_pin, CYHAL_GPIO_DIR_INPUT, config->drive_mode, config->init_drive_state);
+    if (result != CY_RSLT_SUCCESS)
+		WPRINT_WHD_ERROR( ("%s: Failed at cyhal_gpio_init for host_oob_pin, result code = %u \n", __func__, (unsigned int)result) );
+
 #if (CYHAL_API_VERSION >= 2)
     static cyhal_gpio_callback_data_t cbdata;
     cbdata.callback = whd_bus_sdio_oob_irq_handler;
@@ -1602,7 +1606,7 @@ static whd_result_t whd_bus_sdio_verify_resource(whd_driver_t whd_driver, whd_re
                            __LINE__) );
         goto exit;
     }
-    cmd_img = malloc(WHD_BLOCK_SIZE);
+    cmd_img = whd_mem_malloc(WHD_BLOCK_SIZE);
     if (cmd_img != NULL)
     {
         for (i = 0; i < blocks_count; i++)
@@ -1624,7 +1628,7 @@ static whd_result_t whd_bus_sdio_verify_resource(whd_driver_t whd_driver, whd_re
     }
 exit:
     if (cmd_img)
-        free(cmd_img);
+        whd_mem_free(cmd_img);
     return WHD_SUCCESS;
 }
 
@@ -1707,7 +1711,7 @@ static whd_result_t whd_bus_sdio_write_wifi_nvram_image(whd_driver_t whd_driver)
     CHECK_RETURN(whd_resource_size(whd_driver, WHD_RESOURCE_WLAN_NVRAM, &image_size) );
 
     /* Round up the size of the image */
-    image_size = ROUND_UP(image_size, 4);
+    image_size = ROUND_UP(image_size, NVM_IMAGE_SIZE_ALIGNMENT);
 
     /* Write image */
     img_end = GET_C_VAR(whd_driver, CHIP_RAM_SIZE) - 4;
@@ -1795,3 +1799,4 @@ whd_result_t whd_bus_sdio_set_backplane_window(whd_driver_t whd_driver, uint32_t
 }
 
 #endif /* (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SDIO_INTERFACE) */
+

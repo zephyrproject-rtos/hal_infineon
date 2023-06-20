@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,8 @@
 /** @file
  *
  */
-#include <stdlib.h>
 #include "cyabs_rtos.h"
+#include "whd_utils.h"
 
 #include "whd_bus.h"
 #include "whd_bus_common.h"
@@ -119,7 +119,7 @@ whd_result_t whd_bus_set_backplane_window(whd_driver_t whd_driver, uint32_t addr
 
 void whd_bus_common_info_init(whd_driver_t whd_driver)
 {
-    struct whd_bus_common_info *bus_common = (struct whd_bus_common_info *)malloc(sizeof(struct whd_bus_common_info) );
+    struct whd_bus_common_info *bus_common = (struct whd_bus_common_info *)whd_mem_malloc(sizeof(struct whd_bus_common_info) );
 
     if (bus_common != NULL)
     {
@@ -146,7 +146,7 @@ void whd_bus_common_info_deinit(whd_driver_t whd_driver)
 {
     if (whd_driver->bus_common_info != NULL)
     {
-        free(whd_driver->bus_common_info);
+        whd_mem_free(whd_driver->bus_common_info);
         whd_driver->bus_common_info = NULL;
     }
 }
@@ -328,9 +328,9 @@ whd_result_t whd_bus_transfer_backplane_bytes(whd_driver_t whd_driver, whd_bus_t
         {
             /* No backplane support, write data to address directly */
             trans_addr = address;
-        }
+        } 
         else if (result == WHD_SUCCESS)
-        {
+        {	
             trans_addr = address & BACKPLANE_ADDRESS_MASK;
         }
         else
@@ -380,3 +380,4 @@ done:
 
     return WHD_SUCCESS;
 }
+

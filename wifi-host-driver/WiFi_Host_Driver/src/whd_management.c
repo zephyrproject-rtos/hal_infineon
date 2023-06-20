@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "whd_utils.h"
 #include "bus_protocols/whd_bus_common.h"
 #include "bus_protocols/whd_bus_protocol_interface.h"
 #include "whd_debug.h"
@@ -84,7 +85,7 @@ whd_result_t whd_add_interface(whd_driver_t whd_driver, uint8_t bsscfgidx, uint8
             return WHD_SUCCESS;
         }
 
-        if ( (ifp = (whd_interface_t)malloc(sizeof(struct whd_interface) ) ) != NULL )
+        if ( (ifp = (whd_interface_t)whd_mem_malloc(sizeof(struct whd_interface) ) ) != NULL )
         {
             memset(ifp, 0, (sizeof(struct whd_interface) ) );
             *ifpp = ifp;
@@ -145,7 +146,7 @@ uint32_t whd_init(whd_driver_t *whd_driver_ptr, whd_init_config_t *whd_init_conf
         return WHD_WLAN_BUFTOOSHORT;
     }
 
-    if ( (whd_drv = (whd_driver_t)malloc(sizeof(struct whd_driver) ) ) != NULL )
+    if ( (whd_drv = (whd_driver_t)whd_mem_malloc(sizeof(struct whd_driver) ) ) != NULL )
     {
         memset(whd_drv, 0, sizeof(struct whd_driver) );
         *whd_driver_ptr = whd_drv;
@@ -198,7 +199,7 @@ uint32_t whd_deinit(whd_interface_t ifp)
     {
         if (whd_driver->iflist[i] != NULL)
         {
-            free(whd_driver->iflist[i]);
+            whd_mem_free(whd_driver->iflist[i]);
             whd_driver->iflist[i] = NULL;
         }
     }
@@ -206,7 +207,7 @@ uint32_t whd_deinit(whd_interface_t ifp)
     whd_cdc_bdc_info_deinit(whd_driver);
     whd_internal_info_deinit(whd_driver);
     whd_bus_common_info_deinit(whd_driver);
-    free(whd_driver);
+    whd_mem_free(whd_driver);
 
     return WHD_SUCCESS;
 }
@@ -520,3 +521,4 @@ uint32_t whd_wifi_off(whd_interface_t ifp)
     whd_driver->internal_info.whd_wlan_status.state = WLAN_OFF;
     return WHD_SUCCESS;
 }
+

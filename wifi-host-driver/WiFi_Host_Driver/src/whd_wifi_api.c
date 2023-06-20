@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,6 @@
  *
  */
 
-#include <stdlib.h>
 #include "whd_version.h"
 #include "whd_chip_constants.h"
 #include "whd_cdc_bdc.h"
@@ -782,23 +781,35 @@ whd_result_t whd_wifi_set_pmksa(whd_interface_t ifp, const pmkid_t *pmkid)
     RETURN_WITH_ASSERT(whd_cdc_send_iovar(ifp, CDC_SET, buffer, NULL) );
 }
 
+whd_result_t whd_wifi_pmkid_clear(whd_interface_t ifp)
+{
+    whd_buffer_t buffer;
+    whd_driver_t whd_driver = (whd_driver_t)ifp->whd_driver;
+
+    CHECK_IOCTL_BUFFER(whd_cdc_get_iovar_buffer(whd_driver, &buffer,
+                                                0, IOVAR_STR_PMKID_CLEAR) );
+    CHECK_RETURN(whd_cdc_send_iovar(ifp, CDC_SET, buffer, 0) );
+
+    return WHD_SUCCESS;
+}
+
 whd_result_t whd_wifi_set_roam_time_threshold(whd_interface_t ifp, uint32_t roam_time_threshold)
 {
-	if (!ifp || !roam_time_threshold)
-	{
-		WPRINT_WHD_ERROR( ("Invalid param in func %s at line %d \n",
-			 __func__, __LINE__) );
-		return WHD_WLAN_BADARG;
-	}
+    if (!ifp || !roam_time_threshold)
+    {
+        WPRINT_WHD_ERROR( ("Invalid param in func %s at line %d \n",
+                           __func__, __LINE__) );
+        return WHD_WLAN_BADARG;
+    }
 
-	return whd_wifi_set_iovar_value(ifp, IOVAR_STR_ROAM_TIME_THRESH, roam_time_threshold);
+    return whd_wifi_set_iovar_value(ifp, IOVAR_STR_ROAM_TIME_THRESH, roam_time_threshold);
 }
 
 whd_result_t whd_wifi_get_roam_time_threshold(whd_interface_t ifp, uint32_t *roam_time_threshold)
 {
-	CHECK_IFP_NULL(ifp);
+    CHECK_IFP_NULL(ifp);
 
-	return whd_wifi_get_iovar_value(ifp, IOVAR_STR_ROAM_TIME_THRESH, roam_time_threshold);
+    return whd_wifi_get_iovar_value(ifp, IOVAR_STR_ROAM_TIME_THRESH, roam_time_threshold);
 }
 
 uint32_t whd_wifi_get_rssi(whd_interface_t ifp, int32_t *rssi)
@@ -1199,8 +1210,8 @@ static uint32_t whd_wifi_prepare_join(whd_interface_t ifp, whd_security_t auth_t
     }
     if ( ( ( (key_length > (uint8_t)WSEC_MAX_PSK_LEN) || (key_length < (uint8_t)WSEC_MIN_PSK_LEN) ) &&
            ( (auth_type == WHD_SECURITY_WPA_TKIP_PSK) || (auth_type == WHD_SECURITY_WPA_AES_PSK) ||
-             (auth_type == WHD_SECURITY_WPA2_AES_PSK) || (auth_type == WHD_SECURITY_WPA2_TKIP_PSK) ||
-             (auth_type == WHD_SECURITY_WPA2_MIXED_PSK) ) ) ||
+             (auth_type == WHD_SECURITY_WPA2_AES_PSK) || (auth_type == WHD_SECURITY_WPA2_AES_PSK_SHA256) ||
+             (auth_type == WHD_SECURITY_WPA2_TKIP_PSK) || (auth_type == WHD_SECURITY_WPA2_MIXED_PSK) ) ) ||
          ( (key_length > (uint8_t)WSEC_MAX_SAE_PASSWORD_LEN) &&
            ( (auth_type == WHD_SECURITY_WPA3_SAE) || (auth_type == WHD_SECURITY_WPA3_WPA2_PSK) ) ) )
     {
@@ -1217,6 +1228,9 @@ static uint32_t whd_wifi_prepare_join(whd_interface_t ifp, whd_security_t auth_t
 
     /* Set Wireless Security Type */
     CHECK_RETURN(whd_wifi_set_ioctl_value(ifp, WLC_SET_WSEC, (uint32_t)(auth_type & 0xFF) ) );
+
+    /* Enable Roaming in FW by default */
+    CHECK_RETURN(whd_wifi_set_iovar_value(ifp, IOVAR_STR_ROAM_OFF, 0) );
 
     /* Map the interface to a BSS index */
     bss_index = ifp->bsscfgidx;
@@ -1248,6 +1262,7 @@ static uint32_t whd_wifi_prepare_join(whd_interface_t ifp, whd_security_t auth_t
         case WHD_SECURITY_WPA_AES_PSK:
         case WHD_SECURITY_WPA_MIXED_PSK:
         case WHD_SECURITY_WPA2_AES_PSK:
+        case WHD_SECURITY_WPA2_AES_PSK_SHA256:
         case WHD_SECURITY_WPA2_TKIP_PSK:
         case WHD_SECURITY_WPA2_MIXED_PSK:
         case WHD_SECURITY_WPA2_WPA_AES_PSK:
@@ -1270,6 +1285,12 @@ static uint32_t whd_wifi_prepare_join(whd_interface_t ifp, whd_security_t auth_t
             if (whd_driver->chip_info.fwcap_flags & (1 << WHD_FWCAP_SAE) )
             {
                 CHECK_RETURN(whd_wifi_sae_password(ifp, security_key, key_length) );
+            }
+            else
+            {
+                /* Disable Roaming in FW, becuase our wpa3_external_supplicant's limitation.
+                   If FW report WLC_E_EXT_AUTH_REQ during roaming, Host already called whd_wifi_stop_external_auth_request. */
+                CHECK_RETURN(whd_wifi_set_iovar_value(ifp, IOVAR_STR_ROAM_OFF, 1) );
             }
             break;
 
@@ -1361,6 +1382,10 @@ static uint32_t whd_wifi_prepare_join(whd_interface_t ifp, whd_security_t auth_t
         case WHD_SECURITY_WPA2_WPA_AES_PSK:
         case WHD_SECURITY_WPA2_WPA_MIXED_PSK:
             *wpa_auth = (uint32_t)WPA2_AUTH_PSK;
+            break;
+
+        case WHD_SECURITY_WPA2_AES_PSK_SHA256:
+            *wpa_auth = (uint32_t)WPA2_AUTH_PSK_SHA256;
             break;
 
         case WHD_SECURITY_WPA3_SAE:
@@ -2024,6 +2049,11 @@ static void *whd_wifi_scan_events_handler(whd_interface_t ifp, const whd_event_h
             {
                 record->security |= WPA2_SECURITY;
             }
+            if (akm_suite_list_item == (uint32_t)WHD_AKM_PSK_SHA256)
+            {
+                record->security |= WPA2_SECURITY;
+                record->security |= WPA2_SHA256_SECURITY;
+            }
             if (akm_suite_list_item == (uint32_t)WHD_AKM_SAE_SHA256)
             {
                 record->security |= WPA3_SECURITY;
@@ -2368,7 +2398,7 @@ uint32_t whd_wifi_scan_synch(whd_interface_t ifp,
     whd_scan_result_callback_t handler = (*count == 0)
                                          ? whd_scan_count_handler : whd_scan_result_handler;
 
-    scan_result_ptr = (whd_scan_result_t *)malloc(sizeof(whd_scan_result_t) );
+    scan_result_ptr = (whd_scan_result_t *)whd_mem_malloc(sizeof(whd_scan_result_t) );
     if (scan_result_ptr == NULL)
     {
         goto error;
@@ -2396,7 +2426,7 @@ uint32_t whd_wifi_scan_synch(whd_interface_t ifp,
     }
     if (scan_result_ptr != NULL)
     {
-        free(scan_result_ptr);
+        whd_mem_free(scan_result_ptr);
         scan_result_ptr = NULL;
     }
     *count = scan_userdata.offset;
@@ -2406,7 +2436,7 @@ uint32_t whd_wifi_scan_synch(whd_interface_t ifp,
 error:
     if (scan_result_ptr != NULL)
     {
-        free(scan_result_ptr);
+        whd_mem_free(scan_result_ptr);
         scan_result_ptr = NULL;
     }
 
@@ -2649,7 +2679,7 @@ uint32_t  whd_wifi_deauth_sta(whd_interface_t ifp, whd_mac_t *mac, whd_dot11_rea
         }
 
         size = (sizeof(uint32_t) + (max_clients * sizeof(whd_mac_t) ) );
-        buffer = calloc(1, size);
+        buffer = whd_mem_calloc(1, size);
 
         if (buffer == NULL)
         {
@@ -2666,7 +2696,7 @@ uint32_t  whd_wifi_deauth_sta(whd_interface_t ifp, whd_mac_t *mac, whd_dot11_rea
         if (result != WHD_SUCCESS)
         {
             WPRINT_WHD_ERROR( ("Failed to get client list, %s failed at line %d \n", __func__, __LINE__) );
-            free(buffer);
+            whd_mem_free(buffer);
             return result;
         }
 
@@ -2675,7 +2705,7 @@ uint32_t  whd_wifi_deauth_sta(whd_interface_t ifp, whd_mac_t *mac, whd_dot11_rea
         if (result != WHD_SUCCESS)
         {
             WPRINT_WHD_ERROR( ("Function %s failed at line %d \n", __func__, __LINE__) );
-            free(buffer);
+            whd_mem_free(buffer);
             return result;
         }
 
@@ -2692,7 +2722,7 @@ uint32_t  whd_wifi_deauth_sta(whd_interface_t ifp, whd_mac_t *mac, whd_dot11_rea
                 if (scb_val == NULL)
                 {
                     WPRINT_WHD_ERROR( ("Buffer alloc failed in function %s at line %d \n", __func__, __LINE__) );
-                    free(buffer);
+                    whd_mem_free(buffer);
                     return WHD_BUFFER_ALLOC_FAIL;
                 }
                 memset( (char *)scb_val, 0, sizeof(scb_val_t) );
@@ -2710,7 +2740,7 @@ uint32_t  whd_wifi_deauth_sta(whd_interface_t ifp, whd_mac_t *mac, whd_dot11_rea
             ++current;
         }
 
-        free(buffer);
+        whd_mem_free(buffer);
 
         return WHD_SUCCESS;
     }
@@ -3442,6 +3472,55 @@ whd_result_t whd_wifi_send_auth_frame(whd_interface_t ifp, whd_auth_params_t *au
     memcpy(auth_frame->data, &auth_params->data[DOT11_MGMT_HDR_LEN], auth_params->len);
     auth_frame->dwell_time = MGMT_AUTH_FRAME_DWELL_TIME;
     RETURN_WITH_ASSERT(whd_cdc_send_iovar(ifp, CDC_SET, buffer, NULL) );
+}
+
+uint32_t whd_wifi_he_omi(whd_interface_t ifp, whd_he_omi_params_t *he_omi_params)
+{
+    (void)ifp;
+    (void)he_omi_params;
+    return WHD_SUCCESS;
+}
+
+uint32_t whd_wifi_bss_max_idle(whd_interface_t ifp, uint16_t period)
+{
+    (void)ifp;
+    (void)period;
+    return WHD_SUCCESS;
+}
+
+uint32_t whd_wifi_itwt_setup(whd_interface_t ifp, whd_itwt_setup_params_t *twt_params)
+{
+    (void)ifp;
+    (void)twt_params;
+    return WHD_SUCCESS;
+}
+
+uint32_t whd_wifi_btwt_join(whd_interface_t ifp, whd_btwt_join_params_t *twt_params)
+{
+    (void)ifp;
+    (void)twt_params;
+    return WHD_SUCCESS;
+}
+
+uint32_t whd_wifi_twt_teardown(whd_interface_t ifp, whd_twt_teardown_params_t *twt_params)
+{
+    (void)ifp;
+    (void)twt_params;
+    return WHD_SUCCESS;
+}
+
+uint32_t whd_wifi_twt_information_frame(whd_interface_t ifp, whd_twt_information_params_t *twt_params)
+{
+    (void)ifp;
+    (void)twt_params;
+    return WHD_SUCCESS;
+}
+
+uint32_t whd_wifi_btwt_config(whd_interface_t ifp, whd_btwt_config_params_t *twt_params)
+{
+    (void)ifp;
+    (void)twt_params;
+    return WHD_SUCCESS;
 }
 
 uint32_t whd_wifi_set_ioctl_value(whd_interface_t ifp, uint32_t ioctl, uint32_t value)
@@ -4817,3 +4896,4 @@ whd_tko_toggle(whd_interface_t ifp, whd_bool_t enable)
     }
     return result;
 }
+

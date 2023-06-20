@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,7 @@
  *  Provides generic clm blob file download functionality
  */
 
-#include <stdlib.h>
+#include "whd_utils.h"
 #include "whd_clm.h"
 #include "whd_wlioctl.h"
 #include "whd_cdc_bdc.h"
@@ -100,7 +100,7 @@ whd_result_t whd_process_clm_data(whd_interface_t ifp)
     size2alloc = data_offset + BLOCK_SIZE;
 
 
-    if ( (chunk_buf = (unsigned char *)malloc(size2alloc) ) != NULL )
+    if ( (chunk_buf = (unsigned char *)whd_mem_malloc(size2alloc) ) != NULL )
     {
         memset(chunk_buf, 0, size2alloc);
         transfer_progress = 0;
@@ -134,7 +134,7 @@ whd_result_t whd_process_clm_data(whd_interface_t ifp)
             }
         }
 
-        free(chunk_buf);
+        whd_mem_free(chunk_buf);
         if (ret != WHD_SUCCESS)
         {
             whd_result_t ret_clmload_status;
@@ -170,3 +170,4 @@ whd_result_t whd_process_clm_data(whd_interface_t ifp)
 
     return ret;
 }
+
