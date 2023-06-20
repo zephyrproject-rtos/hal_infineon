@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,7 @@
  *
  */
 
-#include <stdlib.h>
+#include "whd_utils.h"
 #include "whd_bus.h"
 #include "whd_int.h"
 
@@ -67,7 +67,7 @@ whd_result_t whd_bus_bt_attach(whd_driver_t whd_driver, void *btdata,
         return WHD_SUCCESS;
     }
     /* Allocate bt dev */
-    btdev = (whd_bt_dev_t)malloc(sizeof(struct whd_bt_dev) );
+    btdev = (whd_bt_dev_t)whd_mem_malloc(sizeof(struct whd_bt_dev) );
     if (btdev == NULL)
     {
         WPRINT_WHD_ERROR( ("Memory allocation failed for whd_bt_dev_t in %s\n", __FUNCTION__) );
@@ -97,7 +97,7 @@ void whd_bus_bt_detach(whd_driver_t whd_driver)
         if (whd_driver->bt_dev)
         {
             whd_driver->bt_dev = NULL;
-            free(btdev);
+            whd_mem_free(btdev);
         }
     }
 }

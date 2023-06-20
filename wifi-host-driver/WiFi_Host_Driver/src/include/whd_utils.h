@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,7 +39,9 @@ extern "C" {
 /**
  * determine size (number of elements) in an array
  */
-#define WHD_ARRAY_SIZE(a)                                 (sizeof(a) / sizeof(a[0]) )
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(a)                                 (sizeof(a) / sizeof(a[0]) )
+#endif
 
 /** Searches for a specific WiFi Information Element in a byte array
  *
@@ -186,7 +188,58 @@ bool whd_str_to_ip(const char *ip4addr, size_t len, void *dest);
  */
 uint8_t whd_ip4_to_string(const void *ip4addr, char *p);
 
+
+/*!
+ ******************************************************************************
+ * The wrapper function for memory allocation.
+ * It allocates the requested memory and returns a pointer to it.
+ * In default implementation it uses The C library function malloc().
+ *
+ * Use macro WHD_USE_CUSTOM_MALLOC_IMPL (-D) for custom whd_mem_malloc/
+ * whd_mem_calloc/whd_mem_free inplemetation.
+ *
+ * @param[in] size     :  This is the size of the memory block, in bytes.
+ *
+ * @return
+ *  This function returns a pointer to the allocated memory, or NULL if the
+ *  request fails.
+ */
+void *whd_mem_malloc(size_t size);
+
+/*!
+ ******************************************************************************
+ * The wrapper function for memory allocation.
+ * It allocates the requested memory and sets allocated memory to zero.
+ * In default implementation it uses The C library function calloc().
+ *
+ * Use macro WHD_USE_CUSTOM_MALLOC_IMPL (-D) for custom whd_mem_malloc/
+ * whd_mem_calloc/whd_mem_free inplemetation.
+ *
+ * @param[in] nitems   :  This is the number of elements to be allocated.
+ * @param[in] size     :  This is the size of elements.
+ *
+ * @return
+ *  This function returns a pointer to the allocated memory, or NULL if the
+ *  request fails.
+ */
+void *whd_mem_calloc(size_t nitems, size_t size);
+
+/*!
+ ******************************************************************************
+ * The wrapper function for free allocated memory.
+ * In default implementation it uses The C library function free().
+ *
+ * Use macro WHD_USE_CUSTOM_MALLOC_IMPL (-D) for custom whd_mem_malloc/
+ * whd_mem_calloc/whd_mem_free inplemetation.
+ *
+ * @param[in] ptr     :  pointer to a memory block previously allocated
+ *                       with whd_mem_malloc, whd_mem_calloc
+ * @return
+ */
+void whd_mem_free(void *ptr);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 #endif
+

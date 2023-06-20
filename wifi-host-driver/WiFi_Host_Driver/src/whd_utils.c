@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@
  *
  * Utilities to help do specialized (not general purpose) WHD specific things
  */
+#include <stdlib.h>
 #include "whd_debug.h"
 #include "whd_utils.h"
 #include "whd_chip_constants.h"
@@ -1167,3 +1168,22 @@ uint8_t whd_ip4_to_string(const void *ip4addr, char *p)
     // Return length of generated string, excluding the terminating null character
     return outputPos;
 }
+
+#ifndef WHD_USE_CUSTOM_MALLOC_IMPL
+
+inline void *whd_mem_malloc (size_t size)
+{
+    return malloc(size);
+}
+
+inline void *whd_mem_calloc(size_t nitems, size_t size)
+{
+    return calloc(nitems, size);
+}
+
+inline void whd_mem_free(void *ptr)
+{
+    free(ptr);
+}
+
+#endif /* ifndef WHD_USE_CUSTOM_MALLOC_IMPL */

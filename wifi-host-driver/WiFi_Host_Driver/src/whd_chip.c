@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -506,7 +506,7 @@ whd_result_t whd_wifi_read_wlan_log_unsafe(whd_driver_t whd_driver, uint32_t wla
     if (c->buf == NULL)
     {
         c->bufsize = dtoh32(c->log.buf_size);
-        c->buf = malloc(c->bufsize);
+        c->buf = whd_mem_malloc(c->bufsize);
         if (c->buf == NULL)
         {
             WPRINT_WHD_ERROR( ("%s:%d c->buf IS null \n", __FUNCTION__, __LINE__) );
@@ -897,7 +897,7 @@ uint32_t whd_wifi_print_whd_log(whd_driver_t whd_driver)
 
     WHD_IOCTL_PRINT(whd_driver);
 
-    if ( (buffer = malloc(WLAN_LOG_BUF_LEN) ) == NULL )
+    if ( (buffer = whd_mem_malloc(WLAN_LOG_BUF_LEN) ) == NULL )
     {
         WPRINT_WHD_ERROR( ("Memory allocation failed for log buffer in %s \n", __FUNCTION__) );
         return WHD_MALLOC_FAILURE;
@@ -908,7 +908,7 @@ uint32_t whd_wifi_print_whd_log(whd_driver_t whd_driver)
     {
         whd_print_logbuffer();  // This is not supported yet.
     }
-    free(buffer);
+    whd_mem_free(buffer);
     CHECK_RETURN(result);
     return result;
 }
@@ -925,7 +925,7 @@ whd_result_t whd_wifi_read_fw_capabilities(whd_interface_t ifp)
     result = whd_wifi_get_iovar_buffer(ifp, IOVAR_STR_CAP, (uint8_t *)caps, sizeof(caps) );
     CHECK_RETURN(result);
 
-    for (uint32_t i = 0; i < WHD_ARRAY_SIZE(whd_fwcap_map); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(whd_fwcap_map); i++)
     {
         if (strstr(caps, whd_fwcap_map[i].fwcap_name) )
         {
@@ -1534,3 +1534,4 @@ whd_result_t whd_wlan_bus_complete_ds_wake(whd_driver_t whd_driver, whd_bool_t w
         return WHD_SUCCESS;
     }
 }
+

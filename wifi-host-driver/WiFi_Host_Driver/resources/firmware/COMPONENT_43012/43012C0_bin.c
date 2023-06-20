@@ -19,8 +19,8 @@
 #if defined(CY_STORAGE_WIFI_DATA)
 CY_SECTION_WHD(CY_STORAGE_WIFI_DATA) __attribute__((used))
 #endif
-const unsigned char wifi_firmware_image_data[436005] = {
+const unsigned char wifi_firmware_image_data[436417] = {
         #include <cyw43xx_fw_blob.inc>
 };
-const resource_hnd_t wifi_firmware_image = { RESOURCE_IN_MEMORY, 463571, {.mem = { (const char *) wifi_firmware_image_data }}};
+const resource_hnd_t wifi_firmware_image = { RESOURCE_IN_MEMORY, 436417, {.mem = { (const char *) wifi_firmware_image_data }}};
 #endif /* !WLAN_MFG_FIRMWARE */

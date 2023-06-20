@@ -1,13 +1,13 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company)
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,6 @@
  *  sending/receiving raw packets etc
  */
 
-#include <stdlib.h>
 #include <string.h>  /* For memcpy */
 
 #include "cybsp.h"
@@ -50,7 +49,7 @@
 #include "whd_debug.h"
 #include "whd_types_int.h"
 #include "whd_resource_if.h"
-
+#include "whd_utils.h"
 
 /******************************************************
 *             Constants
@@ -173,7 +172,7 @@ uint32_t whd_bus_spi_attach(whd_driver_t whd_driver, whd_spi_config_t *whd_spi_c
         return WHD_BADARG;
     }
 
-    whd_bus_info = (whd_bus_info_t *)malloc(sizeof(whd_bus_info_t) );
+    whd_bus_info = (whd_bus_info_t *)whd_mem_malloc(sizeof(whd_bus_info_t) );
 
     if (whd_bus_info == NULL)
     {
@@ -184,7 +183,7 @@ uint32_t whd_bus_spi_attach(whd_driver_t whd_driver, whd_spi_config_t *whd_spi_c
 
     whd_driver->bus_if = whd_bus_info;
 
-    whd_driver->bus_priv = (struct whd_bus_priv *)malloc(sizeof(struct whd_bus_priv) );
+    whd_driver->bus_priv = (struct whd_bus_priv *)whd_mem_malloc(sizeof(struct whd_bus_priv) );
 
     if (whd_driver->bus_priv == NULL)
     {
@@ -240,12 +239,12 @@ void whd_bus_spi_detach(whd_driver_t whd_driver)
 {
     if (whd_driver->bus_if != NULL)
     {
-        free(whd_driver->bus_if);
+        whd_mem_free(whd_driver->bus_if);
         whd_driver->bus_if = NULL;
     }
     if (whd_driver->bus_priv != NULL)
     {
-        free(whd_driver->bus_priv);
+        whd_mem_free(whd_driver->bus_priv);
         whd_driver->bus_priv = NULL;
     }
 }
@@ -721,7 +720,7 @@ whd_result_t whd_bus_spi_init(whd_driver_t whd_driver)
     }
     if (whd_driver->aligned_addr == NULL)
     {
-        if ( (aligned_addr = malloc(WHD_LINK_MTU) ) == NULL )
+        if ( (aligned_addr = whd_mem_malloc(WHD_LINK_MTU) ) == NULL )
         {
             WPRINT_WHD_ERROR( ("Memory allocation failed for aligned_addr in %s \n", __FUNCTION__) );
             return WHD_MALLOC_FAILURE;
@@ -731,14 +730,14 @@ whd_result_t whd_bus_spi_init(whd_driver_t whd_driver)
     result = whd_chip_specific_init(whd_driver);
     if (result != WHD_SUCCESS)
     {
-        free(whd_driver->aligned_addr);
+        whd_mem_free(whd_driver->aligned_addr);
         whd_driver->aligned_addr = NULL;
     }
     CHECK_RETURN(result);
     result = whd_ensure_wlan_bus_is_up(whd_driver);
     if (result != WHD_SUCCESS)
     {
-        free(whd_driver->aligned_addr);
+        whd_mem_free(whd_driver->aligned_addr);
         whd_driver->aligned_addr = NULL;
     }
     CHECK_RETURN(result);
@@ -753,7 +752,7 @@ whd_result_t whd_bus_spi_deinit(whd_driver_t whd_driver)
     //host_platform_reset_wifi (WHD_TRUE);
     if (whd_driver->aligned_addr)
     {
-        free(whd_driver->aligned_addr);
+        whd_mem_free(whd_driver->aligned_addr);
         whd_driver->aligned_addr = NULL;
     }
     whd_bus_set_resource_download_halt(whd_driver, WHD_FALSE);
@@ -1367,3 +1366,4 @@ static whd_result_t whd_bus_spi_set_backplane_window(whd_driver_t whd_driver, ui
 }
 
 #endif /* (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SPI_INTERFACE) */
+
