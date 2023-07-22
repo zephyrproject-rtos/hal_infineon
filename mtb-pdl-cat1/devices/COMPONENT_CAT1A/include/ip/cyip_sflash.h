@@ -4,12 +4,11 @@
 * \brief
 * SFLASH IP definitions
 *
-* \note
-* Generator version: 1.6.0.409
-*
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +44,9 @@ typedef struct {
   __IOM uint16_t SILICON_ID;                    /*!< 0x00000002 Indicates Silicon ID of the device */
    __IM uint32_t RESERVED1[2];
   __IOM uint16_t FAMILY_ID;                     /*!< 0x0000000C Indicates Family ID of the device */
-   __IM uint16_t RESERVED2[3];
+  __IOM uint8_t  SYSCALL_ERASE_PROT;            /*!< 0x0000000E Controls the behavior for Erase All and Erase Sector system
+                                                                calls */
+   __IM uint8_t  RESERVED2[5];
   __IOM uint32_t CPUSS_WOUNDING;                /*!< 0x00000014 CPUSS Wounding */
    __IM uint32_t RESERVED3[4];
   __IOM uint32_t SFLASH_SVN;                    /*!< 0x00000028 SFLASH Subversion */
@@ -194,6 +195,9 @@ typedef struct {
 /* SFLASH.FAMILY_ID */
 #define SFLASH_FAMILY_ID_FAMILY_ID_Pos          0UL
 #define SFLASH_FAMILY_ID_FAMILY_ID_Msk          0xFFFFUL
+/* SFLASH.SYSCALL_ERASE_PROT */
+#define SFLASH_SYSCALL_ERASE_PROT_DATA_Pos      0UL
+#define SFLASH_SYSCALL_ERASE_PROT_DATA_Msk      0xFFUL
 /* SFLASH.CPUSS_WOUNDING */
 #define SFLASH_CPUSS_WOUNDING_CPUSS_WOUNDING_Pos 0UL
 #define SFLASH_CPUSS_WOUNDING_CPUSS_WOUNDING_Msk 0xFFFFFFFFUL

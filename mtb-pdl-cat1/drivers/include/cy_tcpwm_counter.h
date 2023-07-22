@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_tcpwm_counter.h
-* \version 1.30
+* \version 1.60
 *
 * \brief
 * The header file of the TCPWM Timer Counter driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright 2016-2021 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,8 +99,6 @@ extern "C" {
 * Any of the peripheral clock dividers could be used. Use the
 * \ref group_sysclk driver API to do that.
 *
-* \snippet tcpwm/counter/snippet/main.c snippet_Cy_TCPWM_Counter_Clock
-*
 * \subsection group_tcpwm_counter_enable Enable Counter
 * Counter has to be enabled before starting
 *
@@ -123,7 +121,16 @@ extern "C" {
 * \addtogroup group_tcpwm_data_structures_counter
 * \{
 */
-
+#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+/** Counter Direction modes  */
+typedef enum
+{
+    CY_TCPWM_COUNTER_DIRECTION_DISABLE  = 0UL, /**< Counter changes current count direction is disabled */
+    CY_TCPWM_COUNTER_DIRECTION_FALLING  = 1UL, /**< Counter changes current count direction based on falling edge of capture0 input */
+    CY_TCPWM_COUNTER_DIRECTION_RISING   = 2UL, /**< Counter changes current count direction based on rising edge of capture0 input */
+    CY_TCPWM_COUNTER_DIRECTION_LEVEL    = 3UL, /**< Counter count increase when capture0 level equal to high, counter count decrease when capture0 level equals to low */
+} cy_en_counter_direction_t;
+#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
 /** Counter Timer configuration structure */
 typedef struct cy_stc_tcpwm_counter_config
 {
@@ -161,8 +168,13 @@ typedef struct cy_stc_tcpwm_counter_config
     uint32_t    compare2;           /**< Sets the value for Compare1  */
     uint32_t    compare3;           /**< Sets the value for the buffered Compare1 */
     uint32_t    trigger0Event;      /**< Configures which internal event generates on output trigger 0*/
-    uint32_t    trigger1Event;        /**< Configures which internal event generates on output trigger 1*/
-#endif
+    uint32_t    trigger1Event;      /**< Configures which internal event generates on output trigger 1*/
+#endif /* (CY_IP_MXTCPWM_VERSION >= 2U) || defined (CY_DOXYGEN) */
+#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+    bool        buffer_swap_enable; /**< Configures swapping mechanism between CC0 and buffered CC0, CC1 and buffered CC1, PERIOD and buffered PERIOD, DT and buffered DT  */
+    cy_en_counter_direction_t direction_mode; /**< Counter direction mode */ 
+    
+#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
 }cy_stc_tcpwm_counter_config_t;
 /** \} group_tcpwm_data_structures_counter */
 
@@ -271,6 +283,9 @@ __STATIC_INLINE void Cy_TCPWM_Counter_SetCompare1Val (TCPWM_Type *base, uint32_t
 __STATIC_INLINE void Cy_TCPWM_Counter_SetCompare1BufVal (TCPWM_Type *base, uint32_t cntNum, uint32_t compareBuf1);
 __STATIC_INLINE void Cy_TCPWM_Counter_EnableCompare1Swap(TCPWM_Type *base, uint32_t cntNum,  bool enable);
 #endif
+#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+__STATIC_INLINE void Cy_TCPWM_Counter_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable);
+#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
 
 /*******************************************************************************
 * Function Name: Cy_TCPWM_Counter_Enable
@@ -786,7 +801,7 @@ __STATIC_INLINE uint32_t Cy_TCPWM_Counter_GetCapture1BufVal (TCPWM_Type const *b
 * Function Name: Cy_TCPWM_Counter_EnableCompare1Swap
 ****************************************************************************//**
 *
-* Enables the comparison swap of compare1 and compareBuf1 when the comparision
+* Enables the comparison swap of compare1 and compareBuf1 when the comparison
 * value is true
 *
 * \param base
@@ -807,6 +822,29 @@ __STATIC_INLINE void Cy_TCPWM_Counter_EnableCompare1Swap(TCPWM_Type *base, uint3
     Cy_TCPWM_Block_EnableCompare1Swap(base, cntNum, enable);
 }
 #endif
+#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+/*******************************************************************************
+* Function Name: Cy_TCPWM_Counter_EnableSwap
+****************************************************************************//**
+*
+* Enables/disables swapping mechanism between CC0 and buffered CC0, CC1 and buffered CC1, PERIOD and buffered PERIOD, DT and buffered DT.
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param enable
+* true = swap enabled; false = swap disabled
+*
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_Counter_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
+{
+    Cy_TCPWM_Block_EnableSwap(base, cntNum, enable);
+}
+#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) */
 /** \} group_tcpwm_functions_counter */
 
 /** \} group_tcpwm_counter */

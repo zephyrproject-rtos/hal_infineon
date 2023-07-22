@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_usbfs_dev_drv.h
-* \version 2.20.2
+* \version 2.30
 *
 * Provides API declarations of the USBFS driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2020 Cypress Semiconductor Corporation
+* Copyright 2018-2023 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@
 *
 * <b>The primary usage model for the USBFS driver is to provide a defined API
 * interface to
-* <a href="https://cypresssemiconductorco.github.io/usbdev/usbfs_dev_api_reference_manual/html/index.html" target="_blank">
+* <a href="https://Infineon.github.io/usbdev/usbfs_dev_api_reference_manual/html/index.html" target="_blank">
 * USB Device Middleware</a> component that works on top of it.</b> \n
 * The driver also provides an API interface for the application to implement the required
 * functionality:
@@ -579,6 +579,21 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.30</td>
+*     <td> \ref Cy_USBFS_Dev_Drv_DeInit() was updated to reduce power
+*         consumption of the USB IP block after deinitialization.
+*     </td>
+*     <td> \ref Cy_USBFS_Dev_Drv_DeInit() did not return all registers to the
+*         default value, which caused the USB IP block to consume more current
+*         when it was disabled.
+*     </td>
+*   </tr>
+*   <tr>
+*     <td>2.20.3</td>
+*     <td>Minor syntax update and spell fix.</td>
+*     <td>Updated for compliance with MISRA-C:2012 standard and fixing spell errors.</td>
+*   </tr>
+*   <tr>
 *     <td>2.20.2</td>
 *     <td>Minor syntax updates. Added specific deviations documentation.</td>
 *     <td>Updated for compliance with MISRA-C:2012 standard.</td>
@@ -712,7 +727,7 @@ extern "C" {
 #define CY_USBFS_VERSION_MAJOR      (2)
 
 /** USBFS Driver minor version */
-#define CY_USBFS_VERSION_MINOR      (20)
+#define CY_USBFS_VERSION_MINOR      (30)
 
 /** USBFS Driver identifier */
 #define CY_USBFS_ID                 CY_PDL_DRV_ID(0x3BU)
@@ -1425,7 +1440,7 @@ __STATIC_INLINE cy_en_usbfs_dev_drv_lpm_req_t Cy_USBFS_Dev_Drv_Lpm_GetResponse(U
 /* Validation macros */
 #define CY_USBFS_DEV_DRV_IS_EP_VALID(endpoint)  (((endpoint) > 0U) && ((endpoint) <= CY_USBFS_DEV_DRV_NUM_EPS_MAX))
 #define CY_USBFS_DEV_DRV_EP2PHY(endpoint)       ((uint32_t) (endpoint) - 1U)
-#define CY_USBFS_DEV_DRV_EP2MASK(endpont)       ((uint32_t) (0x1UL << endpoint))
+#define CY_USBFS_DEV_DRV_EP2MASK(endpoint)       ((uint32_t) (0x1UL << (endpoint)))
 
 #define CY_USBFS_DEV_DRV_EPADDR2EP(endpointAddr)        ((uint32_t) (endpointAddr) & 0x0FU)
 #define CY_USBFS_DEV_DRV_IS_EP_DIR_IN(endpointAddr)     (0U != ((endpointAddr) & 0x80U))

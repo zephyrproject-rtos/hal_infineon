@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_mem.h
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides the headers for the memory management API
 *  in the Crypto driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,11 +82,15 @@ __STATIC_INLINE void Cy_Crypto_Core_MemCpy(CRYPTO_Type *base, void* dst, void co
 {
     if (CY_CRYPTO_V1)
     {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
         Cy_Crypto_Core_V1_MemCpy(base, dst, src, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
     }
     else
     {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
         Cy_Crypto_Core_V2_MemCpy(base, dst, src, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
     }
 }
 
@@ -112,11 +118,15 @@ __STATIC_INLINE void Cy_Crypto_Core_MemSet(CRYPTO_Type *base, void* dst, uint8_t
 {
     if (CY_CRYPTO_V1)
     {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
         Cy_Crypto_Core_V1_MemSet(base, dst, data, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
     }
     else
     {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
         Cy_Crypto_Core_V2_MemSet(base, dst, data, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
     }
 }
 
@@ -145,14 +155,18 @@ __STATIC_INLINE void Cy_Crypto_Core_MemSet(CRYPTO_Type *base, void* dst, uint8_t
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_Crypto_Core_MemCmp(CRYPTO_Type *base, void const *src0, void const *src1, uint16_t size)
 {
-    uint32_t tmpResult;
+    uint32_t tmpResult = 1u;
     if (CY_CRYPTO_V1)
     {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
         tmpResult = Cy_Crypto_Core_V1_MemCmp(base, src0, src1, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
     }
     else
     {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
         tmpResult = Cy_Crypto_Core_V2_MemCmp(base, src0, src1, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
     }
 
     return (tmpResult);
@@ -187,11 +201,15 @@ __STATIC_INLINE void Cy_Crypto_Core_MemXor(CRYPTO_Type *base, void* dst,
 {
     if (CY_CRYPTO_V1)
     {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
         Cy_Crypto_Core_V1_MemXor(base, dst, src0, src1, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
     }
     else
     {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
         Cy_Crypto_Core_V2_MemXor(base, dst, src0, src1, size);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
     }
 }
 

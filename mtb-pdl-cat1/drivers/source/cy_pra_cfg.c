@@ -1,8 +1,8 @@
 /***************************************************************************//**
 * \file cy_pra_cfg.c
-* \version 2.30
+* \version 2.40.1
 *
-* \brief The source code file for the PRA driver.  The API is not intented to
+* \brief The source code file for the PRA driver.  The API is not intended to
 * be used directly by user application.
 *
 ********************************************************************************
@@ -35,7 +35,7 @@
 #if defined (CY_DEVICE_SECURE) || defined (CY_DOXYGEN)
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.2', 15, \
-'Checked manually. All the recursive cycles are handled properly.');
+'Checked manually. All the recursive cycles are handled properly.')
 
 #if (CY_CPU_CORTEX_M0P)
     #include "cy_prot.h"
@@ -668,7 +668,7 @@ static uint32_t Cy_PRA_GetInputPathMuxFrq(cy_en_clkpath_in_sources_t pathMuxSrc,
 *
 * \return
 * CY_PRA_STATUS_SUCCESS If the frequency is updated.
-* CY_PRA_STATUS_INVALID_PARAM If clkpaht is not the valid path.
+* CY_PRA_STATUS_INVALID_PARAM If clkpath is not the valid path.
 *
 *******************************************************************************/
 static cy_en_pra_status_t Cy_PRA_GetInputSourceFreq(uint32_t clkPath, const cy_stc_pra_system_config_t *devConfig, uint32_t *srcFreq )
@@ -1016,7 +1016,7 @@ static cy_en_pra_status_t Cy_PRA_ValidateECO(const cy_stc_pra_system_config_t *d
 
     if ((CY_SYSCLK_ECOSTAT_STABLE != Cy_SysClk_EcoGetStatus()) && (devConfig->ecoEnable))
     {
-        if (((devConfig->ecoFreqHz >= CY_PRA_ECO_FREQ_MIN) && (devConfig->ecoFreqHz <= CY_PRA_ECO_FREQ_MAX)) /* legal range of ECO frequecy is [16.0000-35.0000] */
+        if (((devConfig->ecoFreqHz >= CY_PRA_ECO_FREQ_MIN) && (devConfig->ecoFreqHz <= CY_PRA_ECO_FREQ_MAX)) /* legal range of ECO frequency is [16.0000-35.0000] */
             && ((devConfig->ecoLoad >= CY_PRA_ECO_CSM_MIN) && (devConfig->ecoLoad <= CY_PRA_ECO_CSM_MAX)) /* ECO cLoad range [1 - 100] */
             && ((devConfig->ecoEsr >= CY_PRA_ECO_ESR_MIN) && (devConfig->ecoEsr <= CY_PRA_ECO_ESR_MAX)) /* ECO ESR range [1 - 1000] */
             && ((devConfig->ecoDriveLevel >= CY_PRA_ECO_DRV_MIN) && (devConfig->ecoDriveLevel <= CY_PRA_ECO_DRV_MAX))) /* ECO Drive Level range [1 - 1000] */
@@ -3206,7 +3206,7 @@ void Cy_PRA_OpenSrssMain2(void)
 
 #endif /* (CY_CPU_CORTEX_M0P) || defined (CY_DOXYGEN) */
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2')
 
 #endif /* (CY_DEVICE_SECURE) */
 

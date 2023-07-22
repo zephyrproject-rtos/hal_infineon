@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_spi.h
-* \version 2.80
+* \version 3.10
 *
 * Provides SPI API declarations of the SCB driver.
 *
@@ -47,7 +47,7 @@
 *     just for each byte
 * * Master supports late sampling for better timing margin
 * * Master supports continuous SPI clock
-* * Data frame size programmable from 4 bits to 16 bits
+* * Data frame size programmable from 4 bits to 32 bits
 * * Programmable oversampling
 * * MSb or LSb first
 * * Median filter available for inputs
@@ -123,6 +123,10 @@
 *
 * \snippet scb/spi_snippet/main.c SPI_CFG_DATA_RATE_MASTER
 *
+* \note
+* In CAT1D devices, to avoid potential metastable conditions at 50 MHz, set
+* clock to 200 MHz, oversample to 4 and median filter to 1.
+*
 * <b>Refer to the technical reference manual (TRM) section SPI sub-section
 * Oversampling and Bit Rate to get information about how to configure SPI to run
 * with desired data rate</b>.
@@ -138,6 +142,7 @@
 *
 * \snippet scb/spi_snippet/main.c SPI_INTR_A
 * \snippet scb/spi_snippet/main.c SPI_INTR_B
+* \snippet scb/spi_snippet/main.c SPI_INTR_C
 *
 ********************************************************************************
 * \subsection group_scb_spi_enable Enable SPI
@@ -291,7 +296,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSCB)
+#if (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB))
 
 #include "cy_scb_common.h"
 
@@ -381,10 +386,10 @@ typedef enum
 } cy_en_scb_spi_polarity_t;
 
 /** SPI Parity */
-#if(CY_IP_MXSCB_VERSION>=3) || defined (CY_DOXYGEN)
+#if(((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
 /**
 * \note
-* This enum is available for CAT1B devices.
+* This enum is available for CAT1B and CAT1C devices.
 **/
 typedef enum
 {
@@ -428,11 +433,11 @@ typedef struct cy_stc_scb_spi_config
     * other submodes
     */
     cy_en_scb_spi_sclk_mode_t    sclkMode;
-#if(CY_IP_MXSCB_VERSION>=3) || defined (CY_DOXYGEN)
+#if(((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
     /** Configures the SPI parity */
     /**
     * \note
-    * This parameter is available for CAT1B devices.
+    * This parameter is available for CAT1B and CAT1C devices.
     **/
     cy_en_scb_spi_parity_t parity;
     /**
@@ -441,7 +446,7 @@ typedef struct cy_stc_scb_spi_config
     */
     /**
     * \note
-    * This parameter is available for CAT1B devices.
+    * This parameter is available for CAT1B and CAT1C devices.
     **/
     bool        dropOnParityError;
 #endif /* CY_IP_MXSCB_VERSION */
@@ -456,13 +461,13 @@ typedef struct cy_stc_scb_spi_config
     uint32_t    oversample;
 
     /**
-    * The width of RX data (valid range 4-16). It must be the same as
+    * The width of RX data (valid range 4-32). It must be the same as
     * \ref txDataWidth except in National sub-mode.
     */
     uint32_t    rxDataWidth;
 
     /**
-    * The width of TX data (valid range 4-16). It must be the same as
+    * The width of TX data (valid range 4-32). It must be the same as
     * \ref rxDataWidth except in National sub-mode.
     */
     uint32_t    txDataWidth;
@@ -505,52 +510,46 @@ typedef struct cy_stc_scb_spi_config
     */
     uint32_t    ssPolarity;
 
-#if(CY_IP_MXSCB_VERSION>=3) || defined (CY_DOXYGEN)
+#if(((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
     /**
     * Indicates the SPI SELECT setup delay (between SELECT activation and SPI clock).
     * '0': With this setting the same timing is generated as in SCB v1 block.
-    * CPHA=0: 0.75 SPI clock cycles
-    * CPHA=1: 0.25 SPI clock cycles
+    * 0.75 SPI clock cycles
     * '1': With this setting an additional delay of 1 SPI clock cycle is generated.
-    * CPHA=0: 1.75 SPI clock cycles
-    * CPHA=1: 1.25 SPI clock cycles
-    * Only applies in SPI MOTOROLA submode and when SCLK_CONTINUOUS=0
+    * 1.75 SPI clock cycles
+    * Only applies in SPI MOTOROLA submode, when SCLK_CONTINUOUS=0 and oversampling factor>2.
     */
     /**
     * \note
-    * This parameter is available for CAT1B devices.
+    * This parameter is available for CAT1B and CAT1C devices.
     **/
     bool        ssSetupDelay;
 
     /**
     * Indicates the SPI SELECT hold delay (between SPI clock and SELECT deactivation).
     * '0': With this setting the same timing is generated as in CAT1A devices.
-    * CPHA=0: 0.75 SPI clock cycles
-    * CPHA=1: 0.25 SPI clock cycles
+    * 0.75 SPI clock cycles
     * '1': With this setting an additional delay of 1 SPI clock cycle is generated.
-    * CPHA=0: 1.75 SPI clock cycles
-    * CPHA=1: 1.25 SPI clock cycles
-    * Only applies in SPI MOTOROLA submode and when SCLK_CONTINUOUS=0
+    * 1.75 SPI clock cycles
+    * Only applies in SPI MOTOROLA submode, when SCLK_CONTINUOUS=0 and oversampling factor>2.
     */
     /**
     * \note
-    * This parameter is available for CAT1B devices.
+    * This parameter is available for CAT1B and CAT1C devices.
     **/
     bool        ssHoldDelay;
 
     /**
     * Indicates the SPI SELECT inter-dataframe delay (between SELECT deactivation and SELECT activation).
     * '0': With this setting the same timing is generated as in CAT1A devices.
-    * CPHA=0: 0.75 SPI clock cycles
-    * CPHA=1: 0.25 SPI clock cycles
+    * 1.5 SPI clock cycles
     * '1': With this setting an additional delay of 1 SPI clock cycle is generated.
-    * CPHA=0: 1.75 SPI clock cycles
-    * CPHA=1: 1.25 SPI clock cycles
-    * Only applies in SPI MOTOROLA submode and when SCLK_CONTINUOUS=0
+    * 2.5 SPI clock cycles
+    * Only applies in SPI MOTOROLA submode, when SCLK_CONTINUOUS=0 and oversampling factor>2.
     */
     /**
     * \note
-    * This parameter is available for CAT1B devices.
+    * This parameter is available for CAT1B and CAT1C devices.
     **/
     bool        ssInterFrameDelay;
 #endif /* CY_IP_MXSCB_VERSION */
@@ -907,7 +906,7 @@ cy_en_syspm_status_t Cy_SCB_SPI_HibernateCallback(cy_stc_syspm_callback_params_t
                                                   (CY_SCB_SPI_SLAVE_SELECT3 == (ss)) )
 
 #define CY_SCB_SPI_IS_OVERSAMPLE_VALID(ovs, mode)   ( (CY_SCB_SPI_MASTER == (mode)) ? (((ovs) >= 2UL) && ((ovs) <= 16UL)) : true )
-#define CY_SCB_SPI_IS_DATA_WIDTH_VALID(width)       ( ((width) >= 4UL) && ((width) <= 16UL) )
+#define CY_SCB_SPI_IS_DATA_WIDTH_VALID(width)       ( ((width) >= 4UL) && ((width) <= 32UL) )
 #define CY_SCB_SPI_IS_SS_POLARITY_VALID(polarity)   ( (0UL == ((polarity) & (~0x0FUL))) )
 #define CY_SCB_SPI_IS_BUFFER_VALID(txBuffer, rxBuffer, size)  ( ((size) > 0UL)  && \
                                                                  (false == ((NULL == (txBuffer)) && (NULL == (rxBuffer)))) )
@@ -1522,7 +1521,10 @@ __STATIC_INLINE void Cy_SCB_SPI_WriteArrayBlocking(CySCB_Type *base, void *buffe
 * in this structure.
 *
 * \note
-* To remove the callback, pass NULL as the pointer to the callback function.
+* * To remove the callback, pass NULL as the pointer to the callback function.
+* * To get the event notification, the corresponding interrupt mask needs to be
+*   set in the interrupt mask register so that interrupt request register can
+*   trigger an interrupt event in \ref Cy_SCB_SPI_Interrupt.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SCB_SPI_RegisterCallback(CySCB_Type const *base,
@@ -1582,7 +1584,7 @@ __STATIC_INLINE uint32_t CY_SCB_SPI_GetSclkMode(cy_en_scb_spi_sub_mode_t subMode
 
 /** \} group_scb_spi */
 
-#endif /* (CY_IP_MXSCB) */
+#endif /* (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB)) */
 
 #endif /* (CY_SCB_SPI_H) */
 

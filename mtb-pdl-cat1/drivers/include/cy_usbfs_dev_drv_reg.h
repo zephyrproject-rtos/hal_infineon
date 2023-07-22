@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_usbfs_dev_drv_reg.h
-* \version 2.20.2
+* \version 2.30
 *
 * Provides register access API implementation of the USBFS driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2020 Cypress Semiconductor Corporation
+* Copyright 2018-2023 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -415,6 +415,7 @@ __STATIC_INLINE uint32_t Cy_USBFS_Dev_Drv_GetSieInterruptStatusMasked(USBFS_Type
 __STATIC_INLINE void Cy_USBFS_Dev_Drv_ClearSieInterrupt(USBFS_Type *base, uint32_t mask)
 {
     USBFS_DEV_LPM_INTR_SIE(base) = mask;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) USBFS_DEV_LPM_INTR_SIE(base);
 }
 
@@ -462,6 +463,7 @@ __STATIC_INLINE void Cy_USBFS_Dev_Drv_SetSieInterrupt(USBFS_Type *base, uint32_t
 __STATIC_INLINE void Cy_USBFS_Dev_Drv_WriteEp0Mode(USBFS_Type *base, uint32_t mode)
 {
     USBFS_DEV_EP0_CR(base) = mode;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) USBFS_DEV_EP0_CR(base);
 }
 
@@ -628,6 +630,7 @@ __STATIC_INLINE void Cy_USBFS_Dev_Drv_SetSieEpMode(USBFS_Type *base, uint32_t en
 {
     USBFS_DEV_SIE_EP_CR0(base, endpoint) = _CLR_SET_FLD32U(USBFS_DEV_SIE_EP_CR0(base, endpoint),
                                                             USBFS_USBDEV_SIE_EP1_CR0_MODE, mode);
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) USBFS_DEV_SIE_EP_CR0(base, endpoint);
 }
 
@@ -679,6 +682,7 @@ __STATIC_INLINE void Cy_USBFS_Dev_Drv_SetSieEpStall(USBFS_Type *base, bool inDir
     USBFS_DEV_SIE_EP_CR0(base, endpoint) = USBFS_USBDEV_SIE_EP1_CR0_STALL_Msk |
                                             (inDirection ? CY_USBFS_DEV_DRV_EP_CR_ACK_IN :
                                                            CY_USBFS_DEV_DRV_EP_CR_ACK_OUT);
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */    
     (void) USBFS_DEV_SIE_EP_CR0(base, endpoint);
 }
 
@@ -713,6 +717,7 @@ __STATIC_INLINE void Cy_USBFS_Dev_Drv_ClearSieEpStall(USBFS_Type *base, uint32_t
 
     /* Clear STALL condition and set mode */
     USBFS_DEV_SIE_EP_CR0(base, endpoint) = regVal;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) USBFS_DEV_SIE_EP_CR0(base, endpoint);
 }
 
@@ -930,6 +935,7 @@ __STATIC_INLINE void Cy_USBFS_Dev_Drv_DisableSieEpInterrupt(USBFS_Type *base, ui
 __STATIC_INLINE void Cy_USBFS_Dev_Drv_ClearSieEpInterrupt(USBFS_Type *base, uint32_t endpoint)
 {
     USBFS_DEV_SIE_EP_INT_SR(base) = (uint32_t)(1UL << endpoint);
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void)  USBFS_DEV_SIE_EP_INT_SR(base);
 }
 /** \} group_usbfs_drv_drv_reg_sie_access */
@@ -1102,6 +1108,7 @@ __STATIC_INLINE uint32_t Cy_USBFS_Dev_Drv_GetArbEpInterruptStatusMasked(USBFS_Ty
 __STATIC_INLINE void Cy_USBFS_Dev_Drv_ClearArbEpInterrupt(USBFS_Type *base, uint32_t endpoint, uint32_t mask)
 {
     USBFS_DEV_ARB_EP_SR(base, endpoint) = mask;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) USBFS_DEV_ARB_EP_SR(base, endpoint);
 }
 

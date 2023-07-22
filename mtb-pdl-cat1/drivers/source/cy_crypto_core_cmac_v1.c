@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_cmac_v1.c
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides the source code to the API for the CMAC method
@@ -10,7 +10,9 @@
 *  nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38b.pdf
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,15 +30,17 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXCRYPTO)
+#if defined(CY_IP_MXCRYPTO)
 
 #include "cy_crypto_core_cmac_v1.h"
+
+#if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if (CPUSS_CRYPTO_AES == 1)
+#if (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_CMAC_C)
 
 #include "cy_crypto_core_aes_v1.h"
 #include "cy_crypto_core_hw_v1.h"
@@ -44,7 +48,7 @@ extern "C" {
 #include "cy_syslib.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 2, \
-'Pointer type conversion is intentional');
+'Pointer type conversion is intentional')
 
 static void Cy_Crypto_Core_V1_Cmac_CalcSubKey(uint8_t *srcDstPtr);
 
@@ -291,8 +295,8 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Cmac(CRYPTO_Type *base,
                                           cy_stc_crypto_aes_state_t *aesState)
 {
     cy_stc_crypto_aes_buffers_t  *aesBuffers = (cy_stc_crypto_aes_buffers_t *)(Cy_Crypto_Core_GetVuMemoryAddress(base));
-    cy_stc_crypto_cmac_buffers_t *cmacBuffers =
-        (cy_stc_crypto_cmac_buffers_t *)((uint8_t*)aesBuffers + sizeof(cy_stc_crypto_aes_buffers_t));
+    cy_stc_crypto_v1_cmac_buffers_t *cmacBuffers =
+        (cy_stc_crypto_v1_cmac_buffers_t *)((uint8_t*)aesBuffers + sizeof(cy_stc_crypto_aes_buffers_t));
 
     uint32_t *myBlock = (uint32_t*)(&cmacBuffers->block0);
     uint32_t *myTemp  = (uint32_t*)(&cmacBuffers->block1);
@@ -309,15 +313,17 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Cmac(CRYPTO_Type *base,
     return (CY_CRYPTO_SUCCESS);
 }
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
-#endif /* (CPUSS_CRYPTO_AES == 1) */
+#endif /* (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_CMAC_C) */
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXCRYPTO */
+#endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+
+#endif /* defined(CY_IP_MXCRYPTO) */
 
 
 /* [] END OF FILE */

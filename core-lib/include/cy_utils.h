@@ -6,7 +6,7 @@
  *
  ***************************************************************************************************
  * \copyright
- * Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -28,7 +28,7 @@
  * \addtogroup group_utils Utilities
  * \ingroup group_abstraction
  * \{
- * Basic utility macros and functions.
+ * Basic utility types, macros and functions.
  */
 
 #pragma once
@@ -39,6 +39,15 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
+
+
+/* MISRA directive 4.6 recommends using specific-length typedef for the basic
+ * numerical types of signed and unsigned variants of char, float, and double.
+ */
+typedef char   cy_char8_t;   /**< Specific-length typedef for the basic numerical types of char */
+typedef float  cy_float32_t; /**< Specific-length typedef for the basic numerical types of float */
+typedef double cy_float64_t; /**< Specific-length typedef for the basic numerical types of double */
+
 
 /** Simple macro to suppress the unused parameter warning by casting to void. */
 #define CY_UNUSED_PARAMETER(x) ( (void)(x) )
@@ -105,7 +114,9 @@ static inline void CY_HALT(void)
  * attributes at the first place of declaration/definition.
  * For example: CY_NOINIT uint32_t noinitVar;
  */
-    #if (__ARMCC_VERSION >= 6010050)
+    #if (__ARMCC_VERSION >= 6160001)
+        #define CY_NOINIT           __attribute__ ((section(".bss.noinit")))
+    #elif (__ARMCC_VERSION >= 6010050)
         #define CY_NOINIT           __attribute__ ((section(".noinit")))
     #else
         #define CY_NOINIT           __attribute__ ((section(".noinit"), zero_init))

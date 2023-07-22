@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hw.h
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides the headers to the API for the utils
 *  in the Crypto driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,8 +39,436 @@
 extern "C" {
 #endif
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 1, \
+'Since CY_CRYPTO_V1 is decided by PDL device agnostic / hardware specific model, use of #undef will not make it ambiguous that which macros exist at a particular point within a translation unit.')
+
+
+#if (CY_IP_MXCRYPTO_VERSION == 1u)
 #include "ip/cyip_crypto.h"
+#endif
+
+#if (CY_IP_MXCRYPTO_VERSION == 2u)
 #include "ip/cyip_crypto_v2.h"
+
+/* CRYPTO.CTL */
+#if !defined(CRYPTO_CTL_ENABLED_Pos)
+#define CRYPTO_CTL_ENABLED_Pos                  CRYPTO_V2_CTL_ENABLED_Pos
+#endif
+#if !defined(CRYPTO_CTL_ENABLED_Msk)
+#define CRYPTO_CTL_ENABLED_Msk                  CRYPTO_V2_CTL_ENABLED_Msk
+#endif
+
+/* CRYPTO.STATUS */
+#if !defined(CRYPTO_STATUS_VU_BUSY_Pos)
+#define CRYPTO_STATUS_VU_BUSY_Pos               7UL
+#endif
+#if !defined(CRYPTO_STATUS_VU_BUSY_Msk)
+#define CRYPTO_STATUS_VU_BUSY_Msk               0x80UL
+#endif
+
+/* CRYPTO.ERROR_STATUS1 */
+#if !defined(CRYPTO_ERROR_STATUS1_DATA23_Pos)
+#define CRYPTO_ERROR_STATUS1_DATA23_Pos         0UL
+#endif
+#if !defined(CRYPTO_ERROR_STATUS1_DATA23_Msk)
+#define CRYPTO_ERROR_STATUS1_DATA23_Msk         0xFFFFFFUL
+#endif
+#if !defined(CRYPTO_ERROR_STATUS1_IDX_Pos)
+#define CRYPTO_ERROR_STATUS1_IDX_Pos            CRYPTO_V2_ERROR_STATUS1_IDX_Pos
+#endif
+#if !defined(CRYPTO_ERROR_STATUS1_IDX_Msk)
+#define CRYPTO_ERROR_STATUS1_IDX_Msk            CRYPTO_V2_ERROR_STATUS1_IDX_Msk
+#endif
+#if !defined(CRYPTO_ERROR_STATUS1_VALID_Pos)
+#define CRYPTO_ERROR_STATUS1_VALID_Pos          CRYPTO_V2_ERROR_STATUS1_VALID_Pos
+#endif
+#if !defined(CRYPTO_ERROR_STATUS1_VALID_Msk)
+#define CRYPTO_ERROR_STATUS1_VALID_Msk          CRYPTO_V2_ERROR_STATUS1_VALID_Msk
+#endif
+
+/* CRYPTO.INSTR_FF_STATUS */
+#if !defined(CRYPTO_INSTR_FF_STATUS_USED_Pos)
+#define CRYPTO_INSTR_FF_STATUS_USED_Pos         CRYPTO_V2_INSTR_FF_STATUS_USED_Pos
+#endif
+#if !defined(CRYPTO_INSTR_FF_STATUS_USED_Msk)
+#define CRYPTO_INSTR_FF_STATUS_USED_Msk         CRYPTO_V2_INSTR_FF_STATUS_USED_Msk
+#endif
+#if !defined(CRYPTO_INSTR_FF_STATUS_EVENT_Pos)
+#define CRYPTO_INSTR_FF_STATUS_EVENT_Pos        CRYPTO_V2_INSTR_FF_STATUS_EVENT_Pos
+#endif
+#if !defined(CRYPTO_INSTR_FF_STATUS_EVENT_Msk)
+#define CRYPTO_INSTR_FF_STATUS_EVENT_Msk        CRYPTO_V2_INSTR_FF_STATUS_EVENT_Msk
+#endif
+#if !defined(CRYPTO_INSTR_FF_STATUS_BUSY_Pos)
+#define CRYPTO_INSTR_FF_STATUS_BUSY_Pos         CRYPTO_V2_LOAD0_FF_STATUS_BUSY_Pos
+#endif
+#if !defined(CRYPTO_INSTR_FF_STATUS_BUSY_Msk)
+#define CRYPTO_INSTR_FF_STATUS_BUSY_Msk         CRYPTO_V2_LOAD0_FF_STATUS_BUSY_Msk
+#endif
+
+/* CRYPTO.INSTR_FF_WR */
+#if !defined(CRYPTO_INSTR_FF_WR_DATA32_Pos)
+#define CRYPTO_INSTR_FF_WR_DATA32_Pos           CRYPTO_V2_INSTR_FF_WR_DATA32_Pos
+#endif
+#if !defined(CRYPTO_INSTR_FF_WR_DATA32_Msk)
+#define CRYPTO_INSTR_FF_WR_DATA32_Msk           CRYPTO_V2_INSTR_FF_WR_DATA32_Msk
+#endif
+
+/* CRYPTO.RF_DATA */
+#if !defined(CRYPTO_RF_DATA_DATA32_Pos)
+#define CRYPTO_RF_DATA_DATA32_Pos               CRYPTO_V2_VU_RF_DATA_DATA32_Pos
+#endif
+#if !defined(CRYPTO_RF_DATA_DATA32_Msk)
+#define CRYPTO_RF_DATA_DATA32_Msk               CRYPTO_V2_VU_RF_DATA_DATA32_Msk
+#endif
+
+/* CRYPTO.AES_CTL */
+#if !defined(CRYPTO_AES_CTL_KEY_SIZE_Pos)
+#define CRYPTO_AES_CTL_KEY_SIZE_Pos             CRYPTO_V2_AES_CTL_KEY_SIZE_Pos
+#endif
+#if !defined(CRYPTO_AES_CTL_KEY_SIZE_Msk)
+#define CRYPTO_AES_CTL_KEY_SIZE_Msk             CRYPTO_V2_AES_CTL_KEY_SIZE_Msk
+#endif
+
+/* CRYPTO.PR_LFSR_CTL0 */
+#if !defined(CRYPTO_PR_LFSR_CTL0_LFSR32_Pos)
+#define CRYPTO_PR_LFSR_CTL0_LFSR32_Pos          CRYPTO_V2_PR_LFSR_CTL0_LFSR32_Pos
+#endif
+#if !defined(CRYPTO_PR_LFSR_CTL0_LFSR32_Msk)
+#define CRYPTO_PR_LFSR_CTL0_LFSR32_Msk          CRYPTO_V2_PR_LFSR_CTL0_LFSR32_Msk
+#endif
+
+/* CRYPTO.PR_LFSR_CTL1 */
+#if !defined(CRYPTO_PR_LFSR_CTL1_LFSR31_Pos)
+#define CRYPTO_PR_LFSR_CTL1_LFSR31_Pos          CRYPTO_V2_PR_LFSR_CTL1_LFSR31_Pos
+#endif
+#if !defined(CRYPTO_PR_LFSR_CTL1_LFSR31_Msk)
+#define CRYPTO_PR_LFSR_CTL1_LFSR31_Msk          CRYPTO_V2_PR_LFSR_CTL1_LFSR31_Msk
+#endif
+
+/* CRYPTO.PR_LFSR_CTL2 */
+#if !defined(CRYPTO_PR_LFSR_CTL2_LFSR29_Pos)
+#define CRYPTO_PR_LFSR_CTL2_LFSR29_Pos          CRYPTO_V2_PR_LFSR_CTL2_LFSR29_Pos
+#endif
+#if !defined(CRYPTO_PR_LFSR_CTL2_LFSR29_Msk)
+#define CRYPTO_PR_LFSR_CTL2_LFSR29_Msk          CRYPTO_V2_PR_LFSR_CTL2_LFSR29_Msk
+#endif
+
+/* CRYPTO.TR_CTL0 */
+#if !defined(CRYPTO_TR_CTL0_SAMPLE_CLOCK_DIV_Pos)
+#define CRYPTO_TR_CTL0_SAMPLE_CLOCK_DIV_Pos     CRYPTO_V2_TR_CTL0_SAMPLE_CLOCK_DIV_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL0_SAMPLE_CLOCK_DIV_Msk)
+#define CRYPTO_TR_CTL0_SAMPLE_CLOCK_DIV_Msk     CRYPTO_V2_TR_CTL0_SAMPLE_CLOCK_DIV_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL0_RED_CLOCK_DIV_Pos)
+#define CRYPTO_TR_CTL0_RED_CLOCK_DIV_Pos        CRYPTO_V2_TR_CTL0_RED_CLOCK_DIV_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL0_RED_CLOCK_DIV_Msk)
+#define CRYPTO_TR_CTL0_RED_CLOCK_DIV_Msk        CRYPTO_V2_TR_CTL0_RED_CLOCK_DIV_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL0_INIT_DELAY_Pos)
+#define CRYPTO_TR_CTL0_INIT_DELAY_Pos           CRYPTO_V2_TR_CTL0_INIT_DELAY_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL0_INIT_DELAY_Msk)
+#define CRYPTO_TR_CTL0_INIT_DELAY_Msk           CRYPTO_V2_TR_CTL0_INIT_DELAY_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL0_VON_NEUMANN_CORR_Pos)
+#define CRYPTO_TR_CTL0_VON_NEUMANN_CORR_Pos     CRYPTO_V2_TR_CTL0_VON_NEUMANN_CORR_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL0_VON_NEUMANN_CORR_Msk)
+#define CRYPTO_TR_CTL0_VON_NEUMANN_CORR_Msk     CRYPTO_V2_TR_CTL0_VON_NEUMANN_CORR_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL0_STOP_ON_AP_DETECT_Pos)
+#define CRYPTO_TR_CTL0_STOP_ON_AP_DETECT_Pos    CRYPTO_V2_TR_CTL0_STOP_ON_AP_DETECT_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL0_STOP_ON_AP_DETECT_Msk)
+#define CRYPTO_TR_CTL0_STOP_ON_AP_DETECT_Msk    CRYPTO_V2_TR_CTL0_STOP_ON_AP_DETECT_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL0_STOP_ON_RC_DETECT_Pos)
+#define CRYPTO_TR_CTL0_STOP_ON_RC_DETECT_Pos    CRYPTO_V2_TR_CTL0_STOP_ON_RC_DETECT_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL0_STOP_ON_RC_DETECT_Msk)
+#define CRYPTO_TR_CTL0_STOP_ON_RC_DETECT_Msk    CRYPTO_V2_TR_CTL0_STOP_ON_RC_DETECT_Msk
+#endif
+
+/* CRYPTO.TR_CTL1 */
+#if !defined(CRYPTO_TR_CTL1_RO11_EN_Pos)
+#define CRYPTO_TR_CTL1_RO11_EN_Pos              CRYPTO_V2_TR_CTL1_RO11_EN_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL1_RO11_EN_Msk)
+#define CRYPTO_TR_CTL1_RO11_EN_Msk              CRYPTO_V2_TR_CTL1_RO11_EN_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL1_RO15_EN_Pos)
+#define CRYPTO_TR_CTL1_RO15_EN_Pos              CRYPTO_V2_TR_CTL1_RO15_EN_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL1_RO15_EN_Msk)
+#define CRYPTO_TR_CTL1_RO15_EN_Msk              CRYPTO_V2_TR_CTL1_RO15_EN_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL1_GARO15_EN_Pos)
+#define CRYPTO_TR_CTL1_GARO15_EN_Pos            CRYPTO_V2_TR_CTL1_GARO15_EN_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL1_GARO15_EN_Msk)
+#define CRYPTO_TR_CTL1_GARO15_EN_Msk            CRYPTO_V2_TR_CTL1_GARO15_EN_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL1_GARO31_EN_Pos)
+#define CRYPTO_TR_CTL1_GARO31_EN_Pos            CRYPTO_V2_TR_CTL1_GARO31_EN_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL1_GARO31_EN_Msk)
+#define CRYPTO_TR_CTL1_GARO31_EN_Msk            CRYPTO_V2_TR_CTL1_GARO31_EN_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL1_FIRO15_EN_Pos)
+#define CRYPTO_TR_CTL1_FIRO15_EN_Pos            CRYPTO_V2_TR_CTL1_FIRO15_EN_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL1_FIRO15_EN_Msk)
+#define CRYPTO_TR_CTL1_FIRO15_EN_Msk            CRYPTO_V2_TR_CTL1_FIRO15_EN_Msk
+#endif
+#if !defined(CRYPTO_TR_CTL1_FIRO31_EN_Pos)
+#define CRYPTO_TR_CTL1_FIRO31_EN_Pos            CRYPTO_V2_TR_CTL1_FIRO31_EN_Pos
+#endif
+#if !defined(CRYPTO_TR_CTL1_FIRO31_EN_Msk)
+#define CRYPTO_TR_CTL1_FIRO31_EN_Msk            CRYPTO_V2_TR_CTL1_FIRO31_EN_Msk
+#endif
+
+/* CRYPTO.TR_RESULT */
+#if !defined(CRYPTO_TR_RESULT_DATA32_Pos)
+#define CRYPTO_TR_RESULT_DATA32_Pos             CRYPTO_V2_TR_RESULT_DATA32_Pos
+#endif
+#if !defined(CRYPTO_TR_RESULT_DATA32_Msk)
+#define CRYPTO_TR_RESULT_DATA32_Msk             CRYPTO_V2_TR_RESULT_DATA32_Msk
+#endif
+
+/* CRYPTO.TR_GARO_CTL */
+#if !defined(CRYPTO_TR_GARO_CTL_POLYNOMIAL31_Pos)
+#define CRYPTO_TR_GARO_CTL_POLYNOMIAL31_Pos     CRYPTO_V2_TR_GARO_CTL_POLYNOMIAL31_Pos
+#endif
+#if !defined(CRYPTO_TR_GARO_CTL_POLYNOMIAL31_Msk)
+#define CRYPTO_TR_GARO_CTL_POLYNOMIAL31_Msk     CRYPTO_V2_TR_GARO_CTL_POLYNOMIAL31_Msk
+#endif
+
+/* CRYPTO.TR_FIRO_CTL */
+#if !defined(CRYPTO_TR_FIRO_CTL_POLYNOMIAL31_Pos)
+#define CRYPTO_TR_FIRO_CTL_POLYNOMIAL31_Pos     CRYPTO_V2_TR_FIRO_CTL_POLYNOMIAL31_Pos
+#endif
+#if !defined(CRYPTO_TR_FIRO_CTL_POLYNOMIAL31_Msk)
+#define CRYPTO_TR_FIRO_CTL_POLYNOMIAL31_Msk     CRYPTO_V2_TR_FIRO_CTL_POLYNOMIAL31_Msk
+#endif
+
+/* CRYPTO.TR_MON_CTL */
+#if !defined(CRYPTO_TR_MON_CTL_BITSTREAM_SEL_Pos)
+#define CRYPTO_TR_MON_CTL_BITSTREAM_SEL_Pos     CRYPTO_V2_TR_MON_CTL_BITSTREAM_SEL_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_CTL_BITSTREAM_SEL_Msk)
+#define CRYPTO_TR_MON_CTL_BITSTREAM_SEL_Msk     CRYPTO_V2_TR_MON_CTL_BITSTREAM_SEL_Msk
+#endif
+
+/* CRYPTO.TR_MON_CMD */
+#if !defined(CRYPTO_TR_MON_CMD_START_AP_Pos)
+#define CRYPTO_TR_MON_CMD_START_AP_Pos          CRYPTO_V2_TR_MON_CMD_START_AP_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_CMD_START_AP_Msk)
+#define CRYPTO_TR_MON_CMD_START_AP_Msk          CRYPTO_V2_TR_MON_CMD_START_AP_Msk
+#endif
+#if !defined(CRYPTO_TR_MON_CMD_START_RC_Pos)
+#define CRYPTO_TR_MON_CMD_START_RC_Pos          CRYPTO_V2_TR_MON_CMD_START_RC_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_CMD_START_RC_Msk)
+#define CRYPTO_TR_MON_CMD_START_RC_Msk          CRYPTO_V2_TR_MON_CMD_START_RC_Msk
+#endif
+
+/* CRYPTO.TR_MON_RC_CTL */
+#if !defined(CRYPTO_TR_MON_RC_CTL_CUTOFF_COUNT8_Pos)
+#define CRYPTO_TR_MON_RC_CTL_CUTOFF_COUNT8_Pos  CRYPTO_V2_TR_MON_RC_CTL_CUTOFF_COUNT8_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_RC_CTL_CUTOFF_COUNT8_Msk)
+#define CRYPTO_TR_MON_RC_CTL_CUTOFF_COUNT8_Msk  CRYPTO_V2_TR_MON_RC_CTL_CUTOFF_COUNT8_Msk
+#endif
+
+/* CRYPTO.TR_MON_RC_STATUS0 */
+#if !defined(CRYPTO_TR_MON_RC_STATUS0_BIT_Pos)
+#define CRYPTO_TR_MON_RC_STATUS0_BIT_Pos        CRYPTO_V2_TR_MON_RC_STATUS0_BIT_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_RC_STATUS0_BIT_Msk)
+#define CRYPTO_TR_MON_RC_STATUS0_BIT_Msk        CRYPTO_V2_TR_MON_RC_STATUS0_BIT_Msk
+#endif
+
+/* CRYPTO.TR_MON_RC_STATUS1 */
+#if !defined(CRYPTO_TR_MON_RC_STATUS1_REP_COUNT_Pos)
+#define CRYPTO_TR_MON_RC_STATUS1_REP_COUNT_Pos  CRYPTO_V2_TR_MON_RC_STATUS1_REP_COUNT_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_RC_STATUS1_REP_COUNT_Msk)
+#define CRYPTO_TR_MON_RC_STATUS1_REP_COUNT_Msk  CRYPTO_V2_TR_MON_RC_STATUS1_REP_COUNT_Msk
+#endif
+
+/* CRYPTO.TR_MON_AP_CTL */
+#if !defined(CRYPTO_TR_MON_AP_CTL_CUTOFF_COUNT16_Pos)
+#define CRYPTO_TR_MON_AP_CTL_CUTOFF_COUNT16_Pos CRYPTO_V2_TR_MON_AP_CTL_CUTOFF_COUNT16_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_AP_CTL_CUTOFF_COUNT16_Msk)
+#define CRYPTO_TR_MON_AP_CTL_CUTOFF_COUNT16_Msk CRYPTO_V2_TR_MON_AP_CTL_CUTOFF_COUNT16_Msk
+#endif
+#if !defined(CRYPTO_TR_MON_AP_CTL_WINDOW_SIZE_Pos)
+#define CRYPTO_TR_MON_AP_CTL_WINDOW_SIZE_Pos    CRYPTO_V2_TR_MON_AP_CTL_WINDOW_SIZE_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_AP_CTL_WINDOW_SIZE_Msk)
+#define CRYPTO_TR_MON_AP_CTL_WINDOW_SIZE_Msk    CRYPTO_V2_TR_MON_AP_CTL_WINDOW_SIZE_Msk
+#endif
+
+/* CRYPTO.TR_MON_AP_STATUS0 */
+#if !defined(CRYPTO_TR_MON_AP_STATUS0_BIT_Pos)
+#define CRYPTO_TR_MON_AP_STATUS0_BIT_Pos        CRYPTO_V2_TR_MON_AP_STATUS0_BIT_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_AP_STATUS0_BIT_Msk)
+#define CRYPTO_TR_MON_AP_STATUS0_BIT_Msk        CRYPTO_V2_TR_MON_AP_STATUS0_BIT_Msk
+#endif
+
+/* CRYPTO.TR_MON_AP_STATUS1 */
+#if !defined(CRYPTO_TR_MON_AP_STATUS1_OCC_COUNT_Pos)
+#define CRYPTO_TR_MON_AP_STATUS1_OCC_COUNT_Pos  CRYPTO_V2_TR_MON_AP_STATUS1_OCC_COUNT_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_AP_STATUS1_OCC_COUNT_Msk)
+#define CRYPTO_TR_MON_AP_STATUS1_OCC_COUNT_Msk  CRYPTO_V2_TR_MON_AP_STATUS1_OCC_COUNT_Msk
+#endif
+#if !defined(CRYPTO_TR_MON_AP_STATUS1_WINDOW_INDEX_Pos)
+#define CRYPTO_TR_MON_AP_STATUS1_WINDOW_INDEX_Pos CRYPTO_V2_TR_MON_AP_STATUS1_WINDOW_INDEX_Pos
+#endif
+#if !defined(CRYPTO_TR_MON_AP_STATUS1_WINDOW_INDEX_Msk)
+#define CRYPTO_TR_MON_AP_STATUS1_WINDOW_INDEX_Msk CRYPTO_V2_TR_MON_AP_STATUS1_WINDOW_INDEX_Msk
+#endif
+
+/* CRYPTO.VU_STATUS */
+#if !defined(CRYPTO_VU_STATUS_CARRY_Pos)
+#define CRYPTO_VU_STATUS_CARRY_Pos              CRYPTO_V2_VU_STATUS_CARRY_Pos
+#endif
+#if !defined(CRYPTO_VU_STATUS_CARRY_Msk)
+#define CRYPTO_VU_STATUS_CARRY_Msk              CRYPTO_V2_VU_STATUS_CARRY_Msk
+#endif
+#if !defined(CRYPTO_VU_STATUS_EVEN_Pos)
+#define CRYPTO_VU_STATUS_EVEN_Pos               CRYPTO_V2_VU_STATUS_EVEN_Pos
+#endif
+#if !defined(CRYPTO_VU_STATUS_EVEN_Msk)
+#define CRYPTO_VU_STATUS_EVEN_Msk               CRYPTO_V2_VU_STATUS_EVEN_Msk
+#endif
+#if !defined(CRYPTO_VU_STATUS_ZERO_Pos)
+#define CRYPTO_VU_STATUS_ZERO_Pos               CRYPTO_V2_VU_STATUS_ZERO_Pos
+#endif
+#if !defined(CRYPTO_VU_STATUS_ZERO_Msk)
+#define CRYPTO_VU_STATUS_ZERO_Msk               CRYPTO_V2_VU_STATUS_ZERO_Msk
+#endif
+#if !defined(CRYPTO_VU_STATUS_ONE_Pos)
+#define CRYPTO_VU_STATUS_ONE_Pos                CRYPTO_V2_VU_STATUS_ONE_Pos
+#endif
+#if !defined(CRYPTO_VU_STATUS_ONE_Msk)
+#define CRYPTO_VU_STATUS_ONE_Msk                CRYPTO_V2_VU_STATUS_ONE_Msk
+#endif
+
+/* CRYPTO.INTR */
+#if !defined(CRYPTO_INTR_TR_INITIALIZED_Pos)
+#define CRYPTO_INTR_TR_INITIALIZED_Pos          CRYPTO_V2_INTR_TR_INITIALIZED_Pos
+#endif
+#if !defined(CRYPTO_INTR_TR_INITIALIZED_Msk)
+#define CRYPTO_INTR_TR_INITIALIZED_Msk          CRYPTO_V2_INTR_TR_INITIALIZED_Msk
+#endif
+#if !defined(CRYPTO_INTR_TR_DATA_AVAILABLE_Pos)
+#define CRYPTO_INTR_TR_DATA_AVAILABLE_Pos       CRYPTO_V2_INTR_TR_DATA_AVAILABLE_Pos
+#endif
+#if !defined(CRYPTO_INTR_TR_DATA_AVAILABLE_Msk)
+#define CRYPTO_INTR_TR_DATA_AVAILABLE_Msk       CRYPTO_V2_INTR_TR_DATA_AVAILABLE_Msk
+#endif
+#if !defined(CRYPTO_INTR_INSTR_OPC_ERROR_Pos)
+#define CRYPTO_INTR_INSTR_OPC_ERROR_Pos         CRYPTO_V2_INTR_INSTR_OPC_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_INSTR_OPC_ERROR_Msk)
+#define CRYPTO_INTR_INSTR_OPC_ERROR_Msk         CRYPTO_V2_INTR_INSTR_OPC_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_INSTR_CC_ERROR_Pos)
+#define CRYPTO_INTR_INSTR_CC_ERROR_Pos          CRYPTO_V2_INTR_INSTR_CC_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_INSTR_CC_ERROR_Msk)
+#define CRYPTO_INTR_INSTR_CC_ERROR_Msk          CRYPTO_V2_INTR_INSTR_CC_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_BUS_ERROR_Pos)
+#define CRYPTO_INTR_BUS_ERROR_Pos               CRYPTO_V2_INTR_BUS_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_BUS_ERROR_Msk)
+#define CRYPTO_INTR_BUS_ERROR_Msk               CRYPTO_V2_INTR_BUS_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_TR_AP_DETECT_ERROR_Pos)
+#define CRYPTO_INTR_TR_AP_DETECT_ERROR_Pos      CRYPTO_V2_INTR_TR_AP_DETECT_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_TR_AP_DETECT_ERROR_Msk)
+#define CRYPTO_INTR_TR_AP_DETECT_ERROR_Msk      CRYPTO_V2_INTR_TR_AP_DETECT_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_TR_RC_DETECT_ERROR_Pos)
+#define CRYPTO_INTR_TR_RC_DETECT_ERROR_Pos      CRYPTO_V2_INTR_TR_RC_DETECT_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_TR_RC_DETECT_ERROR_Msk)
+#define CRYPTO_INTR_TR_RC_DETECT_ERROR_Msk      CRYPTO_V2_INTR_TR_RC_DETECT_ERROR_Msk
+#endif
+
+/* CRYPTO.INTR_MASK */
+#if !defined(CRYPTO_INTR_MASK_INSTR_FF_LEVEL_Pos)
+#define CRYPTO_INTR_MASK_INSTR_FF_LEVEL_Pos     CRYPTO_V2_INTR_MASK_INSTR_FF_LEVEL_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_INSTR_FF_LEVEL_Msk)
+#define CRYPTO_INTR_MASK_INSTR_FF_LEVEL_Msk     CRYPTO_V2_INTR_MASK_INSTR_FF_LEVEL_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_INSTR_FF_OVERFLOW_Pos)
+#define CRYPTO_INTR_MASK_INSTR_FF_OVERFLOW_Pos  CRYPTO_V2_INTR_MASK_INSTR_FF_OVERFLOW_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_INSTR_FF_OVERFLOW_Msk)
+#define CRYPTO_INTR_MASK_INSTR_FF_OVERFLOW_Msk  CRYPTO_V2_INTR_MASK_INSTR_FF_OVERFLOW_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_INITIALIZED_Pos)
+#define CRYPTO_INTR_MASK_TR_INITIALIZED_Pos     CRYPTO_V2_INTR_MASK_TR_INITIALIZED_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_INITIALIZED_Msk)
+#define CRYPTO_INTR_MASK_TR_INITIALIZED_Msk     CRYPTO_V2_INTR_MASK_TR_INITIALIZED_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_DATA_AVAILABLE_Pos)
+#define CRYPTO_INTR_MASK_TR_DATA_AVAILABLE_Pos  CRYPTO_V2_INTR_MASK_TR_DATA_AVAILABLE_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_DATA_AVAILABLE_Msk)
+#define CRYPTO_INTR_MASK_TR_DATA_AVAILABLE_Msk  CRYPTO_V2_INTR_MASK_TR_DATA_AVAILABLE_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_PR_DATA_AVAILABLE_Pos)
+#define CRYPTO_INTR_MASK_PR_DATA_AVAILABLE_Pos  CRYPTO_V2_INTR_MASK_PR_DATA_AVAILABLE_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_PR_DATA_AVAILABLE_Msk)
+#define CRYPTO_INTR_MASK_PR_DATA_AVAILABLE_Msk  CRYPTO_V2_INTR_MASK_PR_DATA_AVAILABLE_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_INSTR_OPC_ERROR_Pos)
+#define CRYPTO_INTR_MASK_INSTR_OPC_ERROR_Pos    CRYPTO_V2_INTR_MASK_INSTR_OPC_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_INSTR_OPC_ERROR_Msk)
+#define CRYPTO_INTR_MASK_INSTR_OPC_ERROR_Msk    CRYPTO_V2_INTR_MASK_INSTR_OPC_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_INSTR_CC_ERROR_Pos)
+#define CRYPTO_INTR_MASK_INSTR_CC_ERROR_Pos     CRYPTO_V2_INTR_MASK_INSTR_CC_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_INSTR_CC_ERROR_Msk)
+#define CRYPTO_INTR_MASK_INSTR_CC_ERROR_Msk     CRYPTO_V2_INTR_MASK_INSTR_CC_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_BUS_ERROR_Pos)
+#define CRYPTO_INTR_MASK_BUS_ERROR_Pos          CRYPTO_V2_INTR_MASK_BUS_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_BUS_ERROR_Msk)
+#define CRYPTO_INTR_MASK_BUS_ERROR_Msk          CRYPTO_V2_INTR_MASK_BUS_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_AP_DETECT_ERROR_Pos)
+#define CRYPTO_INTR_MASK_TR_AP_DETECT_ERROR_Pos CRYPTO_V2_INTR_MASK_TR_AP_DETECT_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_AP_DETECT_ERROR_Msk)
+#define CRYPTO_INTR_MASK_TR_AP_DETECT_ERROR_Msk CRYPTO_V2_INTR_MASK_TR_AP_DETECT_ERROR_Msk
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_RC_DETECT_ERROR_Pos)
+#define CRYPTO_INTR_MASK_TR_RC_DETECT_ERROR_Pos CRYPTO_V2_INTR_MASK_TR_RC_DETECT_ERROR_Pos
+#endif
+#if !defined(CRYPTO_INTR_MASK_TR_RC_DETECT_ERROR_Msk)
+#define CRYPTO_INTR_MASK_TR_RC_DETECT_ERROR_Msk CRYPTO_V2_INTR_MASK_TR_RC_DETECT_ERROR_Msk
+#endif
+#endif
+
 
 /** \cond INTERNAL */
 
@@ -59,9 +489,17 @@ extern "C" {
 #define REG_CRYPTO_TR_MON_CTL(base)        (((CRYPTO_Type*)(base))->TR_MON_CTL)
 #define REG_CRYPTO_TR_MON_CMD(base)        (((CRYPTO_Type*)(base))->TR_MON_CMD)
 #define REG_CRYPTO_TR_MON_RC_CTL(base)     (((CRYPTO_Type*)(base))->TR_MON_RC_CTL)
+#define REG_CRYPTO_TR_MON_RC_STATUS0(base) (((CRYPTO_Type*)(base))->TR_MON_RC_STATUS0)
+#define REG_CRYPTO_TR_MON_RC_STATUS1(base) (((CRYPTO_Type*)(base))->TR_MON_RC_STATUS1)
 #define REG_CRYPTO_TR_MON_AP_CTL(base)     (((CRYPTO_Type*)(base))->TR_MON_AP_CTL)
+#define REG_CRYPTO_TR_MON_AP_STATUS0(base) (((CRYPTO_Type*)(base))->TR_MON_AP_STATUS0)
+#define REG_CRYPTO_TR_MON_AP_STATUS1(base) (((CRYPTO_Type*)(base))->TR_MON_AP_STATUS1)
 
 /* Changed registers in the regmap */
+#if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
+
+/* Use PDL device agnostic model */
+
 #define REG_CRYPTO_STATUS(base)            (*(volatile uint32_t*)((uint32_t)(base) + cy_cryptoIP->cryptoStatusOffset))
 #define REG_CRYPTO_INSTR_FF_CTL(base)      (*(volatile uint32_t*)((uint32_t)(base) + cy_cryptoIP->cryptoIstrFfCtlOffset))
 #define REG_CRYPTO_INSTR_FF_STATUS(base)   (*(volatile uint32_t*)((uint32_t)(base) + cy_cryptoIP->cryptoInstrFfStatusOffset))
@@ -84,13 +522,73 @@ extern "C" {
 #define REG_CRYPTO_VU_RF_DATA(base, reg)   ( (volatile uint32_t*)((uint32_t)(base) + cy_cryptoIP->cryptoVuRfDataOffset))[(reg)]
 #define REG_CRYPTO_MEM_BUFF(base)          ( (uint32_t*)((uint32_t)(base) + cy_cryptoIP->cryptoMemBufOffset))
 
+#else
+
+/* Use hardware specific model*/
+
+#undef  CY_CRYPTO_V1
+#define CY_CRYPTO_V1                       (1U == CY_IP_MXCRYPTO_VERSION) /* true if the mxcrypto version is 1 */
+
+#if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+#define REG_CRYPTO_STATUS(base)            (((CRYPTO_V1_Type*)(base))->STATUS)
+#define REG_CRYPTO_INSTR_FF_CTL(base)      (((CRYPTO_V1_Type*)(base))->INSTR_FF_CTL)
+#define REG_CRYPTO_INSTR_FF_STATUS(base)   (((CRYPTO_V1_Type*)(base))->INSTR_FF_STATUS)
+#define REG_CRYPTO_INSTR_FF_WR(base)       (((CRYPTO_V1_Type*)(base))->INSTR_FF_WR)
+#define REG_CRYPTO_AES_CTL(base)           (((CRYPTO_V1_Type*)(base))->AES_CTL)
+#define REG_CRYPTO_PR_RESULT(base)         (((CRYPTO_V1_Type*)(base))->PR_RESULT)
+#define REG_CRYPTO_TR_RESULT(base)         (((CRYPTO_V1_Type*)(base))->TR_RESULT)
+#define REG_CRYPTO_CRC_CTL(base)           (((CRYPTO_V1_Type*)(base))->CRC_CTL)
+#define REG_CRYPTO_CRC_DATA_CTL(base)      (((CRYPTO_V1_Type*)(base))->CRC_DATA_CTL)
+#define REG_CRYPTO_CRC_POL_CTL(base)       (((CRYPTO_V1_Type*)(base))->CRC_POL_CTL)
+#define REG_CRYPTO_CRC_REM_CTL(base)       (((CRYPTO_V1_Type*)(base))->CRC_REM_CTL)
+#define REG_CRYPTO_CRC_REM_RESULT(base)    (((CRYPTO_V1_Type*)(base))->CRC_REM_RESULT)
+#define REG_CRYPTO_VU_CTL0(base)           (((CRYPTO_V1_Type*)(base))->VU_CTL0)
+#define REG_CRYPTO_VU_CTL1(base)           (((CRYPTO_V1_Type*)(base))->VU_CTL1)
+#define REG_CRYPTO_VU_STATUS(base)         (((CRYPTO_V1_Type*)(base))->VU_STATUS)
+#define REG_CRYPTO_INTR(base)              (((CRYPTO_V1_Type*)(base))->INTR)
+#define REG_CRYPTO_INTR_SET(base)          (((CRYPTO_V1_Type*)(base))->INTR_SET)
+#define REG_CRYPTO_INTR_MASK(base)         (((CRYPTO_V1_Type*)(base))->INTR_MASK)
+#define REG_CRYPTO_INTR_MASKED(base)       (((CRYPTO_V1_Type*)(base))->INTR_MASKED)
+#define REG_CRYPTO_VU_RF_DATA(base, reg)   (((CRYPTO_V1_Type*)(base))->RF_DATA[(reg)])
+#define REG_CRYPTO_MEM_BUFF(base)          (uint32_t *)(&((CRYPTO_V1_Type*)(base))->MEM_BUFF)
+#endif
+
+#if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+#define REG_CRYPTO_STATUS(base)            (((CRYPTO_V2_Type*)(base))->STATUS)
+#define REG_CRYPTO_INSTR_FF_CTL(base)      (((CRYPTO_V2_Type*)(base))->INSTR_FF_CTL)
+#define REG_CRYPTO_INSTR_FF_STATUS(base)   (((CRYPTO_V2_Type*)(base))->INSTR_FF_STATUS)
+#define REG_CRYPTO_INSTR_FF_WR(base)       (((CRYPTO_V2_Type*)(base))->INSTR_FF_WR)
+#define REG_CRYPTO_AES_CTL(base)           (((CRYPTO_V2_Type*)(base))->AES_CTL)
+#define REG_CRYPTO_PR_RESULT(base)         (((CRYPTO_V2_Type*)(base))->PR_RESULT)
+#define REG_CRYPTO_TR_RESULT(base)         (((CRYPTO_V2_Type*)(base))->TR_RESULT)
+#define REG_CRYPTO_CRC_CTL(base)           (((CRYPTO_V2_Type*)(base))->CRC_CTL)
+#define REG_CRYPTO_CRC_DATA_CTL(base)      (((CRYPTO_V2_Type*)(base))->CRC_DATA_CTL)
+#define REG_CRYPTO_CRC_POL_CTL(base)       (((CRYPTO_V2_Type*)(base))->CRC_POL_CTL)
+#define REG_CRYPTO_CRC_REM_CTL(base)       (((CRYPTO_V2_Type*)(base))->CRC_REM_CTL)
+#define REG_CRYPTO_CRC_REM_RESULT(base)    (((CRYPTO_V2_Type*)(base))->CRC_REM_RESULT)
+#define REG_CRYPTO_VU_CTL0(base)           (((CRYPTO_V2_Type*)(base))->VU_CTL0)
+#define REG_CRYPTO_VU_CTL1(base)           (((CRYPTO_V2_Type*)(base))->VU_CTL1)
+#define REG_CRYPTO_VU_STATUS(base)         (((CRYPTO_V2_Type*)(base))->VU_STATUS)
+#define REG_CRYPTO_INTR(base)              (((CRYPTO_V2_Type*)(base))->INTR)
+#define REG_CRYPTO_INTR_SET(base)          (((CRYPTO_V2_Type*)(base))->INTR_SET)
+#define REG_CRYPTO_INTR_MASK(base)         (((CRYPTO_V2_Type*)(base))->INTR_MASK)
+#define REG_CRYPTO_INTR_MASKED(base)       (((CRYPTO_V2_Type*)(base))->INTR_MASKED)
+#define REG_CRYPTO_VU_RF_DATA(base, reg)   (((CRYPTO_V2_Type*)(base))->VU_RF_DATA[(reg)])
+#define REG_CRYPTO_MEM_BUFF(base)          (uint32_t *)(&((CRYPTO_V2_Type*)(base))->MEM_BUFF)
+#endif
+
+#endif /* !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC) */
+
 /* Old V1 registers in the regmap */
+#if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
 #define REG_CRYPTO_RAM_PWRUP_DELAY(base)   (((CRYPTO_V1_Type*)(base))->RAM_PWRUP_DELAY)
 #define REG_CRYPTO_STR_RESULT(base)        (((CRYPTO_V1_Type*)(base))->STR_RESULT)
 #define REG_CRYPTO_SHA_CTL(base)           (((CRYPTO_V1_Type*)(base))->SHA_CTL)
 #define REG_CRYPTO_CRC_LFSR_CTL(base)      (((CRYPTO_V1_Type*)(base))->CRC_LFSR_CTL)
+#endif
 
 /* New V2 registers in the regmap */
+#if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
 #define REG_CRYPTO_RAM_PWR_CTL(base)       (((CRYPTO_V2_Type*)(base))->RAM_PWR_CTL)
 #define REG_CRYPTO_RAM_PWR_DELAY_CTL(base) (((CRYPTO_V2_Type*)(base))->RAM_PWR_DELAY_CTL)
 #define REG_CRYPTO_ECC_CTL(base)           (((CRYPTO_V2_Type*)(base))->ECC_CTL)
@@ -111,12 +609,14 @@ extern "C" {
 #define REG_CRYPTO_DEV_KEY_STATUS(base)    (((CRYPTO_V2_Type*)(base))->DEV_KEY_STATUS)
 #define REG_CRYPTO_DEV_KEY_CTL0(base)      (((CRYPTO_V2_Type*)(base))->DEV_KEY_CTL0)
 #define REG_CRYPTO_DEV_KEY_CTL1(base)      (((CRYPTO_V2_Type*)(base))->DEV_KEY_CTL1)
+#endif
 
 /* The CRYPTO internal-memory buffer-size in 32-bit words. */
-#define CY_CRYPTO_MEM_BUFF_SIZE_U32        (cy_device->cryptoMemSize)
+//#define CY_CRYPTO_MEM_BUFF_SIZE_U32        (cy_device->cryptoMemSize)
 /* The CRYPTO internal-memory buffer-size in bytes. */
 #define CY_CRYPTO_MEM_BUFF_SIZE            (CY_CRYPTO_MEM_BUFF_SIZE_U32 * 4u)
 
+#if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
 /* Device Crypto IP descriptor type */
 typedef struct
 {
@@ -147,10 +647,10 @@ typedef struct
 /*******************************************************************************
 *                   Global Variables
 *******************************************************************************/
-
 extern const cy_stc_cryptoIP_t   cy_cryptoIpBlockCfgPSoC6_01;
 extern const cy_stc_cryptoIP_t   cy_cryptoIpBlockCfgPSoC6_02;
 extern const cy_stc_cryptoIP_t  *cy_cryptoIP;
+#endif
 
 #define CY_CRYPTO_REGFILE_R0             (0x00u)
 #define CY_CRYPTO_REGFILE_R1             (0x01u)
@@ -227,13 +727,15 @@ typedef enum
     CY_CRYPTO_CTL_ENABLED_ENABLED   = 1u,
 } cy_en_crypto_hw_enable_t;
 
-/** \endcond */
-
-void Cy_Crypto_Core_HwInit(void);
+#if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
+__STATIC_INLINE void Cy_Crypto_Core_HwInit(void);
+#endif
 
 void Cy_Crypto_Core_ClearVuRegisters(CRYPTO_Type *base);
-
 void Cy_Crypto_Core_Vu_RunInstr(CRYPTO_Type *base, bool blockingMode, uint32_t instr, uint32_t params);
+
+/** \endcond */
+
 
 /**
 * \addtogroup group_crypto_lld_hw_functions
@@ -244,15 +746,35 @@ cy_en_crypto_status_t Cy_Crypto_Core_Enable(CRYPTO_Type *base);
 
 cy_en_crypto_status_t Cy_Crypto_Core_Disable(CRYPTO_Type *base);
 
+cy_en_crypto_status_t Cy_Crypto_Core_Cleanup(CRYPTO_Type *base);
+
+cy_en_crypto_status_t Cy_Crypto_Core_Shutdown(CRYPTO_Type *base);
+
 cy_en_crypto_status_t Cy_Crypto_Core_GetLibInfo(cy_en_crypto_lib_info_t *libInfo);
 
 cy_en_crypto_status_t Cy_Crypto_Core_SetVuMemoryAddress(CRYPTO_Type *base, uint32_t const *vuMemoryAddr, uint32_t vuMemorySize);
 
-__STATIC_INLINE void * Cy_Crypto_Core_GetVuMemoryAddress(CRYPTO_Type *base);
+__STATIC_INLINE uint32_t * Cy_Crypto_Core_GetVuMemoryAddress(CRYPTO_Type *base);
 
 uint32_t Cy_Crypto_Core_GetVuMemorySize(CRYPTO_Type *base);
 
 void Cy_Crypto_Core_InvertEndianness(void *inArrPtr, uint32_t byteSize);
+
+#if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_HwInit
+****************************************************************************//**
+*
+* The function to initialize the Crypto hardware.
+*
+* This function is for internal use.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_Crypto_Core_HwInit(void)
+{
+    cy_cryptoIP = (CY_CRYPTO_V1) ? &cy_cryptoIpBlockCfgPSoC6_01 : &cy_cryptoIpBlockCfgPSoC6_02;
+}
+#endif
 
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_IsEnabled
@@ -266,13 +788,18 @@ void Cy_Crypto_Core_InvertEndianness(void *inArrPtr, uint32_t byteSize);
 * \return
 * Crypto status \ref cy_en_crypto_status_t
 *
+* \funcusage
+* \snippet crypto/snippet/main.c snippet_myCryptoCoreStopCryptoUse
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_Crypto_Core_IsEnabled(CRYPTO_Type *base)
 {
+#if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
     if (cy_cryptoIP == NULL)
     {
         Cy_Crypto_Core_HwInit();
     }
+#endif
 
     return (1uL == (uint32_t)_FLD2VAL(CRYPTO_CTL_ENABLED, REG_CRYPTO_CTL(base)));
 }
@@ -382,15 +909,19 @@ __STATIC_INLINE void Cy_Crypto_Core_Vu_WaitForComplete(CRYPTO_Type *base)
     /* Wait until the VU instruction is complete */
     if (CY_CRYPTO_V1)
     {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
         while (0uL != _FLD2VAL(CRYPTO_STATUS_VU_BUSY, REG_CRYPTO_STATUS(base)))
         {
         }
+        #endif
     }
     else
     {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
         while (0uL != REG_CRYPTO_STATUS(base))
         {
         }
+        #endif
     }
 }
 
@@ -500,6 +1031,7 @@ __STATIC_INLINE void  Cy_Crypto_Core_SetInterrupt(CRYPTO_Type *base, uint32_t in
 __STATIC_INLINE void  Cy_Crypto_Core_ClearInterrupt(CRYPTO_Type *base, uint32_t interrupts)
 {
     REG_CRYPTO_INTR(base) = interrupts;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) REG_CRYPTO_INTR(base);
 }
 
@@ -516,12 +1048,18 @@ __STATIC_INLINE void  Cy_Crypto_Core_ClearInterrupt(CRYPTO_Type *base, uint32_t 
 * Current Crypto MEM_BUFF location address or NULL if Crypto IP is not enabled.
 *
 *******************************************************************************/
-__STATIC_INLINE void * Cy_Crypto_Core_GetVuMemoryAddress(CRYPTO_Type *base)
+__STATIC_INLINE uint32_t * Cy_Crypto_Core_GetVuMemoryAddress(CRYPTO_Type *base)
 {
-    return (cy_cryptoIP != NULL) ? (void *)REG_CRYPTO_VU_CTL1(base) : NULL;
+#if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
+    return (cy_cryptoIP != NULL) ? (uint32_t *)REG_CRYPTO_VU_CTL1(base) : (uint32_t *)NULL;
+#else
+    return (uint32_t *)REG_CRYPTO_VU_CTL1(base);
+#endif
 }
 
 /** \} group_crypto_lld_hw_functions */
+
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 20.5')
 
 #if defined(__cplusplus)
 }

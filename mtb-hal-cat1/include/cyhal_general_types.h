@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -70,34 +70,36 @@ enum cyhal_rslt_module_chip
     CYHAL_RSLT_MODULE_DAC           = (0x05),  //!< An error occurred in DAC module
     CYHAL_RSLT_MODULE_DMA           = (0x06),  //!< An error occurred in DMA module
     CYHAL_RSLT_MODULE_EZI2C         = (0x07),  //!< An error occurred in EZI2C module
-    CYHAL_RSLT_MODULE_FLASH         = (0x08),  //!< An error occurred in flash module
-    CYHAL_RSLT_MODULE_GPIO          = (0x09),  //!< An error occurred in GPIO module
-    CYHAL_RSLT_MODULE_I2C           = (0x0A),  //!< An error occurred in I2C module
-    CYHAL_RSLT_MODULE_I2S           = (0x0B),  //!< An error occurred in I2S module
+    CYHAL_RSLT_MODULE_GPIO          = (0x08),  //!< An error occurred in GPIO module
+    CYHAL_RSLT_MODULE_I2C           = (0x09),  //!< An error occurred in I2C module
+    CYHAL_RSLT_MODULE_I2S           = (0x0A),  //!< An error occurred in I2S module
+    CYHAL_RSLT_MODULE_IPC           = (0x0B),  //!< An error occurred in IPC module
     CYHAL_RSLT_MODULE_INTERCONNECT  = (0x0C),  //!< An error occurred in Interconnect module
     CYHAL_RSLT_MODULE_HWMGR         = (0x0D),  //!< An error occurred in hardware management module
     CYHAL_RSLT_MODULE_KEYSCAN       = (0x0E),  //!< An error occurred in KeyScan module
-    CYHAL_RSLT_MODULE_LPTIMER       = (0x0F),  //!< An error occured in LPTimer module
-    CYHAL_RSLT_MODULE_OPAMP         = (0x10),  //!< An error occurred in OpAmp module
-    CYHAL_RSLT_MODULE_PDMPCM        = (0x11),  //!< An error occurred in PDM/PCM module
-    CYHAL_RSLT_MODULE_PWM           = (0x12),  //!< An error occurred in PWM module
-    CYHAL_RSLT_MODULE_QSPI          = (0x13),  //!< An error occurred in QSPI module
-    CYHAL_RSLT_MODULE_QUADDEC       = (0x14),  //!< An error occurred in Quadrature Decoder module
-    CYHAL_RSLT_MODULE_RTC           = (0x15),  //!< An error occurred in RTC module
-    CYHAL_RSLT_MODULE_SDHC          = (0x16),  //!< An error occurred in SDHC module
-    CYHAL_RSLT_MODULE_SDIO          = (0x17),  //!< An error occurred in SDIO module
-    CYHAL_RSLT_MODULE_SPI           = (0x18),  //!< An error occurred in SPI module
-    CYHAL_RSLT_MODULE_SYSPM         = (0x19),  //!< An error occurred in SysPM module
-    CYHAL_RSLT_MODULE_SYSTEM        = (0x1A),  //!< An error occurred in System module
-    CYHAL_RSLT_MODULE_TDM           = (0x1B),  //!< An error occurred in Timer module
-    CYHAL_RSLT_MODULE_TIMER         = (0x1C),  //!< An error occurred in Timer module
-    CYHAL_RSLT_MODULE_TRNG          = (0x1D),  //!< An error occurred in RNG module
-    CYHAL_RSLT_MODULE_UART          = (0x1E),  //!< An error occurred in UART module
-    CYHAL_RSLT_MODULE_USB           = (0x1F),  //!< An error occurred in USB module
-    CYHAL_RSLT_MODULE_WDT           = (0x20),  //!< An error occurred in WDT module
+    CYHAL_RSLT_MODULE_LPTIMER       = (0x0F),  //!< An error occurred in LPTimer module
+    CYHAL_RSLT_MODULE_NVM           = (0x10),  //!< An error occurred in NVM module
+    CYHAL_RSLT_MODULE_OPAMP         = (0x11),  //!< An error occurred in OpAmp module
+    CYHAL_RSLT_MODULE_PDMPCM        = (0x12),  //!< An error occurred in PDM/PCM module
+    CYHAL_RSLT_MODULE_PWM           = (0x13),  //!< An error occurred in PWM module
+    CYHAL_RSLT_MODULE_QSPI          = (0x14),  //!< An error occurred in QSPI module
+    CYHAL_RSLT_MODULE_QUADDEC       = (0x15),  //!< An error occurred in Quadrature Decoder module
+    CYHAL_RSLT_MODULE_RTC           = (0x16),  //!< An error occurred in RTC module
+    CYHAL_RSLT_MODULE_SDHC          = (0x17),  //!< An error occurred in SDHC module
+    CYHAL_RSLT_MODULE_SDIO          = (0x18),  //!< An error occurred in SDIO module
+    CYHAL_RSLT_MODULE_SPI           = (0x19),  //!< An error occurred in SPI module
+    CYHAL_RSLT_MODULE_SYSPM         = (0x1A),  //!< An error occurred in SysPM module
+    CYHAL_RSLT_MODULE_SYSTEM        = (0x1B),  //!< An error occurred in System module
+    CYHAL_RSLT_MODULE_TDM           = (0x1C),  //!< An error occurred in Timer module
+    CYHAL_RSLT_MODULE_TIMER         = (0x1D),  //!< An error occurred in Timer module
+    CYHAL_RSLT_MODULE_TRNG          = (0x1E),  //!< An error occurred in RNG module
+    CYHAL_RSLT_MODULE_UART          = (0x1F),  //!< An error occurred in UART module
+    CYHAL_RSLT_MODULE_USB           = (0x20),  //!< An error occurred in USB module
+    CYHAL_RSLT_MODULE_WDT           = (0x21),  //!< An error occurred in WDT module
     // Implementation specific section
-    CYHAL_RSLT_MODULE_IMPL_TCPWM    = (0x21),  //!< An error occurred in TCPWM module (TCPWM based drivers are: Timer, PWM, Quadrature Decoder)
-    CYHAL_RSLT_MODULE_IMPL_SCB      = (0x22),  //!< An error occurred in SCB module (SCB based drivers are: I2C, SPI, UART)
+    CYHAL_RSLT_MODULE_IMPL_TCPWM    = (0x22),  //!< An error occurred in TCPWM module (TCPWM based drivers are: Timer, PWM, Quadrature Decoder)
+    CYHAL_RSLT_MODULE_IMPL_SCB      = (0x23),  //!< An error occurred in SCB module (SCB based drivers are: I2C, SPI, UART)
+    CYHAL_RSLT_MODULE_T2TIMER       = (0x24),  //!< An error occurred in T2Timer module
 };
 
 /**
@@ -169,16 +171,18 @@ typedef enum
  */
 typedef enum
 {
-    CYHAL_SYSPM_CB_CPU_SLEEP         = 0x01U,   /**< Flag for MCU sleep callback. */
-    CYHAL_SYSPM_CB_CPU_DEEPSLEEP     = 0x02U,   /**< Flag for MCU deep sleep callback. */
-    CYHAL_SYSPM_CB_SYSTEM_HIBERNATE  = 0x04U,   /**< Flag for Hibernate callback. */
-    CYHAL_SYSPM_CB_SYSTEM_NORMAL     = 0x08U,   /**< Flag for Normal mode callback. */
-    CYHAL_SYSPM_CB_SYSTEM_LOW        = 0x10U,   /**< Flag for Low power mode callback. */
+    CYHAL_SYSPM_CB_CPU_SLEEP             = 0x01U,   /**< Flag for MCU sleep callback. */
+    CYHAL_SYSPM_CB_CPU_DEEPSLEEP         = 0x02U,   /**< Flag for MCU deep sleep callback. */
+    CYHAL_SYSPM_CB_CPU_DEEPSLEEP_RAM     = 0x04U,   /**< Flag for MCU deep sleep ram callback. */
+    CYHAL_SYSPM_CB_SYSTEM_HIBERNATE      = 0x08U,   /**< Flag for Hibernate callback. */
+    CYHAL_SYSPM_CB_SYSTEM_NORMAL         = 0x10U,   /**< Flag for Normal mode callback. */
+    CYHAL_SYSPM_CB_SYSTEM_LOW            = 0x20U,   /**< Flag for Low power mode callback. */
 } cyhal_syspm_callback_state_t;
 
 /** Define for enabling all system and MCU state callbacks .*/
 #define CYHAL_SYSPM_CALLBACK_STATE_ALL (CYHAL_SYSPM_CB_CPU_SLEEP\
                                         | CYHAL_SYSPM_CB_CPU_DEEPSLEEP\
+                                        | CYHAL_SYSPM_CB_CPU_DEEPSLEEP_RAM\
                                         | CYHAL_SYSPM_CB_SYSTEM_HIBERNATE\
                                         | CYHAL_SYSPM_CB_SYSTEM_NORMAL\
                                         | CYHAL_SYSPM_CB_SYSTEM_LOW)
@@ -190,20 +194,23 @@ typedef enum
  */
 typedef enum
 {
-    CYHAL_SYSPM_CHECK_READY         = 0x01U, /**< Callbacks with this mode are executed before entering into the
-                                                low power mode. The purpose of this transition state is to check
-                                                if the device is ready to enter the low power mode. The application
-                                                must not perform any actions that would prevent transition after
-                                                returning true for this mode. */
-    CYHAL_SYSPM_CHECK_FAIL          = 0x02U, /**< Callbacks with this mode are only executed if the callback returned true
-                                                for CYHAL_SYSPM_CHECK_READY and a later callback returns false for
-                                                CYHAL_SYSPM_CHECK_READY. This mode should roll back any changes made
-                                                to avoid blocking transition made in CYHAL_SYSPM_CHECK_READY mode*/
-    CYHAL_SYSPM_BEFORE_TRANSITION   = 0x04U, /**< Callbacks with this mode are executed after the CYHAL_SYSPM_CHECK_READY
-                                                callbacks' execution returns true. In this mode, the application must
-                                                perform the actions to be done before entering into the low power mode. */
-    CYHAL_SYSPM_AFTER_TRANSITION    = 0x08U, /**< In this mode, the application must perform the actions to be done after
-                                                exiting the low power mode. */
+    CYHAL_SYSPM_CHECK_READY              = 0x01U, /**< Callbacks with this mode are executed before entering into the
+                                                  low power mode. The purpose of this transition state is to check
+                                                  if the device is ready to enter the low power mode. The application
+                                                  must not perform any actions that would prevent transition after
+                                                  returning true for this mode. */
+    CYHAL_SYSPM_CHECK_FAIL               = 0x02U, /**< Callbacks with this mode are only executed if the callback returned true
+                                                  for CYHAL_SYSPM_CHECK_READY and a later callback returns false for
+                                                  CYHAL_SYSPM_CHECK_READY. This mode should roll back any changes made
+                                                  to avoid blocking transition made in CYHAL_SYSPM_CHECK_READY mode*/
+    CYHAL_SYSPM_BEFORE_TRANSITION        = 0x04U, /**< Callbacks with this mode are executed after the CYHAL_SYSPM_CHECK_READY
+                                                  callbacks' execution returns true. In this mode, the application must
+                                                  perform the actions to be done before entering into the low power mode. */
+    CYHAL_SYSPM_AFTER_TRANSITION         = 0x08U, /**< In this mode, the application must perform the actions to be done after
+                                                  exiting the low power mode. */
+    CYHAL_SYSPM_AFTER_DS_WFI_TRANSITION  = 0x10U, /**< Performs the actions to be done after exiting the Deepsleep low
+                                                  power mode if entered and before the interrupts are enabled.This mode is not
+                                                  invoked on all devices, see the implementation specific documentation for details. */
 } cyhal_syspm_callback_mode_t;
 
 /** The system wide custom action power callback type.

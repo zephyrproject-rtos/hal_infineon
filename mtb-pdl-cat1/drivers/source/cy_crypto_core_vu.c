@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_vu.c
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides the source code to the API for the Vector Unit helpers
 *  in the Crypto driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,13 +37,13 @@ extern "C" {
 
 #if (CPUSS_CRYPTO_VU == 1)
 
-#include "cy_crypto_core_hw_v1.h"
-#include "cy_crypto_core_hw_v2.h"
 #include "cy_crypto_core_mem.h"
 #include "cy_syslib.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 4, \
-'CRYPTO_Type will typecast to either CRYPTO_V1_Type or CRYPTO_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'CRYPTO_Type will typecast to either CRYPTO_V1_Type or CRYPTO_V2_Type but not both on PDL initialization based on the target device at compile time.')
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 14.3', 4, \
+'Since value of CY_CRYPTO_V1 is decided by PDL device agnostic / hardware specific model, controlling expression will not have an invariant value.')
 
 #if !defined (CY_CRYPTO_SERVICE_LIBRARY_LEVEL)
     #define CY_CRYPTO_SERVICE_LIBRARY_LEVEL CY_CRYPTO_FULL_LIBRARY
@@ -104,55 +106,6 @@ void Cy_Crypto_Core_Vu_GetMemValue(CRYPTO_Type *base, uint8_t *dst, uint32_t src
         CY_CRYPTO_VU_RESTORE_REG(base, CY_CRYPTO_VU_HW_REG0, reg0_data);
         CY_CRYPTO_VU_RESTORE_REG(base, CY_CRYPTO_VU_HW_REG1, reg1_data);
     }
-}
-
-cy_en_crypto_status_t Cy_Crypto_Core_Cleanup(CRYPTO_Type *base)
-{
-    uint16_t vu_mem_size = 0U;
-    void *vu_mem_address = NULL;
-    /* Clear whole register file */
-    Cy_Crypto_Core_ClearVuRegisters(base);
-
-    /* PRNG */
-    REG_CRYPTO_PR_LFSR_CTL0(base) = 0u;
-    REG_CRYPTO_PR_LFSR_CTL1(base) = 0u;
-    REG_CRYPTO_PR_LFSR_CTL2(base) = 0u;
-    REG_CRYPTO_PR_RESULT(base)    = 0u;
-
-    /* TRNG */
-    REG_CRYPTO_TR_CTL0(base)      = 0u;
-    REG_CRYPTO_TR_CTL1(base)      = 0u;
-    REG_CRYPTO_TR_RESULT(base)    = 0u;
-
-    /* CRC */
-    REG_CRYPTO_CRC_POL_CTL(base)  = 0u;
-    REG_CRYPTO_CRC_REM_CTL(base)  = 0u;
-
-    /* AES */
-    REG_CRYPTO_AES_CTL(base)      = 0u;
-
-    if (CY_CRYPTO_V1)
-    {
-        REG_CRYPTO_CRC_LFSR_CTL(base) = 0u;
-        REG_CRYPTO_SHA_CTL(base)  = 0u;
-    }
-    else
-    {
-        REG_CRYPTO_TR_CTL2(base)  = 0u;
-        REG_CRYPTO_RESULT(base)   = 0u;
-
-        Cy_Crypto_Core_V2_FFStop(base, CY_CRYPTO_V2_RB_FF_LOAD0);
-        Cy_Crypto_Core_V2_FFStop(base, CY_CRYPTO_V2_RB_FF_LOAD1);
-        Cy_Crypto_Core_V2_FFStop(base, CY_CRYPTO_V2_RB_FF_STORE);
-        Cy_Crypto_Core_V2_RBClear(base);
-    }
-
-    vu_mem_address = Cy_Crypto_Core_GetVuMemoryAddress(base);
-    vu_mem_size = (uint16_t)Cy_Crypto_Core_GetVuMemorySize(base);
-
-    Cy_Crypto_Core_MemSet(base, vu_mem_address, 0u, vu_mem_size);
-
-    return (CY_CRYPTO_SUCCESS);
 }
 
 bool Cy_Crypto_Core_Vu_IsRegZero(CRYPTO_Type *base, uint32_t srcReg)
@@ -221,7 +174,9 @@ void Cy_Crypto_Core_VU_RegInvertEndianness(CRYPTO_Type *base, uint32_t srcReg)
     uint32_t *dataAddr = Cy_Crypto_Core_Vu_RegMemPointer(base, srcReg);
     Cy_Crypto_Core_InvertEndianness(dataAddr, byteSize);
 }
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 14.3')
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 #endif /* #if (CPUSS_CRYPTO_VU == 1) */
 

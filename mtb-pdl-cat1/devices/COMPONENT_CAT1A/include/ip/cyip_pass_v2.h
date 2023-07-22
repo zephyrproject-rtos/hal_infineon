@@ -4,12 +4,11 @@
 * \brief
 * PASS IP definitions
 *
-* \note
-* Generator version: 1.6.0.409
-*
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,8 +95,8 @@ typedef struct {
   __IOM uint32_t DPSLP_CLOCK_SEL;               /*!< 0x00000010 Deepsleep clock select */
   __IOM uint32_t ANA_PWR_CFG;                   /*!< 0x00000014 Analog power configuration */
    __IM uint32_t RESERVED1[2];
-  __IOM uint32_t CTBM_CLOCK_SEL;                /*!< 0x00000020 Clock select for CTBm */
-   __IM uint32_t RESERVED2[3];
+  __IOM uint32_t CTBM_CLOCK_SEL[2];             /*!< 0x00000020 Clock select for CTBm */
+   __IM uint32_t RESERVED2[2];
   __IOM uint32_t SAR_DPSLP_CTRL[2];             /*!< 0x00000030 Deepsleep control for SARv3 */
    __IM uint32_t RESERVED3[2];
   __IOM uint32_t SAR_CLOCK_SEL[2];              /*!< 0x00000040 Clock select for SARv3 */

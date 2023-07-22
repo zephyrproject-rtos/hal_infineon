@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_systick.c
-* \version 1.40
+* \version 1.70.1
 *
 * Provides the API definitions of the SisTick driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS)
+#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS)
 
 #include <stddef.h>     /* for NULL */
 #include "cy_systick.h"
@@ -81,7 +82,8 @@ void Cy_SysTick_Init(cy_en_systick_clock_source_t clockSource, uint32_t interval
         Cy_SysTick_Callbacks[i] = NULL;
     }
 
-    __ramVectors[CY_SYSTICK_IRQ_NUM] = &Cy_SysTick_ServiceCallbacks;
+    (void)Cy_SysInt_SetVector((IRQn_Type)CY_SYSTICK_IRQ_NUM, Cy_SysTick_ServiceCallbacks); /* Suppress a compiler warning about unused return value */
+
     Cy_SysTick_SetClockSource(clockSource);
 
     Cy_SysTick_SetReload(interval);

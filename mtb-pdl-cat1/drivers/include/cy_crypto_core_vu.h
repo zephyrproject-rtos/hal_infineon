@@ -1,13 +1,15 @@
 /***************************************************************************//**
-* \file cy_crypto_core_hw.h
-* \version 2.40
+* \file cy_crypto_core_vu.h
+* \version 2.90
 *
 * \brief
 *  This file provides the headers to the API for the utils
 *  in the Crypto driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,25 +51,12 @@ extern "C" {
 */
 
 /*******************************************************************************
-* Function Name: Cy_Crypto_Core_Cleanup
-****************************************************************************//**
-*
-* Cleans up the Crypto block.
-*
-* \param base
-* The pointer to the CRYPTO instance.
-*
-* \return
-* \ref cy_en_crypto_status_t
-*
-*******************************************************************************/
-cy_en_crypto_status_t Cy_Crypto_Core_Cleanup(CRYPTO_Type *base);
-
-/*******************************************************************************
 * Function Name: Cy_Crypto_Core_Vu_SetMemValue
 ****************************************************************************//**
 *
 * Sets the value in the Crypto memory allocated by the destination VU register.
+*
+* For CAT1C devices when D-Cache is enabled, the user is expected to maintain the cache coherency of data..
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -89,6 +78,8 @@ void Cy_Crypto_Core_Vu_SetMemValue(CRYPTO_Type *base, uint32_t dstReg, uint8_t c
 ****************************************************************************//**
 *
 * Gets the value located in the crypto memory and pointed by source VU register.
+*
+* For CAT1C devices when D-Cache is enabled, the user is expected to maintain the cache coherency of data..
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -310,6 +301,7 @@ __STATIC_INLINE uint32_t * Cy_Crypto_Core_Vu_RegMemPointer(CRYPTO_Type *base, ui
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_Crypto_Core_Vu_StatusRead(CRYPTO_Type *base)
 {
+    /* Wait until the VU instruction is complete */
     Cy_Crypto_Core_Vu_WaitForComplete(base);
 
     return((uint32_t)REG_CRYPTO_VU_STATUS(base));

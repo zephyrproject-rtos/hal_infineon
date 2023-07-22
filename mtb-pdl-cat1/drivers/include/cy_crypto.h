@@ -1,12 +1,14 @@
 /***************************************************************************//**
 * \file cy_crypto.h
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides the public interface for the Crypto driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +27,9 @@
 /**
 * \addtogroup group_crypto
 * \{
+* \note IP Supported: CRYPTO
+* \note Device Categories: CAT1A & CAT1C. Please refer <a href="usergroup1.html">Device Catalog</a>.
+*
 * The Crypto driver provides a public API to perform cryptographic and hash
 * operations, as well as generate both true and pseudo random numbers.
 *
@@ -45,6 +50,13 @@
 * \note ECP and ECDSA are only implemented for the \ref group_crypto_lld_api model.
 *
 * \section group_crypto_configuration_considerations Configuration Considerations
+*
+* User can enable/disable cryptographic functionality based on the project
+* requirements. To do so, create a configuration header file to configure cryptographic
+* functionalities and define a macro CY_CRYPTO_USER_CONFIG_FILE with configuration
+* header file name and add to project environment. If CY_CRYPTO_USER_CONFIG_FILE macro
+* is not defined in project environment, firmware will enable all available
+* cryptographic functionalities.
 *
 * Firmware sets up a cryptographic operation by passing in the required data as
 * parameters in the function calls.
@@ -210,22 +222,19 @@
 *   <tr>
 *     <td>Asymmetric Key Cryptography</td>
 *     <td>Also referred to as Public Key encryption. To receive a message,
-*     you publish a very large public key (up to 4096 bits currently).
-*     That key is one of the two prime factors of a very large number. The
-*     other prime factor is the recipient's private (secret) key.
-*     To send a message to the publisher of the public key, you
-*     encrypt the message with the public key. This message can now be
-*     decrypted only with the private key (the other prime factor held in secret by
-*     the recipient). The message is now sent over any channel to the recipient
-*     who can decrypt it with the private (secret) key. The same process is used
-*     to send messages to the sender of the original message. The asymmetric
-*     cryptography relies on the mathematical impracticality (usually related to
-*     the processing power available at any given time) of factoring the keys.
-*     Common, computationally intensive, asymmetric algorithms are RSA and ECC.
-*     The public key is described by the pair (n, e) where n is a product of two
-*     randomly chosen primes p and q. The exponent e is a random integer
+*     you publish a very large public key (up to 4096 bits currently). The
+*     public key is described by the pair (n, e) where n is a product of
+*     two randomly chosen primes p and q. The exponent e is a random integer
 *     1 < e < Q where Q = (p-1) (q-1). The private key d is uniquely defined
-*     by the integer 1 < d < Q so that ed congruent with 1 (mod Q ).
+*     by the integer 1 < d < Q so that ed congruent with 1 (mod Q ). To send
+*     a message to the publisher of the public key, you encrypt the message
+*     with the public key. This message can now be decrypted only with the
+*     private key. The message is now sent over any channel to the recipient
+*     who can decrypt it with the private (secret) key. The same process is
+*     used to send messages to the sender of the original message. The
+*     asymmetric cryptography relies on the mathematical impracticality
+*     (usually related to the processing power available at any given time)
+*     of factoring the keys.
 *     </td>
 *   </tr>
 * </table>
@@ -233,13 +242,46 @@
 * \section group_crypto_more_information More Information
 *
 * RSASSA-PKCS1-v1_5 described here, page 31:
-* http://www.emc.com/collateral/white-papers/h11300-pkcs-1v2-2-rsa-cryptography-standard-wp.pdf
+* https://www.rfc-editor.org/rfc/pdfrfc/rfc8017.txt.pdf
 *
 * See the "Cryptographic Function Block" chapter of the Technical Reference Manual.
 *
 * \section group_crypto_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td> 2.90</td>
+*     <td>Updated internal APIs and bug fixes.</td>
+*     <td>Fixed GCM initialization and coverity bugs.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.80</td>
+*     <td>Added AES GCM support.</td>
+*     <td>Driver enhancement.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.70</td>
+*     <td>Added TRNG enhancements to support health monitor check.</td>
+*     <td>Driver enhancement and new feature addition.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.60</td>
+*     <td>
+*         <ul>
+*         <li>Added support for compile time crypto functionality selection with user defined
+*             config header. By default, all crypto features supported will be enabled.<br>
+*         <li>Added new API \ref Cy_Crypto_Core_Rsa_Verify_Ext to support verification of PKCS 1.5
+*             signatures with CY_CRYPTO_MODE_SHA_NONE, which was unsupported in existing
+*             \ref Cy_Crypto_Core_Rsa_Verify.</td>
+*         </ul>
+*     <td>Driver enhancement and new feature addition.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.50</td>
+*     <td>Fixed the Cy_Crypto_Core_ECC_VerifyHash() and an internal function behaviour
+*         to support 0 hash message. Resolved MISRA 2012 standard defects.</td>
+*     <td>Defect fixing and MISRA 2012 compliance.</td>
+*   </tr>
 *   <tr>
 *     <td>2.40</td>
 *     <td>
@@ -352,9 +394,9 @@
 *   <tr>
 *     <td>Removed files with the default driver configuration. \n
 *     Added API functions to start different server functionality:
-*         - \ref Cy_Crypto_Server_Start_Base
-*         - \ref Cy_Crypto_Server_Start_Extra
-*         - \ref Cy_Crypto_Server_Start_Full
+*         - Cy_Crypto_Server_Start_Base
+*         - Cy_Crypto_Server_Start_Extra
+*         - Cy_Crypto_Server_Start_Full
 *     </td>
 *     <td></td>
 *   </tr>
@@ -491,8 +533,7 @@
 * select the IPC channel, and configure the required notify, release, and error
 * interrupts.
 *
-* These initialization routines, \ref Cy_Crypto_Server_Start_Base,
-* \ref Cy_Crypto_Server_Start_Extra or \ref Cy_Crypto_Server_Start_Full (server)
+* These initialization routines, \ref Cy_Crypto_Server_Start (server)
 * and \ref Cy_Crypto_Init (client), use separate instances of the same
 * cy_stc_crypto_config_t configuration structure. Some fields should be the same,
 * and some are set specifically by either the server or client. The table lists
@@ -563,13 +604,12 @@
 *
 * \section group_crypto_server_init Server Initialization
 *
-* Use a __Crypto Server Start function__ (one of \ref Cy_Crypto_Server_Start_Base,
-* \ref Cy_Crypto_Server_Start_Extra or \ref Cy_Crypto_Server_Start_Full).
+* Use a \ref Cy_Crypto_Server_Start function.
 * Provide the configuration parameters (cy_stc_crypto_config_t) and a pointer
 * to the server context (cy_stc_crypto_server_context_t) that will be used to
 * store all temporary data.
 *
-* \snippet crypto/snippet/main.c snippet_myCryptoServerStartBase
+* \snippet crypto/snippet/main.c snippet_myCryptoServerStart
 *
 * Because the two cores operate asynchronously, ensure that server
 * initialization is complete before initializing the client.
@@ -933,7 +973,7 @@ cy_en_crypto_status_t Cy_Crypto_Sync(bool isBlocking);
 *******************************************************************************/
 cy_en_crypto_status_t Cy_Crypto_GetErrorStatus(cy_stc_crypto_hw_error_t *hwErrorCause);
 
-#if (CPUSS_CRYPTO_PR == 1)
+#if (CPUSS_CRYPTO_PR == 1) && defined(CY_CRYPTO_CFG_PRNG_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Prng_Init
 ****************************************************************************//**
@@ -957,6 +997,7 @@ cy_en_crypto_status_t Cy_Crypto_GetErrorStatus(cy_stc_crypto_hw_error_t *hwError
 * \param cfContext
 * The pointer to the \ref cy_stc_crypto_context_prng_t structure that stores
 * the Crypto function context.
+* __Must be 4-byte aligned.__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -987,6 +1028,7 @@ cy_en_crypto_status_t Cy_Crypto_Prng_Init(uint32_t lfsr32InitState,
 * \param cfContext
 * The pointer to the \ref cy_stc_crypto_context_prng_t structure that stores
 * the Crypto function context.
+* __Must be 4-byte aligned.__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -998,9 +1040,9 @@ cy_en_crypto_status_t Cy_Crypto_Prng_Init(uint32_t lfsr32InitState,
 cy_en_crypto_status_t Cy_Crypto_Prng_Generate(uint32_t max,
                                               uint32_t *randomNum,
                                               cy_stc_crypto_context_prng_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_PR == 1) */
+#endif /* (CPUSS_CRYPTO_PR == 1) && defined(CY_CRYPTO_CFG_PRNG_C) */
 
-#if (CPUSS_CRYPTO_AES == 1)
+#if (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_AES_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Aes_Init
 ****************************************************************************//**
@@ -1019,7 +1061,7 @@ cy_en_crypto_status_t Cy_Crypto_Prng_Generate(uint32_t max,
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_crypto_context_aes_t structure that stores all
-* internal variables the Crypto driver requires.
+* internal variables the Crypto driver requires. __Must be 4-byte aligned.__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -1052,7 +1094,7 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Init(uint32_t *key,
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_crypto_context_aes_t instance of structure
-* that stores all AES internal variables.
+* that stores all AES internal variables. __Must be 4-byte aligned.__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -1066,6 +1108,7 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Ecb_Run(cy_en_crypto_dir_mode_t dirMode,
                                             uint32_t *srcBlock,
                                             cy_stc_crypto_context_aes_t *cfContext);
 
+#if defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Aes_Cbc_Run
 ****************************************************************************//**
@@ -1091,7 +1134,7 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Ecb_Run(cy_en_crypto_dir_mode_t dirMode,
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_crypto_context_aes_t structure that stores all
-* internal variables the Crypto driver requires.
+* internal variables the Crypto driver requires.  __Must be 4-byte aligned.__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -1103,7 +1146,9 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Cbc_Run(cy_en_crypto_dir_mode_t dirMode,
                                             uint32_t *dst,
                                             uint32_t *src,
                                             cy_stc_crypto_context_aes_t *cfContext);
+#endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC) */
 
+#if defined(CY_CRYPTO_CFG_CIPHER_MODE_CFB)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Aes_Cfb_Run
 ****************************************************************************//**
@@ -1129,7 +1174,7 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Cbc_Run(cy_en_crypto_dir_mode_t dirMode,
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_crypto_context_aes_t structure that stores all
-* internal variables the Crypto driver requires.
+* internal variables the Crypto driver requires. __Must be 4-byte aligned.__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -1141,7 +1186,9 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Cfb_Run(cy_en_crypto_dir_mode_t dirMode,
                                             uint32_t *dst,
                                             uint32_t *src,
                                             cy_stc_crypto_context_aes_t *cfContext);
+#endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CFB) */
 
+#if defined(CY_CRYPTO_CFG_CIPHER_MODE_CTR)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Aes_Ctr_Run
 ****************************************************************************//**
@@ -1178,7 +1225,7 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Cfb_Run(cy_en_crypto_dir_mode_t dirMode,
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_crypto_context_aes_t structure that stores all
-* internal variables the Crypto driver requires.
+* internal variables the Crypto driver requires. __Must be 4-byte aligned.__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -1192,7 +1239,10 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Ctr_Run(cy_en_crypto_dir_mode_t dirMode,
                                             uint32_t *dst,
                                             uint32_t *src,
                                             cy_stc_crypto_context_aes_t *cfContext);
+#endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CTR) */
+#endif /* (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_AES_C) */
 
+#if (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_CMAC_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Aes_Cmac_Run
 ****************************************************************************//**
@@ -1234,9 +1284,9 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Cmac_Run(uint32_t *src,
                                              cy_en_crypto_aes_key_length_t keyLength,
                                              uint32_t *cmacPtr,
                                              cy_stc_crypto_context_aes_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_AES == 1) */
+#endif /* (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_CMAC_C) */
 
-#if (CPUSS_CRYPTO_SHA == 1)
+#if (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_SHA_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Sha_Run
 ****************************************************************************//**
@@ -1259,7 +1309,7 @@ cy_en_crypto_status_t Cy_Crypto_Aes_Cmac_Run(uint32_t *src,
 *
 * \param digest
 * The pointer to the hash digest. The hash size depends on the selected SHA mode
-* (from 20 to 64 bytes, see \ref CY_CRYPTO_SHA_MAX_DIGEST_SIZE).
+* (from 20 to 64 bytes).
 * __Must be 4-byte aligned.__
 *
 * \param cfContext
@@ -1278,9 +1328,9 @@ cy_en_crypto_status_t Cy_Crypto_Sha_Run(uint32_t *message,
                                         uint32_t *digest,
                                         cy_en_crypto_sha_mode_t mode,
                                         cy_stc_crypto_context_sha_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_SHA == 1) */
+#endif /* (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_SHA_C) */
 
-#if (CPUSS_CRYPTO_SHA == 1)
+#if (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_HMAC_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Hmac_Run
 ****************************************************************************//**
@@ -1328,7 +1378,7 @@ cy_en_crypto_status_t Cy_Crypto_Hmac_Run(uint32_t *hmac,
                                          uint32_t keyLength,
                                          cy_en_crypto_sha_mode_t mode,
                                          cy_stc_crypto_context_sha_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_SHA == 1) */
+#endif /* (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_HMAC_C) */
 
 #if (CPUSS_CRYPTO_STR == 1)
 /*******************************************************************************
@@ -1408,7 +1458,7 @@ cy_en_crypto_status_t Cy_Crypto_Str_MemSet(void *dst,
 * This function is independent from the previous Crypto state.
 *
 * \param src0
-* The pointer to the first source of MemCmp.
+* The pointer to the first source of MemCmp.(__must be 4-byte aligned__)
 *
 * \param src1
 * The pointer to the second source of MemCmp.
@@ -1423,7 +1473,7 @@ cy_en_crypto_status_t Cy_Crypto_Str_MemSet(void *dst,
 *
 * \param cfContext
 * the pointer to the \ref cy_stc_crypto_context_str_t structure that stores all
-* internal variables for the Crypto driver.
+* internal variables for the Crypto driver. __must be 4-byte aligned__
 *
 * \return
 * \ref cy_en_crypto_status_t
@@ -1474,7 +1524,7 @@ cy_en_crypto_status_t Cy_Crypto_Str_MemXor(void const *src0,
                                            cy_stc_crypto_context_str_t *cfContext);
 #endif /* #if (CPUSS_CRYPTO_STR == 1) */
 
-#if (CPUSS_CRYPTO_CRC == 1)
+#if (CPUSS_CRYPTO_CRC == 1) && defined(CY_CRYPTO_CFG_CRC_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Crc_Init
 ****************************************************************************//**
@@ -1637,9 +1687,9 @@ cy_en_crypto_status_t Cy_Crypto_Crc_Run(void     *data,
                                         uint32_t *crc,
                                         uint32_t  lfsrInitState,
                                         cy_stc_crypto_context_crc_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_CRC == 1) */
+#endif /* (CPUSS_CRYPTO_CRC == 1) && defined(CY_CRYPTO_CFG_CRC_C) */
 
-#if (CPUSS_CRYPTO_TR == 1)
+#if (CPUSS_CRYPTO_TR == 1) && defined(CY_CRYPTO_CFG_TRNG_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Trng_Generate
 ****************************************************************************//**
@@ -1674,9 +1724,9 @@ cy_en_crypto_status_t Cy_Crypto_Trng_Generate(uint32_t  GAROPol,
                                               uint32_t  max,
                                               uint32_t *randomNum,
                                               cy_stc_crypto_context_trng_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_TR == 1) */
+#endif /* (CPUSS_CRYPTO_TR == 1) && defined(CY_CRYPTO_CFG_TRNG_C) */
 
-#if (CPUSS_CRYPTO_DES == 1)
+#if (CPUSS_CRYPTO_DES == 1) && defined(CY_CRYPTO_CFG_DES_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Des_Run
 ****************************************************************************//**
@@ -1753,9 +1803,80 @@ cy_en_crypto_status_t Cy_Crypto_Tdes_Run(cy_en_crypto_dir_mode_t dirMode,
                                          uint32_t *dstBlock,
                                          uint32_t *srcBlock,
                                          cy_stc_crypto_context_des_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_DES == 1) */
+#endif /* (CPUSS_CRYPTO_DES == 1) && defined(CY_CRYPTO_CFG_DES_C) */
 
-#if (CPUSS_CRYPTO_VU == 1)
+#if (CPUSS_CRYPTO_VU == 1) && defined(CY_CRYPTO_CFG_RSA_C)
+/*******************************************************************************
+* Function Name: Cy_Crypto_GetMemBufAddress
+****************************************************************************//**
+*
+* This function gets an operation memory buffer location.
+*
+* \param membufAddress
+* The pointer of the operation memory buffer.
+*
+* \param cfContext
+* The pointer to the \ref cy_stc_crypto_context_str_t structure that stores
+* the data context.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+cy_en_crypto_status_t Cy_Crypto_GetMemBufAddress(uint32_t **membufAddress,
+                                           cy_stc_crypto_context_str_t *cfContext);
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_GetMemBufSize
+****************************************************************************//**
+*
+* This function gets an operation memory buffer size.
+*
+* \param membufSize
+* The size of the memory buffer (in bytes)
+*
+* \param cfContext
+* The pointer to the \ref cy_stc_crypto_context_str_t structure that stores
+* the data context.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+cy_en_crypto_status_t Cy_Crypto_GetMemBufSize(uint32_t *membufSize,
+                                           cy_stc_crypto_context_str_t *cfContext);
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_SetMemBufAddress
+****************************************************************************//**
+*
+* This function sets a new operation memory buffer.
+*
+* \param newMembufAddress
+* The pointer to the new operation memory buffer.
+* __Must be 4-byte aligned.__
+*
+* \param newMembufSize
+* The size of the new memory buffer (in bytes)
+*
+* \param cfContext
+* The pointer to the \ref cy_stc_crypto_context_str_t structure that stores
+* the data context.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+* \note This function sets the default device specific values
+*       when vuMemoryAddr parameter is NULL and vuMemorySize parameter is zero.
+*
+* \note New memory buffer should be allocated in a memory region that is not
+*       protected by a protection scheme for use by Crypto hardware.
+*
+*******************************************************************************/
+cy_en_crypto_status_t Cy_Crypto_SetMemBufAddress(uint32_t const *newMembufAddress,
+                                           uint32_t newMembufSize,
+                                           cy_stc_crypto_context_str_t *cfContext);
+
 /*******************************************************************************
 * Function Name: Cy_Crypto_Rsa_Proc
 ****************************************************************************//**
@@ -1849,7 +1970,7 @@ cy_en_crypto_status_t Cy_Crypto_Rsa_Proc(cy_stc_crypto_rsa_pub_key_t const *pubK
 cy_en_crypto_status_t Cy_Crypto_Rsa_CalcCoefs(cy_stc_crypto_rsa_pub_key_t const *pubKey,
                                          cy_stc_crypto_context_rsa_t *cfContext);
 
-#if (CPUSS_CRYPTO_SHA == 1)
+#if (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_SHA_C) && defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Rsa_Verify
 ****************************************************************************//**
@@ -1896,8 +2017,11 @@ cy_en_crypto_status_t Cy_Crypto_Rsa_Verify(cy_en_crypto_rsa_ver_result_t *verRes
                                            uint32_t const *decryptedSignature,
                                            uint32_t decryptedSignatureLength,
                                            cy_stc_crypto_context_rsa_ver_t *cfContext);
-#endif /* #if (CPUSS_CRYPTO_SHA == 1) */
+#endif /* (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_SHA_C) && defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) */
+#endif /* (CPUSS_CRYPTO_VU == 1) && defined(CY_CRYPTO_CFG_RSA_C) */
 
+#if (CPUSS_CRYPTO_VU == 1) && defined(CY_CRYPTO_CFG_ECDSA_C)
+#if defined(CY_CRYPTO_CFG_ECDSA_SIGN_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_ECDSA_SignHash
 ****************************************************************************//**
@@ -1932,7 +2056,9 @@ cy_en_crypto_status_t Cy_Crypto_ECDSA_SignHash(const uint8_t *hash,
                                         const cy_stc_crypto_ecc_key *key,
                                         const uint8_t *messageKey,
                                         cy_stc_crypto_context_ecc_t *cfContext);
+#endif /* defined(CY_CRYPTO_CFG_ECDSA_SIGN_C) */
 
+#if defined(CY_CRYPTO_CFG_ECDSA_VERIFY_C)
 /*******************************************************************************
 * Function Name: Cy_Crypto_ECDSA_VerifyHash
 ****************************************************************************//**
@@ -1968,78 +2094,8 @@ cy_en_crypto_status_t Cy_Crypto_ECDSA_VerifyHash(const uint8_t *sig,
                                         const cy_stc_crypto_ecc_key *key,
                                         cy_stc_crypto_context_ecc_t *cfContext);
 
-#endif /* #if (CPUSS_CRYPTO_VU == 1) */
-
-/*******************************************************************************
-* Function Name: Cy_Crypto_SetMemBufAddress
-****************************************************************************//**
-*
-* This function sets a new operation memory buffer.
-*
-* \param newMembufAddress
-* The pointer to the new operation memory buffer.
-* __Must be 4-byte aligned.__
-*
-* \param newMembufSize
-* The size of the new memory buffer (in bytes)
-*
-* \param cfContext
-* The pointer to the \ref cy_stc_crypto_context_str_t structure that stores
-* the data context.
-*
-* \return
-* \ref cy_en_crypto_status_t
-*
-* \note This function sets the default device specific values
-*       when vuMemoryAddr parameter is NULL and vuMemorySize parameter is zero.
-*
-* \note New memory buffer should be allocated in a memory region that is not
-*       protected by a protection scheme for use by Crypto hardware.
-*
-*******************************************************************************/
-cy_en_crypto_status_t Cy_Crypto_SetMemBufAddress(uint32_t const *newMembufAddress,
-                                           uint32_t newMembufSize,
-                                           cy_stc_crypto_context_str_t *cfContext);
-
-/*******************************************************************************
-* Function Name: Cy_Crypto_GetMemBufAddress
-****************************************************************************//**
-*
-* This function gets an operation memory buffer location.
-*
-* \param membufAddress
-* The pointer of the operation memory buffer.
-*
-* \param cfContext
-* The pointer to the \ref cy_stc_crypto_context_str_t structure that stores
-* the data context.
-*
-* \return
-* \ref cy_en_crypto_status_t
-*
-*******************************************************************************/
-cy_en_crypto_status_t Cy_Crypto_GetMemBufAddress(uint32_t **membufAddress,
-                                           cy_stc_crypto_context_str_t *cfContext);
-
-/*******************************************************************************
-* Function Name: Cy_Crypto_GetMemBufSize
-****************************************************************************//**
-*
-* This function gets an operation memory buffer size.
-*
-* \param membufSize
-* The size of the memory buffer (in bytes)
-*
-* \param cfContext
-* The pointer to the \ref cy_stc_crypto_context_str_t structure that stores
-* the data context.
-*
-* \return
-* \ref cy_en_crypto_status_t
-*
-*******************************************************************************/
-cy_en_crypto_status_t Cy_Crypto_GetMemBufSize(uint32_t *membufSize,
-                                           cy_stc_crypto_context_str_t *cfContext);
+#endif /* defined(CY_CRYPTO_CFG_ECDSA_VERIFY_C) */
+#endif /* (CPUSS_CRYPTO_VU == 1) && defined(CY_CRYPTO_CFG_ECDSA_C) */
 
 /*******************************************************************************
 * Function Name: Cy_Crypto_InvertEndianness

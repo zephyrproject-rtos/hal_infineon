@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -155,6 +155,9 @@ extern "C"
 /** The clock did not lock after being enabled. */
 #define CYHAL_CLOCK_RSLT_ERR_LOCK               \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_CLOCK, 4))
+/** Source clock for the clock being configured is turned off. */
+#define CYHAL_CLOCK_RSLT_ERR_SOURCE_DISABLED    \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_CLOCK, 5))
 
 /**
  * \}

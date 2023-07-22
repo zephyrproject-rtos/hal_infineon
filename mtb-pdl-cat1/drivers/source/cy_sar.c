@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sar.c
-* \version 2.0.1
+* \version 2.10
 *
 * Provides the public functions for the API for the SAR driver.
 *
@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 81, \
-'SAR_Type will typecast to either SAR_V1_Type or SAR_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'SAR_Type will typecast to either SAR_V1_Type or SAR_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 #define CHAN_NUM(chan)           ((chan) < CY_SAR_NUM_CHANNELS)
 #define IS_RIGHT_ALIGN           (!_FLD2BOOL(SAR_SAMPLE_CTRL_LEFT_ALIGN, SAR_SAMPLE_CTRL(base)))
@@ -188,7 +188,7 @@ cy_en_sar_status_t Cy_SAR_CommonInit(PASS_Type * base, const cy_stc_sar_common_c
 * and guidance in the \ref group_sar_initialization section.
 *
 * \return
-* - \ref CY_SAR_SUCCESS : initialization complete successfylly
+* - \ref CY_SAR_SUCCESS : initialization complete successfully
 * - \ref CY_SAR_BAD_PARAM : input pointers are null or some configuration
                             setting is invalid, initialization incomplete.
 *
@@ -1213,7 +1213,7 @@ int16_t Cy_SAR_RawCounts2Counts(const SAR_Type *base, uint32_t chan, int16_t adc
 * - Gain: Value stored by the \ref Cy_SAR_SetChannelGain function.
 *
 * \note
-* This funtion is only valid when result alignment is right aligned.
+* This function is only valid when result alignment is right aligned.
 *
 * \param base
 * Pointer to structure describing registers
@@ -1277,7 +1277,7 @@ float32_t Cy_SAR_CountsTo_Volts(const SAR_Type *base, uint32_t chan, int16_t adc
 * - Gain: Value stored by the \ref Cy_SAR_SetChannelGain function.
 *
 * \note
-* This funtion is only valid when result alignment is right aligned.
+* This function is only valid when result alignment is right aligned.
 *
 * \param base
 * Pointer to structure describing registers
@@ -1351,7 +1351,7 @@ int16_t Cy_SAR_CountsTo_mVolts(const SAR_Type *base, uint32_t chan, int16_t adcC
 * - Gain: Value stored by the \ref Cy_SAR_SetChannelGain function.
 *
 * \note
-* This funtion is only valid when result alignment is right aligned.
+* This function is only valid when result alignment is right aligned.
 *
 * \param base
 * Pointer to structure describing registers
@@ -1414,7 +1414,7 @@ int32_t Cy_SAR_CountsTo_uVolts(const SAR_Type *base, uint32_t chan, int16_t adcC
 * and "OR" them together.
 *
 * \param state
-* Open or close the desired swithces. Select a value from \ref cy_en_sar_switch_state_t.
+* Open or close the desired switches. Select a value from \ref cy_en_sar_switch_state_t.
 *
 * \return None
 *
@@ -1602,7 +1602,7 @@ cy_en_sar_status_t Cy_SAR_ScanCountEnable(const SAR_Type * base)
 
     return (retVal);
 }
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 
 #if defined(__cplusplus)

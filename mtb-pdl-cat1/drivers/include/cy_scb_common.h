@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_common.h
-* \version 2.80
+* \version 3.10
 *
 * Provides common API declarations of the SCB driver.
 *
@@ -56,6 +56,33 @@
 *******************************************************************************
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>3.10</td>
+*     <td>Fixed MISRA 2012 violations.</td>
+*     <td>MISRA 2012 compliance.</td>
+*   </tr>
+*   <tr>
+*     <td rowspan="2">3.0</td>
+*     <td>Updated \ref Cy_SCB_SPI_Init and other internal data handling functions to handle wide range of data widths.</td>
+*     <td>Defect fixing.</td>
+*   </tr>
+*   <tr>
+*     <td>Minor documentation updates.</td>
+*     <td>Documentation enhancement.</td>
+*   </tr>
+*   <tr>
+*     <td rowspan="2">2.90</td>
+*     <td>A new API, \ref Cy_SCB_SetEzI2CMode, has been added to help set the hardware EZ mode for the I2C protocol.</td>
+*     <td>The HW EZ Mode for the I2C protocol can be enabled or disabled.</td>
+*   </tr>
+*   <tr>
+*     <td>Newly added APIs \ref Cy_SCB_I2C_SetStretchThreshold to set the stretch threshold value,
+*         \ref Cy_SCB_I2C_GetStretchCount to get the stretch count,
+*         \ref Cy_SCB_I2C_IsStretchDetected to detect if I2C SCL is stretched,
+*         \ref Cy_SCB_I2C_IsSyncDetected to check if synchronization is detected on I2C SCL.
+*         \ref Cy_SCB_I2C_IsStretching to check if DUT is stretching the I2C SCL.</td>
+*     <td>New device support.</td>
+*   </tr>
 *   <tr>
 *     <td>2.80</td>
 *     <td>Updated the behaviour of \ref Cy_SCB_UART_SetEnableMsbFirst and \ref Cy_SCB_UART_GetEnableMsbFirst functions.
@@ -307,7 +334,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSCB)
+#if (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB))
 
 #include <stdint.h>
 #include <stddef.h>
@@ -328,13 +355,13 @@ extern "C" {
 * \addtogroup group_scb_common_functions
 * \{
 */
-__STATIC_INLINE uint32_t Cy_SCB_ReadRxFifo    (CySCB_Type const *base);
+__STATIC_FORCEINLINE uint32_t Cy_SCB_ReadRxFifo    (CySCB_Type const *base);
 __STATIC_INLINE void     Cy_SCB_SetRxFifoLevel(CySCB_Type *base, uint32_t level);
 __STATIC_INLINE uint32_t Cy_SCB_GetNumInRxFifo(CySCB_Type const *base);
 __STATIC_INLINE uint32_t Cy_SCB_GetRxSrValid  (CySCB_Type const *base);
 __STATIC_INLINE void     Cy_SCB_ClearRxFifo   (CySCB_Type *base);
 
-__STATIC_INLINE void     Cy_SCB_WriteTxFifo   (CySCB_Type *base, uint32_t data);
+__STATIC_FORCEINLINE void     Cy_SCB_WriteTxFifo   (CySCB_Type *base, uint32_t data);
 __STATIC_INLINE void     Cy_SCB_SetTxFifoLevel(CySCB_Type *base, uint32_t level);
 __STATIC_INLINE uint32_t Cy_SCB_GetNumInTxFifo(CySCB_Type const *base);
 __STATIC_INLINE uint32_t Cy_SCB_GetTxSrValid  (CySCB_Type const *base);
@@ -407,7 +434,7 @@ __STATIC_INLINE void     Cy_SCB_FwBlockReset(CySCB_Type *base);
 __STATIC_INLINE bool     Cy_SCB_IsRxDataWidthByte(CySCB_Type const *base);
 __STATIC_INLINE bool     Cy_SCB_IsTxDataWidthByte(CySCB_Type const *base);
 __STATIC_INLINE uint32_t Cy_SCB_GetRxFifoLevel   (CySCB_Type const *base);
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
 __STATIC_INLINE uint32_t Cy_SCB_Get_RxDataWidth(CySCB_Type const *base);
 __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 #endif /* CY_IP_MXSCB_VERSION */
@@ -426,10 +453,10 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 */
 
 /** Driver major version */
-#define CY_SCB_DRV_VERSION_MAJOR    (2)
+#define CY_SCB_DRV_VERSION_MAJOR    (3)
 
 /** Driver minor version */
-#define CY_SCB_DRV_VERSION_MINOR    (80)
+#define CY_SCB_DRV_VERSION_MINOR    (10)
 
 /** SCB driver identifier */
 #define CY_SCB_ID           CY_PDL_DRV_ID(0x2AU)
@@ -440,13 +467,13 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 /** EZI2C mode identifier */
 #define CY_SCB_EZI2C_ID     (0x0UL << CY_SCB_SUB_MODE_Pos)
 
-/** EZI2C mode identifier */
+/** I2C mode identifier */
 #define CY_SCB_I2C_ID       (0x1UL << CY_SCB_SUB_MODE_Pos)
 
-/** EZI2C mode identifier */
+/** SPI mode identifier */
 #define CY_SCB_SPI_ID       (0x2UL << CY_SCB_SUB_MODE_Pos)
 
-/** EZI2C mode identifier */
+/** UART mode identifier */
 #define CY_SCB_UART_ID      (0x3UL << CY_SCB_SUB_MODE_Pos)
 
 /**
@@ -696,9 +723,14 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 /* RX and TX control register values */
 #define CY_SCB_I2C_RX_CTRL      (_VAL2FLD(SCB_RX_CTRL_DATA_WIDTH, CY_SCB_I2C_DATA_WIDTH) | \
                                  SCB_RX_CTRL_MSB_FIRST_Msk)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION<=2)) && (!defined (CY_IP_MXS22SCB)))
 #define CY_SCB_I2C_TX_CTRL      (_VAL2FLD(SCB_TX_CTRL_DATA_WIDTH, CY_SCB_I2C_DATA_WIDTH) | \
                                  SCB_TX_CTRL_MSB_FIRST_Msk | SCB_TX_CTRL_OPEN_DRAIN_Msk)
-
+#else
+#define CY_SCB_I2C_TX_CTRL      (_VAL2FLD(SCB_TX_CTRL_DATA_WIDTH, CY_SCB_I2C_DATA_WIDTH) | \
+                                 SCB_TX_CTRL_MSB_FIRST_Msk | SCB_TX_CTRL_OPEN_DRAIN_Msk | \
+                                 SCB_TX_CTRL_OPEN_DRAIN_SCL_Msk)
+#endif
 /* The position and mask to make an address byte */
 #define CY_SCB_I2C_ADDRESS_Pos  (1UL)
 #define CY_SCB_I2C_ADDRESS_Msk  (0xFEUL)
@@ -710,7 +742,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
                                              SCB_SPI_CTRL_SSEL_POLARITY2_Msk | \
                                              SCB_SPI_CTRL_SSEL_POLARITY3_Msk)
 
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
 /* SPI parity and parity enable combination */
 #define CY_SCB_SPI_RX_CTRL_SET_PARITY_Msk      (SCB_SPI_RX_CTRL_PARITY_ENABLED_Msk | \
                                                  SCB_SPI_RX_CTRL_PARITY_Msk)
@@ -737,7 +769,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 /* Max number of bits for byte mode */
 #define CY_SCB_BYTE_WIDTH   (8UL)
 
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
 /* Max number of bits for HALF WORD mode */
 #define CY_SCB_HALF_WORD_WIDTH   (16UL)
 
@@ -748,7 +780,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 #define CY_SCB_MEM_WIDTH_BYTE   (0UL)
 #define CY_SCB_MEM_WIDTH_HALFWORD   (1UL)
 #define CY_SCB_MEM_WIDTH_WORD   (2UL)
-#endif /* CY_IP_MXSCB_VERSION */
+#endif /* ((CY_IP_MXSCB_VERSION>=2) || defined (CY_IP_MXS22SCB)) */
 
 /* Single unit to wait */
 #define CY_SCB_WAIT_1_UNIT  (1U)
@@ -783,7 +815,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 
 #define CY_SCB_SPI_INTR_MASK    CY_SCB_SPI_INTR_WAKEUP
 
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
 #define CY_SCB_IS_MEMWIDTH_VALID(memwidth)          ((memwidth) <= CY_SCB_MEM_WIDTH_WORD)
 #endif /* CY_IP_MXSCB_VERSION */
 
@@ -821,7 +853,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 * Data from RX FIFO.
 *
 *******************************************************************************/
-__STATIC_INLINE uint32_t Cy_SCB_ReadRxFifo(CySCB_Type const *base)
+__STATIC_FORCEINLINE uint32_t Cy_SCB_ReadRxFifo(CySCB_Type const *base)
 {
     return (SCB_RX_FIFO_RD(base));
 }
@@ -924,7 +956,7 @@ __STATIC_INLINE void Cy_SCB_ClearRxFifo(CySCB_Type* base)
 * Data to write to the TX FIFO.
 *
 *******************************************************************************/
-__STATIC_INLINE void Cy_SCB_WriteTxFifo(CySCB_Type* base, uint32_t data)
+__STATIC_FORCEINLINE void Cy_SCB_WriteTxFifo(CySCB_Type* base, uint32_t data)
 {
     SCB_TX_FIFO_WR(base) = data;
 }
@@ -1052,7 +1084,7 @@ __STATIC_INLINE void Cy_SCB_ClearTxFifo(CySCB_Type *base)
 *******************************************************************************/
 __STATIC_INLINE void Cy_SCB_SetByteMode(CySCB_Type *base, bool byteMode)
 {
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
     SCB_CTRL(base) &= ~SCB_CTRL_MEM_WIDTH_Msk;
     if (byteMode)
     {
@@ -1062,7 +1094,7 @@ __STATIC_INLINE void Cy_SCB_SetByteMode(CySCB_Type *base, bool byteMode)
     {
         SCB_CTRL(base) |=  _VAL2FLD(SCB_CTRL_MEM_WIDTH, CY_SCB_MEM_WIDTH_HALFWORD);
     }
-#elif(CY_IP_MXSCB_VERSION==1)
+#elif(defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION==1))
     if (byteMode)
     {
         SCB_CTRL(base) |=  SCB_CTRL_BYTE_MODE_Msk;
@@ -1071,10 +1103,10 @@ __STATIC_INLINE void Cy_SCB_SetByteMode(CySCB_Type *base, bool byteMode)
     {
         SCB_CTRL(base) &= ~SCB_CTRL_BYTE_MODE_Msk;
     }
-#endif /* CY_IP_MXSCB_VERSION */
+#endif /* ((CY_IP_MXSCB_VERSION>=2) || defined (CY_IP_MXS22SCB)) */
 }
 
-#if(CY_IP_MXSCB_VERSION>=3) || defined (CY_DOXYGEN)
+#if(((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
 /*******************************************************************************
 * Function Name: Cy_SCB_SetMemWidth
 ****************************************************************************//**
@@ -1092,7 +1124,7 @@ __STATIC_INLINE void Cy_SCB_SetByteMode(CySCB_Type *base, bool byteMode)
 * If 0x2, the FIFOs are 32-bit wide.
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B and CAT1C devices.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SCB_SetMemWidth(CySCB_Type *base, uint32_t MemWidthMode)
@@ -1935,11 +1967,14 @@ __STATIC_INLINE void Cy_SCB_ClearSpiInterrupt(CySCB_Type *base, uint32_t interru
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SCB_GetFifoSize(CySCB_Type const *base)
 {
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
     {return (((uint32_t)(CY_SCB_FIFO_SIZE)) >> _FLD2VAL(SCB_CTRL_MEM_WIDTH, SCB_CTRL(base)));}
-#elif(CY_IP_MXSCB_VERSION==1)
+#elif(defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION==1))
     {return (_FLD2BOOL(SCB_CTRL_BYTE_MODE, SCB_CTRL(base)) ? (CY_SCB_FIFO_SIZE) : (CY_SCB_FIFO_SIZE / 2UL));}
-#endif /* CY_IP_MXSCB_VERSION */
+#else
+    return 0;
+#endif /* ((CY_IP_MXSCB_VERSION>=2) || defined (CY_IP_MXS22SCB)) */
+
 }
 
 
@@ -1963,7 +1998,7 @@ __STATIC_INLINE bool Cy_SCB_IsRxDataWidthByte(CySCB_Type const *base)
 
 /** \endcond */
 
-#if(CY_IP_MXSCB_VERSION>=3) || defined (CY_DOXYGEN)
+#if(((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
 /*******************************************************************************
 * Function Name: Cy_SCB_Get_RxDataWidth
 ****************************************************************************//**
@@ -2005,7 +2040,7 @@ __STATIC_INLINE bool Cy_SCB_IsTxDataWidthByte(CySCB_Type const *base)
     return (_FLD2VAL(SCB_TX_CTRL_DATA_WIDTH, SCB_TX_CTRL(base)) < CY_SCB_BYTE_WIDTH);
 }
 
-#if(CY_IP_MXSCB_VERSION>=3) || defined (CY_DOXYGEN)
+#if(((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
 /*******************************************************************************
 * Function Name: Cy_SCB_Get_TxDataWidth
 ****************************************************************************//**
@@ -2084,7 +2119,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetRxFifoLevel(CySCB_Type const *base)
 
 /** \} group_scb_common */
 
-#endif /* CY_IP_MXSCB */
+#endif /* (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB)) */
 
 #endif /* (CY_SCB_COMMON_H) */
 

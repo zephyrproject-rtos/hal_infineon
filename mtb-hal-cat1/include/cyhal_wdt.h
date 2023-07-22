@@ -120,14 +120,12 @@ void cyhal_wdt_kick(cyhal_wdt_t *obj);
 /** Start (enable) the WDT
 *
 * @param[inout] obj The WDT object
-* @return The status of the start request
 */
 void cyhal_wdt_start(cyhal_wdt_t *obj);
 
 /** Stop (disable) the WDT
 *
 * @param[inout] obj The WDT object
-* @return The status of the stop request
 */
 void cyhal_wdt_stop(cyhal_wdt_t *obj);
 

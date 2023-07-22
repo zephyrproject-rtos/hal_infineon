@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smartio.c
-* \version 1.0.2
+* \version 1.0.3
 *
 * \brief
 * Provides an API implementation of the Smart I/O driver
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if (defined (CY_IP_MXS40IOSS) || (defined(CY_IP_MXS40SIOSS) && defined(SMARTIO_BASE)))
+#if (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS))
 
 #include "cy_smartio.h"
 
@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 12, \
-'Value extracted from _FLD2VAL macro will not exceed enum range.');
+'Value extracted from _FLD2VAL macro will not exceed enum range.')
 
 /*******************************************************************************
 * Function Name: Cy_SmartIO_Init
@@ -1002,11 +1002,12 @@ cy_en_smartio_status_t Cy_SmartIO_SetDataReg(SMARTIO_PRT_Type* base, uint8_t dat
     return status;
 }
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 
 #if defined(__cplusplus)
 }
 #endif
-#endif
+
+#endif /* (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS)) */
 
 /* [] END OF FILE */

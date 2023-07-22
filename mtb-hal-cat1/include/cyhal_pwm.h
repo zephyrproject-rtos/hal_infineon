@@ -9,7 +9,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -262,6 +262,8 @@ void cyhal_pwm_enable_event(cyhal_pwm_t *obj, cyhal_pwm_event_t event, uint8_t i
 /** Connects a source signal and configures and enables a PWM event to be
  * triggered from that signal. These PWM events can be configured
  * independently and connect to the same or different source signals.
+ * @note For "edge" signals, this function will default to rising edge. To control the edge type,
+ * use @ref cyhal_pwm_connect_digital2
  *
  * @param[in] obj      PWM obj
  * @param[in] source   Source signal obtained from another driver's cyhal_<PERIPH>_enable_output
@@ -269,6 +271,21 @@ void cyhal_pwm_enable_event(cyhal_pwm_t *obj, cyhal_pwm_event_t event, uint8_t i
  * @return The status of the connection
  * */
 cy_rslt_t cyhal_pwm_connect_digital(cyhal_pwm_t *obj, cyhal_source_t source, cyhal_pwm_input_t signal);
+
+/** Connects a source signal and configures and enables a PWM event to be
+ * triggered from that signal with a configurable edge type. These PWM events
+ * can be configured independently and connect to the same or different source signals.
+ *
+ * @param[in] obj       PWM obj
+ * @param[in] source    Source signal obtained from another driver's cyhal_<PERIPH>_enable_output
+ * @param[in] signal    The PWM input signal
+ * @param[in] edge_type The edge type that should trigger the event. This must be consistent with the
+ *                      edge type of `source`. If `source` produces a "level" signal, the only valid
+ *                      value is @ref CYHAL_EDGE_TYPE_LEVEL. If `source` produces an "edge" signal, then
+ *                      @ref CYHAL_EDGE_TYPE_LEVEL is not a valid value.
+ * @return The status of the connection
+ * */
+cy_rslt_t cyhal_pwm_connect_digital2(cyhal_pwm_t *obj, cyhal_source_t source, cyhal_pwm_input_t signal, cyhal_edge_type_t edge_type);
 
 /** Enables the specified output signal from a PWM that will be triggered
  * when the corresponding event occurs. Multiple output signals can be

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator version: 1.6.0.453 -->
 <device schemaVersion="1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd">
   <vendor>Cypress Semiconductor</vendor>
   <vendorID>Cypress</vendorID>
@@ -7,7 +6,9 @@
   <series>PSoC6_01</series>
   <version>1.0</version>
   <description>PSoC6_01</description>
-  <licenseText>Copyright 2016-2021 Cypress Semiconductor Corporation\n
+  <licenseText>(c) (2016-2021), Cypress Semiconductor Corporation (an Infineon company)\n
+    or an affiliate of Cypress Semiconductor Corporation.\n
+\n
     SPDX-License-Identifier: Apache-2.0\n
 \n
     Licensed under the Apache License, Version 2.0 (the "License");\n
@@ -37042,7 +37043,7 @@ SDA_IN_FILT_TRIM[1] is used to enable I2CS_EC or SPIS_EC access to internal SRAM
 
 The open drain mode is supported for:
 - I2C mode, 'i2c_scl' and 'i2c_sda' IO cells.
-- UART mode, 'uart_tx' IO cell (SPI slave).
+- UART mode, 'uart_tx' IO cell.
 - SPI mode, 'spi_miso' IO cell.</description>
               <bitRange>[16:16]</bitRange>
               <access>read-write</access>

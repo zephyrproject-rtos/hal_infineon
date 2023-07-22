@@ -8,7 +8,7 @@
  *
  ***************************************************************************************************
  * \copyright
- * Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -203,7 +203,8 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_CAPSENSE = 0x0007,
     /** Module identifier for the USB Device driver. Asset(s): (usbdev) */
     CY_RSLT_MODULE_DRIVER_USB_DEV = 0x0008,
-    /** Module identifier for the Continuous Time Block (CTB) driver. Asset(s): (mtb-pdl-cat1) */
+    /** Module identifier for the Continuous Time Block (CTB) driver. Asset(s): (mtb-pdl-cat1,
+       mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_CTB = 0x000b,
     /** Module identifier for the Crypto driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_CRYPTO = 0x000c,
@@ -232,11 +233,12 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_EM_EEPROM = 0x001b,
     /** Module identifier for the Profile driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_PROFILE = 0x001e,
-    /** Module identifier for the I2S driver. Asset(s): (mtb-pdl-cat1) */
+    /** Module identifier for the I2S driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_I2S = 0x0020,
     /** Module identifier for the IPC driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_IPC = 0x0022,
-    /** Module identifier for the Low Power Comparator (LPCOMP) driver. Asset(s): (mtb-pdl-cat1) */
+    /** Module identifier for the Low Power Comparator (LPCOMP) driver. Asset(s): (mtb-pdl-cat1,
+       mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_LPCOMP = 0x0023,
     /** Module identifier for the PDM-PCM driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_PDM_PCM = 0x0026,
@@ -258,15 +260,17 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_WDT = 0x0034,
     /** Module identifier for the (WDC / MCWDT) driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_MCWDT = 0x0035,
+    /** Module identifier for the LIN driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_LIN = 0x0037,
     /** Module identifier for the LVD driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_LVD = 0x0039,
     /** Module identifier for the SD_HOST driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_SD_HOST = 0x003a,
-    /** Module identifier for the USBFS driver. Asset(s): (mtb-pdl-cat1) */
+    /** Module identifier for the USBFS driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_USBFS = 0x003b,
     /** Module identifier for the DMAC driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_DMAC = 0x003f,
-    /** Module identifier for the SegLCD driver. Asset(s): (mtb-pdl-cat1) */
+    /** Module identifier for the SegLCD driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_SEGLCD = 0x0040,
     /** Module identifier for the CSD driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_CSD = 0x0041,
@@ -276,8 +280,30 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_CSDIDAC = 0x0044,
     /** Module identifier for the CAN FD driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_CANFD = 0x0045,
+    /** Module identifier for the PRA driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_PRA = 0x0046,
     /** Module identifier for the MSC driver. Asset(s): (mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_MSC = 0x0047,
+    /** Module identifier for the ADC Mic driver. Asset(s): (mtb-pdl-cat1)
+     *  Module identifier for the USB PD driver. Asset(s): (mtb-pdl-cat2)
+     */
+    CY_RSLT_MODULE_DRIVER_ADCMIC = 0x0048,
+    /** Module identifier for the MSC LP driver. Asset(s): (mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_MSCLP = 0x0049,
+    /** Module identifier for the Event Gen driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_EVTGEN = 0x004a,
+    /** Module identifier for the SAR v2 driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_SAR2 = 0x004b,
+    /** Module identifier for the Key Scan driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_KEYSCAN = 0x0072,
+    /** Module identifier for the PDM-PCM v2 driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_PDM_PCM2 = 0x0073,
+    /** Module identifier for the Crypto Lite driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_CRYPTOLITE = 0x0074,
+    /** Module identifier for the SysFault driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_SYSFAULT = 0x0076,
+    /** Module identifier for the LVD HT driver. Asset(s): (mtb-pdl-cat1) */
+    CY_RSLT_MODULE_DRIVER_LVD_HT = 0x0078,
     /** Module identifier for the WiFi Host Driver. Asset(s): (wifi-host-driver) */
     CY_RSLT_MODULE_DRIVER_WHD = 0x0080,
 
@@ -331,10 +357,19 @@ typedef enum
     /** Module identifier for the BMI160 Motion Sensor Library.
        Asset(s): (sensor-orientation-bmx160) */
     CY_RSLT_MODULE_BOARD_HARDWARE_BMX160 = 0x01C7,
-    /** Module identifier for the XENSIV™  DPS3XX Pressure Sensor Library */
+    /** Module identifier for the XENSIV™ DPS3XX Pressure Sensor Library.
+       Asset(s): (sensor-xensiv-dps3xx) */
     CY_RSLT_MODULE_BOARD_HARDWARE_DPS3XX = 0x01C8,
-    /** Module identifier for the WM8960 Audio Codec Library */
+    /** Module identifier for the WM8960 Audio Codec Library. Asset(s): (audio-codec-wm8960) */
     CY_RSLT_MODULE_BOARD_HARDWARE_WM8960 = 0x01C9,
+    /** Module identifier for the XENSIV™ PAS CO2 Sensor Library.
+       Asset(s): (sensor-xensiv-pasco2) */
+    CY_RSLT_MODULE_BOARD_HARDWARE_XENSIV_PASCO2 = 0x01CA,
+    /** Module identifier for the XENSIV™ BGT60TRxx Sensor Library.
+       Asset(s): (sensor-xensiv-bgt60trxx) */
+    CY_RSLT_MODULE_BOARD_HARDWARE_XENSIV_BGT60TRXX = 0x01CC,
+    /** Module identifier for the LM49450 Audio Codec Library. Asset(s): (audio-codec-lm49450) */
+    CY_RSLT_MODULE_BOARD_HARDWARE_LM49450 = 0x01CE,
 
     /** Module identifier for the MDNS library. Asset(s): (mdns) */
     CY_RSLT_MODULE_MIDDLEWARE_MNDS = 0x200,
@@ -374,7 +409,9 @@ typedef enum
     /** Module identifier for the KV Store Middleware Library. Asset(s): (kv-store) */
     CY_RSLT_MODULE_MIDDLEWARE_KVSTORE = 0x250,
     /** Module identifier for the LIN Middleware Library. Asset(s): (lin) */
-    CY_RSLT_MODULE_MIDDLEWARE_LIN = 0x0251
+    CY_RSLT_MODULE_MIDDLEWARE_LIN = 0x0251,
+    /** Module identifier for the UBM Middleware Library. Asset(s): (ubm) */
+    CY_RSLT_MODULE_MIDDLEWARE_UBM = 0x0252
 } cy_en_rslt_module_t;
 
 /** \} modules */

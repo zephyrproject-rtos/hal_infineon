@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_sysclk.c
-* \version 3.30
+* \version 3.70
 *
 * Provides an API implementation of the sysclk driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS40SRSS)
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3)
 
 #include "cy_sysclk.h"
 #include "cy_syslib.h"
@@ -32,9 +33,9 @@
 
 #if defined (CY_DEVICE_SECURE)
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.2', 24, \
-'Checked manually. All the recursive cycles are handled properly.');
+'Checked manually. All the recursive cycles are handled properly.')
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 18.6', 6, \
-'Checked manually. Assignment of Local to global variable does not create any issue.');
+'Checked manually. Assignment of Local to global variable does not create any issue.')
 #endif
 
 cy_en_sysclk_status_t
@@ -1160,6 +1161,12 @@ uint32_t Cy_SysClk_EcoGetStatus(void)
       CY_SYSCLK_ECOSTAT_STABLE : (SRSS_CLK_ECO_STATUS_ECO_OK_Msk & SRSS_CLK_ECO_STATUS));
 }
 
+#if (defined (CY_IP_MXS40SRSS)&& (CY_IP_MXS40SRSS_VERSION < 3))
+void Cy_SysClk_EcoSetFrequency(uint32_t freq)
+{
+    ecoFrequency = freq; /* Store the ECO frequency */
+}
+#endif /* (defined (CY_IP_MXS40SRSS)&& (CY_IP_MXS40SRSS_VERSION < 3)) */
 
 cy_en_sysclk_status_t Cy_SysClk_EcoConfigure(uint32_t freq, uint32_t cSum, uint32_t esr, uint32_t driveLevel)
 {
@@ -2804,7 +2811,7 @@ uint32_t Cy_SysClk_FllGetFrequency(void)
     bool  enabled;    /* FLL enable status; n/a for direct */
     uint32_t freq = 0UL;    /* FLL Frequency */
 
-    cy_stc_fll_manual_config_t fllCfg = {0UL,0U,CY_SYSCLK_FLL_CCO_RANGE0,false,0U,0U,0U,0U,CY_SYSCLK_FLLPLL_OUTPUT_AUTO,0U};
+    cy_stc_fll_manual_config_t fllCfg;
     Cy_SysClk_FllGetConfiguration(&fllCfg);
     enabled = (Cy_SysClk_FllIsEnabled()) && (CY_SYSCLK_FLLPLL_OUTPUT_INPUT != fllCfg.outputMode);
     fDiv = fllCfg.fllMult;
@@ -2824,24 +2831,26 @@ uint32_t Cy_SysClk_FllGetFrequency(void)
 
 uint32_t Cy_SysClk_PllGetFrequency(uint32_t clkPath)
 {
-    uint32_t fDiv;    /* PLL multiplier/feedback divider */
-    uint32_t rDiv;    /* PLL reference divider */
-    uint32_t oDiv;    /* PLL output divider */
-    bool  enabled;    /* PLL enable status; n/a for direct */
+    uint32_t fDiv = 0UL;    /* PLL multiplier/feedback divider */
+    uint32_t rDiv = 0UL;    /* PLL reference divider */
+    uint32_t oDiv = 0UL;    /* PLL output divider */
+    bool  enabled = false;    /* PLL enable status; n/a for direct */
     uint32_t freq=0UL;    /* PLL Frequency */
 
-    if ((CY_SRSS_NUM_PLL > 0UL) && (clkPath > 0UL))
+    if((CY_SRSS_NUM_PLL > 0UL) && (clkPath > 0UL))
     {
         CY_ASSERT_L1(clkPath < CY_SRSS_NUM_CLKPATH);
 
         if (clkPath <= CY_SRSS_NUM_PLL)
         {
-            cy_stc_pll_manual_config_t pllcfg = {0U,0U,0U,false,CY_SYSCLK_FLLPLL_OUTPUT_AUTO};
-            (void)Cy_SysClk_PllGetConfiguration(clkPath, &pllcfg);
-            enabled = (Cy_SysClk_PllIsEnabled(clkPath)) && (CY_SYSCLK_FLLPLL_OUTPUT_INPUT != pllcfg.outputMode);
-            fDiv = pllcfg.feedbackDiv;
-            rDiv = pllcfg.referenceDiv;
-            oDiv = pllcfg.outputDiv;
+            cy_stc_pll_manual_config_t pllcfg;
+            if (CY_SYSCLK_SUCCESS == Cy_SysClk_PllGetConfiguration(clkPath, &pllcfg))
+            {
+                enabled = (Cy_SysClk_PllIsEnabled(clkPath)) && (CY_SYSCLK_FLLPLL_OUTPUT_INPUT != pllcfg.outputMode);
+                fDiv = pllcfg.feedbackDiv;
+                rDiv = pllcfg.referenceDiv;
+                oDiv = pllcfg.outputDiv;
+            }
 
             if (enabled && /* If PLL is enabled and not bypassed */
             (0UL != rDiv) && (0UL != oDiv)) /* to avoid division by zero */
@@ -2857,8 +2866,8 @@ uint32_t Cy_SysClk_PllGetFrequency(uint32_t clkPath)
 }
 
 #if defined (CY_DEVICE_SECURE)
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2');
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 18.6');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2')
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 18.6')
 #endif
 
 #endif

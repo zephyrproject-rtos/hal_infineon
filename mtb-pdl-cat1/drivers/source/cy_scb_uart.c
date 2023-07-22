@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_uart.c
-* \version 2.80
+* \version 3.10
 *
 * Provides UART API implementation of the SCB driver.
 *
@@ -24,7 +24,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSCB)
+#if (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB))
 
 #include "cy_scb_uart.h"
 
@@ -69,13 +69,13 @@ static uint32_t SelectRxFifoLevel(CySCB_Type const *base);
 cy_en_scb_uart_status_t Cy_SCB_UART_SetOverSample(CySCB_Type *base, uint32_t overSample, cy_stc_scb_uart_context_t *context)
 {
     CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 1, \
-    'Intentional typecast to cy_en_scb_uart_mode_t enum to validate arguments.');
+    'Intentional typecast to cy_en_scb_uart_mode_t enum to validate arguments.')
     if((NULL == base) || (NULL == context) ||
        ((CY_SCB_UART_IS_OVERSAMPLE_VALID(overSample, ((cy_en_scb_uart_mode_t)_FLD2VAL(SCB_UART_CTRL_MODE,SCB_UART_CTRL(base))), context->irdaEnableLowPowerReceiver)) == false))
     {
         return CY_SCB_UART_BAD_PARAM;
     }
-    CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
+    CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 
     uint32_t ovs;
 
@@ -299,12 +299,12 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Init(CySCB_Type *base, cy_stc_scb_uart_confi
     }
 
     /* Configure the UART interface */
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
     SCB_CTRL(base) = _BOOL2FLD(SCB_CTRL_ADDR_ACCEPT, config->acceptAddrInFifo)                      |
                  _VAL2FLD(SCB_CTRL_MEM_WIDTH, ((config->dataWidth <= CY_SCB_BYTE_WIDTH)? 0UL:1UL))  |
                  _VAL2FLD(SCB_CTRL_OVS, ovs)                                                        |
                  _VAL2FLD(SCB_CTRL_MODE, CY_SCB_CTRL_MODE_UART);
-#elif(CY_IP_MXSCB_VERSION==1)
+#elif((defined (CY_IP_MXSCB_VERSION) && CY_IP_MXSCB_VERSION==1))
     SCB_CTRL(base) = _BOOL2FLD(SCB_CTRL_ADDR_ACCEPT, config->acceptAddrInFifo)               |
                  _BOOL2FLD(SCB_CTRL_BYTE_MODE, (config->dataWidth <= CY_SCB_BYTE_WIDTH)) |
                  _VAL2FLD(SCB_CTRL_OVS, ovs)                                             |
@@ -325,7 +325,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Init(CySCB_Type *base, cy_stc_scb_uart_confi
                          _VAL2FLD(SCB_UART_RX_CTRL_BREAK_WIDTH, (config->breakWidth - 1UL))          |
                          _VAL2FLD(SCB_UART_RX_CTRL_STOP_BITS,   ((uint32_t) config->stopBits) - 1UL) |
                          _VAL2FLD(CY_SCB_UART_RX_CTRL_SET_PARITY, (uint32_t) config->parity);
-#if(CY_IP_MXSCB_VERSION>=3)
+#if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
     SCB_UART_RX_CTRL(base)|=_BOOL2FLD(SCB_UART_RX_CTRL_BREAK_LEVEL, config->breaklevel);
 #endif /* CY_IP_MXSCB_VERSION */
 
@@ -1641,8 +1641,8 @@ static void HandleDataTransmit(CySCB_Type *base, cy_stc_scb_uart_context_t *cont
         /* Put the last data element and make sure that "TX done" will happen for it */
         intrStatus = Cy_SysLib_EnterCriticalSection();
 
-        Cy_SCB_WriteTxFifo(base, txData);
         Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UART_DONE);
+        Cy_SCB_WriteTxFifo(base, txData);
 
         Cy_SysLib_ExitCriticalSection(intrStatus);
 
@@ -1665,6 +1665,6 @@ static void HandleDataTransmit(CySCB_Type *base, cy_stc_scb_uart_context_t *cont
 }
 #endif
 
-#endif /* CY_IP_MXSCB */
+#endif /* (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB)) */
 
 /* [] END OF FILE */
