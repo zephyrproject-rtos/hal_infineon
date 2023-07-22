@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator version: 1.6.0.453 -->
 <device schemaVersion="1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd">
   <vendor>Cypress Semiconductor</vendor>
   <vendorID>Cypress</vendorID>
@@ -7,7 +6,9 @@
   <series>PSoC6_04</series>
   <version>1.0</version>
   <description>PSoC6_04</description>
-  <licenseText>Copyright 2016-2021 Cypress Semiconductor Corporation\n
+  <licenseText>(c) (2016-2021), Cypress Semiconductor Corporation (an Infineon company)\n
+    or an affiliate of Cypress Semiconductor Corporation.\n
+\n
     SPDX-License-Identifier: Apache-2.0\n
 \n
     Licensed under the Apache License, Version 2.0 (the "License");\n
@@ -110,7 +111,8 @@ Note: this field is not used for trigger 1-to-1 groups.</description>
               <name>ACTIVATE</name>
               <description>SW sets this field to '1' to activate (set to '1') a trigger as identified by TR_SEL, TR_EDGE and OUT_SEL. HW sets this field to '0' for edge sensitive triggers AFTER the selected trigger is activated for two clk_peri cycles.
 
-Note: when ACTIVATE is '1', SW should not modify the other register fields.</description>
+Note: when ACTIVATE is '1', SW should not modify the other register fields.
+SW MUST NOT set ACTIVATE bit to '1' while updating the other register bits simultaneously. At first the SW MUST update the other register bits as needed, and then set ACTIVATE to '1' with a new register write.</description>
               <bitRange>[31:31]</bitRange>
               <access>read-write</access>
             </field>
@@ -17686,34 +17688,22 @@ Traveo II: full encoding is shown in CFG_IN_AUTOLVL.VTRIP_SEL0_1</description>
                 <enumeratedValues>
                   <enumeratedValue>
                     <name>DRIVE_SEL_ZERO</name>
-                    <description>Traveo II: GPIO_STD/GPIO_ENH: Full drive strengh: GPIO drives current at its max rated spec.
-Traveo II:_GPIO_SMC: GPIO_SMC default mode.
-Traveo II:_HSIO_STD: HSIO default mode.
-PSoC 6: GPIO cells and HSIO_STD cells: Full drive strength: GPIO drives current at its max rated spec.</description>
+                    <description>Please refer to architecture TRM section I/O System</description>
                     <value>0</value>
                   </enumeratedValue>
                   <enumeratedValue>
                     <name>DRIVE_SEL_ONE</name>
-                    <description>Traveo II: GPIO_STD/GPIO_ENH: Full drive strengh: GPIO drives current at its max rated spec.
-Traveo II:_GPIO_SMC: GPIO full drive strength.
-Traveo II:_HSIO_STD: GPIO full drive strength.
-PSoC 6: GPIO cells and HSIO_STD cells: 1/2 drive strength: GPIO drives current at 1/2 of its max rated spec</description>
+                    <description>Please refer to architecture TRM section I/O System</description>
                     <value>1</value>
                   </enumeratedValue>
                   <enumeratedValue>
                     <name>DRIVE_SEL_TWO</name>
-                    <description>Traveo II: GPIO_STD/GPIO_ENH: 1/2 drive strength: GPIO drives current at 1/2 of its max rated spec.
-Traveo II:_GPIO_SMC: GPIO 1/2 drive strength.
-Traveo II:_HSIO_STD: GPIO 1/2 drive strength.
-PSoC 6: GPIO cells and HSIO_STD cells: 1/4 drive strength. GPIO drives current at 1/4 of its max rated spec.</description>
+                    <description>Please refer to architecture TRM section I/O System</description>
                     <value>2</value>
                   </enumeratedValue>
                   <enumeratedValue>
                     <name>DRIVE_SEL_THREE</name>
-                    <description>Traveo II: GPIO_STD/GPIO_ENH: 1/4 drive strength: GPIO drives current at 1/4 of its max rated spec.
-Traveo II:_GPIO_SMC: GPIO 1/4 drive strength.
-Traveo II:_HSIO_STD: GPIO 1/4 drive strength.
-PSoC 6: GPIO cells and HSIO_STD cells: 1/8 drive strength. GPIO drives current at 1/8 of its max rated spec.</description>
+                    <description>Please refer to architecture TRM section I/O System</description>
                     <value>3</value>
                   </enumeratedValue>
                 </enumeratedValues>
@@ -31989,7 +31979,7 @@ Note: this field specifies dummy cycles, not dummy Bytes!</description>
               <addressOffset>0x0</addressOffset>
               <size>32</size>
               <access>read-only</access>
-              <resetValue>0x0</resetValue>
+              <resetValue>0x32380609</resetValue>
               <resetMask>0xFFFFFFFF</resetMask>
               <fields>
                 <field>
@@ -33644,7 +33634,8 @@ FIFO 0 can be operated in blocking or in overwrite mode (see Section 3.4.2).
                 <field>
                   <name>F0FL</name>
                   <description>Rx FIFO 0 Fill Level
-Number of elements stored in Rx FIFO 0, range 0 to 64.</description>
+Number of elements stored in Rx FIFO 0, range 0 to 64.
+When the software reading the value immediately after writing to RXF0A.F0AI, this value should be read twice to ensure that the update is reflected.</description>
                   <bitRange>[6:0]</bitRange>
                   <access>read-only</access>
                 </field>
@@ -33652,7 +33643,8 @@ Number of elements stored in Rx FIFO 0, range 0 to 64.</description>
                   <name>F0GI</name>
                   <description>Rx FIFO 0 Get Index
 Rx FIFO 0 read index pointer, range 0 to 63.
-This field is updated by the software writing to RxF0A.F0AI</description>
+This field is updated by the software writing to RXF0A.F0AI.
+When the software reading the value immediately after writing to RXF0A.F0AI, this value should be read twice to ensure that the update is reflected.</description>
                   <bitRange>[13:8]</bitRange>
                   <access>read-only</access>
                 </field>
@@ -33779,7 +33771,8 @@ FIFO 1 can be operated in blocking or in overwrite mode (see Section 3.4.2).
                 <field>
                   <name>F1FL</name>
                   <description>Rx FIFO 1 Fill Level
-Number of elements stored in Rx FIFO 1, range 0 to 64.</description>
+Number of elements stored in Rx FIFO 1, range 0 to 64.
+When the software reading the value immediately after writing to RXF1A.F1AI, this value should be read twice to ensure that the update is reflected.</description>
                   <bitRange>[6:0]</bitRange>
                   <access>read-only</access>
                 </field>
@@ -33787,7 +33780,8 @@ Number of elements stored in Rx FIFO 1, range 0 to 64.</description>
                   <name>F1GI</name>
                   <description>Rx FIFO 1 Get Index
 Rx FIFO 1 read index pointer, range 0 to 63.
-This field is updated by the software writing to RxF1A.FAI</description>
+This field is updated by the software writing to RXF1A.F1AI.
+When the software reading the value immediately after writing to RXF1A.F1AI, this value should be read twice to ensure that the update is reflected.</description>
                   <bitRange>[13:8]</bitRange>
                   <access>read-only</access>
                 </field>
@@ -34228,14 +34222,17 @@ The Tx Event FIFO elements are indexed from 0 to EFS-1</description>
                 <field>
                   <name>EFFL</name>
                   <description>Event FIFO Fill Level
-Number of elements stored in Tx Event FIFO, range 0 to 32.</description>
+Number of elements stored in Tx Event FIFO, range 0 to 32.
+When the software reading the value immediately after writing to TXEFA.EFAI, this value should be read twice to ensure that the update is reflected.</description>
                   <bitRange>[5:0]</bitRange>
                   <access>read-only</access>
                 </field>
                 <field>
                   <name>EFGI</name>
                   <description>Event FIFO Get Index
-Tx Event FIFO read index pointer, range 0 to 31.</description>
+Tx Event FIFO read index pointer, range 0 to 31.
+This field is updated by the software writing to TXEFA.EFAI.
+When the software reading the value immediately after writing to TXEFA.EFAI, this value should be read twice to ensure that the update is reflected.</description>
                   <bitRange>[12:8]</bitRange>
                   <access>read-only</access>
                 </field>
@@ -35150,7 +35147,7 @@ Trigger out of order.
               <addressOffset>0x12C</addressOffset>
               <size>32</size>
               <access>read-only</access>
-              <resetValue>0x0</resetValue>
+              <resetValue>0x80</resetValue>
               <resetMask>0xFFC0FFFF</resetMask>
               <fields>
                 <field>
@@ -36618,7 +36615,7 @@ SDA_IN_FILT_TRIM[1] is used to enable I2CS_EC or SPIS_EC access to internal SRAM
 
 The open drain mode is supported for:
 - I2C mode, 'i2c_scl' and 'i2c_sda' IO cells.
-- UART mode, 'uart_tx' IO cell (SPI slave).
+- UART mode, 'uart_tx' IO cell.
 - SPI mode, 'spi_miso' IO cell.</description>
               <bitRange>[16:16]</bitRange>
               <access>read-write</access>
@@ -41926,7 +41923,9 @@ This field can also affect LPOSC functionality in Active Mode (see LPOSC CONFIG.
           </fields>
         </register>
         <register>
-          <name>CTBM_CLOCK_SEL</name>
+          <dim>2</dim>
+          <dimIncrement>4</dimIncrement>
+          <name>CTBM_CLOCK_SEL[%s]</name>
           <description>Clock select for CTBm</description>
           <addressOffset>0x20</addressOffset>
           <size>32</size>

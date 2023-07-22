@@ -4,12 +4,11 @@
 * \brief
 * CY8C6245LQI-S3D72 device header
 *
-* \note
-* Generator version: 1.6.0.414
-*
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -407,9 +406,9 @@ typedef enum {
 #define __MPU_PRESENT                   1       /*!< MPU present or not */
 #define __FPU_PRESENT                   1       /*!< FPU present or not */
 #define __CM0P_PRESENT                  1       /*!< CM0P present or not */
-#define __DTCM_PRESENT                  0       /*!< DTCM present or not */
-#define __ICACHE_PRESENT                0       /*!< ICACHE present or not */
-#define __DCACHE_PRESENT                0       /*!< DCACHE present or not */
+#define __DTCM_PRESENT                  0       /*!< Data Tightly Coupled Memory is present or not */
+#define __ICACHE_PRESENT                0       /*!< Instruction Cache present or not */
+#define __DCACHE_PRESENT                0       /*!< Data Cache present or not */
 
 /** \} Configuration_of_CMSIS */
 
@@ -509,6 +508,7 @@ typedef enum {
 #include "gpio_psoc6_03_68_qfn.h"
 
 #define CY_DEVICE_PSOC6A512K
+#define CY_DEVICE_SERIES_PSOC_62
 #define CY_SILICON_ID                   0xE7011105UL
 #define CY_HF_CLK_MAX_FREQ              150000000UL
 

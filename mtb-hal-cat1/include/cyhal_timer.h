@@ -9,7 +9,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -86,6 +86,9 @@
 #include <stdbool.h>
 #include "cy_result.h"
 #include "cyhal_hw_types.h"
+#if defined(COMPONENT_CAT5)
+#include "cyhal_t2timer.h"
+#endif
 
 #if defined(__cplusplus)
 extern "C" {
@@ -109,6 +112,9 @@ extern "C" {
 /** Cannot change the timer frequency when a shared clock divider is in use */
 #define CYHAL_TIMER_RSLT_ERR_SHARED_CLOCK               \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_TIMER, 3))
+/** Feature unsupported with this Timer */
+#define CYHAL_TIMER_RSLT_ERR_UNSUPPORTED                \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_TIMER, 4))
 
 /**
  * \}
@@ -302,6 +308,8 @@ void cyhal_timer_enable_event(cyhal_timer_t *obj, cyhal_timer_event_t event, uin
 /** Connects a source signal and configures and enables a timer event to be
  * triggered from that signal. These timer events can be configured
  * independently and connect to the same or different source signals.
+ * @note For "edge" signals, this function will default to rising edge. To control the edge type,
+ * use @ref cyhal_timer_connect_digital2
  *
  * @param[in] obj      Timer obj
  * @param[in] source   Source signal obtained from another driver's cyhal_<PERIPH>_enable_output
@@ -309,6 +317,21 @@ void cyhal_timer_enable_event(cyhal_timer_t *obj, cyhal_timer_event_t event, uin
  * @return The current status of the connection
  * */
 cy_rslt_t cyhal_timer_connect_digital(cyhal_timer_t *obj, cyhal_source_t source, cyhal_timer_input_t signal);
+
+/** Connects a source signal and configures and enables a timer event to be
+ * triggered from that signal with a configurable edge type. These timer events
+ * can be configured independently and connect to the same or different source signals.
+ *
+ * @param[in] obj       Timer obj
+ * @param[in] source    Source signal obtained from another driver's cyhal_<PERIPH>_enable_output
+ * @param[in] signal    The timer input signal
+ * @param[in] edge_type The edge type that should trigger the event. This must be consistent with the
+ *                      edge type of `source`. If `source` produces a "level" signal, the only valid
+ *                      value is @ref CYHAL_EDGE_TYPE_LEVEL. If `source` produces an "edge" signal, then
+ *                      @ref CYHAL_EDGE_TYPE_LEVEL is not a valid value.
+ * @return The current status of the connection
+ * */
+cy_rslt_t cyhal_timer_connect_digital2(cyhal_timer_t *obj, cyhal_source_t source, cyhal_timer_input_t signal, cyhal_edge_type_t edge_type);
 
 /** Enables the specified output signal from a tcpwm that will be triggered
  * when the corresponding event occurs. Multiple output signals can be

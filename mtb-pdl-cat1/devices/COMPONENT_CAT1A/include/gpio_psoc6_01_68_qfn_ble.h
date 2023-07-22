@@ -4,12 +4,11 @@
 * \brief
 * PSoC6_01 device GPIO header for 68-QFN-BLE package
 *
-* \note
-* Generator version: 1.6.0.409
-*
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +36,7 @@ enum
     CY_GPIO_PACKAGE_WLCSP,
     CY_GPIO_PACKAGE_LQFP,
     CY_GPIO_PACKAGE_TQFP,
+    CY_GPIO_PACKAGE_TEQFP,
     CY_GPIO_PACKAGE_SMT,
 };
 

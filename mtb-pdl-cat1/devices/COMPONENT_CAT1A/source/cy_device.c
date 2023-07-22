@@ -98,7 +98,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_01 =
 
     /* DW registers */
     /* dwChOffset                */ (uint16_t)offsetof(DW_V1_Type, CH_STRUCT),
-    /* dwChSize                  */ sizeof(DW_CH_STRUCT_V1_Type),
+    /* dwChSize                  */ (uint16_t)sizeof(DW_CH_STRUCT_V1_Type),
     /* dwChCtlPrioPos            */ (uint8_t)DW_CH_STRUCT_CH_CTL_PRIO_Pos,
     /* dwChCtlPreemptablePos     */ (uint8_t)DW_CH_STRUCT_CH_CTL_PREEMPTABLE_Pos,
     /* dwStatusChIdxPos          */ (uint8_t)DW_STATUS_CH_IDX_Pos,
@@ -108,7 +108,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_01 =
     /* periTrCmdOffset           */ (uint16_t)offsetof(PERI_V1_Type, TR_CMD),
     /* periTrCmdGrSelMsk         */ (uint16_t)PERI_TR_CMD_GROUP_SEL_Msk,
     /* periTrGrOffset            */ (uint16_t)offsetof(PERI_V1_Type, TR_GR),
-    /* periTrGrSize              */ sizeof(PERI_TR_GR_V1_Type),
+    /* periTrGrSize              */ (uint16_t)sizeof(PERI_TR_GR_V1_Type),
 
     /* periDivCmdDivSelMsk       */ (uint8_t)PERI_DIV_CMD_DIV_SEL_Msk,
     /* periDivCmdTypeSelPos      */ (uint8_t)PERI_DIV_CMD_TYPE_SEL_Pos,
@@ -148,7 +148,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_01 =
     /* cpussRam2PwrCtl           */ (uint16_t)offsetof(CPUSS_V1_Type, RAM2_PWR_CTL),
 
     /* IPC registers */
-    /* ipcStructSize             */ sizeof(IPC_STRUCT_V1_Type),
+    /* ipcStructSize             */ (uint16_t)sizeof(IPC_STRUCT_V1_Type),
     /* ipcLockStatusOffset       */ offsetof(IPC_STRUCT_V1_Type, LOCK_STATUS),
 };
 
@@ -215,7 +215,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_02 =
 
     /* DW registers */
     /* dwChOffset                */ (uint16_t)offsetof(DW_V2_Type, CH_STRUCT),
-    /* dwChSize                  */ sizeof(DW_CH_STRUCT_V2_Type),
+    /* dwChSize                  */ (uint16_t)sizeof(DW_CH_STRUCT_V2_Type),
     /* dwChCtlPrioPos            */ (uint8_t)DW_CH_STRUCT_V2_CH_CTL_PRIO_Pos,
     /* dwChCtlPreemptablePos     */ (uint8_t)DW_CH_STRUCT_V2_CH_CTL_PREEMPTABLE_Pos,
     /* dwStatusChIdxPos          */ (uint8_t)DW_V2_STATUS_CH_IDX_Pos,
@@ -225,7 +225,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_02 =
     /* periTrCmdOffset           */ (uint16_t)offsetof(PERI_V2_Type, TR_CMD),
     /* periTrCmdGrSelMsk         */ (uint16_t)PERI_V2_TR_CMD_GROUP_SEL_Msk,
     /* periTrGrOffset            */ (uint16_t)offsetof(PERI_V2_Type, TR_GR),
-    /* periTrGrSize              */ sizeof(PERI_TR_GR_V2_Type),
+    /* periTrGrSize              */ (uint16_t)sizeof(PERI_TR_GR_V2_Type),
 
     /* periDivCmdDivSelMsk       */ (uint8_t)PERI_V2_DIV_CMD_DIV_SEL_Msk,
     /* periDivCmdTypeSelPos      */ (uint8_t)PERI_V2_DIV_CMD_TYPE_SEL_Pos,
@@ -264,7 +264,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_02 =
     /* cpussRam2PwrCtl           */ (uint16_t)offsetof(CPUSS_V2_Type, RAM2_PWR_CTL),
 
     /* IPC registers */
-    /* ipcStructSize             */ sizeof(IPC_STRUCT_V2_Type),
+    /* ipcStructSize             */ (uint16_t)sizeof(IPC_STRUCT_V2_Type),
     /* ipcLockStatusOffset       */ offsetof(IPC_STRUCT_V2_Type, LOCK_STATUS),
 };
 
@@ -331,7 +331,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_03 =
 
     /* DW registers */
     /* dwChOffset                */ (uint16_t)offsetof(DW_V2_Type, CH_STRUCT),
-    /* dwChSize                  */ sizeof(DW_CH_STRUCT_V2_Type),
+    /* dwChSize                  */ (uint16_t)sizeof(DW_CH_STRUCT_V2_Type),
     /* dwChCtlPrioPos            */ (uint8_t)DW_CH_STRUCT_V2_CH_CTL_PRIO_Pos,
     /* dwChCtlPreemptablePos     */ (uint8_t)DW_CH_STRUCT_V2_CH_CTL_PREEMPTABLE_Pos,
     /* dwStatusChIdxPos          */ (uint8_t)DW_V2_STATUS_CH_IDX_Pos,
@@ -341,7 +341,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_03 =
     /* periTrCmdOffset           */ (uint16_t)offsetof(PERI_V2_Type, TR_CMD),
     /* periTrCmdGrSelMsk         */ (uint16_t)PERI_V2_TR_CMD_GROUP_SEL_Msk,
     /* periTrGrOffset            */ (uint16_t)offsetof(PERI_V2_Type, TR_GR),
-    /* periTrGrSize              */ sizeof(PERI_TR_GR_V2_Type),
+    /* periTrGrSize              */ (uint16_t)sizeof(PERI_TR_GR_V2_Type),
 
     /* periDivCmdDivSelMsk       */ (uint8_t)PERI_V2_DIV_CMD_DIV_SEL_Msk,
     /* periDivCmdTypeSelPos      */ (uint8_t)PERI_V2_DIV_CMD_TYPE_SEL_Pos,
@@ -380,7 +380,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_03 =
     /* cpussRam2PwrCtl           */ (uint16_t)offsetof(CPUSS_V2_Type, RAM2_PWR_CTL),
 
     /* IPC registers */
-    /* ipcStructSize             */ sizeof(IPC_STRUCT_V2_Type),
+    /* ipcStructSize             */ (uint16_t)sizeof(IPC_STRUCT_V2_Type),
     /* ipcLockStatusOffset       */ offsetof(IPC_STRUCT_V2_Type, LOCK_STATUS),
 };
 
@@ -447,7 +447,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_04 =
 
     /* DW registers */
     /* dwChOffset                */ (uint16_t)offsetof(DW_V2_Type, CH_STRUCT),
-    /* dwChSize                  */ sizeof(DW_CH_STRUCT_V2_Type),
+    /* dwChSize                  */ (uint16_t)sizeof(DW_CH_STRUCT_V2_Type),
     /* dwChCtlPrioPos            */ (uint8_t)DW_CH_STRUCT_V2_CH_CTL_PRIO_Pos,
     /* dwChCtlPreemptablePos     */ (uint8_t)DW_CH_STRUCT_V2_CH_CTL_PREEMPTABLE_Pos,
     /* dwStatusChIdxPos          */ (uint8_t)DW_V2_STATUS_CH_IDX_Pos,
@@ -457,7 +457,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_04 =
     /* periTrCmdOffset           */ (uint16_t)offsetof(PERI_V2_Type, TR_CMD),
     /* periTrCmdGrSelMsk         */ (uint16_t)PERI_V2_TR_CMD_GROUP_SEL_Msk,
     /* periTrGrOffset            */ (uint16_t)offsetof(PERI_V2_Type, TR_GR),
-    /* periTrGrSize              */ sizeof(PERI_TR_GR_V2_Type),
+    /* periTrGrSize              */ (uint16_t)sizeof(PERI_TR_GR_V2_Type),
 
     /* periDivCmdDivSelMsk       */ (uint8_t)PERI_V2_DIV_CMD_DIV_SEL_Msk,
     /* periDivCmdTypeSelPos      */ (uint8_t)PERI_V2_DIV_CMD_TYPE_SEL_Pos,
@@ -496,7 +496,7 @@ const cy_stc_device_t cy_deviceIpBlockCfgPSoC6_04 =
     /* cpussRam2PwrCtl           */ (uint16_t)offsetof(CPUSS_V2_Type, RAM2_PWR_CTL),
 
     /* IPC registers */
-    /* ipcStructSize             */ sizeof(IPC_STRUCT_V2_Type),
+    /* ipcStructSize             */ (uint16_t)sizeof(IPC_STRUCT_V2_Type),
     /* ipcLockStatusOffset       */ offsetof(IPC_STRUCT_V2_Type, LOCK_STATUS),
 };
 

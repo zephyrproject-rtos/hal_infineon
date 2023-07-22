@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_tcpwm_quaddec.c
-* \version 1.30
+* \version 1.60
 *
 * \brief
 *  The source file of the tcpwm driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright 2016-2021 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,6 +100,9 @@ cy_en_tcpwm_status_t Cy_TCPWM_QuadDec_Init(TCPWM_Type *base, uint32_t cntNum,
                     _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_UP_DOWN_MODE, config->quadMode) |
                     (config->enableCompare0Swap ? TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_CC0_Msk : 0UL) |
                     _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_PERIOD, (config->captureOnIndex ? CY_TCPWM_QUADDEC_CAPTURE_ON_INDEX : CY_TCPWM_QUADDEC_CAPTURE_ON_WRAP_AROUND)) |
+#if (CY_IP_MXTCPWM_VERSION >= 3U)
+                    _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED, config->buffer_swap_enable) |
+#endif
                     (enabled_bit ? TCPWM_GRP_CNT_V2_CTRL_ENABLED_Msk : 0UL));
 
             TCPWM_GRP_CNT_TR_IN_SEL0(base, grp, cntNum) =
@@ -122,7 +125,7 @@ cy_en_tcpwm_status_t Cy_TCPWM_QuadDec_Init(TCPWM_Type *base, uint32_t cntNum,
                               _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_RELOAD_EDGE, config->indexInputMode) |
                               _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_STOP_EDGE, config->stopInputMode));
 
-            if(TCPWM_GRP_CC1(grp))
+            if(TCPWM_GRP_CC1(base, grp))
             {
                 TCPWM_GRP_CNT_CC1(base, grp, cntNum) = config->compare1;
                 TCPWM_GRP_CNT_CC1_BUFF(base, grp, cntNum) = config->compareBuf1;

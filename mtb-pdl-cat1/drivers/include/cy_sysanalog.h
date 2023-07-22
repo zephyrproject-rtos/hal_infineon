@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sysanalog.h
-* \version 2.0
+* \version 2.10
 *
 * Header file for the system level analog reference driver.
 *
@@ -204,6 +204,12 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.10</td>
+*     <td>The CY_SYSANALOG_STARTUP_NORMAL and Cy_SysAnalog_SetArefMode are deprecated.
+*         The HW is anyways initialized with the CY_SYSANALOG_STARTUP_FAST.</td>
+*     <td>User experience enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>2.0</td>
 *     <td>Added new features: LPOSC, DSCLK, TIMER.</td>
 *     <td>New silicon family support.</td>
@@ -263,7 +269,7 @@ extern "C" {
 #endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 19, \
-'PASS_Type will typecast to either PASS_V1_Type or PASS_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'PASS_Type will typecast to either PASS_V1_Type or PASS_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 /** \addtogroup group_sysanalog_macros
 * \{
@@ -273,7 +279,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 19, \
 #define CY_SYSANALOG_DRV_VERSION_MAJOR          2
 
 /** Driver minor version */
-#define CY_SYSANALOG_DRV_VERSION_MINOR          0
+#define CY_SYSANALOG_DRV_VERSION_MINOR          10
 
 /** PASS driver identifier */
 #define CY_SYSANALOG_ID                         CY_PDL_DRV_ID(0x17u)
@@ -284,7 +290,6 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 19, \
 #define CY_SYSANALOG_DEFAULT_BIAS_SCALE         (1UL << PASS_AREF_AREF_CTRL_AREF_BIAS_SCALE_Pos)    /**< Default AREF bias current scale of 250 nA */
 
 /**< Macros for conditions used in CY_ASSERT calls */
-#define CY_SYSANALOG_STARTUP(startup)           (((startup) == CY_SYSANALOG_STARTUP_NORMAL) || ((startup) == CY_SYSANALOG_STARTUP_FAST))
 #define CY_SYSANALOG_DEEPSLEEP(deepSleep)       (((deepSleep) == CY_SYSANALOG_DEEPSLEEP_DISABLE) \
                                                 || ((deepSleep) == CY_SYSANALOG_DEEPSLEEP_IPTAT_1) \
                                                 || ((deepSleep) == CY_SYSANALOG_DEEPSLEEP_IPTAT_2) \
@@ -314,18 +319,13 @@ typedef enum
     CY_SYSANALOG_UNSUPPORTED = CY_SYSANALOG_ID | CY_PDL_STATUS_ERROR | 0x02UL  /**< Unsupported feature */
 }cy_en_sysanalog_status_t;
 
-/** Aref startup mode from power on reset and from Deep Sleep wakeup
-*
-* To achieve the fast startup time (10 us) from Deep Sleep wakeup, the IPTAT generators must be
-* enabled in Deep Sleep mode (see \ref cy_en_sysanalog_deep_sleep_t).
-*
-* The fast startup is the recommended mode.
-*/
+/** \cond Deprecated, left here for BWC, HW is anyways initialized with CY_SYSANALOG_STARTUP_FAST */
 typedef enum
 {
-    CY_SYSANALOG_STARTUP_NORMAL     = 0UL,                                           /**< Normal startup */
-    CY_SYSANALOG_STARTUP_FAST       = 1UL << PASS_AREF_AREF_CTRL_AREF_MODE_Pos       /**< Fast startup (10 us) - recommended */
+    CY_SYSANALOG_STARTUP_NORMAL     = 0UL,
+    CY_SYSANALOG_STARTUP_FAST       = 1UL << PASS_AREF_AREF_CTRL_AREF_MODE_Pos
 }cy_en_sysanalog_startup_t;
+/** \endcond */
 
 /** AREF voltage reference sources
 *
@@ -472,7 +472,9 @@ typedef enum
 /** Structure to configure the entire AREF block */
 typedef struct
 {
+/** \cond Deprecated, left here for BWC, HW is anyways initialized with CY_SYSANALOG_STARTUP_FAST */
     cy_en_sysanalog_startup_t                   startup;   /**< AREF normal or fast start */
+/** \endcond */
     cy_en_sysanalog_iztat_source_t              iztat;     /**< AREF 1uA IZTAT source: Local or SRSS */
     cy_en_sysanalog_vref_source_t               vref;      /**< AREF Vref: Local, SRSS, or external pin */
     cy_en_sysanalog_deep_sleep_t                deepSleep; /**< AREF Deep Sleep mode */
@@ -528,17 +530,16 @@ extern const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_External;
 *        Function Prototypes
 ***************************************/
 
-cy_en_sysanalog_status_t Cy_SysAnalog_Init(const cy_stc_sysanalog_config_t *config);
+cy_en_sysanalog_status_t Cy_SysAnalog_Init(const cy_stc_sysanalog_config_t * config);
 __STATIC_INLINE void Cy_SysAnalog_DeInit(void);
 __STATIC_INLINE uint32_t Cy_SysAnalog_GetIntrCauseExtended(const PASS_Type * base);
 __STATIC_INLINE void Cy_SysAnalog_SetDeepSleepMode(cy_en_sysanalog_deep_sleep_t deepSleep);
 __STATIC_INLINE cy_en_sysanalog_deep_sleep_t Cy_SysAnalog_GetDeepSleepMode(void);
 __STATIC_INLINE void Cy_SysAnalog_Enable(void);
 __STATIC_INLINE void Cy_SysAnalog_Disable(void);
-__STATIC_INLINE void Cy_SysAnalog_SetArefMode(cy_en_sysanalog_startup_t startup);
 __STATIC_INLINE void Cy_SysAnalog_VrefSelect(cy_en_sysanalog_vref_source_t vref);
 __STATIC_INLINE void Cy_SysAnalog_IztatSelect(cy_en_sysanalog_iztat_source_t iztat);
-cy_en_sysanalog_status_t Cy_SysAnalog_DeepSleepInit(PASS_Type * base, const cy_stc_sysanalog_deep_sleep_config_t *config);
+cy_en_sysanalog_status_t Cy_SysAnalog_DeepSleepInit(PASS_Type * base, const cy_stc_sysanalog_deep_sleep_config_t * config);
 
 /**
 * \addtogroup group_sysanalog_functions_lposc
@@ -718,33 +719,15 @@ __STATIC_INLINE void Cy_SysAnalog_Disable(void)
     PASS_AREF_AREF_CTRL &= ~PASS_AREF_AREF_CTRL_ENABLED_Msk;
 }
 
-/*******************************************************************************
-* Function Name: Cy_SysAnalog_SetArefMode
-****************************************************************************//**
-*
-* Set the AREF startup mode from power on reset or from Deep Sleep wakeup.
-* The AREF can startup in a normal or fast mode.
-*
-* If fast startup is desired from Deep Sleep wakeup, the IPTAT generators must be enabled during
-* Deep Sleep. This is a minimum Deep Sleep mode setting of \ref CY_SYSANALOG_DEEPSLEEP_IPTAT_1
-* (see also \ref Cy_SysAnalog_SetDeepSleepMode).
-*
-* \param startup
-* Value from enum \ref cy_en_sysanalog_startup_t
-*
-* \return None
-*
-* \funcusage
-*
-* \snippet sysanalog/snippet/main.c SYSANA_SNIPPET_SET_AREF_MODE
-*
-*******************************************************************************/
+
+/** \cond Deprecated, left here for BWC, always writes CY_SYSANALOG_STARTUP_FAST into the register */
 __STATIC_INLINE void Cy_SysAnalog_SetArefMode(cy_en_sysanalog_startup_t startup)
 {
-    CY_ASSERT_L3(CY_SYSANALOG_STARTUP(startup));
-
-    PASS_AREF_AREF_CTRL = (PASS_AREF_AREF_CTRL & ~PASS_AREF_AREF_CTRL_AREF_MODE_Msk) | (uint32_t) startup;
+    CY_UNUSED_PARAMETER(startup);
+    PASS_AREF_AREF_CTRL |= (uint32_t)CY_SYSANALOG_STARTUP_FAST;
 }
+/** \endcond */
+
 
 /*******************************************************************************
 * Function Name: Cy_SysAnalog_VrefSelect
@@ -963,7 +946,7 @@ __STATIC_INLINE uint32_t Cy_SysAnalog_TimerGetPeriod(const PASS_Type * base)
 /** \} */
 
 /** \} group_sysanalog_functions */
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 #if defined(__cplusplus)
 }

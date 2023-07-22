@@ -367,7 +367,7 @@ extern "C" {
 #endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 13, \
-'CTDAC_Type will typecast to either CTDAC_V1_Type or CTDAC_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'CTDAC_Type will typecast to either CTDAC_V1_Type or CTDAC_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 /** \addtogroup group_ctdac_macros
 * \{
@@ -955,7 +955,7 @@ __STATIC_INLINE void Cy_CTDAC_ClearInterrupt(CTDAC_Type *base)
 {
     CTDAC_INTR(base) = CTDAC_INTR_VDAC_EMPTY_Msk;
 
-    /* Dummy read for buffered writes. */
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) CTDAC_INTR(base);
 }
 
@@ -1063,7 +1063,7 @@ __STATIC_INLINE uint32_t Cy_CTDAC_GetInterruptStatusMasked(const CTDAC_Type *bas
 /** \} */
 
 /** \} group_ctdac_functions */
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 #if defined(__cplusplus)
 }

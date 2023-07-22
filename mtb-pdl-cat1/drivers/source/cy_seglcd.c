@@ -31,7 +31,7 @@
 #include "cy_sysclk.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 28, \
-'LCD_Type will typecast to either LCD_V1_Type or LCD_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'LCD_Type will typecast to either LCD_V1_Type or LCD_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 #define CY_SEGLCD_ENABLE_Msk                (LCD_CONTROL_LS_EN_Msk | LCD_CONTROL_HS_EN_Msk)
 #define CY_SEGLCD_NIBBLE                    (4UL)
@@ -966,7 +966,7 @@ cy_en_seglcd_status_t Cy_SegLCD_BarGraph(LCD_Type * base,
 
     return((cy_en_seglcd_status_t)retVal);
 }
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 #endif /* CY_IP_MXLCD */
 

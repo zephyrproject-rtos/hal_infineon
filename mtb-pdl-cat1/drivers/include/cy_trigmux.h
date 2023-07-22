@@ -1,13 +1,13 @@
 /*******************************************************************************
 * \file cy_trigmux.h
-* \version 1.30
+* \version 1.60.1
 *
 *  This file provides constants and parameter values for the Trigger multiplexer driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
-* SPDX-License-Identifier: Apache-2.0
+* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -168,6 +168,26 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.60.1</td>
+*     <td>Updated \ref Cy_TrigMux_SwTrigger API.</td>
+*     <td>Coverity error fixes.</td>
+*   </tr>
+*   <tr>
+*     <td>1.60</td>
+*     <td>Updated Cy_TrigMux_SwTrigger API and added CY_TRIGMUX_INTRIG_MASK macro.</td>
+*     <td>Support for CAT1D Devices added.</td>
+*   </tr>
+*   <tr>
+*     <td>1.50</td>
+*     <td>Updated driver to support the CAT1C family of devices.</td>
+*     <td>Added new family of devices.</td>
+*   </tr>
+*   <tr>
+*     <td>1.40</td>
+*     <td>Fixed MISRA violation.</td>
+*     <td>MISRA compliance.</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="2">1.30</td>
 *     <td>Minor bug fixes.</td>
 *     <td>Keep device specific changes under a compile time device flag.</td>
@@ -179,7 +199,7 @@
 *   <tr>
 *     <td>1.20.3</td>
 *     <td>Minor documentation updates.</td>
-*     <td>Removed MISRA 2004 compliance details and verified MISRA 2012 complaince.</td>
+*     <td>Removed MISRA 2004 compliance details and verified MISRA 2012 compliance.</td>
 *   </tr>
 *   <tr>
 *     <td>1.20.2</td>
@@ -279,7 +299,7 @@ extern "C" {
 #define CY_TRIGMUX_DRV_VERSION_MAJOR       1
 
 /** The driver minor version */
-#define CY_TRIGMUX_DRV_VERSION_MINOR       30
+#define CY_TRIGMUX_DRV_VERSION_MINOR       60
 
 /** TRIGMUX PDL ID */
 #define CY_TRIGMUX_ID                       CY_PDL_DRV_ID(0x33UL) /**< The trigger multiplexer driver identifier */

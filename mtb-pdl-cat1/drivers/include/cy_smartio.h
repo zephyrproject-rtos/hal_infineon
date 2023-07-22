@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smartio.h
-* \version 1.0.2
+* \version 1.0.3
 *
 * \brief
 * Provides an API declaration of the Smart I/O driver
@@ -166,6 +166,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.0.3</td>
+*     <td>Updated driver guards.</td>
+*     <td>Support Added for future devices of the CAT1B.</td>
+*   </tr>
+*   <tr>
 *     <td>1.0.2</td>
 *     <td>Documented MISRA 2012 violations.</td>
 *     <td>MISRA 2012 compliance.</td>
@@ -199,7 +204,7 @@
 
 #include "cy_device.h"
 
-#if (defined (CY_IP_MXS40IOSS) || (defined(CY_IP_MXS40SIOSS) && defined(SMARTIO_BASE)))
+#if (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS))
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -210,7 +215,7 @@ extern "C" {
 #endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 12, \
-'Value extracted from _FLD2VAL macro will not exceed enum range.');
+'Value extracted from _FLD2VAL macro will not exceed enum range.')
 
 /** \addtogroup group_smartio_macros
 * \{
@@ -855,13 +860,13 @@ __STATIC_INLINE uint8_t Cy_SmartIO_GetDataReg(SMARTIO_PRT_Type* base)
 
 /** \} group_smartio_functions */
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXS40IOSS */
+#endif /* (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS)) */
 
 #endif /* CY_SMARTIO_H */
 

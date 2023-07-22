@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_aes_v1.c
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides the source code fro the API for the AES method
 *  in the Crypto driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,15 +27,17 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXCRYPTO)
+#if defined(CY_IP_MXCRYPTO)
 
 #include "cy_crypto_core_aes_v1.h"
+
+#if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if (CPUSS_CRYPTO_AES == 1)
+#if (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_AES_C)
 
 #include "cy_crypto_core_hw_v1.h"
 #include "cy_crypto_core_mem_v1.h"
@@ -237,8 +241,8 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Aes_Init(CRYPTO_Type *base,
 *******************************************************************************/
 cy_en_crypto_status_t Cy_Crypto_Core_V1_Aes_Free(CRYPTO_Type *base, cy_stc_crypto_aes_state_t *aesState)
 {
-    Cy_Crypto_Core_V1_MemSet(base, (void *)aesState->buffers, 0u, sizeof(cy_stc_crypto_aes_buffers_t));
-    Cy_Crypto_Core_V1_MemSet(base, (void *)aesState, 0u, sizeof(cy_stc_crypto_aes_state_t));
+    Cy_Crypto_Core_V1_MemSet(base, (void *)aesState->buffers, 0u, ((uint16_t)sizeof(cy_stc_crypto_aes_buffers_t)));
+    Cy_Crypto_Core_V1_MemSet(base, (void *)aesState, 0u, ((uint16_t)sizeof(cy_stc_crypto_aes_state_t)));
 
     return (CY_CRYPTO_SUCCESS);
 }
@@ -287,6 +291,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Aes_Ecb(CRYPTO_Type *base,
     return (CY_CRYPTO_SUCCESS);
 }
 
+#if defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_V1_Aes_Cbc
 ****************************************************************************//**
@@ -394,7 +399,9 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Aes_Cbc(CRYPTO_Type *base,
 
     return (tmpResult);
 }
+#endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC) */
 
+#if defined(CY_CRYPTO_CFG_CIPHER_MODE_CFB)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_V1_Aes_Cfb
 ********************************************************************************
@@ -484,7 +491,9 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Aes_Cfb(CRYPTO_Type *base,
 
     return (tmpResult);
 }
+#endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CFB) */
 
+#if defined(CY_CRYPTO_CFG_CIPHER_MODE_CTR)
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_V1_Aes_Ctr
 ********************************************************************************
@@ -579,14 +588,17 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Aes_Ctr(CRYPTO_Type *base,
 
     return (CY_CRYPTO_SUCCESS);
 }
+#endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CTR) */
 
-#endif /* #if (CPUSS_CRYPTO_AES == 1) */
+#endif /* (CPUSS_CRYPTO_AES == 1) && defined(CY_CRYPTO_CFG_AES_C) */
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXCRYPTO */
+#endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+
+#endif /* defined(CY_IP_MXCRYPTO) */
 
 
 /* [] END OF FILE */

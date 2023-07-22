@@ -1,13 +1,14 @@
 /***************************************************************************//**
 * \file cy_pra.c
-* \version 2.30
+* \version 2.40.1
 *
 * \brief The source code file for the PRA driver. The API is not intended to
 * be used directly by the user application.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2020 Cypress Semiconductor Corporation
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation
+* (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +40,7 @@
 #if defined (CY_DEVICE_SECURE) || defined (CY_DOXYGEN)
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.2', 4, \
-'Checked manually. All the recursive cycles are handled properly.');
+'Checked manually. All the recursive cycles are handled properly.')
 
 #define CY_PRA_REG_POLICY_WRITE_ALL   (0x00000000UL)
 #define CY_PRA_REG_POLICY_WRITE_NONE  (0xFFFFFFFFUL)
@@ -199,7 +200,7 @@ void Cy_PRA_Init(void)
                                     (uint32_t) secExtclkPinList,
                                     (uint32_t) CY_PRA_EXTCLK_PIN_NR))
     {
-        /* Initilize the List */
+        /* Initialize the List */
         for (uint32_t index = 0UL; index<CY_PRA_EXTCLK_PIN_NR; index++)
         {
             secExtclkPinList[index].port = NULL;
@@ -213,7 +214,7 @@ void Cy_PRA_Init(void)
                                     (uint32_t) secExtClkAdjHsiomList,
                                     (uint32_t) CY_PRA_EXTCLK_PIN_NR))
     {
-        /* Initilize the List */
+        /* Initialize the List */
         for (uint32_t index = 0UL; index<CY_PRA_EXTCLK_PIN_NR; index++)
         {
             secExtClkAdjHsiomList[index].port = NULL;
@@ -345,7 +346,7 @@ static void Cy_PRA_InitGpioPort(cy_stc_pra_reg_policy_t *regPolicy, uint16_t ind
 * Function Name: Cy_PRA_InitHsiomPort
 ****************************************************************************//**
 *
-* Initializes all HSIOM port register adrress and write mask
+* Initializes all HSIOM port register address and write mask
 *
 *******************************************************************************/
 static void Cy_PRA_InitHsiomPort(cy_stc_pra_reg_policy_t *regPolicy, uint16_t index, GPIO_PRT_Type *port, uint32_t pinNum)
@@ -580,53 +581,66 @@ static void Cy_PRA_ProcessCmd(cy_stc_pra_msg_t *message)
                 cy_stc_pra_extclk_pin_t *pinList =  (cy_stc_pra_extclk_pin_t *) message->praData1;
                 message->praStatus = CY_PRA_STATUS_SUCCESS;
 
-                if (extClkPolicyPtr->extClkEnable)
-                {
-                    pinList[CY_PRA_CLK_EXT_PIN_INDEX].port = extClkPolicyPtr->extClkPort;
-                    pinList[CY_PRA_CLK_EXT_PIN_INDEX].pinNum = extClkPolicyPtr->extClkPinNum;
-                    pinList[CY_PRA_CLK_EXT_PIN_INDEX].index = CY_PRA_INDX_GPIO_EXTCLK_PRT;
-                    pinList[CY_PRA_CLK_EXT_PIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_EXTCLK_PRT;
-                }
-                else
+                /* when there is no policy input then initialize the pinList */
+                if (NULL == extClkPolicyPtr)
                 {
                     pinList[CY_PRA_CLK_EXT_PIN_INDEX].port = NULL;
-                }
-
-                if (extClkPolicyPtr->ecoEnable)
-                {
-                    pinList[CY_PRA_CLK_ECO_INPIN_INDEX].port = extClkPolicyPtr->ecoInPort;
-                    pinList[CY_PRA_CLK_ECO_INPIN_INDEX].pinNum = extClkPolicyPtr->ecoInPinNum;
-                    pinList[CY_PRA_CLK_ECO_INPIN_INDEX].index = CY_PRA_INDX_GPIO_ECO_IN_PRT;
-                    pinList[CY_PRA_CLK_ECO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_IN_PRT;
-
-                    pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = extClkPolicyPtr->ecoOutPort;
-                    pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].pinNum = extClkPolicyPtr->ecoOutPinNum;
-                    pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].index = CY_PRA_INDX_GPIO_ECO_OUT_PRT;
-                    pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_OUT_PRT;
-                }
-                else
-                {
                     pinList[CY_PRA_CLK_ECO_INPIN_INDEX].port = NULL;
                     pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = NULL;
-                }
-
-                if (extClkPolicyPtr->wcoEnable)
-                {
-                    pinList[CY_PRA_CLK_WCO_INPIN_INDEX].port = extClkPolicyPtr->wcoInPort;
-                    pinList[CY_PRA_CLK_WCO_INPIN_INDEX].pinNum = extClkPolicyPtr->wcoInPinNum;
-                    pinList[CY_PRA_CLK_WCO_INPIN_INDEX].index = CY_PRA_INDX_GPIO_WCO_IN_PRT;
-                    pinList[CY_PRA_CLK_WCO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_IN_PRT;
-
-                    pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = extClkPolicyPtr->wcoOutPort;
-                    pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].pinNum = extClkPolicyPtr->wcoOutPinNum;
-                    pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].index = CY_PRA_INDX_GPIO_WCO_OUT_PRT;
-                    pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_OUT_PRT;
-                }
-                else
-                {
                     pinList[CY_PRA_CLK_WCO_INPIN_INDEX].port = NULL;
                     pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = NULL;
                 }
+                else
+                {
+
+                    if (extClkPolicyPtr->extClkEnable)
+                    {
+                        pinList[CY_PRA_CLK_EXT_PIN_INDEX].port = extClkPolicyPtr->extClkPort;
+                        pinList[CY_PRA_CLK_EXT_PIN_INDEX].pinNum = extClkPolicyPtr->extClkPinNum;
+                        pinList[CY_PRA_CLK_EXT_PIN_INDEX].index = CY_PRA_INDX_GPIO_EXTCLK_PRT;
+                        pinList[CY_PRA_CLK_EXT_PIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_EXTCLK_PRT;
+                    }
+                    else
+                    {
+                        pinList[CY_PRA_CLK_EXT_PIN_INDEX].port = NULL;
+                    }
+
+                    if (extClkPolicyPtr->ecoEnable)
+                    {
+                        pinList[CY_PRA_CLK_ECO_INPIN_INDEX].port = extClkPolicyPtr->ecoInPort;
+                        pinList[CY_PRA_CLK_ECO_INPIN_INDEX].pinNum = extClkPolicyPtr->ecoInPinNum;
+                        pinList[CY_PRA_CLK_ECO_INPIN_INDEX].index = CY_PRA_INDX_GPIO_ECO_IN_PRT;
+                        pinList[CY_PRA_CLK_ECO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_IN_PRT;
+
+                        pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = extClkPolicyPtr->ecoOutPort;
+                        pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].pinNum = extClkPolicyPtr->ecoOutPinNum;
+                        pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].index = CY_PRA_INDX_GPIO_ECO_OUT_PRT;
+                        pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_OUT_PRT;
+                    }
+                    else
+                    {
+                        pinList[CY_PRA_CLK_ECO_INPIN_INDEX].port = NULL;
+                        pinList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = NULL;
+                    }
+
+                    if (extClkPolicyPtr->wcoEnable)
+                    {
+                        pinList[CY_PRA_CLK_WCO_INPIN_INDEX].port = extClkPolicyPtr->wcoInPort;
+                        pinList[CY_PRA_CLK_WCO_INPIN_INDEX].pinNum = extClkPolicyPtr->wcoInPinNum;
+                        pinList[CY_PRA_CLK_WCO_INPIN_INDEX].index = CY_PRA_INDX_GPIO_WCO_IN_PRT;
+                        pinList[CY_PRA_CLK_WCO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_IN_PRT;
+
+                        pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = extClkPolicyPtr->wcoOutPort;
+                        pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].pinNum = extClkPolicyPtr->wcoOutPinNum;
+                        pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].index = CY_PRA_INDX_GPIO_WCO_OUT_PRT;
+                        pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_OUT_PRT;
+                    }
+                    else
+                    {
+                        pinList[CY_PRA_CLK_WCO_INPIN_INDEX].port = NULL;
+                        pinList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = NULL;
+                    }
+                } /* NULL == extClkPolicyPtr */
             }
             else
             {
@@ -639,41 +653,55 @@ static void Cy_PRA_ProcessCmd(cy_stc_pra_msg_t *message)
             if ((NULL != (cy_stc_pra_extclk_hsiom_t *) (message->praData1)) && ((uint32_t) (message->praData2) <= CY_PRA_EXTCLK_PIN_NR))
             {
                 cy_stc_pra_extclk_hsiom_t *hsiomList =  (cy_stc_pra_extclk_hsiom_t *) message->praData1;
-                if (extClkPolicyPtr->extClkEnable)
-                {
-                    hsiomList[CY_PRA_CLK_EXT_PIN_INDEX].port = extClkPolicyPtr->extClkPort + 1; /* Fill adjacent GPIO port */
-                    hsiomList[CY_PRA_CLK_EXT_PIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_EXTCLK_ADJ_PRT;
-                }
-                else
+
+                /* when there is no policy input then initialize the hsiomList */
+                if (NULL == extClkPolicyPtr)
                 {
                     hsiomList[CY_PRA_CLK_EXT_PIN_INDEX].port = NULL;
-                }
-
-                if (extClkPolicyPtr->ecoEnable)
-                {
-                    hsiomList[CY_PRA_CLK_ECO_INPIN_INDEX].port = extClkPolicyPtr->ecoInPort + 1; /* Fill adjacent GPIO port */
-                    hsiomList[CY_PRA_CLK_ECO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_IN_ADJ_PRT;
-                    hsiomList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = extClkPolicyPtr->ecoOutPort + 1; /* Fill adjacent GPIO port */
-                    hsiomList[CY_PRA_CLK_ECO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_OUT_ADJ_PRT;
-                }
-                else
-                {
                     hsiomList[CY_PRA_CLK_ECO_INPIN_INDEX].port = NULL;
                     hsiomList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = NULL;
-                }
-
-                if (extClkPolicyPtr->wcoEnable)
-                {
-                    hsiomList[CY_PRA_CLK_WCO_INPIN_INDEX].port = extClkPolicyPtr->wcoInPort + 1; /* Fill adjacent GPIO port */
-                    hsiomList[CY_PRA_CLK_WCO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_IN_ADJ_PRT;
-                    hsiomList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = extClkPolicyPtr->wcoOutPort + 1; /* Fill adjacent GPIO port */
-                    hsiomList[CY_PRA_CLK_WCO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_OUT_ADJ_PRT;
-                }
-                else
-                {
                     hsiomList[CY_PRA_CLK_WCO_INPIN_INDEX].port = NULL;
                     hsiomList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = NULL;
                 }
+                else
+                {
+
+                    if (extClkPolicyPtr->extClkEnable)
+                    {
+                        hsiomList[CY_PRA_CLK_EXT_PIN_INDEX].port = extClkPolicyPtr->extClkPort + 1; /* Fill adjacent GPIO port */
+                        hsiomList[CY_PRA_CLK_EXT_PIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_EXTCLK_ADJ_PRT;
+                    }
+                    else
+                    {
+                        hsiomList[CY_PRA_CLK_EXT_PIN_INDEX].port = NULL;
+                    }
+
+                    if (extClkPolicyPtr->ecoEnable)
+                    {
+                        hsiomList[CY_PRA_CLK_ECO_INPIN_INDEX].port = extClkPolicyPtr->ecoInPort + 1; /* Fill adjacent GPIO port */
+                        hsiomList[CY_PRA_CLK_ECO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_IN_ADJ_PRT;
+                        hsiomList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = extClkPolicyPtr->ecoOutPort + 1; /* Fill adjacent GPIO port */
+                        hsiomList[CY_PRA_CLK_ECO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_ECO_OUT_ADJ_PRT;
+                    }
+                    else
+                    {
+                        hsiomList[CY_PRA_CLK_ECO_INPIN_INDEX].port = NULL;
+                        hsiomList[CY_PRA_CLK_ECO_OUTPIN_INDEX].port = NULL;
+                    }
+
+                    if (extClkPolicyPtr->wcoEnable)
+                    {
+                        hsiomList[CY_PRA_CLK_WCO_INPIN_INDEX].port = extClkPolicyPtr->wcoInPort + 1; /* Fill adjacent GPIO port */
+                        hsiomList[CY_PRA_CLK_WCO_INPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_IN_ADJ_PRT;
+                        hsiomList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = extClkPolicyPtr->wcoOutPort + 1; /* Fill adjacent GPIO port */
+                        hsiomList[CY_PRA_CLK_WCO_OUTPIN_INDEX].hsiomIndex = CY_PRA_INDEX_HSIOM_WCO_OUT_ADJ_PRT;
+                    }
+                    else
+                    {
+                        hsiomList[CY_PRA_CLK_WCO_INPIN_INDEX].port = NULL;
+                        hsiomList[CY_PRA_CLK_WCO_OUTPIN_INDEX].port = NULL;
+                    }
+                } /* NULL == extClkPolicyPtr */
 
                 message->praStatus = CY_PRA_STATUS_SUCCESS;
             }
@@ -1467,7 +1495,7 @@ static void Cy_PRA_ProcessCmd(cy_stc_pra_msg_t *message)
                             structCpy.hf1Source = ((cy_stc_pra_clkhfsetsource_t *) message->praData1)->source;
                             hfOutFreqMHz = structCpy.hf1OutFreqMHz;
                             hfEnabled = structCpy.clkHF1Enable;
-                            /* The HF output frequency is not present in the PDL API argument. Update the system config structure with thecurrent HF output frequency value */
+                            /* The HF output frequency is not present in the PDL API argument. Update the system config structure with the current HF output frequency value */
                             structCpy.hf1OutFreqMHz = (Cy_SysClk_ClkPathGetFrequency((uint32_t) structCpy.hf1Source)/(1UL << (uint32_t)structCpy.hf1Divider))/CY_PRA_FREQUENCY_HZ_CONVERSION;
                             break;
 
@@ -3349,7 +3377,7 @@ static cy_en_pra_status_t Cy_PRA_ValidateEntireSramPowerMode(cy_en_syspm_sram_in
 
 #endif /* (CY_CPU_CORTEX_M0P) */
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2')
 
 #endif /* (CY_DEVICE_SECURE) */
 

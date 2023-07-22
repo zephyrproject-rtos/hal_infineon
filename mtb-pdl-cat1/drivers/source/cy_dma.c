@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_dma.c
-* \version 2.40
+* \version 2.70
 *
 * \brief
 * The source code file for the DMA driver.
@@ -24,15 +24,16 @@
 *******************************************************************************/
 
 #include "cy_device.h"
+#include <assert.h>
 
-#if defined (CY_IP_M4CPUSS_DMA) || defined (CY_IP_MXDW)
+#if defined (CY_IP_M4CPUSS_DMA) || defined (CY_IP_MXDW) || defined (CY_IP_M7CPUSS_DMA)
 
 #include "cy_dma.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 5, \
-'DW_Type will typecast to either DW_V1_Type or DW_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'DW_Type will typecast to either DW_V1_Type or DW_V2_Type but not both on PDL initialization based on the target device at compile time.')
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 2, \
-'Value extracted from _VAL2FLD macro will not exceed enum range.');
+'Value extracted from _VAL2FLD macro will not exceed enum range.')
 
 /*******************************************************************************
 * Function Name: Cy_DMA_Crc_Init
@@ -57,7 +58,8 @@ cy_en_dma_status_t Cy_DMA_Crc_Init(DW_Type * base, cy_stc_dma_crc_config_t const
 #ifdef CY_IP_MXDW
     if((NULL != base) && (NULL != crcConfig) )
 #else
-    if((NULL != base) && (NULL != crcConfig) && CY_DW_CRC)
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 14.3','Intentional check for the macro CY_DW_CRC.');
+    if((NULL != base) && (NULL != crcConfig) && (CY_DW_CRC == 1UL))
 #endif /* CY_IP_MXDW */
     {
         DW_CRC_CTL(base) = _BOOL2FLD(DW_V2_CRC_CTL_DATA_REVERSE, crcConfig->dataReverse) |
@@ -175,7 +177,8 @@ cy_en_dma_status_t Cy_DMA_Descriptor_Init(cy_stc_dma_descriptor_t * descriptor, 
                 break;
 
             case CY_DMA_CRC_TRANSFER:
-                if (CY_DW_CRC)
+                CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 14.3','CY_DW_CRC is available for all CAT1B devices.');
+                if (CY_DW_CRC != 0UL)
                 {
                     CY_ASSERT_L2(CY_DMA_IS_LOOP_INCR_VALID(config->srcXincrement));
                     CY_ASSERT_L2(CY_DMA_IS_LOOP_COUNT_VALID(config->xCount));
@@ -318,6 +321,7 @@ void Cy_DMA_Channel_DeInit(DW_Type * base, uint32_t channel)
 *
 * \param nextDescriptor
 * The pointer to the next descriptor.
+* For CAT1C devices this pointer needs to point to 32 byte aligned structure.
 *
 * \funcusage
 * \snippet dma/snippet/main.c snippet_Cy_DMA_Descriptor_SetterFunctions
@@ -326,25 +330,25 @@ void Cy_DMA_Channel_DeInit(DW_Type * base, uint32_t channel)
 void Cy_DMA_Descriptor_SetNextDescriptor(cy_stc_dma_descriptor_t * descriptor, cy_stc_dma_descriptor_t const * nextDescriptor)
 {   
     CY_ASSERT_L1(descriptor);
-    switch((cy_en_dma_descriptor_type_t) _FLD2VAL(CY_DMA_CTL_TYPE, descriptor->ctl))
+    cy_en_dma_descriptor_type_t transferType = (cy_en_dma_descriptor_type_t) _FLD2VAL(CY_DMA_CTL_TYPE, descriptor->ctl);
+    
+    if (transferType == CY_DMA_SINGLE_TRANSFER)
     {
-        case CY_DMA_SINGLE_TRANSFER:
-            descriptor->xCtl = (uint32_t)nextDescriptor;
-            break;
-
-        case CY_DMA_CRC_TRANSFER:
-        case CY_DMA_1D_TRANSFER:
-            descriptor->yCtl = (uint32_t)nextDescriptor;
-            break;
-
-        case CY_DMA_2D_TRANSFER:
-            descriptor->nextPtr = (uint32_t)nextDescriptor;
-            break;
-
-        default:
-            /* Unsupported type of descriptor */
-            break;
+        descriptor->xCtl = (uint32_t)nextDescriptor;
     }
+    else if (transferType == CY_DMA_CRC_TRANSFER || transferType == CY_DMA_1D_TRANSFER)
+    {
+        descriptor->yCtl = (uint32_t)nextDescriptor;
+    }
+    else if ( transferType == CY_DMA_2D_TRANSFER)
+    {
+        descriptor->nextPtr = (uint32_t)nextDescriptor;
+    }
+    else
+    {
+       /* Unsupported type of descriptor */
+    }
+
 }
 
 
@@ -373,26 +377,25 @@ cy_stc_dma_descriptor_t * Cy_DMA_Descriptor_GetNextDescriptor(cy_stc_dma_descrip
 {
     cy_stc_dma_descriptor_t * retVal = NULL;
     CY_ASSERT_L1(descriptor);
-    switch((cy_en_dma_descriptor_type_t) _FLD2VAL(CY_DMA_CTL_TYPE, descriptor->ctl))
+    cy_en_dma_descriptor_type_t transferType = (cy_en_dma_descriptor_type_t) _FLD2VAL(CY_DMA_CTL_TYPE, descriptor->ctl);
+    
+    if (transferType == CY_DMA_SINGLE_TRANSFER)
     {
-        case CY_DMA_SINGLE_TRANSFER:
-            retVal = (cy_stc_dma_descriptor_t*) descriptor->xCtl;
-            break;
-
-        case CY_DMA_CRC_TRANSFER:
-        case CY_DMA_1D_TRANSFER:
-            retVal = (cy_stc_dma_descriptor_t*) descriptor->yCtl;
-            break;
-
-        case CY_DMA_2D_TRANSFER:
-            retVal = (cy_stc_dma_descriptor_t*) descriptor->nextPtr;
-            break;
-
-        default:
-            /* An unsupported type of the descriptor */
-            break;
+        retVal = (cy_stc_dma_descriptor_t*) descriptor->xCtl;
     }
-
+    else if (transferType == CY_DMA_CRC_TRANSFER ||  transferType == CY_DMA_1D_TRANSFER)
+    {
+        retVal = (cy_stc_dma_descriptor_t*) descriptor->yCtl;
+    }   
+    else if (transferType == CY_DMA_2D_TRANSFER)
+    {
+        retVal = (cy_stc_dma_descriptor_t*) descriptor->nextPtr;
+    }
+    else
+    {
+       /* An unsupported type of the descriptor */
+    }       
+    
     return (retVal);
 }
 
@@ -427,7 +430,8 @@ void Cy_DMA_Descriptor_SetDescriptorType(cy_stc_dma_descriptor_t * descriptor, c
 {
     CY_ASSERT_L3(CY_DMA_IS_TYPE_VALID(descriptorType));
     CY_ASSERT_L1(descriptor);
-    if ((CY_DMA_CRC_TRANSFER != descriptorType) || CY_DW_CRC)
+    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 14.3','CY_DW_CRC is available for all CAT1B devices.');
+    if ((CY_DMA_CRC_TRANSFER != descriptorType) || (CY_DW_CRC == 1UL))
     {
         if (descriptorType != Cy_DMA_Descriptor_GetDescriptorType(descriptor)) /* Do not perform if the type is not changed */
         {
@@ -441,8 +445,8 @@ void Cy_DMA_Descriptor_SetDescriptorType(cy_stc_dma_descriptor_t * descriptor, c
     }
 }
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 
 #endif /* CY_IP_M4CPUSS_DMA, CY_IP_MXDW */
 

@@ -9,7 +9,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2020-2021 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2020-2022 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -289,6 +289,8 @@ void cyhal_quaddec_enable_event(cyhal_quaddec_t *obj, cyhal_quaddec_event_t even
  * event to be triggered from that signal. These quadrature decoder events can
  * be configured independently and connect to the same or different source
  * signals.
+ * @note For "edge" signals, this function will default to rising edge. To control the edge type,
+ * use @ref cyhal_quaddec_connect_digital2
  *
  * @param[in] obj      Quadrature decoder obj
  * @param[in] source   Source signal obtained from another driver's cyhal_<PERIPH>_enable_output
@@ -296,6 +298,22 @@ void cyhal_quaddec_enable_event(cyhal_quaddec_t *obj, cyhal_quaddec_event_t even
  * @return The status of the connection
  * */
 cy_rslt_t cyhal_quaddec_connect_digital(cyhal_quaddec_t *obj, cyhal_source_t source, cyhal_quaddec_input_t signal);
+
+/** Connects a source signal and configures and enables a quadrature decoder
+ * event to be triggered from that signal with a configurable edge type.
+ * These quadrature decoder events can be configured independently and connect
+ * to the same or different source signals.
+ *
+ * @param[in] obj       Quadrature decoder obj
+ * @param[in] source    Source signal obtained from another driver's cyhal_<PERIPH>_enable_output
+ * @param[in] signal    The quadrature decoder input signal
+ * @param[in] edge_type The edge type that should trigger the event. This must be consistent with the
+ *                      edge type of `source`. If `source` produces a "level" signal, the only valid
+ *                      value is @ref CYHAL_EDGE_TYPE_LEVEL. If `source` produces an "edge" signal, then
+ *                      @ref CYHAL_EDGE_TYPE_LEVEL is not a valid value.
+ * @return The status of the connection
+ * */
+cy_rslt_t cyhal_quaddec_connect_digital2(cyhal_quaddec_t *obj, cyhal_source_t source, cyhal_quaddec_input_t signal, cyhal_edge_type_t edge_type);
 
 /** Disconnects a source signal and disables the quadrature decoder event.
  *

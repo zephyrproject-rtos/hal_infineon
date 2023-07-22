@@ -39,10 +39,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.4', 1, \
-'Checked manually. Type cast to uint8_t made intentionally.');
+'Checked manually. Type cast to uint8_t made intentionally.')
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 3, \
-'Checked manually. Type cast to uint8_t made intentionally.');
+'Checked manually. Type cast to uint8_t made intentionally.')
 
 /*******************************************************************************
 *       Internal functions
@@ -902,9 +902,9 @@ static cy_en_ble_eco_status_t Cy_BLE_HAL_MxdRadioEnableClocks(cy_en_ble_eco_freq
 }
 #endif  /* !((CY_CPU_CORTEX_M4) && (defined(CY_DEVICE_SECURE))) */
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.4');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.4')
 
 #ifdef __cplusplus
 }

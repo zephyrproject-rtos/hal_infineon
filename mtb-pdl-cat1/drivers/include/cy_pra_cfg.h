@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_pra_cfg.h
-* \version 2.30
+* \version 2.40.1
 *
 * \brief The header file of the PRA driver. The API is not intended to
 * be used directly by the user application.
@@ -336,7 +336,9 @@ typedef struct
 *******************************************************************************/
 /** \cond INTERNAL */
 /* External clock provisioned configuration */
+#if (CY_CPU_CORTEX_M0P) || defined (CY_DOXYGEN)
 extern cy_stc_pra_extclk_policy_t *extClkPolicyPtr;
+#endif
 /** \endcond */
 
 /*******************************************************************************

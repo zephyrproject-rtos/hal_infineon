@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_pdm_pcm.h
-* \version 2.30
+* \version 2.30.1
 *
 * The header file of the PDM_PCM driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright 2016-2022 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,8 @@
 /**
 * \addtogroup group_pdm_pcm
 * \{
+* \note IP Supported: AUDIOSS
+* \note Device Categories: CAT1A. Please refer <a href="usergroup1.html">Device Catalog</a>.
 *
 * The pulse-density modulation to pulse-code modulation (PDM-PCM) driver provides an
 * API to manage PDM-PCM conversion. A PDM-PCM converter is used
@@ -85,6 +87,11 @@
 * \section group_pdm_pcm_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>2.30.1</td>
+*     <td>Added Note that this driver supports CAT1A devices only. </td>
+*     <td>To avoid misunderstanding of pdm_pcm and pdm_pcm_v2 drivers usage. </td>
+*   </tr>
 *   <tr>
 *     <td>2.30</td>
 *     <td>Fixed MISRA 2012 violations.</td>
@@ -177,13 +184,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXPDM)
-
-#include "cy_pdm_pcm_v2.h"
-
-#endif /* CY_IP_MXPDM */
-
-#if defined (CY_IP_MXAUDIOSS)
+#if defined (AUDIOSS_PDM_PRESENT)
 
 #include "cy_syslib.h"
 #include "cy_syspm.h"
@@ -629,6 +630,7 @@ __STATIC_INLINE void Cy_PDM_PCM_ClearInterrupt(PDM_Type * base, uint32_t interru
 {
     CY_ASSERT_L2(CY_PDM_PCM_IS_INTR_MASK_VALID(interrupt));
     PDM_PCM_INTR(base) = interrupt;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) PDM_PCM_INTR(base);
 }
 
@@ -780,7 +782,7 @@ __STATIC_INLINE uint32_t Cy_PDM_PCM_ReadFifoSilent(PDM_Type const * base)
 }
 #endif  /* of __cplusplus */
 
-#endif /* CY_IP_MXAUDIOSS */
+#endif /* (defined (AUDIOSS_PDM_PRESENT) || defined(CY_DOXYGEN))*/
 
 #endif /* CY_PDM_PCM_H__ */
 

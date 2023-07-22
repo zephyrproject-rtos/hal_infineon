@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_rsa.h
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides provides constant and parameters
 *  for the API of the RSA in the Crypto block driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +38,7 @@
 extern "C" {
 #endif
 
-#if (CPUSS_CRYPTO_VU == 1)
+#if (CPUSS_CRYPTO_VU == 1) && defined(CY_CRYPTO_CFG_RSA_C)
 
 typedef cy_en_crypto_status_t (*cy_crypto_rsa_proc_func_t)(CRYPTO_Type *base,
                                               cy_stc_crypto_rsa_pub_key_t const *key,
@@ -47,12 +49,7 @@ typedef cy_en_crypto_status_t (*cy_crypto_rsa_proc_func_t)(CRYPTO_Type *base,
 typedef cy_en_crypto_status_t (*cy_crypto_rsa_coef_func_t)(CRYPTO_Type *base,
                                               cy_stc_crypto_rsa_pub_key_t const *key);
 
-typedef cy_en_crypto_status_t (*cy_crypto_rsa_ver_func_t)(CRYPTO_Type *base,
-                                              cy_en_crypto_rsa_ver_result_t *verResult,
-                                              cy_en_crypto_sha_mode_t digestType,
-                                              uint8_t const *digest,
-                                              uint8_t const *decryptedSignature,
-                                              uint32_t decryptedSignatureLength);
+
 
 cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Proc(CRYPTO_Type *base,
                                               cy_stc_crypto_rsa_pub_key_t const *key,
@@ -63,7 +60,13 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Proc(CRYPTO_Type *base,
 cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Coef(CRYPTO_Type *base,
                                               cy_stc_crypto_rsa_pub_key_t const *key);
 
-#endif /* #if (CPUSS_CRYPTO_VU == 1) */
+#if defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED)
+typedef cy_en_crypto_status_t (*cy_crypto_rsa_ver_func_t)(CRYPTO_Type *base,
+                                              cy_en_crypto_rsa_ver_result_t *verResult,
+                                              cy_en_crypto_sha_mode_t digestType,
+                                              uint8_t const *digest,
+                                              uint8_t const *decryptedSignature,
+                                              uint32_t decryptedSignatureLength);
 
 cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify(CRYPTO_Type *base,
                             cy_en_crypto_rsa_ver_result_t *verResult,
@@ -71,6 +74,18 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify(CRYPTO_Type *base,
                             uint8_t const *digest,
                             uint8_t const *decryptedSignature,
                             uint32_t decryptedSignatureLength);
+
+cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify_Ext(CRYPTO_Type *base,
+                            cy_en_crypto_rsa_ver_result_t *verResult,
+                            cy_en_crypto_sha_mode_t digestType,
+                            uint8_t const *digest,
+                            uint32_t digestLength,
+                            uint8_t const *decryptedSignature,
+                            uint32_t decryptedSignatureLength);
+
+#endif /* defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) */
+
+#endif /* (CPUSS_CRYPTO_VU == 1) && defined(CY_CRYPTO_CFG_RSA_C) */
 
 #if defined(__cplusplus)
 }

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ctb.c
-* \version 2.0
+* \version 2.20
 *
 * \brief
 * Provides the public functions for the CTB driver.
@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 121, \
-'CTBM_Type will typecast to either CTBM_V1_Type or CTBM_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'CTBM_Type will typecast to either CTBM_V1_Type or CTBM_V2_Type but not both on PDL initialization based on the target device at compile time.')
 static uint32_t cy_ctb_oa0Sw;  /**< Opamp0 routing control register storage */
 static uint32_t cy_ctb_oa1Sw;  /**< Opamp1 routing control register storage */
 static uint32_t cy_ctb_ctdSw;  /**< CTDAC/CTB routing control register storage */
@@ -1532,7 +1532,7 @@ uint32_t Cy_CTB_CompGetStatus(const CTBM_Type *base, cy_en_ctb_opamp_sel_t compN
 
     return compStatusResult;
 }
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 #if defined(__cplusplus)
 }

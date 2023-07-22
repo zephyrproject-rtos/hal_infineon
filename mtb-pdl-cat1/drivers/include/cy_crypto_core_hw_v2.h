@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hw_v2.h
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides constants and function prototypes
 *  for the Vector Unit functions in the Crypto block driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,14 +31,14 @@
 
 #include "cy_crypto_core_hw.h"
 
-#if defined (CY_IP_MXCRYPTO)
+#if defined(CY_IP_MXCRYPTO) && defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 3, \
-'CRYPTO_Type will typecast to either CRYPTO_V1_Type or CRYPTO_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'CRYPTO_Type will typecast to either CRYPTO_V1_Type or CRYPTO_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 /*
  Register buffer block identifiers:
@@ -370,13 +372,13 @@ __STATIC_INLINE void Cy_Crypto_Core_V2_RunChacha(CRYPTO_Type *base, uint8_t roun
                                               ((uint32_t)(roundNum) << CY_CRYPTO_RSRC0_SHIFT));
 }
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXCRYPTO */
+#endif /* defined(CY_IP_MXCRYPTO) && defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
 
 #endif /* #if !defined (CY_CRYPTO_CORE_HW_V2_H) */
 

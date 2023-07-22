@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_csd.c
-* \version 1.10.2
+* \version 1.20.1
 *
 * The source file of the CSD driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2020 Cypress Semiconductor Corporation
+* Copyright 2018-2022 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,34 +39,37 @@
 * Function Name: Cy_CSD_Init
 ****************************************************************************//**
 *
-* Acquires and locks the CSD HW block and configures it.
+* Acquires, locks, and configures the CSD HW block.
 *
 * If the CSD HW block is already in use by other middleware or by 
-* the application program, then the function
+* the application program, the function
 * returns the CY_CSD_LOCKED status and does not configure the CSD HW block.
 * 
-* In case of successful acquisition, this function writes configuration data 
+* If the acquisition is successful, this function writes configuration data
 * into all CSD HW block registers (except read-only registers and SEQ_START 
 * register) at once. Because the SEQ_START register is excluded from write, 
 * use the Cy_CSD_WriteReg() function to trigger the state machine 
 * for scan or conversion.
-* 
+*
+* To capture the CSD block without its reconfiguration, use the
+* Cy_CSD_Capture() function.
+*
 * \param base
-* Pointer to a CSD HW block base address.
+* The pointer to a CSD HW block base address.
 *
 * \param config
 * The pointer to a configuration structure that contains the initial 
 * configuration.
 *
 * \param key
-* An ID of middleware or user-level function that is going to work with
+* The ID of middleware or a user-level function to work with
 * the specified CSD HW block.
 *
 * \param context
-* The pointer to the context structure allocated by a user or middleware.
+* The pointer to the context structure allocated by the user or middleware.
 *
 * \return
-* Returns an operation result status (CSD status code).
+* Returns the operation result status (CSD status code).
 * See \ref cy_en_csd_status_t.
 *
 *******************************************************************************/
@@ -105,14 +108,14 @@ cy_en_csd_status_t Cy_CSD_Init(CSD_Type * base, cy_stc_csd_config_t const * conf
 * Pointer to a CSD HW block base address.
 *
 * \param key
-* An ID of middleware or user-level function that is going to work with
-* a specified CSD HW block.
+* The ID of middleware or a user-level function to work with
+* the specified CSD HW block.
 *
 * \param context
-* The pointer to the context structure allocated by a user or middleware.
+* The pointer to the context structure allocated by the user or middleware.
 *
 * \return
-* Returns an operation result status (CSD status code).
+* Returns the operation result status (CSD status code).
 * See \ref cy_en_csd_status_t.
 *
 *******************************************************************************/
@@ -138,6 +141,58 @@ cy_en_csd_status_t Cy_CSD_DeInit(const CSD_Type * base, cy_en_csd_key_t key,  cy
 
 
 /*******************************************************************************
+* Function Name: Cy_CSD_Capture
+****************************************************************************//**
+*
+* Acquires and locks the CSD HW block without changing its configuration.
+*
+* If the CSD HW block is already in use by other middleware or by
+* the application program, the function
+* returns the CY_CSD_LOCKED status.
+*
+* \note This is a low-level function. Use the Cy_CSD_Init() function instead.
+* The Cy_CSD_Capture() function is used by upper-level middleware to improve
+* efficiency. It also can be used to implement specific use cases. If this
+* function is used, configure the CSD block using the Cy_CSD_Configure()
+* function.
+*
+* \param base
+* The pointer to a CSD HW block base address.
+*
+* \param key
+* The ID of middleware or a user-level function to work with
+* the specified CSD HW block.
+*
+* \param context
+* The pointer to the context structure allocated by the user or middleware.
+*
+* \return
+* Returns the operation result status (CSD status code).
+* See \ref cy_en_csd_status_t.
+*
+*******************************************************************************/
+cy_en_csd_status_t Cy_CSD_Capture(CSD_Type * base, cy_en_csd_key_t key, cy_stc_csd_context_t * context)
+{
+    cy_en_csd_status_t csdStatus = CY_CSD_LOCKED;
+
+    if ((NULL == base) || (CY_CSD_NONE_KEY == key) || (NULL == context))
+    {
+        csdStatus = CY_CSD_BAD_PARAM;
+    }
+    else
+    {
+        if(CY_CSD_NONE_KEY == context->lockKey)
+        {
+            context->lockKey = key;
+            csdStatus = CY_CSD_SUCCESS;
+        }
+    }
+
+    return(csdStatus);
+}
+
+
+/*******************************************************************************
 * Function Name: Cy_CSD_Configure
 ****************************************************************************//**
 *
@@ -149,20 +204,20 @@ cy_en_csd_status_t Cy_CSD_DeInit(const CSD_Type * base, cy_en_csd_key_t key,  cy
 * function to perform triggering state machine for scan or conversion.
 *
 * \param base
-* Pointer to a CSD HW block base address.
+* The pointer to a CSD HW block base address.
 *
 * \param config
 * The pointer to a configuration structure that contains initial configuration.
 *
 * \param key
-* An ID of middleware or user-level function that is going to work with 
+* The ID of middleware or a user-level function to work with
 * the specified CSD HW block.
 *
 * \param context
-* The pointer to the context structure allocated by a user or middleware.
+* The pointer to the context structure allocated by the user or middleware.
 *
 * \return
-* Returns an operation result status (CSD status code).
+* Returns the operation result status (CSD status code).
 * See \ref cy_en_csd_status_t.
 *
 *******************************************************************************/

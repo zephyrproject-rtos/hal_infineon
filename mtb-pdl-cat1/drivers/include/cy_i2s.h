@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_i2s.h
-* \version 2.20
+* \version 2.30
 *
 * The header file of the I2S driver.
 *
@@ -25,6 +25,8 @@
 /**
 * \addtogroup group_i2s
 * \{
+* \note IP Supported: AUDIOSS
+* \note Device Categories: CAT1A. Please refer <a href="usergroup1.html">Device Catalog</a>.
 * The I2S driver provides a function API to manage Inter-IC Sound.
 *
 * The functions and other declarations used in this driver are in cy_i2s.h.
@@ -107,6 +109,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.30</td>
+*     <td>Update to configure MCLK.</td>
+*     <td>Update to configure i2S on core CM7.</td>
+*   </tr>
+*   <tr>
 *     <td>2.20</td>
 *     <td>Fixed/documented MISRA 2012 violations.</td>
 *     <td>MISRA 2012 compliance.</td>
@@ -161,7 +168,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXAUDIOSS)
+#if (defined (AUDIOSS_I2S_PRESENT) || defined(CY_DOXYGEN))
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -180,7 +187,7 @@ extern "C" {
 #define CY_I2S_DRV_VERSION_MAJOR       2
 
 /** The driver minor version */
-#define CY_I2S_DRV_VERSION_MINOR       20
+#define CY_I2S_DRV_VERSION_MINOR       30
 
 /** The I2S driver identifier */
 #define CY_I2S_ID                      (CY_PDL_DRV_ID(0x20U))
@@ -293,6 +300,16 @@ typedef enum
     CY_I2S_WS_ONE_CHANNEL_LENGTH = 1U, /**< WS pulse width is one channel length. */
 } cy_en_i2s_ws_pw_t;
 
+#if (CY_IP_MXAUDIOSS_VERSION>=2)
+typedef enum
+{
+    CY_I2S_MCLK_DIV_1 = 0u, /**< Divide clk_audio_i2s by 1 (Bypass). */
+    CY_I2S_MCLK_DIV_2 = 1u, /**< Divide clk_audio_i2s by 2. */
+    CY_I2S_MCLK_DIV_4 = 2u, /**< Divide clk_audio_i2s by 4. */
+    CY_I2S_MCLK_DIV_8 = 3u, /**< Divide clk_audio_i2s by 8. */
+} cy_en_i2s_mclk_div_t;
+#endif
+
 /** \} group_i2s_enums */
 
 /**
@@ -393,6 +410,10 @@ typedef struct
                                                    'true': all MSB are filled by the original sign bit value. */
     uint8_t               rxFifoTriggerLevel; /**< RX FIFO interrupt trigger level
                                                    (0, 1, ..., (255 - (number of channels))). */
+#if (CY_IP_MXAUDIOSS_VERSION>=2)
+    cy_en_i2s_mclk_div_t  mclkDiv;            /**< Selects clock divider for MCLK_OUT. */
+    bool                  mclkEn;             /**< Enable MCLK - enables MCLK divider operation */
+#endif
 } cy_stc_i2s_config_t;
 
 
@@ -691,6 +712,7 @@ __STATIC_INLINE void Cy_I2S_ClearTxFifo(I2S_Type * base)
 {
     REG_I2S_TX_FIFO_CTL(base) |= I2S_TX_FIFO_CTL_CLEAR_Msk;
     REG_I2S_TX_FIFO_CTL(base) &= (uint32_t) ~I2S_TX_FIFO_CTL_CLEAR_Msk;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) REG_I2S_TX_FIFO_CTL(base);
 }
 
@@ -827,6 +849,7 @@ __STATIC_INLINE void Cy_I2S_ClearRxFifo(I2S_Type * base)
 {
     REG_I2S_RX_FIFO_CTL(base)  |= I2S_RX_FIFO_CTL_CLEAR_Msk;
     REG_I2S_RX_FIFO_CTL(base)  &= (uint32_t) ~I2S_RX_FIFO_CTL_CLEAR_Msk;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) REG_I2S_RX_FIFO_CTL(base) ;
 }
 
@@ -1006,6 +1029,7 @@ __STATIC_INLINE void Cy_I2S_ClearInterrupt(I2S_Type * base, uint32_t interrupt)
 {
     CY_ASSERT_L2(CY_I2S_IS_INTR_MASK_VALID(interrupt));
     REG_I2S_INTR(base) = interrupt;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) REG_I2S_INTR(base);
 }
 

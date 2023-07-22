@@ -9,7 +9,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -59,7 +59,6 @@
 * \note For applications that require printing messages on a UART terminal using printf(),
 * the <a href="https://github.com/infineon/retarget-io">retarget-io</a> utility library can be used directly.
 *
-*
 * \section subsection_uart_features Features
 * * Configurable UART baud rate - \ref cyhal_uart_set_baud
 * * Configurable data frame size, STOP bits and parity - \ref cyhal_uart_cfg_t
@@ -68,7 +67,7 @@
 * Interrupts are handled by callbacks based on events \ref cyhal_uart_event_t
 * If an event is disabled, the underlying interrupt is still enabled. Enabling or disabling
 * an event only enables or disables the callback.
-* \note Care must be exercised whenusing the \ref CYHAL_UART_IRQ_RX_NOT_EMPTY event.
+* \note Care must be exercised when using the \ref CYHAL_UART_IRQ_RX_NOT_EMPTY event.
 * The callback must read all available received data or the interrupt will not be cleared
 * leading to the callback being immediately retriggered.
 * \section subsection_uart_quickstart Quick Start
@@ -333,6 +332,18 @@ cy_rslt_t cyhal_uart_write(cyhal_uart_t *obj, void *tx, size_t *tx_length);
  */
 cy_rslt_t cyhal_uart_read(cyhal_uart_t *obj, void *rx, size_t *rx_length);
 
+/** Set the mechanism that is used to perform UART asynchronous transfers. The default is SW.
+ *  @warning The effect of calling this function while an async transfer is pending is undefined.
+ *
+ * @param[in]     obj          The UART object
+ * @param[in]     mode         The transfer mode
+ * @param[in]     dma_priority The priority, if DMA is used. Valid values are the same as for @ref cyhal_dma_init.
+ *                             If DMA is not selected, the only valid value is CYHAL_DMA_PRIORITY_DEFAULT, and no
+                               guarantees are made about prioritization.
+ * @return The status of the set mode request
+ */
+cy_rslt_t cyhal_uart_set_async_mode(cyhal_uart_t *obj, cyhal_async_mode_t mode, uint8_t dma_priority);
+
 /** Begin asynchronous TX transfer.
  *
  * This will transfer `length` bytes into the buffer pointed to by `tx` in the background. When the
@@ -458,7 +469,8 @@ cy_rslt_t cyhal_uart_disable_output(cyhal_uart_t *obj, cyhal_uart_output_t outpu
  */
 cy_rslt_t cyhal_uart_init_cfg(cyhal_uart_t *obj, const cyhal_uart_configurator_t *cfg);
 
-/** Configure UART RX software buffer, which will extend the hardware RX FIFO buffer. \ref cyhal_uart_init function does
+/** Configure UART RX software buffer, which will extend the hardware RX FIFO buffer only
+ * for SW async mode. \ref cyhal_uart_init function does
  * not require this function call if a non-null value was provided for `rx_buffer`.
  *
  * @param[in]  obj              The UART peripheral to configure

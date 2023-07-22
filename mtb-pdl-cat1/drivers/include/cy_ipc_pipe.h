@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_ipc_pipe.h
-* \version 1.60
+* \version 1.91
 *
 *  Description:
 *   IPC Pipe Driver - This header file contains all the function prototypes,
 *   structure definitions, pipe constants, and pipe endpoint address definitions.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +33,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS)
+#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) || (defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U))
 
 #include "cy_ipc_drv.h"
 #include "cy_syslib.h"
@@ -118,7 +120,7 @@ typedef cy_ipc_pipe_callback_ptr_t *cy_ipc_pipe_callback_array_ptr_t;
 #define CY_IPC_PIPE_MSG_USR_Msk        (0x0000FF00UL)   /**< User data mask for first word of Pipe message */
 #define CY_IPC_PIPE_MSG_USR_Pos        (8UL)            /**< User data shift for first word of Pipe message */
 #define CY_IPC_PIPE_MSG_RELEASE_Msk    (0xFFFF0000UL)   /**< Mask for message release mask */
-#define CY_IPC_PIPE_MSG_RELEASE_Pos    (16UL)           /**< Shift require to line up mask to LSb */
+#define CY_IPC_PIPE_MSG_RELEASE_Pos    (16UL)           /**< Shift require to line up mask to LSB */
 
 /** Use to set the busy flag when waiting for a release interrupt */
 #define CY_IPC_PIPE_ENDPOINT_BUSY      (1UL)
@@ -146,7 +148,7 @@ typedef struct
 
     IPC_STRUCT_Type *ipcPtr;           /**< Pointer to receive IPC channel ( If ipcPtr == NULL, cannot receive )      */
     IPC_INTR_STRUCT_Type *ipcIntrPtr;  /**< Pointer to IPC interrupt, needed to clear the interrupt                   */
-    uint32_t         busy;             /**< Endpoint busy flag.  If sent no messages can be sent from this endpoint   */
+    uint32_t         busy;             /**< Endpoint busy flag.  If set no messages can be sent from this endpoint   */
     uint32_t         clientCount;      /**< Client count and size of MsgCallback array                                */
 
     cy_ipc_pipe_callback_array_ptr_t callbackArray; /**< Pointer to array of callback functions, one for each Client  */
@@ -154,25 +156,47 @@ typedef struct
     cy_ipc_pipe_relcallback_ptr_t defaultReleaseCallbackPtr; /**< Pointer to default release callback function              */
 } cy_stc_ipc_pipe_ep_t;
 
+#if (CY_IPC_INSTANCES > 1U) || defined (CY_DOXYGEN)
+/** The Pipe endpoint configuration mask structure.
+*
+* \note
+* This structure is available only for the CAT1D devices.
+*
+*/
+typedef struct
+{
+    uint32_t    epChannel;                    /**< IPC channel number */
+    uint32_t    epIntr;                       /**< IPC interrupt number */
+    uint32_t    epIntrmask;                   /**< IPC interrupt mask. This comprises of all channels present in all IPC IP instances . */
+} cy_stc_ipc_pipe_ep_config_mask_t;
+#endif /* (CY_IPC_INSTANCES > 1U) */
+
 /** The Pipe endpoint configuration structure. */
 typedef struct
 {
-    uint32_t    ipcNotifierNumber;      /**< Notifier */
-    uint32_t    ipcNotifierPriority;    /**< Notifier Priority */
-    uint32_t    ipcNotifierMuxNumber;   /**< CM0+ interrupt multiplexer number */
+    uint32_t    ipcNotifierNumber;             /**< Notifier. It comprises of total number of interrupts present in all instances of IPC IPs. */
+    uint32_t    ipcNotifierPriority;           /**< Notifier Priority */
+    uint32_t    ipcNotifierMuxNumber;          /**< CM0+ interrupt multiplexer number */
 
-    uint32_t    epAddress;              /**< Index in the array of endpoint structure */
+    uint32_t    epAddress;                     /**< Index in the array of endpoint structure */
+#if (CY_IPC_INSTANCES > 1U)
+    cy_stc_ipc_pipe_ep_config_mask_t epConfig; /**< Configuration mask, contains IPC channel, IPC interrupt number,
+                                                    and the interrupt mask */
+#else
     uint32_t    epConfig;               /**< Configuration mask, contains IPC channel, IPC interrupt number,
                                              and the interrupt mask */
+#endif
 } cy_stc_ipc_pipe_ep_config_t;
 
 /** The Pipe channel configuration structure. */
 typedef struct
 {
-    /** Specifies the notify interrupt number for the first endpoint */
+    /** Specifies the notify interrupt number for the receiver endpoint.
+     *  Only for CAT1A device, it is used as first endpoint. */
     cy_stc_ipc_pipe_ep_config_t ep0ConfigData;
 
-    /** Specifies the notify interrupt number for the second endpoint */
+    /** Specifies the notify interrupt number for the send endpoint.
+     *  Only for CAT1A device, it is used as second endpoint. */
     cy_stc_ipc_pipe_ep_config_t ep1ConfigData;
 
     /** Client count and size of MsgCallback array */
@@ -244,11 +268,11 @@ typedef enum
 * The first 32-bit word of the message is used to identify the client that owns
 * the message.
 *
-* The upper 16 bits are the client ID.
+* The upper 16-bits are the client ID.
 *
-* The lower 16 bits are for use by the client in any way desired.
+* The lower 16-bits are for use by the client in any way desired.
 *
-* The lower 16 bits are preserved (not modified) and not interpreted in any way.
+* The lower 16-bits are preserved (not modified) and not interpreted in any way.
 * \endcond
 */
 
@@ -270,6 +294,10 @@ extern "C" {
 
 void Cy_IPC_Pipe_EndpointInit(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t cbArray,
                               uint32_t cbCnt, uint32_t epConfig, cy_stc_sysint_t const *epInterrupt);
+#if (CY_IPC_INSTANCES > 1U) || defined (CY_DOXYGEN)
+void Cy_IPC_Pipe_EndpointInitExt(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t cbArray,
+                              uint32_t cbCnt, cy_stc_ipc_pipe_ep_config_mask_t *epConfig, cy_stc_sysint_t const *epInterrupt);
+#endif /* CY_IPC_INSTANCES */
 cy_en_ipc_pipe_status_t  Cy_IPC_Pipe_SendMessage(uint32_t toAddr, uint32_t fromAddr, void *msgPtr,
                               cy_ipc_pipe_relcallback_ptr_t callBackPtr);
 cy_en_ipc_pipe_status_t  Cy_IPC_Pipe_RegisterCallback(uint32_t epAddr,
@@ -291,7 +319,7 @@ void                     Cy_IPC_Pipe_ExecCallback(cy_stc_ipc_pipe_ep_t * endpoin
 
 /** \} group_ipc_pipe_functions */
 
-#endif /* CY_IP_M4CPUSS */
+#endif /* CY_IP_M4CPUSS  || CY_IP_M7CPUSS || (defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U)) */
 
 #endif /* CY_IPC_PIPE_H  */
 

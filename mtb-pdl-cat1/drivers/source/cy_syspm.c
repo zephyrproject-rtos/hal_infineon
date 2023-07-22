@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_syspm.c
-* \version 5.60
+* \version 5.94
 *
 * This driver provides the source code for API power management.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,18 +25,17 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS40SRSS)
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3)
 
 #include "cy_syspm.h"
 #include "cy_ipc_drv.h"
-#include "cy_ipc_pipe.h"
 #include "cy_prot.h"
 
 #if defined (CY_DEVICE_SECURE)
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 17.2', 4, \
-'Checked manually. All the recursive cycles are handled properly.');
+'Checked manually. All the recursive cycles are handled properly.')
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 18.6', 3, \
-'Checked manually. Assignment of Local to global variable does not create any issue.');
+'Checked manually. Assignment of Local to global variable does not create any issue.')
 #endif
 
 #if ((CY_CPU_CORTEX_M0P) && (defined(CY_DEVICE_SECURE)))
@@ -344,6 +344,7 @@ uint32_t Cy_SysPm_ReadStatus(void)
         pmStatus |= CY_SYSPM_STATUS_CM4_ACTIVE;
     }
 
+#if (__CORTEX_M == 0) || (defined (__CM0P_PRESENT) && (__CM0P_PRESENT == 1))
     /* Check whether CM0p is in Deep Sleep mode */
     if ((CPUSS_CM0_STATUS & CM0_DEEPSLEEP_MASK) == CM0_DEEPSLEEP_MASK)
     {
@@ -358,6 +359,7 @@ uint32_t Cy_SysPm_ReadStatus(void)
     {
         pmStatus |= CY_SYSPM_STATUS_CM0_ACTIVE;
     }
+#endif /* (__CORTEX_M == 0) || (defined (__CM0P_PRESENT) && (__CM0P_PRESENT == 1)) */
 
     /* Check whether the device is in LP mode by reading
     *  the core voltage:
@@ -582,11 +584,11 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
         #if (CY_CPU_CORTEX_M0P)
             /* Check if there is a pending syscall */
             CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 13.5', 1, \
-            'Inspected manually, no side effect during functions call.');
+            'Inspected manually, no side effect during functions call.')
             if (Cy_IPC_Drv_IsLockAcquired(Cy_IPC_Drv_GetIpcBaseAddress(CY_IPC_CHAN_SYSCALL_CM0)) ||
                 Cy_IPC_Drv_IsLockAcquired(Cy_IPC_Drv_GetIpcBaseAddress(CY_IPC_CHAN_SYSCALL_CM4)))
             {
-                CY_MISRA_BLOCK_END('MISRA C-2012 Rule 13.5');
+                CY_MISRA_BLOCK_END('MISRA C-2012 Rule 13.5')
                 /* Do not put the CPU into Deep Sleep and return pending status */
                 retVal = CY_SYSPM_SYSCALL_PENDING;
             }
@@ -2162,7 +2164,7 @@ cy_en_syspm_status_t Cy_SysPm_SetSRAMPwrMode(cy_en_syspm_sram_index_t sramNum, c
     pwrModeConfig.sramNum = sramNum;
     pwrModeConfig.sramPwrMode = sramPwrMode;
 
-    CY_PRA_FUNCTION_CALL_VOID_PARAM(CY_PRA_MSG_TYPE_SECURE_ONLY, CY_PRA_PM_FUNC_SRAM_PWR_MODE, &pwrModeConfig);
+    status = (cy_en_syspm_status_t)CY_PRA_FUNCTION_CALL_RETURN_PARAM(CY_PRA_MSG_TYPE_SECURE_ONLY, CY_PRA_PM_FUNC_SRAM_PWR_MODE, &pwrModeConfig);
 #else
     if(sramNum == CY_SYSPM_SRAM0_MEMORY)
     {
@@ -2362,12 +2364,11 @@ bool Cy_SysPm_Cm4IsDeepSleep(void)
     return ((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM4_DEEPSLEEP) != 0U);
 }
 
-
+#if (__CORTEX_M == 0) || (defined (__CM0P_PRESENT) && (__CM0P_PRESENT == 1))
 bool Cy_SysPm_Cm0IsActive(void)
 {
     return ((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM0_ACTIVE) != 0U);
 }
-
 
 bool Cy_SysPm_Cm0IsSleep(void)
 {
@@ -2379,7 +2380,7 @@ bool Cy_SysPm_Cm0IsDeepSleep(void)
 {
     return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM0_DEEPSLEEP) != 0U);
 }
-
+#endif /* (__CORTEX_M == 0) || (defined (__CM0P_PRESENT) && (__CM0P_PRESENT == 1)) */
 
 bool Cy_SysPm_IsSystemLp(void)
 {
@@ -2636,8 +2637,8 @@ void Cy_SysPm_BackupSuperCapCharge(cy_en_syspm_sc_charge_key_t key)
 }
 
 #if defined (CY_DEVICE_SECURE)
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2');
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 18.6');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 17.2')
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 18.6')
 #endif
 
 #endif

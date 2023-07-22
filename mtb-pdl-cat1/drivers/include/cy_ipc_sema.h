@@ -1,13 +1,14 @@
 /***************************************************************************//**
 * \file cy_ipc_sema.h
-* \version 1.60
+* \version 1.91
 *
 * \brief
 * Header file for IPC SEM functions
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +33,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS)
+#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) || (defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U))
 
 #include "cy_ipc_drv.h"
 #include <stdbool.h>
@@ -46,7 +47,7 @@
 * Include cy_ipc_sema.h. Alternatively include cy_pdl.h
 * to get access to all functions and declarations in the PDL.
 *
-* By default there are 128 semaphores provided, although the user may modify
+* By default, there are 128 semaphores provided, although the user may modify
 * the default value to any number, limited only by SRAM.
 *
 *     \defgroup group_ipc_sema_macros Macros
@@ -73,6 +74,15 @@
 #define CY_IPC_SEMA_ID_ERROR   (uint32_t)( CY_IPC_ID_ERROR   | CY_IPC_SEMA_RTN)
 
 #define CY_IPC_SEMA_PER_WORD    (uint32_t)32u   /**< 32 semaphores per word */
+
+#if defined(CY_IPC_SECURE_SEMA_DEVICE) || defined(CY_DOXYGEN)
+/** Convert normal to secure semaphore number */
+#define CY_IPC_SEMA_SEC(sema)       (0x10000000UL | (sema))
+/** Check valid secure semaphore */
+#define CY_IPC_SEMA_IS_SEC(sema)    (((sema) & 0x10000000UL) != 0UL)
+/** Returns normal semaphore number */
+#define CY_IPC_SEMA_GET_NUM(sema)   ((sema) & (~(0x10000000UL)))
+#endif /* CY_IPC_SECURE_SEMA_DEVICE */
 
 /** \} group_ipc_sema_macros */
 
@@ -114,6 +124,10 @@ typedef struct
     uint32_t maxSema;
     /** Pointer to semaphores array  */
     uint32_t *arrayPtr;
+#if defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U)
+    /** Pointer to secure semaphores array  */
+    uint32_t *arrayPtr_sec;
+#endif
 } cy_stc_ipc_sema_t;
 
 /** \} group_ipc_sema_enums */
@@ -140,7 +154,7 @@ uint32_t Cy_IPC_Sema_GetMaxSems(void);
 
 /** \} group_ipc_sema_functions */
 
-#endif /* CY_IP_M4CPUSS */
+#endif /* CY_IP_M4CPUSS  || CY_IP_M7CPUSS  || (defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U)) */
 
 #endif /* CY_IPC_SEMA_H  */
 

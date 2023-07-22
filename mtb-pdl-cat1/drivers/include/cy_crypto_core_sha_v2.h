@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_sha_v2.h
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides constants and function prototypes
 *  for the API for the SHA method in the Crypto block driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,25 +31,34 @@
 
 #include "cy_crypto_common.h"
 
-#if defined (CY_IP_MXCRYPTO)
+#if defined(CY_IP_MXCRYPTO) && defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if (CPUSS_CRYPTO_SHA == 1)
+#if (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_SHA_C)
 
 /** \cond INTERNAL */
 
-typedef struct
+#if (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED)
+typedef struct  
 {
     /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
     uint32_t block[CY_CRYPTO_SHA1_BLOCK_SIZE / 4u];
 
     /* Allocates CRYPTO_MAX_HASH_SIZE Bytes for the hash. */
-    uint32_t hash[CY_CRYPTO_SHA1_HASH_SIZE / 4u];
-} cy_stc_crypto_v2_sha1_buffers_t;
+     uint32_t hash[CY_CRYPTO_SHA1_HASH_SIZE / 4u];
 
+    #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+    uint8_t padding_bytes[12];
+    #endif
+
+
+} cy_stc_crypto_v2_sha1_buffers_t;
+#endif /* (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED) */
+
+#if (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED)
 typedef struct
 {
     /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
@@ -56,7 +67,9 @@ typedef struct
     /* Allocates CRYPTO_MAX_HASH_SIZE Bytes for the hash. */
     uint32_t hash[CY_CRYPTO_SHA256_HASH_SIZE / 4u];
 } cy_stc_crypto_v2_sha256_buffers_t;
+#endif /* (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) */
 
+#if (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)
 typedef struct
 {
     /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
@@ -65,6 +78,16 @@ typedef struct
     /* Allocates CRYPTO_MAX_HASH_SIZE Bytes for the hash. */
     uint32_t hash[CY_CRYPTO_SHA512_HASH_SIZE / 4u];
 } cy_stc_crypto_v2_sha512_buffers_t;
+#endif /* (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) */
+
+typedef struct
+{
+    /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
+    uint32_t block[CY_CRYPTO_SHA_MAX_BLOCK_SIZE / 4u];
+    uint32_t hash[CY_CRYPTO_SHA_MAX_HASH_SIZE / 4u];
+    
+} cy_stc_crypto_v2_sha_buffers_t;
+
 
 cy_en_crypto_status_t Cy_Crypto_Core_V2_Sha_Init(CRYPTO_Type *base,
                                 cy_stc_crypto_sha_state_t *hashState,
@@ -93,13 +116,13 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Sha(CRYPTO_Type *base,
 /** \endcond */
 
 
-#endif /* #if (CPUSS_CRYPTO_SHA == 1) */
+#endif /* (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_SHA_C) */
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXCRYPTO */
+#endif /* defined(CY_IP_MXCRYPTO) && defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
 
 #endif /* #if !defined (CY_CRYPTO_CORE_SHA_V2_H) */
 

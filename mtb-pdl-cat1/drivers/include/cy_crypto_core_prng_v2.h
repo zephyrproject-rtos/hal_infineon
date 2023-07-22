@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_prng_v2.h
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides provides constant and parameters for the API of the PRNG
 *  in the Crypto block driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,13 +31,13 @@
 
 #include "cy_crypto_common.h"
 
-#if defined (CY_IP_MXCRYPTO)
+#if defined(CY_IP_MXCRYPTO) && defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if (CPUSS_CRYPTO_PR == 1)
+#if (CPUSS_CRYPTO_PR == 1) && defined(CY_CRYPTO_CFG_PRNG_C)
 
 cy_en_crypto_status_t Cy_Crypto_Core_V2_Prng_Init(CRYPTO_Type *base,
                                                   uint32_t lfsr32InitState,
@@ -46,13 +48,13 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Prng(CRYPTO_Type *base,
                                              uint32_t max,
                                              uint32_t *randomNum);
 
-#endif /* #if (CPUSS_CRYPTO_PR == 1) */
+#endif /* (CPUSS_CRYPTO_PR == 1) && defined(CY_CRYPTO_CFG_PRNG_C) */
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXCRYPTO */
+#endif /* defined(CY_IP_MXCRYPTO) && defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
 
 #endif /* #if !defined (CY_CRYPTO_CORE_PRNG_V2_H) */
 

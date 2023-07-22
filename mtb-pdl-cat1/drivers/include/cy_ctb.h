@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ctb.h
-* \version 2.0
+* \version 2.20
 *
 * Header file for the CTB driver
 *
@@ -285,6 +285,20 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="2">2.20</td>
+*     <td>The \ref Cy_CTB_SetPumpClkSource implementation is changed to support the IP header update.</td>
+*     <td>API workaround.</td>
+*   </tr>
+*   <tr>
+*     <td>Fixed power level validation in debug mode.</td>
+*     <td>Bug Fixing.</td>
+*   </tr>
+*   <tr>
+*     <td>2.10</td>
+*     <td>Added new power saver modes: \ref CY_CTB_POWER_PS_LOW, \ref CY_CTB_POWER_PS_MEDIUM and \ref CY_CTB_POWER_PS_HIGH.</td>
+*     <td>API enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="2">2.0</td>
 *     <td>Added new function \ref Cy_CTB_SetPumpClkSource with new pump clock source \ref CY_CTB_CLK_PUMP_DEEPSLEEP for PASS_v2.</td>
 *     <td>New silicon family support.</td>
@@ -369,7 +383,7 @@
 extern "C" {
 #endif
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 24, \
-'CTBM_Type will typecast to either CTBM_V1_Type or CTBM_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'CTBM_Type will typecast to either CTBM_V1_Type or CTBM_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 /** \addtogroup group_ctb_macros
 * \{
@@ -379,7 +393,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 24, \
 #define CY_CTB_DRV_VERSION_MAJOR            2
 
 /** Driver minor version */
-#define CY_CTB_DRV_VERSION_MINOR            0
+#define CY_CTB_DRV_VERSION_MINOR            20
 
 /** CTB driver identifier*/
 #define CY_CTB_ID                           CY_PDL_DRV_ID(0x0Bu)
@@ -436,7 +450,13 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 24, \
                                              ((clkPump) == CY_CTB_CLK_PUMP_PERI) || \
                                              ((clkPump) == CY_CTB_CLK_PUMP_DEEPSLEEP))
 #define CY_CTB_DEEPSLEEP(deepSleep)         (((deepSleep) == CY_CTB_DEEPSLEEP_DISABLE) || ((deepSleep) == CY_CTB_DEEPSLEEP_ENABLE))
-#define CY_CTB_OAPOWER(power)               ((power) <= CY_CTB_POWER_HIGH)
+#define CY_CTB_OAPOWER(power)               (((power) == CY_CTB_POWER_OFF) || \
+                                             ((power) == CY_CTB_POWER_LOW) || \
+                                             ((power) == CY_CTB_POWER_MEDIUM) || \
+                                             ((power) == CY_CTB_POWER_HIGH) || \
+                                             ((power) == CY_CTB_POWER_PS_LOW) || \
+                                             ((power) == CY_CTB_POWER_PS_MEDIUM) || \
+                                             ((power) == CY_CTB_POWER_PS_HIGH))
 #define CY_CTB_OAMODE(mode)                 (((mode) == CY_CTB_MODE_OPAMP1X) \
                                             || ((mode) == CY_CTB_MODE_OPAMP10X) \
                                             || ((mode) == CY_CTB_MODE_COMP))
@@ -534,6 +554,9 @@ typedef enum {
     CY_CTB_POWER_LOW       = 1UL,     /**< Low power: IDD = 350 uA, GBW = 1 MHz for both 1x and 10x */
     CY_CTB_POWER_MEDIUM    = 2UL,     /**< Medium power: IDD = 600 uA, GBW = 3 MHz for 1x and 2.5 MHz for 10x */
     CY_CTB_POWER_HIGH      = 3UL,     /**< High power: IDD = 1500 uA, GBW = 8 MHz for 1x and 6 MHz for 10x */
+    CY_CTB_POWER_PS_LOW    = 5UL,     /**< Power Saver Low power mode: IDD = ~20uA with 1uA bias from AREF, GBW = ~100kHz for 1x/10x, offset correcting IDAC is disabled */
+    CY_CTB_POWER_PS_MEDIUM = 6UL,     /**< Power Saver Medium power mode: IDD = ~40uA with 1uA bias from AREF, GBW = ~100kHz for 1x/10x, offset correcting IDAC is enabled */
+    CY_CTB_POWER_PS_HIGH   = 7UL,     /**< Power Saver High power mode: IDD = ~60uA with 1uA bias from AREF, GBW = ~200kHz for 1x/10x, offset correcting IDAC is enabled */
 }cy_en_ctb_power_t;
 
 /**
@@ -1277,7 +1300,7 @@ __STATIC_INLINE void Cy_CTB_ClearInterrupt(CTBM_Type *base, cy_en_ctb_opamp_sel_
 
     CTBM_INTR(base) = (uint32_t) compNum;
 
-    /* Dummy read for buffered writes. */
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) CTBM_INTR(base);
 }
 
@@ -1470,12 +1493,15 @@ __STATIC_INLINE void Cy_CTB_SetIptatLevel(cy_en_ctb_iptat_t iptat)
 __STATIC_INLINE void Cy_CTB_SetPumpClkSource(PASS_Type * base, cy_en_ctb_clk_pump_source_t pumpClk)
 {
     CY_ASSERT_L3(CY_CTB_CLKPUMP(pumpClk));
+    CY_UNUSED_PARAMETER(base);
 
     if (CY_CTB_CLK_PUMP_DEEPSLEEP == pumpClk)
     {
         if (!CY_PASS_V1)
         {
-            CY_REG32_CLR_SET(PASS_CTBM_CLOCK_SEL(base), PASS_V2_CTBM_CLOCK_SEL_PUMP_CLOCK_SEL, pumpClk);
+            /* CTBM0 is a temporary workaround for the DRIVERS-8283 */
+            CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 14.3','CTBM0 is a temporary workaround for the DRIVERS-8283');
+            CY_REG32_CLR_SET(PASS_CTBM_CLOCK_SEL(CTBM0), PASS_V2_CTBM_CLOCK_SEL_PUMP_CLOCK_SEL, pumpClk);
         }
         else
         {
@@ -1554,7 +1580,7 @@ __STATIC_INLINE void Cy_CTB_DisableRedirect(void)
 /** \} */
 
 /** \} group_ctb_functions */
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
 #if defined(__cplusplus)
 }

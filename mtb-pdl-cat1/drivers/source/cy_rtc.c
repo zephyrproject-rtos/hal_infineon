@@ -1,13 +1,14 @@
 /***************************************************************************//**
 * \file cy_rtc.c
-* \version 2.50
+* \version 2.70
 *
 * This file provides constants and parameter values for the APIs for the
 * Real-Time Clock (RTC).
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,22 +26,22 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS40SRSS_RTC) || defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS)
+#if defined (CY_IP_MXS40SRSS_RTC) || defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS)
 
 #include "cy_rtc.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 2.2', 3, \
-'The unused code due to weak implementation can be overwritten further and then interrupt handler can call it.');
+'The unused code due to weak implementation can be overwritten further and then interrupt handler can call it.')
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if defined (CY_IP_MXS40SRSS_RTC)
-#define CONVERT_BCD_TO_DEC(bcdNum) Cy_RTC_ConvertBcdToDec(bcdNum)
-#define CONVERT_DEC_TO_BCD(decNum) Cy_RTC_ConvertDecToBcd(decNum)
-#elif defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS)
+#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 3))
 #define CONVERT_BCD_TO_DEC(bcdNum) (bcdNum)
 #define CONVERT_DEC_TO_BCD(decNum) (decNum)
+#else
+#define CONVERT_BCD_TO_DEC(bcdNum) Cy_RTC_ConvertBcdToDec(bcdNum)
+#define CONVERT_DEC_TO_BCD(decNum) Cy_RTC_ConvertDecToBcd(decNum)
 #endif /* CY_IP_MXS40SRSS_RTC, CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS */
 
 /** RTC days in months table */
@@ -103,14 +104,22 @@ cy_en_rtc_status_t Cy_RTC_Init(cy_stc_rtc_config_t const *config)
 * call this function repetitively with appropriate parameters
 * to ensure that RTC is updated with provided arguments.
 *
+* \note
+* Refresh ALARM using \ref Cy_RTC_SetAlarmDateAndTime if it is already enabled
+* before calling this API.
+*
 *******************************************************************************/
 cy_en_rtc_status_t Cy_RTC_SetDateAndTime(cy_stc_rtc_config_t const *dateTime)
 {
     cy_en_rtc_status_t retVal = CY_RTC_BAD_PARAM;
+    uint32_t interruptState;
+    uint32_t tmpTime;
+    uint32_t tmpDate;
 
     if (NULL != dateTime)
     {
-        uint32_t tmpDaysInMonth;
+        /* Check dateTime->date input */
+        uint32_t tmpDaysInMonth = Cy_RTC_DaysInMonth(dateTime->month, (dateTime->year + CY_RTC_TWO_THOUSAND_YEARS));
 
         CY_ASSERT_L3(CY_RTC_IS_SEC_VALID(dateTime->sec));
         CY_ASSERT_L3(CY_RTC_IS_MIN_VALID(dateTime->min));
@@ -118,15 +127,11 @@ cy_en_rtc_status_t Cy_RTC_SetDateAndTime(cy_stc_rtc_config_t const *dateTime)
         CY_ASSERT_L3(CY_RTC_IS_DOW_VALID(dateTime->dayOfWeek));
         CY_ASSERT_L3(CY_RTC_IS_MONTH_VALID(dateTime->month));
         CY_ASSERT_L3(CY_RTC_IS_YEAR_SHORT_VALID(dateTime->year));
-
-        /* Check dateTime->date input */
-        tmpDaysInMonth = Cy_RTC_DaysInMonth(dateTime->month, (dateTime->year + CY_RTC_TWO_THOUSAND_YEARS));
+        CY_ASSERT_L3(CY_RTC_IS_DATE_VALID(dateTime->date, tmpDaysInMonth));
+        CY_ASSERT_L3(CY_RTC_IS_WEEK_DAY_VALID(dateTime->dayOfWeek, Cy_RTC_ConvertDayOfWeek(dateTime->date, dateTime->month, (dateTime->year + CY_RTC_TWO_THOUSAND_YEARS))));
 
         if ((dateTime->date > 0U) && (dateTime->date <= tmpDaysInMonth))
         {
-            uint32_t interruptState;
-            uint32_t tmpTime;
-            uint32_t tmpDate;
 
             ConstructTimeDate(dateTime, &tmpTime, &tmpDate);
 
@@ -235,7 +240,13 @@ cy_en_rtc_status_t Cy_RTC_SetAlarmDateAndTime(cy_stc_rtc_alarm_t const *alarmDat
     if (NULL != alarmDateTime)
     {
         uint32_t tmpYear;
-        uint32_t tmpDaysInMonth;
+        uint32_t interruptState;
+        uint32_t tmpAlarmTime;
+        uint32_t tmpAlarmDate;
+
+        tmpYear = CY_RTC_TWO_THOUSAND_YEARS + CONVERT_BCD_TO_DEC(_FLD2VAL(BACKUP_RTC_DATE_RTC_YEAR, BACKUP_RTC_DATE));
+
+        CY_UNUSED_PARAMETER(tmpYear);
 
         CY_ASSERT_L3(CY_RTC_IS_ALARM_IDX_VALID(alarmIndex));
 
@@ -258,46 +269,38 @@ cy_en_rtc_status_t Cy_RTC_SetAlarmDateAndTime(cy_stc_rtc_alarm_t const *alarmDat
 
         CY_ASSERT_L3(CY_RTC_IS_ALARM_EN_VALID(alarmDateTime->almEn));
 
+        CY_ASSERT_L3(CY_RTC_IS_DATE_VALID(alarmDateTime->date, Cy_RTC_DaysInMonth(alarmDateTime->month, tmpYear)));
+
         /* Read the current RTC year to validate alarmDateTime->date */
         Cy_RTC_SyncFromRtc();
 
-        tmpYear = 
-        CY_RTC_TWO_THOUSAND_YEARS + CONVERT_BCD_TO_DEC(_FLD2VAL(BACKUP_RTC_DATE_RTC_YEAR, BACKUP_RTC_DATE));
-        tmpDaysInMonth = Cy_RTC_DaysInMonth(alarmDateTime->month, tmpYear);
+        ConstructAlarmTimeDate(alarmDateTime, &tmpAlarmTime, &tmpAlarmDate);
 
-        if ((alarmDateTime->date > 0U) && (alarmDateTime->date <= tmpDaysInMonth))
+        /* The RTC AHB registers can be updated only under condition that the
+        *  Write bit is set and the RTC busy bit is cleared (RTC_BUSY = 0).
+        */
+        interruptState = Cy_SysLib_EnterCriticalSection();
+        retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
+        if (CY_RTC_SUCCESS == retVal)
         {
-            uint32_t interruptState;
-            uint32_t tmpAlarmTime;
-            uint32_t tmpAlarmDate;
-
-            ConstructAlarmTimeDate(alarmDateTime, &tmpAlarmTime, &tmpAlarmDate);
-
-            /* The RTC AHB registers can be updated only under condition that the
-            *  Write bit is set and the RTC busy bit is cleared (RTC_BUSY = 0).
-            */
-            interruptState = Cy_SysLib_EnterCriticalSection();
-            retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
-            if (CY_RTC_SUCCESS == retVal)
+            /* Update the AHB RTC registers with formed values */
+            if (alarmIndex != CY_RTC_ALARM_2)
             {
-                /* Update the AHB RTC registers with formed values */
-                if (alarmIndex != CY_RTC_ALARM_2)
-                {
-                    BACKUP_ALM1_TIME = tmpAlarmTime;
-                    BACKUP_ALM1_DATE = tmpAlarmDate;
-                }
-                else
-                {
-                    BACKUP_ALM2_TIME = tmpAlarmTime;
-                    BACKUP_ALM2_DATE = tmpAlarmDate;
-                }
-
-                /* Clear the RTC Write bit to finish RTC update */
-                retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
+                BACKUP_ALM1_TIME = tmpAlarmTime;
+                BACKUP_ALM1_DATE = tmpAlarmDate;
             }
-            Cy_SysLib_ExitCriticalSection(interruptState);
+            else
+            {
+                BACKUP_ALM2_TIME = tmpAlarmTime;
+                BACKUP_ALM2_DATE = tmpAlarmDate;
+            }
+
+            /* Clear the RTC Write bit to finish RTC update */
+            retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
         }
+        Cy_SysLib_ExitCriticalSection(interruptState);
     }
+
     return(retVal);
 }
 
@@ -501,84 +504,77 @@ void   Cy_RTC_GetAlarmDateAndTime(cy_stc_rtc_alarm_t *alarmDateTime, cy_en_rtc_a
 cy_en_rtc_status_t Cy_RTC_SetDateAndTimeDirect(uint32_t sec, uint32_t min, uint32_t hour,
                                                uint32_t date, uint32_t month, uint32_t year)
 {
-    uint32_t tmpDaysInMonth;
     cy_en_rtc_status_t retVal = CY_RTC_BAD_PARAM;
+    cy_stc_rtc_config_t curTimeAndDate;
+    uint32_t tmpTime;
+    uint32_t tmpDate;
+    uint32_t interruptState;
 
     CY_ASSERT_L3(CY_RTC_IS_SEC_VALID(sec));
     CY_ASSERT_L3(CY_RTC_IS_MIN_VALID(min));
     CY_ASSERT_L3(CY_RTC_IS_HOUR_VALID(hour));
     CY_ASSERT_L3(CY_RTC_IS_MONTH_VALID(month));
     CY_ASSERT_L3(CY_RTC_IS_YEAR_SHORT_VALID(year));
+    CY_ASSERT_L3(CY_RTC_IS_DATE_VALID(date, Cy_RTC_DaysInMonth(month, year + CY_RTC_TWO_THOUSAND_YEARS)));
 
-    /* Check date input */
-    tmpDaysInMonth = Cy_RTC_DaysInMonth(month, (year + CY_RTC_TWO_THOUSAND_YEARS));
+    /* Fill the date and time structure */
+    curTimeAndDate.sec = sec;
+    curTimeAndDate.min = min;
 
-    if ((date > 0U) && (date <= tmpDaysInMonth))
+    /* Read the current hour mode */
+    Cy_RTC_SyncFromRtc();
+
+    if (CY_RTC_12_HOURS != Cy_RTC_GetHoursFormat())
     {
-        cy_stc_rtc_config_t curTimeAndDate;
-        uint32_t tmpTime;
-        uint32_t tmpDate;
-        uint32_t interruptState;
+        curTimeAndDate.hrFormat = CY_RTC_24_HOURS;
+        curTimeAndDate.hour = hour;
+    }
+    else
+    {
+        curTimeAndDate.hrFormat = CY_RTC_12_HOURS;
 
-        /* Fill the date and time structure */
-        curTimeAndDate.sec = sec;
-        curTimeAndDate.min = min;
-
-        /* Read the current hour mode */
-        Cy_RTC_SyncFromRtc();
-
-        if (CY_RTC_12_HOURS != Cy_RTC_GetHoursFormat())
+        /* Convert the 24-hour format input value into the 12-hour format */
+        if (hour >= CY_RTC_HOURS_PER_HALF_DAY)
         {
-            curTimeAndDate.hrFormat = CY_RTC_24_HOURS;
-            curTimeAndDate.hour = hour;
+            /* The current hour is more than 12 or equal 12, in the 24-hour
+            *  format. Set the PM bit and convert the hour: hour = hour - 12,
+            *  except that the hour is 12.
+            */
+            curTimeAndDate.hour =
+            (hour > CY_RTC_HOURS_PER_HALF_DAY) ? ((uint32_t) hour - CY_RTC_HOURS_PER_HALF_DAY) : hour;
+
+            curTimeAndDate.amPm = CY_RTC_PM;
         }
         else
         {
-            curTimeAndDate.hrFormat = CY_RTC_12_HOURS;
-
-            /* Convert the 24-hour format input value into the 12-hour format */
-            if (hour >= CY_RTC_HOURS_PER_HALF_DAY)
-            {
-                /* The current hour is more than 12 or equal 12, in the 24-hour
-                *  format. Set the PM bit and convert the hour: hour = hour - 12,
-                *  except that the hour is 12.
-                */
-                curTimeAndDate.hour =
-                (hour > CY_RTC_HOURS_PER_HALF_DAY) ? ((uint32_t) hour - CY_RTC_HOURS_PER_HALF_DAY) : hour;
-
-                curTimeAndDate.amPm = CY_RTC_PM;
-            }
-            else
-            {
-                /* The current hour is less than 12 AM. The zero hour is equal
-                *  to 12:00 AM
-                */
-                curTimeAndDate.hour = ((hour == 0U) ? CY_RTC_HOURS_PER_HALF_DAY : hour);
-                curTimeAndDate.amPm = CY_RTC_AM;
-            }
+            /* The current hour is less than 12 AM. The zero hour is equal
+            *  to 12:00 AM
+            */
+            curTimeAndDate.hour = ((hour == 0U) ? CY_RTC_HOURS_PER_HALF_DAY : hour);
+            curTimeAndDate.amPm = CY_RTC_AM;
         }
-        curTimeAndDate.dayOfWeek = Cy_RTC_ConvertDayOfWeek(date, month, (year + CY_RTC_TWO_THOUSAND_YEARS));
-        curTimeAndDate.date = date;
-        curTimeAndDate.month = month;
-        curTimeAndDate.year = year;
-
-        ConstructTimeDate(&curTimeAndDate, &tmpTime, &tmpDate);
-
-        /* The RTC AHB register can be updated only under condition that the
-        *  Write bit is set and the RTC busy bit is cleared (CY_RTC_BUSY = 0).
-        */
-        interruptState = Cy_SysLib_EnterCriticalSection();
-        retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
-        if (retVal == CY_RTC_SUCCESS)
-        {
-            BACKUP_RTC_TIME = tmpTime;
-            BACKUP_RTC_DATE = tmpDate;
-
-            /* Clear the RTC Write bit to finish RTC register update */
-            retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
-        }
-        Cy_SysLib_ExitCriticalSection(interruptState);
     }
+    curTimeAndDate.dayOfWeek = Cy_RTC_ConvertDayOfWeek(date, month, (year + CY_RTC_TWO_THOUSAND_YEARS));
+    curTimeAndDate.date = date;
+    curTimeAndDate.month = month;
+    curTimeAndDate.year = year;
+
+    ConstructTimeDate(&curTimeAndDate, &tmpTime, &tmpDate);
+
+    /* The RTC AHB register can be updated only under condition that the
+    *  Write bit is set and the RTC busy bit is cleared (CY_RTC_BUSY = 0).
+    */
+    interruptState = Cy_SysLib_EnterCriticalSection();
+    retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
+    if (retVal == CY_RTC_SUCCESS)
+    {
+        BACKUP_RTC_TIME = tmpTime;
+        BACKUP_RTC_DATE = tmpDate;
+
+        /* Clear the RTC Write bit to finish RTC register update */
+        retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
+    }
+    Cy_SysLib_ExitCriticalSection(interruptState);
 
     return(retVal);
 }
@@ -618,73 +614,69 @@ cy_en_rtc_status_t Cy_RTC_SetDateAndTimeDirect(uint32_t sec, uint32_t min, uint3
 cy_en_rtc_status_t Cy_RTC_SetAlarmDateAndTimeDirect(uint32_t sec, uint32_t min, uint32_t hour,
                                                     uint32_t date, uint32_t month, cy_en_rtc_alarm_t alarmIndex)
 {
-    uint32_t tmpDaysInMonth;
     uint32_t tmpCurrentYear;
     cy_en_rtc_status_t retVal = CY_RTC_BAD_PARAM;
+    uint32_t tmpAlarmTime;
+    uint32_t tmpAlarmDate;
+    uint32_t interruptState;
+    cy_stc_rtc_alarm_t alarmDateTime;
+
+    /* Get the current year value to calculate */
+    tmpCurrentYear = CY_RTC_TWO_THOUSAND_YEARS + CONVERT_BCD_TO_DEC(_FLD2VAL(BACKUP_RTC_DATE_RTC_YEAR, BACKUP_RTC_DATE));
+
+    CY_UNUSED_PARAMETER(tmpCurrentYear);
 
     CY_ASSERT_L3(CY_RTC_IS_SEC_VALID(sec));
     CY_ASSERT_L3(CY_RTC_IS_MIN_VALID(min));
     CY_ASSERT_L3(CY_RTC_IS_HOUR_VALID(hour));
     CY_ASSERT_L3(CY_RTC_IS_MONTH_VALID(month));
     CY_ASSERT_L3(CY_RTC_IS_ALARM_IDX_VALID(alarmIndex));
+    CY_ASSERT_L3(CY_RTC_IS_DATE_VALID(date, Cy_RTC_DaysInMonth(month, tmpCurrentYear)));
+
 
     /* Read the current time to validate the input parameters */
     Cy_RTC_SyncFromRtc();
 
-    /* Get the current year value to calculate */
-    tmpCurrentYear =
-    CONVERT_BCD_TO_DEC(_FLD2VAL(BACKUP_RTC_DATE_RTC_YEAR, BACKUP_RTC_DATE));
+    /* Fill the alarm structure */
+    alarmDateTime.sec         = sec;
+    alarmDateTime.secEn       = CY_RTC_ALARM_ENABLE;
+    alarmDateTime.min         = min;
+    alarmDateTime.minEn       = CY_RTC_ALARM_ENABLE;
+    alarmDateTime.hour        = hour;
+    alarmDateTime.hourEn      = CY_RTC_ALARM_ENABLE;
+    alarmDateTime.dayOfWeek   = CY_RTC_SUNDAY;
+    alarmDateTime.dayOfWeekEn = CY_RTC_ALARM_DISABLE;
 
-    tmpDaysInMonth = Cy_RTC_DaysInMonth(month, (tmpCurrentYear + CY_RTC_TWO_THOUSAND_YEARS));
+    alarmDateTime.date    = date;
+    alarmDateTime.dateEn  = CY_RTC_ALARM_ENABLE;
+    alarmDateTime.month   = month;
+    alarmDateTime.monthEn = CY_RTC_ALARM_ENABLE;
+    alarmDateTime.almEn   = CY_RTC_ALARM_ENABLE;
 
-    if ((date > 0U) && (date <= tmpDaysInMonth))
+    ConstructAlarmTimeDate(&alarmDateTime, &tmpAlarmTime, &tmpAlarmDate);
+
+    /* The RTC AHB register can be updated only under condition that the
+    *  Write bit is set and the RTC busy bit is cleared (CY_RTC_BUSY = 0).
+    */
+    interruptState = Cy_SysLib_EnterCriticalSection();
+    retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
+    if (retVal == CY_RTC_SUCCESS)
     {
-        uint32_t tmpAlarmTime;
-        uint32_t tmpAlarmDate;
-        uint32_t interruptState;
-        cy_stc_rtc_alarm_t alarmDateTime;
-
-        /* Fill the alarm structure */
-        alarmDateTime.sec         = sec;
-        alarmDateTime.secEn       = CY_RTC_ALARM_ENABLE;
-        alarmDateTime.min         = min;
-        alarmDateTime.minEn       = CY_RTC_ALARM_ENABLE;
-        alarmDateTime.hour        = hour;
-        alarmDateTime.hourEn      = CY_RTC_ALARM_ENABLE;
-        alarmDateTime.dayOfWeek   = CY_RTC_SUNDAY;
-        alarmDateTime.dayOfWeekEn = CY_RTC_ALARM_DISABLE;
-
-        alarmDateTime.date    = date;
-        alarmDateTime.dateEn  = CY_RTC_ALARM_ENABLE;
-        alarmDateTime.month   = month;
-        alarmDateTime.monthEn = CY_RTC_ALARM_ENABLE;
-        alarmDateTime.almEn   = CY_RTC_ALARM_ENABLE;
-
-        ConstructAlarmTimeDate(&alarmDateTime, &tmpAlarmTime, &tmpAlarmDate);
-
-        /* The RTC AHB register can be updated only under condition that the
-        *  Write bit is set and the RTC busy bit is cleared (CY_RTC_BUSY = 0).
-        */
-        interruptState = Cy_SysLib_EnterCriticalSection();
-        retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
-        if (retVal == CY_RTC_SUCCESS)
+        if (alarmIndex != CY_RTC_ALARM_2)
         {
-            if (alarmIndex != CY_RTC_ALARM_2)
-            {
-                BACKUP_ALM1_TIME = tmpAlarmTime;
-                BACKUP_ALM1_DATE = tmpAlarmDate;
-            }
-            else
-            {
-                BACKUP_ALM2_TIME = tmpAlarmTime;
-                BACKUP_ALM2_DATE = tmpAlarmDate;
-            }
-
-            /* Clear the RTC Write bit to finish RTC register update */
-            retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
+            BACKUP_ALM1_TIME = tmpAlarmTime;
+            BACKUP_ALM1_DATE = tmpAlarmDate;
         }
-        Cy_SysLib_ExitCriticalSection(interruptState);
+        else
+        {
+            BACKUP_ALM2_TIME = tmpAlarmTime;
+            BACKUP_ALM2_DATE = tmpAlarmDate;
+        }
+
+        /* Clear the RTC Write bit to finish RTC register update */
+        retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
     }
+    Cy_SysLib_ExitCriticalSection(interruptState);
 
     return(retVal);
 }
@@ -701,6 +693,10 @@ cy_en_rtc_status_t Cy_RTC_SetAlarmDateAndTimeDirect(uint32_t sec, uint32_t min, 
 *
 * \return
 * A validation check result of RTC register update. See \ref cy_en_rtc_status_t.
+*
+* \note
+* Refresh ALARM using \ref Cy_RTC_SetAlarmDateAndTime if it is already enabled
+* before calling this API.
 *
 *******************************************************************************/
 cy_en_rtc_status_t Cy_RTC_SetHoursFormat(cy_en_rtc_hours_format_t hoursFormat)
@@ -796,11 +792,14 @@ cy_en_rtc_status_t Cy_RTC_SetHoursFormat(cy_en_rtc_hours_format_t hoursFormat)
         }
         Cy_SysLib_ExitCriticalSection(interruptState);
     }
+    else
+    {
+        retVal = CY_RTC_SUCCESS;
+    }
     return(retVal);
 }
 
-#if defined (CY_IP_MXS40SRSS_RTC)
-
+#if defined (CY_IP_MXS40SRSS_RTC) || defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS)
 /*******************************************************************************
 * Function Name: Cy_RTC_SelectFrequencyPrescaler()
 ****************************************************************************//**
@@ -848,41 +847,48 @@ cy_en_rtc_status_t Cy_RTC_SetHoursFormat(cy_en_rtc_hours_format_t hoursFormat)
 * WCO in Bypass mode.
 *
 * \note
-* This API is available for CAT1A devices.
+* This API is available for CAT1B, CAT1C and CAT1D devices.
 *
 *******************************************************************************/
 void Cy_RTC_SelectFrequencyPrescaler(cy_en_rtc_clock_freq_t clkSel)
 {
     CY_ASSERT_L3(CY_RTC_IS_CLK_VALID(clkSel));
 
+#if defined (CY_IP_MXS22SRSS)
+    BACKUP_CTL = (_CLR_SET_FLD32U(BACKUP_CTL, SRSS_CLK_WCO_CONFIG_PRESCALER, (uint32_t) clkSel));
+#else
     BACKUP_CTL = (_CLR_SET_FLD32U(BACKUP_CTL, BACKUP_CTL_PRESCALER, (uint32_t) clkSel));
+#endif
 }
-#endif /* CY_IP_MXS40SRSS_RTC */
-
+#endif /* CY_IP_MXS40SRSS_RTC, CY_IP_MXS40SSRSS, CY_IP_MXS22SRSS*/
 /*******************************************************************************
 * Function Name: Cy_RTC_SelectClockSource()
 ****************************************************************************//**
-* \param clkSel Source clock, see \ref cy_rtc_clk_select_sources_t
+* \param clkSel Source clock, see \ref cy_en_rtc_clk_select_sources_t
 * Selects the source clock  for RTC.
 *
 * \note
 * This API is available for CAT1B devices.
 *
 *******************************************************************************/
-void Cy_RTC_SelectClockSource(cy_rtc_clk_select_sources_t clkSel)
+void Cy_RTC_SelectClockSource(cy_en_rtc_clk_select_sources_t clkSel)
 {
     CY_ASSERT_L3(CY_RTC_IS_SRC_CLK_SELECT_VALID(clkSel));
 
+#if defined (CY_IP_MXS22SRSS)
+    BACKUP_CTL = (_CLR_SET_FLD32U(BACKUP_CTL, SRSS_CLK_WCO_CONFIG_CLK_RTC_SEL, (uint32_t) clkSel));
+#else
     BACKUP_CTL = (_CLR_SET_FLD32U(BACKUP_CTL, BACKUP_CTL_CLK_SEL, (uint32_t) clkSel));
+#endif
 }
 
 /*******************************************************************************
 * Function Name: Cy_RTC_EnableDstTime
 ****************************************************************************//**
 *
-* The function sets the DST time and configures the ALARM2 interrupt register
+* The function sets the DST time, configures the DST start time when the specified time is outside DST period and configures the ALARM2 interrupt register
 * with the appropriate DST time. This function sets the DST stop time if the
-* current time is already in the DST period. The DST period is a period of time
+* specified time is already in the DST period. The DST period is a period of time
 * between the DST start time and DST stop time. The DST start time and DST stop
 * time is presented in the DST configuration structure,
 * see \ref cy_stc_rtc_dst_t.
@@ -891,11 +897,11 @@ void Cy_RTC_SelectClockSource(cy_rtc_clk_select_sources_t clkSel)
 * The DST configuration structure, see \ref cy_stc_rtc_dst_t.
 *
 * \param timeDate
-* The time and date structure. The the appropriate DST time is
+* The time and date structure. The appropriate DST time is
 * set based on this time and date, see \ref cy_stc_rtc_config_t.
 *
 * \return
-* cy_en_rtc_status_t A validation check result of RTC register update.
+* A validation check result of RTC register update. See \ref cy_en_rtc_status_t.
 *
 *******************************************************************************/
 cy_en_rtc_status_t Cy_RTC_EnableDstTime(cy_stc_rtc_dst_t const *dstTime, cy_stc_rtc_config_t const *timeDate)
@@ -913,7 +919,7 @@ cy_en_rtc_status_t Cy_RTC_EnableDstTime(cy_stc_rtc_dst_t const *dstTime, cy_stc_
             retVal = Cy_RTC_SetNextDstTime(&dstTime->startDst);
         }
 
-        Cy_RTC_SetInterruptMask(CY_RTC_INTR_ALARM2);
+        Cy_RTC_SetInterruptMask(Cy_RTC_GetInterruptMask() | CY_RTC_INTR_ALARM2);
     }
 
     return (retVal);
@@ -978,9 +984,6 @@ cy_en_rtc_status_t Cy_RTC_SetNextDstTime(cy_stc_rtc_dst_format_t const *nextDst)
         {
             retVal = Cy_RTC_SetAlarmDateAndTime(&dstAlarmTimeAndDate, CY_RTC_ALARM_2);
             --tryesToSetup;
-
-            /* Delay after try to set the DST */
-            Cy_SysLib_DelayUs(CY_RTC_DELAY_AFTER_DST_US);
         }
 
         if (tryesToSetup == 0U)
@@ -1006,7 +1009,7 @@ cy_en_rtc_status_t Cy_RTC_SetNextDstTime(cy_stc_rtc_dst_format_t const *nextDst)
 * \param dstTime The DST configuration structure, see \ref cy_stc_rtc_dst_t.
 *
 * \param timeDate
-* The time and date structure. The the appropriate DST time is
+* The time and date structure. The appropriate DST time is
 * set based on this time and date, see \ref cy_stc_rtc_config_t.
 *
 * \return
@@ -1148,7 +1151,7 @@ __WEAK void Cy_RTC_Alarm2Interrupt(void)
 *
 * This is a processing handler against the DST event. It adjusts the current
 * time using the DST start/stop parameters and registers the next DST event time
-* into the ALARM2 interrupt.
+* into the ALARM2 interrupt. This function is already called by \ref Cy_RTC_Interrupt().
 *
 * \param dstTime The DST configuration structure, see \ref cy_stc_rtc_dst_t.
 *
@@ -1165,7 +1168,7 @@ void Cy_RTC_DstInterrupt(cy_stc_rtc_dst_t const *dstTime)
         *  the time adjusting occurs, the other time and date values should be
         *  corrected (day of the week, date, month and year).
         */
-        if (curDateTime.hour > CY_RTC_MAX_HOURS_24H)
+        if (curDateTime.hour == CY_RTC_MAX_HOURS_24H)
         {
             /* Incrementing day of the week value as hour adjusted next day of
             *  the week and date. Correcting hour value as its incrementation
@@ -1237,9 +1240,9 @@ void Cy_RTC_DstInterrupt(cy_stc_rtc_dst_t const *dstTime)
             */
             if (curDateTime.date < CY_RTC_FIRST_DAY_OF_MONTH)
             {
+               curDateTime.month--;
                curDateTime.date =
                Cy_RTC_DaysInMonth(curDateTime.month, (curDateTime.year + CY_RTC_TWO_THOUSAND_YEARS));
-               curDateTime.month--;
             }
 
             /* Correct a month if its increment pushed it out of the valid
@@ -1268,8 +1271,7 @@ void Cy_RTC_DstInterrupt(cy_stc_rtc_dst_t const *dstTime)
 *
 * This is a weak function and it should be redefined in user source code
 * in condition that such event handler is required.
-* By calling this function, it indicates the year reached 2100. It
-* should add an adjustment to avoid the Y2K problem.
+* By calling this function, it indicates the year reached 2100.
 *
 * Function implementation should be defined in user source code in condition
 * that such event handler is required. If such event is not required user
@@ -1365,9 +1367,9 @@ void Cy_RTC_ClearInterrupt(uint32_t interruptMask)
 {
     CY_ASSERT_L3(CY_RTC_INTR_VALID(interruptMask));
 
-    BACKUP_INTR = interruptMask;
-
     (void) BACKUP_INTR;
+
+    BACKUP_INTR = interruptMask;
 }
 
 
@@ -1557,6 +1559,90 @@ cy_en_syspm_status_t Cy_RTC_HibernateCallback(const cy_stc_syspm_callback_params
 
 
 /*******************************************************************************
+* Function Name: Cy_RTC_CalibrationControlEnable
+****************************************************************************//**
+*
+* This function writes calibration control register.
+*
+* \param calib_val
+* Calibration value for absolute frequency (at a fixed temperature).
+* Each step causes 128 ticks to be added or removed each hour.
+*
+* \param calib_sign
+* Remove or Add ticks, see \ref cy_en_rtc_calib_sign_t
+*
+* \param calib_sel
+* Select calibration wave output signal, see \ref cy_en_rtc_calib_sel_t
+*
+* \return
+* The RTC return status, see \ref cy_en_rtc_status_t
+*
+*******************************************************************************/
+cy_en_rtc_status_t Cy_RTC_CalibrationControlEnable(uint8_t calib_val, cy_en_rtc_calib_sign_t calib_sign, cy_en_rtc_calib_sel_t calib_sel)
+{
+    cy_en_rtc_status_t retVal = CY_RTC_INVALID_STATE;
+    uint32_t interruptState;
+
+    CY_UNUSED_PARAMETER(calib_sel);
+
+    /* The RTC AHB registers can be updated only under condition that the
+    *  Write bit is set and the RTC busy bit is cleared (RTC_BUSY = 0).
+    */
+    interruptState = Cy_SysLib_EnterCriticalSection();
+    retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
+    if (CY_RTC_SUCCESS == retVal)
+    {
+        BACKUP_CAL_CTL =
+        _VAL2FLD(BACKUP_CAL_CTL_CALIB_VAL, calib_val)  |
+        _VAL2FLD(BACKUP_CAL_CTL_CALIB_SIGN, (uint32_t)calib_sign) |
+#if defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 2))
+        _VAL2FLD(BACKUP_CAL_CTL_CAL_SEL, (uint32_t)calib_sel) |
+#endif
+        _VAL2FLD(BACKUP_CAL_CTL_CAL_OUT, 1U);
+
+        /* Clear the RTC Write bit to finish RTC update */
+        retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
+    }
+    Cy_SysLib_ExitCriticalSection(interruptState);
+
+    return(retVal);
+}
+
+/*******************************************************************************
+* Function Name: Cy_RTC_CalibrationControlDisable
+****************************************************************************//**
+*
+* This function disables the calibration control.
+*
+* \return
+* The RTC return status, see \ref cy_en_rtc_status_t
+*
+*******************************************************************************/
+cy_en_rtc_status_t Cy_RTC_CalibrationControlDisable(void)
+{
+    cy_en_rtc_status_t retVal = CY_RTC_INVALID_STATE;
+    uint32_t interruptState;
+
+    /* The RTC AHB registers can be updated only under condition that the
+    *  Write bit is set and the RTC busy bit is cleared (RTC_BUSY = 0).
+    */
+    interruptState = Cy_SysLib_EnterCriticalSection();
+    retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_ENABLED);
+    if (CY_RTC_SUCCESS == retVal)
+    {
+        BACKUP_CAL_CTL =
+        _VAL2FLD(BACKUP_CAL_CTL_CAL_OUT, 0U);
+
+        /* Clear the RTC Write bit to finish RTC update */
+        retVal = Cy_RTC_WriteEnable(CY_RTC_WRITE_DISABLED);
+    }
+    Cy_SysLib_ExitCriticalSection(interruptState);
+
+    return(retVal);
+}
+
+
+/*******************************************************************************
 * Function Name: ConstructTimeDate
 ****************************************************************************//**
 *
@@ -1626,7 +1712,16 @@ static void ConstructTimeDate(cy_stc_rtc_config_t const *timeDate, uint32_t *tim
         tmpTime &= ((uint32_t) ~BACKUP_RTC_TIME_CTRL_12HR_Msk);
         tmpTime |= (_VAL2FLD(BACKUP_RTC_TIME_RTC_HOUR, CONVERT_DEC_TO_BCD(timeDate->hour)));
     }
-    tmpTime |= (_VAL2FLD(BACKUP_RTC_TIME_RTC_DAY, CONVERT_DEC_TO_BCD(timeDate->dayOfWeek)));
+
+    if (timeDate->dayOfWeek == CY_RTC_DAY_AUTO)
+    {
+        tmpTime |=  (_VAL2FLD(BACKUP_RTC_TIME_RTC_DAY, CONVERT_DEC_TO_BCD(Cy_RTC_ConvertDayOfWeek(timeDate->date, timeDate->month, (timeDate->year + CY_RTC_TWO_THOUSAND_YEARS)))));
+    }
+    else
+    {
+        tmpTime |= (_VAL2FLD(BACKUP_RTC_TIME_RTC_DAY, CONVERT_DEC_TO_BCD(timeDate->dayOfWeek)));
+    }
+
     /* Prepare the RTC Date value based on the structure obtained */
     tmpDate  = (_VAL2FLD(BACKUP_RTC_DATE_RTC_DATE, CONVERT_DEC_TO_BCD(timeDate->date)));
     tmpDate |= (_VAL2FLD(BACKUP_RTC_DATE_RTC_MON, CONVERT_DEC_TO_BCD(timeDate->month)));
@@ -1798,7 +1893,7 @@ static uint32_t RelativeToFixed(cy_stc_rtc_dst_format_t const *convertDst)
 }
 #endif
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 2.2');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 2.2')
 #endif /* CY_IP_MXS40SRSS_RTC, CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS */
 
 /* [] END OF FILE */

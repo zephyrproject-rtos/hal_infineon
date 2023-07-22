@@ -4,12 +4,11 @@
 * \brief
 * PSoC6_02 device GPIO header for 128-TQFP package
 *
-* \note
-* Generator version: 1.6.0.409
-*
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +36,7 @@ enum
     CY_GPIO_PACKAGE_WLCSP,
     CY_GPIO_PACKAGE_LQFP,
     CY_GPIO_PACKAGE_TQFP,
+    CY_GPIO_PACKAGE_TEQFP,
     CY_GPIO_PACKAGE_SMT,
 };
 
@@ -512,10 +512,18 @@ typedef enum
 #define USBDP_PIN                       0u
 #define USBDP_NUM                       0u
 #define USBDP_AMUXSEGMENT               AMUXBUS_NOISY
+#define P14_0_PORT                      GPIO_PRT14
+#define P14_0_PIN                       0u
+#define P14_0_NUM                       0u
+#define P14_0_AMUXSEGMENT               AMUXBUS_NOISY
 #define USBDM_PORT                      GPIO_PRT14
 #define USBDM_PIN                       1u
 #define USBDM_NUM                       1u
 #define USBDM_AMUXSEGMENT               AMUXBUS_NOISY
+#define P14_1_PORT                      GPIO_PRT14
+#define P14_1_PIN                       1u
+#define P14_1_NUM                       1u
+#define P14_1_AMUXSEGMENT               AMUXBUS_NOISY
 
 /* Analog Connections */
 #define CSD_CMODPADD_PORT               7u

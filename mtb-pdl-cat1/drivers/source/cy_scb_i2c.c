@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_i2c.c
-* \version 2.80
+* \version 3.10
 *
 * Provides I2C API implementation of the SCB driver.
 *
@@ -24,7 +24,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSCB)
+#if (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB))
 
 #include "cy_scb_i2c.h"
 
@@ -95,7 +95,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_Init(CySCB_Type *base, cy_stc_scb_i2c_config_t
     /* Configure the I2C interface */
     SCB_CTRL(base) = _BOOL2FLD(SCB_CTRL_ADDR_ACCEPT, config->acceptAddrInFifo)   |
                      _BOOL2FLD(SCB_CTRL_EC_AM_MODE, config->enableWakeFromSleep);
-#if(CY_IP_MXSCB_VERSION==1)
+#if(defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION==1))
     SCB_CTRL(base) |= SCB_CTRL_BYTE_MODE_Msk;
 #endif /* CY_IP_MXSCB_VERSION */
 
@@ -2279,6 +2279,127 @@ void Cy_SCB_I2C_SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
     }
 }
 
+#if (((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=3)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
+/*******************************************************************************
+* Function Name: Cy_SCB_I2C_SetStretchThreshold
+****************************************************************************//**
+*
+* Sets the stretch threshold value.
+*
+* \param base
+* The pointer to the I2C SCB instance.
+*
+* \param value
+* The stretch threshold value to be set.
+* Typically it is the SCL turaround delay (including IO cell delay, SCL rise time,
+* analog filter delay), in number of clk_scb cycles.
+*
+* \note
+* * The STRETCH_THRESHOLD value is 0 by default. If there is no device stretching
+*   the SCL bus, the delay between SCL output and input are reported in
+*   STRETCH_COUNT \ref Cy_SCB_I2C_GetStretchCount, in number of clk_scb cycles,
+*   which can then be set as the STRETCH_THRESHOLD value.
+* * The STRETCH_THRESHOLD value should be less than or equal to 0xFUL.
+* * When STRETCH_COUNT \ref Cy_SCB_I2C_GetStretchCount is higher than this
+*   STRETCH_THRESHOLD, STRETCH_DETECTED \ref Cy_SCB_I2C_IsStretchDetected
+*   will be set.
+*
+* \note
+* This API is available for CAT1B devices.
+*
+*******************************************************************************/
+void Cy_SCB_I2C_SetStretchThreshold(CySCB_Type const *base, uint32_t value)
+{
+    CY_ASSERT_L2(CY_SCB_I2C_STRETCH_THRESHOLD_VALUE_VALID(value));
+    SCB_I2C_STRETCH_CTRL(base) = _VAL2FLD(SCB_I2C_STRETCH_CTRL_STRETCH_THRESHOLD, value);
+}
+
+/*******************************************************************************
+* Function Name: Cy_SCB_I2C_GetStretchCount
+****************************************************************************//**
+*
+* Provides the stretch count. The count is started when the I2C device begins to
+* drive high phase on internal SCL output signal and is stalled when it detects
+* high level on SCL input signal.
+*
+* \param base
+* The pointer to the I2C SCB instance.
+*
+* \return
+* The stretch count.
+*
+* \note
+* This API is available for CAT1B devices.
+*
+*******************************************************************************/
+uint32_t Cy_SCB_I2C_GetStretchCount(CySCB_Type const *base)
+{
+    return(_FLD2VAL(SCB_I2C_STRETCH_STATUS_STRETCH_COUNT, SCB_I2C_STRETCH_STATUS(base)));
+}
+
+/*******************************************************************************
+* Function Name: Cy_SCB_I2C_IsStretchDetected
+****************************************************************************//**
+*
+* Checks if stretch is detected on I2C SCL.
+*
+* \param base
+* The pointer to the I2C SCB instance.
+*
+* \return
+* If true, stretch is detected; false otherwise.
+*
+* \note
+* This API is available for CAT1B devices.
+*
+*******************************************************************************/
+bool Cy_SCB_I2C_IsStretchDetected(CySCB_Type const *base)
+{
+    return (1UL == (_FLD2VAL(SCB_I2C_STRETCH_STATUS_STRETCH_DETECTED, SCB_I2C_STRETCH_STATUS(base))));
+}
+
+/*******************************************************************************
+* Function Name: Cy_SCB_I2C_IsSyncDetected
+****************************************************************************//**
+*
+* Checks if synchronization is detected on I2C SCL.
+*
+* \param base
+* The pointer to the I2C SCB instance.
+*
+* \return
+* If true, synchronization is detected; false otherwise.
+*
+* \note
+* This API is available for CAT1B devices.
+*
+*******************************************************************************/
+bool Cy_SCB_I2C_IsSyncDetected(CySCB_Type const *base)
+{
+    return (1UL == (_FLD2VAL(SCB_I2C_STRETCH_STATUS_SYNC_DETECTED, SCB_I2C_STRETCH_STATUS(base))));
+}
+
+/*******************************************************************************
+* Function Name: Cy_SCB_I2C_IsStretching
+****************************************************************************//**
+*
+* Checks if I2C SCL is stretched by the block.
+*
+* \param base
+* The pointer to the I2C SCB instance.
+*
+* \return
+* If true, I2C SCL is being stretch by the block, false otherwise.
+*
+* \note
+* This API is available for CAT1B devices.
+*
+*******************************************************************************/
+bool Cy_SCB_I2C_IsStretching(CySCB_Type const *base)
+{
+    return (1UL == (_FLD2VAL(SCB_I2C_STRETCH_STATUS_STRETCHING, SCB_I2C_STRETCH_STATUS(base))));
+}
+#endif /* CY_IP_MXSCB_VERSION */
 
 /*******************************************************************************
 * Function Name: SlaveHandleAddress
@@ -2972,7 +3093,7 @@ static void MasterHandleDataTransmit(CySCB_Type *base, cy_stc_scb_i2c_context_t 
         {
             if (context->masterPause)
             {
-                /* Wait until data is transfered onto the bus */
+                /* Wait until data is transferred onto the bus */
                 Cy_SCB_SetTxInterruptMask(base, CY_SCB_TX_INTR_UNDERFLOW);
 
                 context->state = CY_SCB_I2C_MASTER_TX_DONE;
@@ -3296,6 +3417,6 @@ static cy_en_scb_i2c_status_t HandleStatus(CySCB_Type *base, uint32_t status, cy
 }
 #endif
 
-#endif /* CY_IP_MXSCB */
+#endif /* (defined (CY_IP_MXSCB) || defined (CY_IP_MXS22SCB)) */
 
 /* [] END OF FILE */

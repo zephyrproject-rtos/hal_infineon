@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_dmac.c
-* \version 1.20
+* \version 1.30.1
 *
 * \brief
 * The source code file for the DMAC driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2020 Cypress Semiconductor Corporation
+* Copyright 2018-2022 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,17 +25,18 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS_DMAC) || defined (CY_IP_MXAHBDMAC)
+#if defined (CY_IP_M4CPUSS_DMAC) || defined (CY_IP_MXAHBDMAC) || defined (CY_IP_M7CPUSS_DMAC)
+
 
 #include "cy_dmac.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 8, \
 'The cast to another type is made intentionally. \
 These structures are subset of the main structure cy_stc_dmac_descriptor_t. \
-This will provide better code readability with the type of data transfer used');
+This will provide better code readability with the type of data transfer used')
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 2, \
-'Value extracted from _VAL2FLD macro will not exceed enum range.');
+'Value extracted from _VAL2FLD macro will not exceed enum range.')
 
 /*******************************************************************************
 * Function Name: Cy_DMAC_Descriptor_Init
@@ -338,6 +339,7 @@ void Cy_DMAC_Descriptor_SetXloopDataCount(cy_stc_dmac_descriptor_t * descriptor,
 *
 * \param nextDescriptor
 * The pointer to the next descriptor.
+* For CAT1C devices this pointer needs to point to 32 byte aligned structure.
 *
 * \funcusage
 * \snippet dmac/snippet/main.c snippet_Cy_DMAC_Descriptor_SetterFunctions
@@ -473,8 +475,8 @@ void Cy_DMAC_Descriptor_SetDescriptorType(cy_stc_dmac_descriptor_t * descriptor,
     }
 }
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 
 #endif /* CY_IP_M4CPUSS_DMAC, CY_IP_MXAHBDMAC */
 

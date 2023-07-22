@@ -1,13 +1,15 @@
 /***************************************************************************//**
 * \file cy_crypto_core_prng_v2.c
-* \version 2.40
+* \version 2.90
 *
 * \brief
 *  This file provides the source code to the API for the PRNG
 *  in the Crypto block driver.
 *
 ********************************************************************************
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* \copyright
+* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,21 +27,23 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXCRYPTO)
+#if defined(CY_IP_MXCRYPTO)
 
 #include "cy_crypto_core_prng_v2.h"
+
+#if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if (CPUSS_CRYPTO_PR == 1)
+#if (CPUSS_CRYPTO_PR == 1) && defined(CY_CRYPTO_CFG_PRNG_C)
 
 #include "cy_crypto_core_hw_v2.h"
 #include "cy_syslib.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 2, \
-'CRYPTO_Type will typecast to either CRYPTO_V1_Type or CRYPTO_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'CRYPTO_Type will typecast to either CRYPTO_V1_Type or CRYPTO_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_V2_Prng_Init
@@ -115,15 +119,17 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Prng(CRYPTO_Type *base,
     return (CY_CRYPTO_SUCCESS);
 }
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 
-#endif /* #if (CPUSS_CRYPTO_PR == 1) */
+#endif /* (CPUSS_CRYPTO_PR == 1) && defined(CY_CRYPTO_CFG_PRNG_C) */
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXCRYPTO */
+#endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+
+#endif /* defined(CY_IP_MXCRYPTO) */
 
 
 /* [] END OF FILE */

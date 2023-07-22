@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_dmac.h
-* \version 1.20
+* \version 1.30.1
 *
 * \brief
 * The header file of the DMAC driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2020 Cypress Semiconductor Corporation
+* Copyright 2018-2022 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,6 +75,8 @@
 * in a typical user application:
 * \image html dmac.png
 *
+* <B>NOTE:</B> DMAC will read descriptors from SRAM memory. To run DMAC on devices with Core CM7,
+* D cache needs to be cleaned before calling \ref Cy_DMAC_Channel_Enable and should be invalidated after DMAC transfer. \n
 * <B>NOTE:</B> Even if a DMAC channel is enabled, it is not operational until
 * the DMAC block is enabled using function \ref Cy_DMAC_Enable.\n
 * <B>NOTE:</B> If the DMAC descriptor is configured to generate an interrupt,
@@ -84,6 +86,15 @@
 * For example:
 * \snippet dmac/snippet/main.c snippet_Cy_DMAC_Enable
 *
+* CM7 cores in CAT1C devices support Data Cache. Data Cache line is 32 bytes.
+* User needs to make sure that the source and destination buffer pointers and the config structure pointers passed
+* to the following functions points to 32 byte aligned data.
+* Cy_DMAC_Channel_SetDescriptor, Cy_DMAC_Descriptor_SetNextDescriptor, Cy_DMAC_Descriptor_SetSrcAddress, Cy_DMAC_Descriptor_SetDstAddress.
+* User can use CY_ALIGN(32) macro for 32 byte alignment.
+* User needs to clean the following data elements from the cache and invalidate before accessing them.
+* source and destination buffers and descriptor structure.
+* * \snippet dmac/snippet/main.c snippet_Cy_DMAC_Cache_usage
+*
 * \section group_dmac_more_information More Information.
 * See the DMAC chapter of the device technical reference manual (TRM).
 *
@@ -91,6 +102,16 @@
 *
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.30.1</td>
+*     <td>Minor Documentation update for cache usage on CM7.</td>
+*     <td>Documentation enhancement.</td>
+*   </tr>
+*   <tr>
+*     <td>1.30</td>
+*     <td>Update to configure DMAC on core CM7.</td>
+*     <td>Support for new product family.</td>
+*   </tr>
 *   <tr>
 *     <td>1.20</td>
 *     <td>Fixed MISRA 2012 violations.</td>
@@ -130,7 +151,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS_DMAC) || defined (CY_IP_MXAHBDMAC)
+#if defined (CY_IP_M4CPUSS_DMAC) || defined (CY_IP_MXAHBDMAC) || defined (CY_IP_M7CPUSS_DMAC)
 
 #include "cy_syslib.h"
 #include <stdint.h>
@@ -142,7 +163,7 @@ extern "C" {
 #endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 13, \
-'Value extracted from _VAL2FLD macro will not exceed enum range.');
+'Value extracted from _VAL2FLD macro will not exceed enum range.')
 
 /******************************************************************************
  * Macro definitions                                                          *
@@ -157,7 +178,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 13, \
 #define CY_DMAC_DRV_VERSION_MAJOR       1
 
 /** The driver minor version */
-#define CY_DMAC_DRV_VERSION_MINOR       20
+#define CY_DMAC_DRV_VERSION_MINOR       30
 
 /** The DMAC driver identifier */
 #define CY_DMAC_ID                      (CY_PDL_DRV_ID(0x3FU))
@@ -416,8 +437,8 @@ typedef struct
     int32_t                      srcXincrement;   /**< The address increment of the source after each X-loop transfer. Valid range is -32768...32767. */
     int32_t                      dstXincrement;   /**< The address increment of the destination after each X-loop transfer. Valid range is -32768...32767. */
     uint32_t                     xCount;          /**< The number of transfers in an X-loop. Valid range (for all descriptors except scatter transfer) is 1...65536.
-                                                   *   For memory copy descriptors, the X count is a nubmer of bytes (not a data transfer size).
-                                                   *   For scatter descriptors, the X count is a nubmer of [address, data] pairs (two words each). Valid range is 1...32768.
+                                                   *   For memory copy descriptors, the X count is a number of bytes (not a data transfer size).
+                                                   *   For scatter descriptors, the X count is a number of [address, data] pairs (two words each). Valid range is 1...32768.
                                                    */
     int32_t                      srcYincrement;   /**< The address increment of the source after each Y-loop transfer. Valid range is -32768...32767. */
     int32_t                      dstYincrement;   /**< The address increment of the destination after each Y-loop transfer. Valid range is -32768...32767. */
@@ -616,6 +637,7 @@ __STATIC_INLINE uint32_t Cy_DMAC_GetActiveChannel(DMAC_Type const * base)
 *
 * \param srcAddress
 * The source address value for the descriptor.
+* For CAT1C devices this pointer needs to point to 32 byte aligned structure.
 *
 * \funcusage
 * \snippet dmac/snippet/main.c snippet_Cy_DMAC_Descriptor_SetterFunctions
@@ -660,6 +682,7 @@ __STATIC_INLINE void * Cy_DMAC_Descriptor_GetSrcAddress(cy_stc_dmac_descriptor_t
 *
 * \param dstAddress
 * The destination address value for the descriptor.
+* For CAT1C devices this pointer needs to point to 32 byte aligned structure.
 *
 * \funcusage
 * \snippet dmac/snippet/main.c snippet_Cy_DMAC_Descriptor_SetterFunctions
@@ -1366,6 +1389,7 @@ __STATIC_INLINE int32_t Cy_DMAC_Descriptor_GetYloopDstIncrement(cy_stc_dmac_desc
 *
 * \param descriptor
 * This is the descriptor to be associated with the channel.
+* For CAT1C devices this pointer needs to point to 32 byte aligned structure.
 *
 * \funcusage
 * \snippet dmac/snippet/main.c snippet_Cy_DMAC_Enable
@@ -1669,6 +1693,7 @@ __STATIC_INLINE void Cy_DMAC_Channel_ClearInterrupt(DMAC_Type * base, uint32_t c
     CY_ASSERT_L2(CY_DMAC_IS_INTR_MASK_VALID(interrupt));
 
     DMAC_CH_INTR(base, channel) = interrupt;
+    /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) DMAC_CH_INTR(base, channel);
 }
 
@@ -1786,7 +1811,7 @@ __STATIC_INLINE uint32_t Cy_DMAC_Channel_GetInterruptStatusMasked(DMAC_Type cons
 
 /** \} group_dmac_functions */
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 
 #if defined(__cplusplus)
 }

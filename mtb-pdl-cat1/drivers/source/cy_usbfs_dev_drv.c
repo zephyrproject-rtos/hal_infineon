@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_usbfs_dev_drv.c
-* \version 2.20.2
+* \version 2.30
 *
 * Provides general API implementation of the USBFS driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2020 Cypress Semiconductor Corporation
+* Copyright 2018-2023 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -239,7 +239,8 @@ void Cy_USBFS_Dev_Drv_DeInit(USBFS_Type *base, cy_stc_usbfs_dev_drv_context_t *c
     USBFS_DEV_CR0(base) = 0UL;
     USBFS_DEV_CR1(base) = (USBFS_DEV_CR1(base) & USBFS_USBDEV_CR1_RESERVED_3_Msk);
     USBFS_DEV_USBIO_CR0(base) = 0UL;
-    USBFS_DEV_USBIO_CR1(base) = (USBFS_DEV_USBIO_CR1(base) & USBFS_USBDEV_USBIO_CR1_RESERVED_2_Msk);
+    USBFS_DEV_USBIO_CR1(base) = ((USBFS_DEV_USBIO_CR1(base) & USBFS_USBDEV_USBIO_CR1_RESERVED_2_Msk) |
+                                  USBFS_USBDEV_USBIO_CR1_IOMODE_Msk);
     regVal = CY_USBFS_DEV_READ_ODD(USBFS_DEV_USBIO_CR2(base));
     USBFS_DEV_USBIO_CR2(base) = (CY_USBFS_DEV_DRV_WRITE_ODD(regVal) & USBFS_USBDEV_USBIO_CR2_RESERVED_7_Msk);
 

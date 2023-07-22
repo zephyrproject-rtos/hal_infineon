@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_pdm_pcm.c
-* \version 2.30
+* \version 2.30.1
 *
 * The source code file for the PDM_PCM driver.
 *
@@ -24,7 +24,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXAUDIOSS)
+#if defined (AUDIOSS_PDM_PRESENT)
 
 #include "cy_pdm_pcm.h"
 
@@ -243,6 +243,6 @@ cy_en_syspm_status_t Cy_PDM_PCM_DeepSleepCallback(cy_stc_syspm_callback_params_t
 /** \} group_pdm_pcm_functions */
 
 
-#endif /* CY_IP_MXAUDIOSS */
+#endif /* (defined (AUDIOSS_PDM_PRESENT) || defined(CY_DOXYGEN)) */
 
 /* [] END OF FILE */

@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_flash.c
-* \version 3.50.1
+* \version 3.70
 *
 * \brief
 * Provides the public functions for the API for the PSoC 6 Flash Driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright 2016-2021 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@
 #endif /* defined (CY_DEVICE_SECURE) */
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 2, \
-'IPC_STRUCT_Type will typecast to either IPC_STRUCT_V1_Type or IPC_STRUCT_V2_Type but not both on PDL initialization based on the target device at compile time.');
+'IPC_STRUCT_Type will typecast to either IPC_STRUCT_V1_Type or IPC_STRUCT_V2_Type but not both on PDL initialization based on the target device at compile time.')
 
 /***************************************
 * Data Structure definitions
@@ -229,7 +229,7 @@ static volatile cy_stc_flash_context_t flashContext;
     * Cy_IPC_Pipe_Init() functions before use.
     *
     * This function is called in the Cy_Flash_Init() function - see the
-    * \ref Cy_Flash_Init usage considerations.
+    * Cy_Flash_Init usage considerations.
     *
     *******************************************************************************/
     void Cy_Flash_InitExt(cy_stc_flash_notify_t *ipcWaitMessageAddr)
@@ -333,14 +333,13 @@ static volatile cy_stc_flash_context_t flashContext;
 * and erase operations. If the default startup file is not used, or the function
 * SystemInit() is not called in your project, ensure to perform the following steps
 * before any flash or EmEEPROM write/erase operations:
-* \snippet flash/snippet/main.c Flash Initialization
 *
 *******************************************************************************/
 void Cy_Flash_Init(void)
 {
     #if !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
         CY_SECTION_SHAREDMEM
-        CY_ALIGN(4) static cy_stc_flash_notify_t ipcWaitMessageStc;
+        static cy_stc_flash_notify_t ipcWaitMessageStc CY_ALIGN(4);
 
         Cy_Flash_InitExt(&ipcWaitMessageStc);
     #endif /* !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
@@ -354,16 +353,6 @@ void Cy_Flash_Init(void)
 * Sends a command to the SROM via the IPC channel. The function is placed to the
 * SRAM memory to guarantee successful operation. After an IPC message is sent,
 * the function waits for a defined time before exiting the function.
-*
-* \param mode
-* Sets the blocking or non-blocking Flash operation.
-*
-* \param microseconds
-* The number of microseconds to wait before exiting the functions
-* in range 0-65535 us.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 CY_SECTION_RAMFUNC_BEGIN
@@ -518,9 +507,6 @@ CY_SECTION_RAMFUNC_END
     *
     * Wait for a defined time in the SRAM memory region.
     *
-    * \param microseconds
-    * Delay time in microseconds in range 0-65535 us.
-    *
     *******************************************************************************/
     CY_SECTION_RAMFUNC_BEGIN
     #if !defined (__ICCARM__)
@@ -628,7 +614,7 @@ CY_SECTION_RAMFUNC_END
 *
 * This function erases a single row of flash. Reports success or
 * a reason for failure. Does not return until the Write operation is
-* complete. Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in
+* complete. Returns immediately and reports a CY_FLASH_DRV_IPC_BUSY error in
 * the case when another process is writing to flash or erasing the row.
 * User firmware should not enter the Hibernate or Deep Sleep mode until flash Erase
 * is complete. The Flash operation is allowed in Sleep mode.
@@ -636,20 +622,6 @@ CY_SECTION_RAMFUNC_END
 * XRES pin, a software reset, and watchdog reset sources. Also, low-voltage
 * detect circuits should be configured to generate an interrupt instead of a
 * reset. Otherwise, portions of flash may undergo unexpected changes.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr)
@@ -686,31 +658,17 @@ cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr)
 *
 * Starts erasing a single row of flash. Returns immediately
 * and reports a successful start or reason for failure.
-* Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
+* Reports a CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
 * by another process. User firmware should not enter the Hibernate or Deep Sleep mode until
 * flash Erase is complete. The Flash operation is allowed in Sleep mode.
 * During the flash operation, the device should not be reset, including the
 * XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
 * detect circuits should be configured to generate an interrupt instead of a reset.
 * Otherwise, portions of flash may undergo unexpected changes.
-* \note To avoid situation of reading data from cache memory - before
+* To avoid situation of reading data from cache memory - before
 * reading data from previously programmed/erased flash rows, the user must
 * clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
 * function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash erase operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr)
@@ -752,7 +710,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr)
 *
 * This function erases a sector of flash. Reports success or
 * a reason for failure. Does not return until the Erase operation is
-* complete. Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in
+* complete. Returns immediately and reports a CY_FLASH_DRV_IPC_BUSY error in
 * the case when another process is writing to flash or erasing the row.
 * User firmware should not enter the Hibernate or Deep Sleep mode until flash Erase
 * is complete. The Flash operation is allowed in Sleep mode.
@@ -760,20 +718,6 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr)
 * XRES pin, a software reset, and watchdog reset sources. Also, low-voltage
 * detect circuits should be configured to generate an interrupt instead of a
 * reset. Otherwise, portions of flash may undergo unexpected changes.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param sectorAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_EraseSector(uint32_t sectorAddr)
@@ -810,30 +754,17 @@ cy_en_flashdrv_status_t Cy_Flash_EraseSector(uint32_t sectorAddr)
 *
 * Starts erasing a sector of flash. Returns immediately
 * and reports a successful start or reason for failure.
-* Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
+* Reports a CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
 * by another process. User firmware should not enter the Hibernate or Deep Sleep mode until
 * flash Erase is complete. The Flash operation is allowed in Sleep mode.
 * During the flash operation, the device should not be reset, including the
 * XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
 * detect circuits should be configured to generate an interrupt instead of a reset.
 * Otherwise, portions of flash may undergo unexpected changes.
-* \note Before reading data from previously programmed/erased flash rows, the
+* Before reading data from previously programmed/erased flash rows, the
 * user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
 * function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
 *
-* \param sectorAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash erase operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_StartEraseSector(uint32_t sectorAddr)
@@ -875,7 +806,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseSector(uint32_t sectorAddr)
 *
 * This function erases an 8-row subsector of flash. Reports success or
 * a reason for failure. Does not return until the Write operation is
-* complete. Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in
+* complete. Returns immediately and reports a CY_FLASH_DRV_IPC_BUSY error in
 * the case when another process is writing to flash or erasing the row.
 * User firmware should not enter the Hibernate or Deep-Sleep mode until flash Erase
 * is complete. The Flash operation is allowed in Sleep mode.
@@ -883,21 +814,6 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseSector(uint32_t sectorAddr)
 * XRES pin, a software reset, and watchdog reset sources. Also, low-voltage
 * detect circuits should be configured to generate an interrupt instead of a
 * reset. Otherwise, portions of flash may undergo unexpected changes.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param subSectorAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-*
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_EraseSubsector(uint32_t subSectorAddr)
 {
@@ -933,31 +849,16 @@ cy_en_flashdrv_status_t Cy_Flash_EraseSubsector(uint32_t subSectorAddr)
 *
 * Starts erasing an 8-row subsector of flash. Returns immediately
 * and reports a successful start or reason for failure.
-* Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
+* Reports a CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
 * by another process. User firmware should not enter the Hibernate or Deep-Sleep mode until
 * flash Erase is complete. The Flash operation is allowed in Sleep mode.
 * During the flash operation, the device should not be reset, including the
 * XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
 * detect circuits should be configured to generate an interrupt instead of a reset.
 * Otherwise, portions of flash may undergo unexpected changes.
-* \note Before reading data from previously programmed/erased flash rows, the
+* Before reading data from previously programmed/erased flash rows, the
 * user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
 * function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param subSectorAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash erase operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-*
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_StartEraseSubsector(uint32_t subSectorAddr)
 {
@@ -999,7 +900,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseSubsector(uint32_t subSectorAddr)
 * This function writes an array of data to a single row of flash. Reports
 * success or a reason for failure. Does not return until the Program operation
 * is complete.
-* Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case
+* Returns immediately and reports a CY_FLASH_DRV_IPC_BUSY error in the case
 * when another process is writing to flash. User firmware should not enter the
 * Hibernate or Deep-sleep mode until flash Write is complete. The Flash operation
 * is allowed in Sleep mode. During the Flash operation, the device should not be
@@ -1010,28 +911,9 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseSubsector(uint32_t subSectorAddr)
 * Before calling this function, the target flash region must be erased by
 * the StartErase/EraseRow function.\n
 * Data to be programmed must be located in the SRAM memory region.
-* \note Before reading data from previously programmed/erased flash rows, the
+* Before reading data from previously programmed/erased flash rows, the
 * user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
 * function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \param data The pointer to the data which has to be written to flash. The size
-* of the data array must be equal to the flash row size. The flash row size for
-* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
-* the device datasheet for the details.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* data)
@@ -1071,7 +953,7 @@ cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* da
 * in three steps - pre-program, erase and then program flash row with the input
 * data. Reports success or a reason for failure. Does not return until the Write
 * operation is complete.
-* Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case
+* Returns immediately and reports a CY_FLASH_DRV_IPC_BUSY error in the case
 * when another process is writing to flash. User firmware should not enter the
 * Hibernate or Deep-sleep mode until flash Write is complete. The Flash operation
 * is allowed in Sleep mode. During the Flash operation, the
@@ -1080,25 +962,6 @@ cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* da
 * circuits should be configured to generate an interrupt
 * instead of a reset. Otherwise, portions of flash may undergo
 * unexpected changes.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \param data The pointer to the data which has to be written to flash. The size
-* of the data array must be equal to the flash row size. The flash row size for
-* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
-* the device datasheet for the details.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data)
@@ -1136,7 +999,7 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 *
 * Performs pre-program, erase and then starts programming the flash row with
 * the input data. Returns immediately and reports a successful start
-* or reason for failure. Reports a \ref CY_FLASH_DRV_IPC_BUSY error
+* or reason for failure. Reports a CY_FLASH_DRV_IPC_BUSY error
 * in the case when another process is writing to flash. User
 * firmware should not enter the Hibernate or Deep-Sleep mode until
 * flash Write is complete. The Flash operation is allowed in Sleep mode.
@@ -1144,28 +1007,9 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 * XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
 * detect circuits should be configured to generate an interrupt instead of a reset.
 * Otherwise, portions of flash may undergo unexpected changes.
-* \note Before reading data from previously programmed/erased flash rows, the
+* Before reading data from previously programmed/erased flash rows, the
 * user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
 * function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \param data The pointer to the data to be written to flash. The size
-* of the data array must be equal to the flash row size. The flash row size for
-* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
-* the device datasheet for the details.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* data)
@@ -1202,10 +1046,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* da
 ****************************************************************************//**
 *
 * Reports a successful operation result, reason of failure or busy status
-* ( \ref CY_FLASH_DRV_OPCODE_BUSY ).
-*
-* \return Returns the status of the Flash operation (see \ref cy_en_flashdrv_status_t).
-*
+* ( CY_FLASH_DRV_OPCODE_BUSY ).
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void)
 {
@@ -1219,7 +1060,7 @@ cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void)
 *
 * Starts writing an array of data to a single row of flash. Returns immediately
 * and reports a successful start or reason for failure.
-* Reports a \ref CY_FLASH_DRV_IPC_BUSY error if another process is writing
+* Reports a CY_FLASH_DRV_IPC_BUSY error if another process is writing
 * to flash. The user firmware should not enter Hibernate or Deep-Sleep mode until flash
 * Program is complete. The Flash operation is allowed in Sleep mode.
 * During the Flash operation, the device should not be reset, including the
@@ -1229,28 +1070,9 @@ cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void)
 * Before calling this function, the target flash region must be erased by
 * the StartEraseRow/EraseRow function.\n
 * Data to be programmed must be located in the SRAM memory region.
-* \note Before reading data from previously programmed/erased flash rows, the
+* Before reading data from previously programmed/erased flash rows, the
 * user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
 * function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \param rowAddr The address of the flash row number.
-* The Read-while-Write violation occurs when the Flash Write operation is
-* performing. Refer to the device datasheet for the details.
-* The address must match the row start address.
-*
-* \param data The pointer to the data to be written to flash. The size
-* of the data array must be equal to the flash row size. The flash row size for
-* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
-* the device datasheet for the details.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-*
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* data)
 {
@@ -1291,16 +1113,6 @@ cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* 
 ****************************************************************************//**
 *
 * Returns a checksum value of the specified flash row.
-*
-* \note Now Cy_Flash_RowChecksum() requires the row <b>address</b> (rowAddr)
-*       as a parameter. In previous versions of the driver, this function used
-*       the row <b>number</b> (rowNum) for this parameter.
-*
-* \param rowAddr The address of the flash row.
-*
-* \param checksumPtr The pointer to the address where checksum is to be stored
-*
-* \return Returns the status of the Flash operation.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_RowChecksum (uint32_t rowAddr, uint32_t* checksumPtr)
@@ -1366,16 +1178,6 @@ cy_en_flashdrv_status_t Cy_Flash_RowChecksum (uint32_t rowAddr, uint32_t* checks
 ****************************************************************************//**
 *
 * Returns a hash value of the specified region of flash.
-*
-* \param data Start the data address.
-*
-* \param numberOfBytes The hash value is calculated for the number of bytes after the
-* start data address (0 - 1 byte, 1- 2 bytes etc).
-*
-* \param hashPtr The pointer to the address where hash is to be stored
-*
-* \return Returns the status of the Flash operation.
-*
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_CalculateHash (const uint32_t* data, uint32_t numberOfBytes,  uint32_t* hashPtr)
 {
@@ -1428,17 +1230,6 @@ cy_en_flashdrv_status_t Cy_Flash_CalculateHash (const uint32_t* data, uint32_t n
 ****************************************************************************//**
 *
 * Returns flash region ID and row number of the Flash address.
-*
-* \param flashAddr Address to be checked
-*
-* \return
-*   The valid return value is encoded as follows
-*   <table>
-*   <tr><th>Field            <th>Value
-*   <tr><td>Flash row number <td>[15:0]  bits
-*   <tr><td>Flash region ID  <td>[31:16] bits
-*   </table>
-*
 *******************************************************************************/
 static uint32_t Cy_Flash_GetRowNum(uint32_t flashAddr)
 {
@@ -1473,11 +1264,6 @@ static uint32_t Cy_Flash_GetRowNum(uint32_t flashAddr)
 *
 * The function checks the following conditions:
 *  - if Flash address is equal to start address of the row
-*
-* \param flashAddr Address to be checked
-*
-* \return false - out of bound, true - in flash bounds
-*
 *******************************************************************************/
 static bool Cy_Flash_BoundsCheck(uint32_t flashAddr)
 {
@@ -1490,11 +1276,6 @@ static bool Cy_Flash_BoundsCheck(uint32_t flashAddr)
 ****************************************************************************//**
 *
 * Converts System Call returns to the Flash driver return defines.
-*
-* \param opcode The value returned by the System Call.
-*
-* \return Flash driver return.
-*
 *******************************************************************************/
 static cy_en_flashdrv_status_t Cy_Flash_ProcessOpcode(uint32_t opcode)
 {
@@ -1578,10 +1359,6 @@ static cy_en_flashdrv_status_t Cy_Flash_ProcessOpcode(uint32_t opcode)
 ****************************************************************************//**
 *
 * Checks the status of the Flash Operation, and returns it.
-*
-* \return Returns the status of the Flash operation
-* (see \ref cy_en_flashdrv_status_t).
-*
 *******************************************************************************/
 static cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void)
 {
@@ -1618,23 +1395,19 @@ static cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void)
 * This function handles the case where a module such as security image captures
 * a system call from this driver and reports its own status or error code,
 * for example protection violation. In that case, a function from this
-* driver returns an unknown error (see \ref cy_en_flashdrv_status_t). After receipt
+* driver returns an unknown error (see cy_en_flashdrv_status_t). After receipt
 * of an unknown error, the user may call this function to get the status
 * of the capturing module.
 *
 * The user is responsible for parsing the content of the returned value
 * and casting it to the appropriate enumeration.
-*
-* \return
-* The error code that was stored in the opcode variable.
-*
 *******************************************************************************/
 uint32_t Cy_Flash_GetExternalStatus(void)
 {
     return (flashContext.opcode);
 }
 
-CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3');
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 #endif /* CY_IP_M4CPUSS */
 
 /* [] END OF FILE */

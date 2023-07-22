@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_wdt.c
-* \version 1.30.1
+* \version 1.60
 *
 *  This file provides the source code to the API for the WDT driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SRSS) || defined (CY_IP_MXS40SSRSS )
+#if defined (CY_IP_MXS28SRSS)|| defined (CY_IP_MXS40SSRSS ) || defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3) || defined (CY_IP_MXS22SRSS )
 
 #include "cy_wdt.h"
 
@@ -144,7 +145,6 @@ void Cy_WDT_SetMatch(uint32_t match)
     }
 }
 
-
 /*******************************************************************************
 * Function Name: Cy_WDT_SetIgnoreBits
 ****************************************************************************//**
@@ -167,14 +167,53 @@ void Cy_WDT_SetMatch(uint32_t match)
 *******************************************************************************/
 void Cy_WDT_SetIgnoreBits(uint32_t bitsNum)
 {
-    CY_ASSERT_L2(CY_WDT_IS_IGNORE_BITS_VALID(bitsNum));
+    CY_ASSERT_L1(CY_WDT_IS_IGNORE_BITS_VALID(bitsNum));
+    (void)bitsNum;
 
     if (false == Cy_WDT_Locked())
     {
+#if defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS)
+        SRSS_WDT_MATCH2 = _CLR_SET_FLD32U((SRSS_WDT_MATCH2), SRSS_WDT_MATCH2_IGNORE_BITS_ABOVE, (WDT_MAX_IGNORE_BITS - bitsNum));
+#else
         SRSS_WDT_MATCH = _CLR_SET_FLD32U((SRSS_WDT_MATCH), SRSS_WDT_MATCH_IGNORE_BITS, bitsNum);
+#endif
     }
 }
 
+
+#if defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS) || defined (CY_DOXYGEN)
+
+/*******************************************************************************
+* Function Name: Cy_WDT_SetMatchBits
+****************************************************************************//**
+*
+* Configures the bit position above which the bits will be ignored for match.
+*
+* \param bitPos
+* The bit position above which the match should be ignored.
+*
+* \details The value of bitPos controls the time-to-reset of the Watchdog timer
+* This happens after 3 successive matches.
+*
+* \warning This function changes the WDT interrupt period, therefore
+* the device can go into an infinite WDT reset loop. This may happen
+* if a WDT reset occurs faster that a device start-up.
+*
+* \note
+* This API is available for CAT1B devices.
+*
+*******************************************************************************/
+void Cy_WDT_SetMatchBits(uint32_t bitPos)
+{
+    CY_ASSERT_L2(CY_WDT_IS_IGNORE_BITS_ABOVE_VALID(bitPos));
+    (void)bitPos;
+
+    if (false == Cy_WDT_Locked())
+    {
+        SRSS_WDT_MATCH2 = _CLR_SET_FLD32U((SRSS_WDT_MATCH2), SRSS_WDT_MATCH2_IGNORE_BITS_ABOVE, bitPos);
+    }
+}
+#endif
 
 /*******************************************************************************
 * Function Name: Cy_WDT_ClearInterrupt
