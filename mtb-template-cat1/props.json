@@ -1,0 +1,941 @@
+{
+    "core": {
+        "id": "a76a909a-61d7-56ca-96ca-378d4e732287",
+        "name": "mtb-template-cat1",
+        "version": "1.2.1.33410"
+    },
+    "opt": {
+        "props": {
+            "TemplateData": {
+                "CYW20829": {
+                    "components": "cat1b_components",
+                    "defines": [
+                        "hal_defines",
+                        "cat1b_defines"
+                    ],
+                    "deps": "cat1b_dependencies",
+                    "files": [
+                        "filelist/cat1b.txt",
+                        "filelist/cyw20829.txt"
+                    ],
+                    "files_init": "filelist/init_cyw20829.txt"
+                },
+                "PSoC6A256K": {
+                    "CortexM0p": {
+                        "components": [
+                            "cat1a_components"
+                        ],
+                        "defines": "hal_defines",
+                        "deps": "cat1a_dependencies",
+                        "files": [
+                            "filelist/cat1a.txt",
+                            "filelist/wiced_bluetooth.txt",
+                            "filelist/cy8c6xx4_sc.txt"
+                        ],
+                        "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                    },
+                    "NA": {
+                        "components": [
+                            "cat1a_components",
+                            "cat1_cm0p_crypto_components"
+                        ],
+                        "defines": "hal_defines",
+                        "deps": "cat1a_dependencies",
+                        "files": [
+                            "filelist/cat1a.txt",
+                            "filelist/wiced_bluetooth.txt",
+                            "filelist/cy8c6xx4.txt"
+                        ],
+                        "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                    },
+                    "udd_key": "Cores_REMOVED"
+                },
+                "PSoC6A2M": {
+                    "PSoC 61": {
+                        "CortexM0p": {
+                            "1024": {
+                                "components": [
+                                    "cat1a_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xx8_sc.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "2048": {
+                                "components": [
+                                    "cat1a_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xxa_sc.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "NA": {
+                            "1024": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xx8.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "1856": {
+                                "SecureBoot": {
+                                    "components": [
+                                        "cat1a_components",
+                                        "cat1_cm0p_crypto_components",
+                                        "cat1a_cm0p_secure_components",
+                                        "connectivity_components"
+                                    ],
+                                    "defines": "hal_defines",
+                                    "deps": "cat1a_dependencies",
+                                    "files": [
+                                        "filelist/cat1a.txt",
+                                        "filelist/cat1a-secure.txt",
+                                        "filelist/wiced_bluetooth.txt",
+                                        "filelist/cyb06xxa.txt"
+                                    ],
+                                    "files_init": "filelist/init_psoc6a2m-secure.txt"
+                                },
+                                "StandardSecure": {
+                                    "components": [
+                                        "cat1a_components",
+                                        "cat1_cm0p_crypto_components",
+                                        "connectivity_components"
+                                    ],
+                                    "defines": "hal_defines",
+                                    "deps": "cat1a_dependencies",
+                                    "files": [
+                                        "filelist/cat1a.txt",
+                                        "filelist/wiced_bluetooth.txt",
+                                        "filelist/cys06xxa.txt"
+                                    ],
+                                    "files_init": "filelist/init_psoc6a2m.txt"
+                                },
+                                "udd_key": "Security"
+                            },
+                            "2048": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xxa.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "udd_key": "Cores_REMOVED"
+                    },
+                    "PSoC 62": {
+                        "CortexM0p": {
+                            "1024": {
+                                "components": [
+                                    "cat1a_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xx8_sc.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "2048": {
+                                "components": [
+                                    "cat1a_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xxa_sc.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "NA": {
+                            "1024": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xx8.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "1856": {
+                                "SecureBoot": {
+                                    "components": [
+                                        "cat1a_components",
+                                        "cat1_cm0p_crypto_components",
+                                        "cat1a_cm0p_secure_components",
+                                        "connectivity_components"
+                                    ],
+                                    "defines": "hal_defines",
+                                    "deps": "cat1a_dependencies",
+                                    "files": [
+                                        "filelist/cat1a.txt",
+                                        "filelist/cat1a-secure.txt",
+                                        "filelist/wiced_bluetooth.txt",
+                                        "filelist/cyb06xxa.txt"
+                                    ],
+                                    "files_init": "filelist/init_psoc6a2m-secure.txt"
+                                },
+                                "StandardSecure": {
+                                    "components": [
+                                        "cat1a_components",
+                                        "cat1_cm0p_crypto_components",
+                                        "connectivity_components"
+                                    ],
+                                    "defines": "hal_defines",
+                                    "deps": "cat1a_dependencies",
+                                    "files": [
+                                        "filelist/cat1a.txt",
+                                        "filelist/wiced_bluetooth.txt",
+                                        "filelist/cys06xxa.txt"
+                                    ],
+                                    "files_init": "filelist/init_psoc6a2m.txt"
+                                },
+                                "udd_key": "Security"
+                            },
+                            "2048": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xxa.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6a2m.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "udd_key": "Cores_REMOVED"
+                    },
+                    "PSoC 64": {
+                        "NA": {
+                            "1856": {
+                                "SecureBoot": {
+                                    "components": [
+                                        "cat1a_components",
+                                        "cat1a_cm0p_secure_components",
+                                        "cat1_cm0p_crypto_components",
+                                        "connectivity_components"
+                                    ],
+                                    "defines": "hal_defines",
+                                    "deps": "cat1a_dependencies",
+                                    "files": [
+                                        "filelist/cat1a.txt",
+                                        "filelist/cat1a-secure.txt",
+                                        "filelist/wiced_bluetooth.txt",
+                                        "filelist/cyb06xxa.txt"
+                                    ],
+                                    "files_init": "filelist/init_psoc6a2m-secure.txt"
+                                },
+                                "StandardSecure": {
+                                    "components": [
+                                        "cat1a_components",
+                                        "cat1_cm0p_crypto_components",
+                                        "connectivity_components"
+                                    ],
+                                    "defines": "hal_defines",
+                                    "deps": "cat1a_dependencies",
+                                    "files": [
+                                        "filelist/cat1a.txt",
+                                        "filelist/wiced_bluetooth.txt",
+                                        "filelist/cys06xxa.txt"
+                                    ],
+                                    "files_init": "filelist/init_psoc6a2m.txt"
+                                },
+                                "udd_key": "Security"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "udd_key": "Cores_REMOVED"
+                    },
+                    "udd_key": "DeviceSeries"
+                },
+                "PSoC6A512K": {
+                    "PSoC 61": {
+                        "CortexM0p": {
+                            "components": [
+                                "cat1a_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1a_dependencies",
+                            "files": [
+                                "filelist/cat1a.txt",
+                                "filelist/wiced_bluetooth.txt",
+                                "filelist/cy8c6xx5_sc.txt"
+                            ],
+                            "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                        },
+                        "NA": {
+                            "512": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xx5.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "udd_key": "Cores_REMOVED"
+                    },
+                    "PSoC 62": {
+                        "CortexM0p": {
+                            "components": [
+                                "cat1a_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1a_dependencies",
+                            "files": [
+                                "filelist/cat1a.txt",
+                                "filelist/wiced_bluetooth.txt",
+                                "filelist/cy8c6xx5_sc.txt"
+                            ],
+                            "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                        },
+                        "NA": {
+                            "448": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cyb06xx5.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                            },
+                            "512": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cy8c6xx5.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "udd_key": "Cores_REMOVED"
+                    },
+                    "PSoC 64": {
+                        "CortexM0p": {
+                            "components": [
+                                "cat1a_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1a_dependencies",
+                            "files": [
+                                "filelist/cat1a.txt",
+                                "filelist/wiced_bluetooth.txt",
+                                "filelist/cy8c6xx5_sc.txt"
+                            ],
+                            "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                        },
+                        "NA": {
+                            "448": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1_cm0p_crypto_components",
+                                    "cat1a_cm0p_secure_components",
+                                    "connectivity_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/cat1a-secure.txt",
+                                    "filelist/wiced_bluetooth.txt",
+                                    "filelist/cyb06xx5.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k-secure.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "udd_key": "Cores_REMOVED"
+                    },
+                    "udd_key": "DeviceSeries"
+                },
+                "PSoC6ABLE2": {
+                    "PSoC 60": {
+                        "components": [
+                            "cat1a_components"
+                        ],
+                        "defines": "hal_defines",
+                        "deps": "cat1a_dependencies",
+                        "files": [
+                            "filelist/cat1a.txt",
+                            "filelist/cy8c6xx6_sc.txt"
+                        ],
+                        "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                    },
+                    "PSoC 61": {
+                        "1024": {
+                            "components": [
+                                "cat1a_components",
+                                "cat1a_udb_components",
+                                "connectivity_components"
+                            ],
+                            "defines": [
+                                "hal_defines",
+                                "cat1a_udb_sdio_defines"
+                            ],
+                            "deps": "cat1a_dependencies_with_sdio",
+                            "files": [
+                                "filelist/cat1a.txt",
+                                "filelist/cy8c6xx7_sc.txt",
+                                "filelist/cat1a_udb.txt"
+                            ],
+                            "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                        },
+                        "512": {
+                            "components": [
+                                "cat1a_components",
+                                "cat1a_udb_components",
+                                "connectivity_components"
+                            ],
+                            "defines": [
+                                "hal_defines",
+                                "cat1a_udb_sdio_defines"
+                            ],
+                            "deps": "cat1a_dependencies_with_sdio",
+                            "files": [
+                                "filelist/cat1a.txt",
+                                "filelist/cy8c6xx6_sc.txt",
+                                "filelist/cat1a_udb.txt"
+                            ],
+                            "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                        },
+                        "udd_key": "Flash_KB"
+                    },
+                    "PSoC 62": {
+                        "1024": {
+                            "components": [
+                                "cat1a_components",
+                                "cat1_cm0p_crypto_components",
+                                "cat1a_udb_components",
+                                "connectivity_components"
+                            ],
+                            "defines": [
+                                "hal_defines",
+                                "cat1a_udb_sdio_defines"
+                            ],
+                            "deps": "cat1a_dependencies_with_sdio",
+                            "files": [
+                                "filelist/cat1a.txt",
+                                "filelist/cy8c6xx7.txt",
+                                "filelist/cat1a_udb.txt"
+                            ],
+                            "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                        },
+                        "512": {
+                            "components": [
+                                "cat1a_components",
+                                "cat1_cm0p_crypto_components",
+                                "cat1a_udb_components",
+                                "connectivity_components"
+                            ],
+                            "defines": [
+                                "hal_defines",
+                                "cat1a_udb_sdio_defines"
+                            ],
+                            "deps": "cat1a_dependencies_with_sdio",
+                            "files": [
+                                "filelist/cat1a.txt",
+                                "filelist/cy8c6xx6.txt",
+                                "filelist/cat1a_udb.txt"
+                            ],
+                            "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                        },
+                        "udd_key": "Flash_KB"
+                    },
+                    "PSoC 63": {
+                        "CortexM0p": {
+                            "1024": {
+                                "components": [
+                                    "cat1a_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/cy8c6xx7_sc.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                            },
+                            "512": {
+                                "components": [
+                                    "cat1a_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/cy8c6xx6_sc.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "NA": {
+                            "1024": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1a_cm0p_bless_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/bless_bluetooth.txt",
+                                    "filelist/cy8c6xx7.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                            },
+                            "512": {
+                                "components": [
+                                    "cat1a_components",
+                                    "cat1a_cm0p_bless_components"
+                                ],
+                                "defines": "hal_defines",
+                                "deps": "cat1a_dependencies",
+                                "files": [
+                                    "filelist/cat1a.txt",
+                                    "filelist/bless_bluetooth.txt",
+                                    "filelist/cy8c6xx6.txt"
+                                ],
+                                "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k.txt"
+                            },
+                            "udd_key": "Flash_KB"
+                        },
+                        "udd_key": "Cores_REMOVED"
+                    },
+                    "PSoC 64": {
+                        "components": [
+                            "cat1a_components",
+                            "cat1a_cm0p_secure_components",
+                            "cat1a_udb_components",
+                            "connectivity_components"
+                        ],
+                        "defines": [
+                            "hal_defines",
+                            "cat1a_udb_sdio_defines"
+                        ],
+                        "deps": "cat1a_dependencies_with_sdio",
+                        "files": [
+                            "filelist/cat1a.txt",
+                            "filelist/cat1a-secure.txt",
+                            "filelist/cyb06xx7.txt",
+                            "filelist/cat1a_udb.txt"
+                        ],
+                        "files_init": "filelist/init_psoc6able2_psoc6a512k_psoc6a256k-secure.txt"
+                    },
+                    "udd_key": "DeviceSeries"
+                },
+                "TVIIBH4M": {
+                    "CortexM7": {
+                        "1088": {
+                            "components": [
+                                "cat1c_components",
+                                "cat1c_cm0p_single_cm7_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1c_dependencies",
+                            "files": [
+                                "filelist/cat1c.txt",
+                                "filelist/xmc7100x1088.txt"
+                            ],
+                            "files_init": "filelist/init_tviibh4m_tviibh8m.txt"
+                        },
+                        "2112": {
+                            "components": [
+                                "cat1c_components",
+                                "cat1c_cm0p_single_cm7_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1c_dependencies",
+                            "files": [
+                                "filelist/cat1c.txt",
+                                "filelist/xmc7100x2112.txt"
+                            ],
+                            "files_init": "filelist/init_tviibh4m_tviibh8m.txt"
+                        },
+                        "4160": {
+                            "components": [
+                                "cat1c_components",
+                                "cat1c_cm0p_single_cm7_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1c_dependencies",
+                            "files": [
+                                "filelist/cat1c.txt",
+                                "filelist/xmc7100x4160.txt"
+                            ],
+                            "files_init": "filelist/init_tviibh4m_tviibh8m.txt"
+                        },
+                        "udd_key": "Flash_KB"
+                    },
+                    "NA": {
+                        "2112": {
+                            "components": [
+                                "cat1c_components",
+                                "cat1c_cm0p_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1c_dependencies",
+                            "files": [
+                                "filelist/cat1c.txt",
+                                "filelist/xmc7100dx2112.txt"
+                            ],
+                            "files_init": "filelist/init_tviibh4m_tviibh8m.txt"
+                        },
+                        "4160": {
+                            "components": [
+                                "cat1c_components",
+                                "cat1c_cm0p_components",
+                                "connectivity_components"
+                            ],
+                            "defines": "hal_defines",
+                            "deps": "cat1c_dependencies",
+                            "files": [
+                                "filelist/cat1c.txt",
+                                "filelist/xmc7100dx4160.txt"
+                            ],
+                            "files_init": "filelist/init_tviibh4m_tviibh8m.txt"
+                        },
+                        "udd_key": "Flash_KB"
+                    },
+                    "udd_key": "Cores_REMOVED"
+                },
+                "TVIIBH8M": {
+                    "CortexM7": {
+                        "components": [
+                            "cat1c_components",
+                            "cat1c_cm0p_single_cm7_components",
+                            "connectivity_components"
+                        ],
+                        "defines": "hal_defines",
+                        "deps": "cat1c_dependencies",
+                        "files": [
+                            "filelist/cat1c.txt",
+                            "filelist/xmc7200x8384.txt"
+                        ],
+                        "files_init": "filelist/init_tviibh4m_tviibh8m.txt"
+                    },
+                    "NA": {
+                        "components": [
+                            "cat1c_components",
+                            "cat1c_cm0p_components",
+                            "connectivity_components"
+                        ],
+                        "defines": "hal_defines",
+                        "deps": "cat1c_dependencies",
+                        "files": [
+                            "filelist/cat1c.txt",
+                            "filelist/xmc7200dx8384.txt"
+                        ],
+                        "files_init": "filelist/init_tviibh4m_tviibh8m.txt"
+                    },
+                    "udd_key": "Cores_REMOVED"
+                },
+                "udd_key": "DeviceDie"
+            },
+            "component_sets": {
+                "cat1_cm0p_crypto_components": [
+                    {
+                        "description": "Include CM0+ default firmware to start the CM4",
+                        "display": "CM0+ pre-built firmware image",
+                        "options": [
+                            {
+                                "default": true,
+                                "display": "This image starts CM4 core at CY_CORTEX_M4_APPL_ADDR=0x10002000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "CM0P_SLEEP"
+                            },
+                            {
+                                "display": "This image starts crypto server on CM0+ core, starts CM4 core at CY_CORTEX_M4_APPL_ADDR=0x10008000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "CM0P_CRYPTO"
+                            }
+                        ]
+                    }
+                ],
+                "cat1a_cm0p_bless_components": [
+                    {
+                        "description": "Include CM0+ default firmware to start the CM4",
+                        "display": "CM0+ pre-built firmware image",
+                        "options": [
+                            {
+                                "default": true,
+                                "display": "This image starts CM4 core at CY_CORTEX_M4_APPL_ADDR=0x10002000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "CM0P_SLEEP"
+                            },
+                            {
+                                "display": "This image starts crypto server on CM0+ core, starts CM4 core at CY_CORTEX_M4_APPL_ADDR=0x10008000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "CM0P_CRYPTO"
+                            },
+                            {
+                                "display": "This image starts BLE controller on CM0+ core, starts CM4 core at CY_CORTEX_M4_APPL_ADDR=0x10020000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "CM0P_BLESS"
+                            }
+                        ]
+                    }
+                ],
+                "cat1a_cm0p_secure_components": [
+                    {
+                        "description": "Include CM0+ default firmware to start the CM4",
+                        "display": "CM0+ pre-built firmware image",
+                        "options": [
+                            {
+                                "default": true,
+                                "display": "This image starts CM4 core at CY_CORTEX_M4_APPL_ADDR=0x10000000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "CM0P_SECURE"
+                            }
+                        ]
+                    }
+                ],
+                "cat1a_components": [],
+                "cat1a_udb_components": [
+                    {
+                        "description": "UDB SDIO GPIO port selection.",
+                        "display": "UDB SDIO GPIO port selection",
+                        "options": [
+                            {
+                                "display": "Use Port 2 for UDB based SDIO interface",
+                                "files": [
+                                    "filelist/reserved-p2.txt"
+                                ],
+                                "name": "UDB_SDIO_P2"
+                            },
+                            {
+                                "display": "Use Port 9 for UDB based SDIO interface",
+                                "files": [
+                                    "filelist/reserved-p9.txt"
+                                ],
+                                "name": "UDB_SDIO_P9"
+                            },
+                            {
+                                "display": "Use Port 12 for UDB based SDIO interface",
+                                "files": [
+                                    "filelist/reserved-p12.txt"
+                                ],
+                                "name": "UDB_SDIO_P12"
+                            }
+                        ]
+                    }
+                ],
+                "cat1b_components": [],
+                "cat1c_cm0p_components": [
+                    {
+                        "description": "Include CM0+ default firmware to start the CM7",
+                        "display": "CM0+ pre-built firmware image",
+                        "options": [
+                            {
+                                "display": "This image starts the CM7_0 core at CY_CORTEX_M7_0_APPL_ADDR=0x10080000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "XMC7x_CM0P_SLEEP"
+                            },
+                            {
+                                "default": true,
+                                "display": "This image starts both CM7 cores at CY_CORTEX_M7_0_APPL_ADDR=0x10080000 and CY_CORTEX_M7_1_APPL_ADDR=0x10280000, and puts CM0+ core into a deep sleep mode.",
+                                "name": "XMC7xDUAL_CM0P_SLEEP"
+                            }
+                        ]
+                    }
+                ],
+                "cat1c_cm0p_single_cm7_components": [
+                    {
+                        "description": "Include CM0+ default firmware to start the CM7",
+                        "display": "CM0+ pre-built firmware image",
+                        "options": [
+                            {
+                                "display": "This image starts the CM7 core at CY_CORTEX_M7_0_APPL_ADDR=0x10080000 and puts CM0+ core into a deep sleep mode.",
+                                "name": "XMC7x_CM0P_SLEEP"
+                            }
+                        ]
+                    }
+                ],
+                "cat1c_components": [],
+                "connectivity_components": [
+                    {
+                        "description": "Bluetooth communication interface between the connectivity chip and the host MCU.",
+                        "display": "Bluetooth communication interface",
+                        "options": [
+                            {
+                                "default": true,
+                                "display": "The UART HCI mode used by bluetooth-freertos",
+                                "name": "HCI-UART"
+                            },
+                            {
+                                "display": "The Shared Bus HCI mode used by bluetooth-freertos",
+                                "name": "HCI-SHARED-BUS"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "WIFI communication interface between the connectivity chip and the host MCU.",
+                        "display": "WIFI communication interface",
+                        "options": [
+                            {
+                                "default": true,
+                                "display": "The SDIO communication interface is used by the wifi-host-driver",
+                                "name": "WIFI_INTERFACE_SDIO"
+                            },
+                            {
+                                "display": "The SPI communication interface is used by the wifi-host-driver",
+                                "name": "WIFI_INTERFACE_SPI"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "define_sets": {
+                "cat1a_udb_sdio_defines": [
+                    {
+                        "description": "SDIO interface for devices that do not have built-in SDIO",
+                        "display": "UDB-based SDIO interface",
+                        "options": [
+                            {
+                                "define": "CYHAL_UDB_SDIO",
+                                "display": "CYHAL_UDB_SDIO",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    }
+                ],
+                "cat1b_defines": [
+                    {
+                        "description": "PLACEHOLDER:FLASH_BOOT",
+                        "display": "PLACEHOLDER:FLASH_BOOT",
+                        "options": [
+                            {
+                                "default": true,
+                                "define": "FLASH_BOOT",
+                                "display": "FLASH_BOOT",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    }
+                ],
+                "hal_defines": [
+                    {
+                        "description": "Option to indicate that the Hardware Abstraction Layer APIs are expected to be used. This will cause the BSP to add calls to initialize the system functions.",
+                        "display": "Using HAL interface",
+                        "options": [
+                            {
+                                "default": true,
+                                "define": "CY_USING_HAL",
+                                "display": "CY_USING_HAL",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    }
+                ]
+            },
+            "dependency_sets": {
+                "cat1a_dependencies": [
+                    "deps/cat1a/core-lib.mtbx",
+                    "deps/cat1a/core-make.mtbx",
+                    "deps/cat1a/mtb-hal-cat1.mtbx",
+                    "deps/cat1a/mtb-pdl-cat1.mtbx",
+                    "deps/cat1a/cat1cm0p.mtbx",
+                    "deps/cat1a/recipe-make-cat1a.mtbx"
+                ],
+                "cat1a_dependencies_with_sdio": [
+                    "deps/cat1a/core-lib.mtbx",
+                    "deps/cat1a/core-make.mtbx",
+                    "deps/cat1a/mtb-hal-cat1.mtbx",
+                    "deps/cat1a/mtb-pdl-cat1.mtbx",
+                    "deps/cat1a/cat1cm0p.mtbx",
+                    "deps/cat1a/recipe-make-cat1a.mtbx",
+                    "deps/cat1a/udb-sdio-whd.mtbx"
+                ],
+                "cat1b_dependencies": [
+                    "deps/cat1b/core-lib.mtbx",
+                    "deps/cat1b/core-make.mtbx",
+                    "deps/cat1b/mtb-hal-cat1.mtbx",
+                    "deps/cat1b/mtb-pdl-cat1.mtbx",
+                    "deps/cat1b/recipe-make-cat1b.mtbx"
+                ],
+                "cat1c_dependencies": [
+                    "deps/cat1c/core-lib.mtbx",
+                    "deps/cat1c/core-make.mtbx",
+                    "deps/cat1c/mtb-hal-cat1.mtbx",
+                    "deps/cat1c/mtb-pdl-cat1.mtbx",
+                    "deps/cat1c/recipe-make-cat1c.mtbx"
+                ]
+            }
+        }
+    }
+}

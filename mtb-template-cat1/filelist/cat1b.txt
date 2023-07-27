@@ -1,0 +1,15 @@
+files/common/cybsp_doc.h:cybsp_doc.h
+files/common/cybsp_types.h:cybsp_types.h
+files/cat1b/cybsp.c:cybsp.c
+files/cat1b/cybsp.h:cybsp.h
+files/cat1b/cybsp_hw_config.h:cybsp_hw_config.h
+files/cat1b/cybsp_dsram.h:cybsp_dsram.h
+files/cat1b/cybsp_pm.h:cybsp_pm.h
+files/wiced_bluetooth/cybsp_bt_config.c:bluetooth/cybsp_bt_config.c
+files/wiced_bluetooth/cybsp_bt_config.h:bluetooth/cybsp_bt_config.h
+files/flashloader/cat1b/CYW208xx_SMIF.FLM:config/FlashLoaders/CYW208xx_SMIF.FLM
+files/flashloader/cat1b/FlashCYW208xx_SMIF.out:config/FlashLoaders/FlashCYW208xx_SMIF.out
+files/flashloader/cat1b/version.xml:config/FlashLoaders/version.xml
+EULA:EULA
+LICENSE:LICENSE
+cyignore:.cyignore

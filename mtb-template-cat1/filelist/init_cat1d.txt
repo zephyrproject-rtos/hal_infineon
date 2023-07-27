@@ -1,0 +1,3 @@
+files_init/cat1d/props.json:props.json
+files_init/cat1d/bsp.mk:bsp.mk
+files_init/cat1c/design.modus:config/design.modus

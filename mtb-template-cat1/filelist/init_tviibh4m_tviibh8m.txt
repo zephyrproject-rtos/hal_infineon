@@ -1,0 +1,7 @@
+files_init/cat1c/props.json:props.json
+files_init/cat1c/bsp.mk:bsp.mk
+files_init/cat1c/tviibh4m_tviibh8m.modus:config/design.modus
+
+files/flashloader/cat1c/CAT1C_SMIF.FLM:config/FlashLoaders/CAT1C_SMIF.FLM
+files/flashloader/cat1c/FlashCAT1C_SMIF.out:config/FlashLoaders/FlashCAT1C_SMIF.out
+files/flashloader/cat1c/version.xml:config/FlashLoaders/version.xml

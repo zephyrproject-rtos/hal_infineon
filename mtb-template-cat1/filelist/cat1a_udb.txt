@@ -1,0 +1,1 @@
+files/cat1a/cyreservedresources.template:cyreservedresources.template
