@@ -1,0 +1,2 @@
+files/wiced_bluetooth/cybsp_bt_config.c:bluetooth/cybsp_bt_config.c
+files/wiced_bluetooth/cybsp_bt_config.h:bluetooth/cybsp_bt_config.h

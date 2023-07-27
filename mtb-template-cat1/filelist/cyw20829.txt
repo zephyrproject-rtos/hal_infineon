@@ -1,0 +1,12 @@
+files/templates/cat1b/COMPONENT_MTB/system_cat1b.h:system_cat1b.h
+
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/startup_cat1b_cm33.c:startup_cat1b_cm33.c
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/system_cyw20829.c:system_cyw20829.c
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/HEADER_FILES/startup_cat1b.h:startup_cat1b.h
+
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_GCC_ARM/cyw20829_ns_flash_sahb.ld:TOOLCHAIN_GCC_ARM/linker_ns_flash_sahb.ld
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_GCC_ARM/cyw20829_ns_ram_cbus.ld:TOOLCHAIN_GCC_ARM/linker_ns_ram_cbus.ld
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_ARM/cyw20829_ns_flash_sahb.sct:TOOLCHAIN_ARM/linker_ns_flash_sahb.sct
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_ARM/cyw20829_ns_ram_cbus.sct:TOOLCHAIN_ARM/linker_ns_ram_cbus.sct
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_IAR/cyw20829_ns_flash_sahb.icf:TOOLCHAIN_IAR/linker_ns_flash_sahb.icf
+files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_IAR/cyw20829_ns_ram_cbus.icf:TOOLCHAIN_IAR/linker_ns_ram_cbus.icf
