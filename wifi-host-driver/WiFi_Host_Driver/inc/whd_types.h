@@ -20,15 +20,24 @@
  *
  */
 
-#include <stdint.h>
-
-#include "cybsp.h"
-#include "cy_result.h"
-#include "cyhal_hw_types.h"
-#include "cyhal_gpio.h"
-
 #ifndef INCLUDED_WHD_TYPES_H_
 #define INCLUDED_WHD_TYPES_H_
+
+#include <stdint.h>
+#include "cybsp.h"
+#include "cy_result.h"
+
+#ifndef WHD_USE_CUSTOM_HAL_IMPL
+	#include "cyhal_hw_types.h"
+	#include "cyhal_gpio.h"
+#if (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SDIO_INTERFACE)
+	#include "cyhal_sdio.h"
+#elif (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SPI_INTERFACE)
+	#include "cyhal_spi.h"
+#elif (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_M2M_INTERFACE)
+	#include "cyhal_m2m.h"
+#endif
+#endif /* ifndef WHD_USE_CUSTOM_HAL_IMPL */
 
 #ifdef __cplusplus
 extern "C"
@@ -96,6 +105,28 @@ typedef struct wl_pkt_filter_stats whd_pkt_filter_stats_t;
 typedef struct whd_tko_retry whd_tko_retry_t;
 typedef struct whd_tko_connect whd_tko_connect_t;
 typedef struct whd_tko_status whd_tko_status_t;
+
+#ifndef WHD_USE_CUSTOM_HAL_IMPL
+#define WHD_NC_PIN_VALUE CYHAL_NC_PIN_VALUE
+typedef cyhal_gpio_t whd_gpio_t;
+typedef cyhal_gpio_drive_mode_t whd_gpio_drive_mode_t;
+#if (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SDIO_INTERFACE)
+typedef cyhal_sdio_t whd_sdio_t;
+#elif (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SPI_INTERFACE)
+typedef cyhal_spi_t whd_spi_t;
+#elif (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_M2M_INTERFACE)
+typedef cyhal_m2m_t whd_m2m_t;
+#endif
+#else
+#define WHD_NC_PIN_VALUE	NULL
+typedef void* whd_gpio_t;
+typedef uint8_t whd_gpio_drive_mode_t;
+typedef void* whd_sdio_t;
+typedef void* whd_spi_t;
+typedef void* whd_m2m_t;
+#endif /* ifndef WHD_USE_CUSTOM_HAL_IMPL */
+
+
 /** @endcond */
 /******************************************************
 *                    Constants
@@ -1154,11 +1185,11 @@ typedef struct
  */
 typedef struct whd_oob_config
 {
-    cyhal_gpio_t host_oob_pin;          /**< Host-side GPIO pin selection */
+    whd_gpio_t host_oob_pin;          /**< Host-side GPIO pin selection */
     uint8_t dev_gpio_sel;               /**< WiFi device-side GPIO pin selection (must be zero) */
     whd_bool_t is_falling_edge;         /**< Interrupt trigger (polarity) */
     uint8_t intr_priority;              /**< OOB interrupt priority */
-    cyhal_gpio_drive_mode_t drive_mode; /**< Host-side GPIO pin drive mode */
+    whd_gpio_drive_mode_t drive_mode;   /**< Host-side GPIO pin drive mode */
     whd_bool_t init_drive_state;        /**< Host-side GPIO pin initial drive state */
 } whd_oob_config_t;
 
