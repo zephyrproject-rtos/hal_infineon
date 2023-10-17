@@ -2687,6 +2687,8 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
     CY_ASSERT(NULL != cfg->host_config);
     CY_ASSERT(NULL != cfg->card_config);
 
+    cy_rslt_t result = CY_RSLT_SUCCESS;
+
     _cyhal_sdxx_t *sdxx = &(obj->sdxx);
     sdxx->obj = obj;
     sdxx->is_sdio = true;
@@ -2724,12 +2726,15 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
     cyhal_gpio_t data[4];
     memcpy(data, cfg->gpios.data, sizeof(cfg->gpios.data));
 
-    cy_rslt_t result = _cyhal_sdxx_setup_pin(sdxx, cmd, cyhal_pin_map_sdhc_card_cmd,
-        CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_CMD,
-        _CYHAL_SDHC_ELEM_COUNT(cyhal_pin_map_sdhc_card_cmd), &(sdxx->pin_cmd), _CYHAL_SDHC_NOT_WEAK_FUNC,
-        !sdxx->dc_configured);
-
-    if (CY_RSLT_SUCCESS == result)
+    if (NC != sdxx->pin_cmd)
+    {
+    		result = _cyhal_sdxx_setup_pin(sdxx, cmd, cyhal_pin_map_sdhc_card_cmd,
+			CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_CMD,
+			_CYHAL_SDHC_ELEM_COUNT(cyhal_pin_map_sdhc_card_cmd), &(sdxx->pin_cmd), _CYHAL_SDHC_NOT_WEAK_FUNC,
+			!sdxx->dc_configured);
+    }
+    
+    if ((NC != sdxx->pin_clk) && (result == CY_RSLT_SUCCESS))
     {
         result = _cyhal_sdxx_setup_pin(sdxx, clk, cyhal_pin_map_sdhc_clk_card,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CLK_CARD,
@@ -2737,7 +2742,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if (CY_RSLT_SUCCESS == result)
+    if ((NC != obj->pin_data0) && (result == CY_RSLT_SUCCESS))
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[0], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
@@ -2745,7 +2750,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if (CY_RSLT_SUCCESS == result)
+    if ((NC != obj->pin_data1) && (result == CY_RSLT_SUCCESS))
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[1], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
@@ -2753,7 +2758,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if (CY_RSLT_SUCCESS == result)
+    if ((NC != obj->pin_data2) && (result == CY_RSLT_SUCCESS))
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[2], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
@@ -2761,7 +2766,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if (CY_RSLT_SUCCESS == result)
+    if ((NC != obj->pin_data3) && (result == CY_RSLT_SUCCESS))
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[3], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
