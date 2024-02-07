@@ -3,7 +3,8 @@
 # Copyright (c) 2020 Linumiz
 # Author: Parthiban Nallathambi <parthiban@linumiz.com>
 
-zephyr_compile_definitions(${CONFIG_SOC}_${CONFIG_SOC_PART_NUMBER})
-zephyr_include_directories(devices/${CONFIG_SOC}/Include)
-zephyr_library_sources(devices/${CONFIG_SOC}/Source/system_${CONFIG_SOC}.c)
+string(TOUPPER "${CONFIG_SOC}" soc_name_upper_case)
+zephyr_compile_definitions(${soc_name_upper_case}_${CONFIG_SOC_PART_NUMBER})
+zephyr_include_directories(devices/${soc_name_upper_case}/Include)
+zephyr_library_sources(devices/${soc_name_upper_case}/Source/system_${soc_name_upper_case}.c)
 add_subdirectory(drivers)
