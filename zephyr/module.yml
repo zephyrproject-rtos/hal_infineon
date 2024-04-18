@@ -274,6 +274,67 @@ blobs:
     description: "Bluetooth Controller FW for MURATA-1YN Module"
     doc-url: https://github.com/Infineon/btstack-integration
 
+    #CYW208xx Device
+    #CYW20829 (BTFW-TX0 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-TX0/bt_firmware.hcd
+    sha256: 6641e0a974986af8fc97c1fafc7f4469c81bbc89cfce5a791a778f3172cc29d4
+    type: img
+    version: '4.7.0'
+    license-path: zephyr/blobs/license.txt
+    url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.7.0/COMPONENT_BTSS-IPC/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-TX0/CYW20829B0_Generic_IPC_qfn_TX0.hcd
+    description: "Bluetooth Controller FW for CYW20829. Contains FW patch for 0dBm TX Power"
+    doc-url: https://github.com/Infineon/btstack-integration
+
+    #CYW20829 (BTFW-TX10 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-TX10/bt_firmware.hcd
+    sha256: 68c4c6a3bfe06d9d2c7e90555393398e55784db511b2d9a813cb34120eac4950
+    type: img
+    version: '4.7.0'
+    license-path: zephyr/blobs/license.txt
+    url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.7.0/COMPONENT_BTSS-IPC/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-TX10/CYW20829B0_Generic_IPC_qfn_TX10.hcd
+    description: "Bluetooth Controller FW for CYW20829. Contains FW patch for 10dBm TX Power"
+    doc-url: https://github.com/Infineon/btstack-integration
+
+    #CYW20829 (BTFW-ISOC-TX0 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-ISOC-TX0/bt_firmware.hcd
+    sha256: ac8b50d19f49a117f6c2d5129db9aeb027d9ac798e4671adb51aeca78d6a2b89
+    type: img
+    version: '4.7.0'
+    license-path: zephyr/blobs/license.txt
+    url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.7.0/COMPONENT_BTSS-IPC/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-ISOC-TX0/CYW20829B0_Generic_IPC_qfn_ISOC_TX0.hcd
+    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with ISOC support for 0dBm TX Power."
+    doc-url: https://github.com/Infineon/btstack-integration
+
+    #CYW20829 (BTFW-ISOC-TX10 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-ISOC-TX10/bt_firmware.hcd
+    sha256: 060a4aea9843a3b6d3364f5b466a3b0ffca2cf3b37d9458de7660c15a56f9c5e
+    type: img
+    version: '4.7.0'
+    license-path: zephyr/blobs/license.txt
+    url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.7.0/COMPONENT_BTSS-IPC/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-ISOC-TX10/CYW20829B0_Generic_IPC_qfn_ISOC_TX10.hcd
+    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with ISOC support for 10dBm TX Power."
+    doc-url: https://github.com/Infineon/btstack-integration
+
+    #CYW20829 (BTFW-PAWR-TX0 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-PAWR-TX0/bt_firmware.hcd
+    sha256: 631ff7e9fd2736ff93a72a0519c15500ec97e9cb1b9f1a1c710327cb4420f60d
+    type: img
+    version: '4.7.0'
+    license-path: zephyr/blobs/license.txt
+    url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.7.0/COMPONENT_BTSS-IPC/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-PAWR-TX0/CYW20829B0_Generic_IPC_qfn_PAWR_TX0.hcd
+    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with PAWR support for 0dBm TX Power."
+    doc-url: https://github.com/Infineon/btstack-integration
+
+    #CYW20829 (BTFW-PAWR-TX10 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-PAWR-TX10/bt_firmware.hcd
+    sha256: 29a3c535268470024bd8529350e9d4ed49f9edc55c567bf7ac7a8ecefa0d1b88
+    type: img
+    version: '4.7.0'
+    license-path: zephyr/blobs/license.txt
+    url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.7.0/COMPONENT_BTSS-IPC/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-PAWR-TX10/CYW20829B0_Generic_IPC_qfn_PAWR_TX10.hcd
+    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with PAWR support for 10dBm TX Power."
+    doc-url: https://github.com/Infineon/btstack-integration
+
 # bless
   - path: img/bluetooth/firmware/COMPONENT_BLESS_CONTROLLER/cy_ble_stack_controller.a
     sha256: 6278ee76b34e04ab0a82c3254b150c6c78375f3e9dea08b593899a865dd7cb6a
