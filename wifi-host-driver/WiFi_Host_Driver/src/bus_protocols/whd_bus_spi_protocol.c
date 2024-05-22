@@ -421,19 +421,9 @@ uint32_t whd_bus_spi_packet_available_to_read(whd_driver_t whd_driver)
     CHECK_RETURN(whd_ensure_wlan_bus_is_up(whd_driver) );
 
     whd_bus_spi_bt_packet_available_to_read(whd_driver);
-    /* Read the interrupt register */
-    if (whd_bus_spi_read_register_value(whd_driver, BUS_FUNCTION, SPI_INTERRUPT_REGISTER, (uint8_t)2,
-                                        (uint8_t *)&interrupt_register) != WHD_SUCCESS)
-    {
-        goto return_with_error;
-    }
-
-    if ( (interrupt_register & 0x0086) != 0 )   /* This should be 0x87, but occasional "data not available" errors are flagged seemingly for no reason */
-    {
-        /* Error condition detected */
-        WPRINT_WHD_DEBUG( ("Bus error condition detected\n") );
-    }
     /* Read the IntStatus */
+    // Note: this will cause SPI interrupt line to be asserted.
+    // interrupt register AFTER this one.
     if (whd_bus_spi_read_backplane_value(whd_driver, (uint32_t)SDIO_INT_STATUS(whd_driver), (uint8_t)4,
                                          (uint8_t *)&int_status) != WHD_SUCCESS)
     {
@@ -452,6 +442,22 @@ uint32_t whd_bus_spi_packet_available_to_read(whd_driver_t whd_driver)
         }
 
     }
+
+    // Unset this in case interrupt set it after the above backplane read.
+    whd_driver->thread_info.bus_interrupt = WHD_FALSE;
+    /* Read the interrupt register */
+    if (whd_bus_spi_read_register_value(whd_driver, BUS_FUNCTION, SPI_INTERRUPT_REGISTER, (uint8_t)2,
+                                        (uint8_t *)&interrupt_register) != WHD_SUCCESS)
+    {
+        goto return_with_error;
+    }
+
+    if ( (interrupt_register & 0x0086) != 0 )   /* This should be 0x87, but occasional "data not available" errors are flagged seemingly for no reason */
+    {
+        /* Error condition detected */
+        WPRINT_WHD_DEBUG( ("Bus error condition detected\n") );
+    }
+
     /* Clear interrupt register */
     if (interrupt_register != 0)
     {
