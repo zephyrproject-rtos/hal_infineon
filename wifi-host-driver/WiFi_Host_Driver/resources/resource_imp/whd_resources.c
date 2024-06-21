@@ -18,6 +18,7 @@
 /** @file
  * Defines WHD resource functions for BCM943340WCD1 platform
  */
+#include <stdalign.h>
 #include "resources.h"
 #include "clm_resources.h"
 #include "wifi_nvram_image.h"
@@ -78,7 +79,8 @@ extern const resource_hnd_t wifi_firmware_image;
 extern const resource_hnd_t wifi_firmware_clm_blob;
 #endif
 
-unsigned char r_buffer[BLOCK_BUFFER_SIZE];
+// Need to be aligned as whd_bus_spi_protocol.c reads an uint32_t
+alignas(4) unsigned char r_buffer[BLOCK_BUFFER_SIZE];
 
 #if defined(WHD_DYNAMIC_NVRAM)
 uint32_t dynamic_nvram_size = sizeof(wifi_nvram_image);
