@@ -65,7 +65,12 @@
 #define SBSDIO_SB_OFT_ADDR_LIMIT  0x08000
 #define SBSDIO_SB_ACCESS_2_4B_FLAG  0x08000 /* with b15, maps to 32-bit SB access */
 
+#if defined(CONFIG_CYW43439)
+/* Delay before HT is available on the CYW43439 is over 1600 mSec */
+#define HT_AVAIL_TIMEOUT_MS    (2000)
+#else
 #define HT_AVAIL_TIMEOUT_MS    (1000)
+#endif
 
 /* Taken from FALCON_5_90_195_26 dhd/sys/dhd_sdio.c. For 43362, MUST be >= 8 and word-aligned otherwise dongle fw crashes */
 #define SPI_F2_WATERMARK       (32)
