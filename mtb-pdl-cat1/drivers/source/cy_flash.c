@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash.c
-* \version 3.70
+* \version 3.110
 *
 * \brief
 * Provides the public functions for the API for the PSoC 6 Flash Driver.
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS)
+#if ((defined (CY_IP_M4CPUSS) && !defined (CY_IP_MXFLASHC_VERSION_ECT)) || defined (CY_IP_MXS40FLASHC))
 
 #include "cy_flash.h"
 #include "cy_sysclk.h"
@@ -37,6 +37,9 @@
 #if defined (CY_DEVICE_SECURE)
     #include "cy_pra.h"
 #endif /* defined (CY_DEVICE_SECURE) */
+#if defined (CY_IP_MXS40FLASHC)
+#include "cyboot_flash_list.h"
+#endif
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 2, \
 'IPC_STRUCT_Type will typecast to either IPC_STRUCT_V1_Type or IPC_STRUCT_V2_Type but not both on PDL initialization based on the target device at compile time.')
@@ -181,7 +184,7 @@ typedef cy_en_flashdrv_status_t (*Cy_Flash_Proxy)(cy_stc_flash_context_t *contex
     #define CY_FLASH_WAIT_SEMA                         (0UL)
     /* Semaphore check timeout (in tries) */
     #define CY_FLASH_SEMA_WAIT_MAX_TRIES               (150000UL)
-
+#if !defined (CY_IP_MXS40FLASHC)
     static void Cy_Flash_RAMDelay(uint32_t microseconds);
 
     #if (CY_CPU_CORTEX_M0P)
@@ -195,7 +198,7 @@ typedef cy_en_flashdrv_status_t (*Cy_Flash_Proxy)(cy_stc_flash_context_t *contex
     static void Cy_Flash_NotifyHandler(uint32_t * msgPtr);
 
     static cy_stc_flash_notify_t * ipcWaitMessage;
-
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 #else
     /** Delay time for Start Write function in us with corrective time */
     #define CY_FLASH_START_WRITE_DELAY                 (CY_FLASH_NO_DELAY)
@@ -208,117 +211,142 @@ typedef cy_en_flashdrv_status_t (*Cy_Flash_Proxy)(cy_stc_flash_context_t *contex
 /** \endcond */
 
 /* Static functions */
-static bool Cy_Flash_BoundsCheck(uint32_t flashAddr);
-static uint32_t Cy_Flash_GetRowNum(uint32_t flashAddr);
-static cy_en_flashdrv_status_t Cy_Flash_ProcessOpcode(uint32_t opcode);
 static cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void);
+#if !defined (CY_IP_MXS40FLASHC)
+static bool Cy_Flash_BoundsCheck(uint32_t flashAddr);
+static cy_en_flashdrv_status_t Cy_Flash_ProcessOpcode(uint32_t opcode);
+static uint32_t Cy_Flash_GetRowNum(uint32_t flashAddr);
 static cy_en_flashdrv_status_t Cy_Flash_SendCmd(uint32_t mode, uint32_t microseconds);
-
 static volatile cy_stc_flash_context_t flashContext;
+#endif
+
+#if defined (CY_IP_MXS40FLASHC)
+
+#define CYBOOT_FLAGS_BLOCKING 0U
+#define CYBOOT_FLAGS_NON_BLOCKING 1U
+
+static cyboot_flash_context_t boot_rom_context;
+static cyboot_flash_refresh_t flash_refresh;
+
+#define HASH_CALC_DIVISOR 127U
+#define HASH_CALC_DIVISOR_LEN 7U
+#define REG8(addr)                      ( *( (volatile uint8_t  *)(addr) ) )
+
+static bool refresh_feature_enable;
 
 
+/* To calculate hash */
+static uint8_t Cy_Flash_GetHash(uint32_t startAddr,uint32_t numberOfBytes);
+static void Cy_Flash_Callback_PreIRQ(cyboot_flash_context_t *ctx);
+static void Cy_Flash_Callback_PostIRQ(cyboot_flash_context_t *ctx);
+static void Cy_Flash_Callback_IRQComplete(cyboot_flash_context_t *ctx);
+
+#endif /* defined (CY_IP_MXS40FLASHC) */
+
+#if !defined (CY_IP_MXS40FLASHC)
 #if !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
-    /*******************************************************************************
-    * Function Name: Cy_Flash_InitExt
-    ****************************************************************************//**
-    *
-    * Initiates all needed prerequisites to support flash erase/write.
-    * Should be called from each core. Defines the address of the message structure.
-    *
-    * Requires a call to Cy_IPC_Sema_Init(), Cy_IPC_Pipe_Config() and
-    * Cy_IPC_Pipe_Init() functions before use.
-    *
-    * This function is called in the Cy_Flash_Init() function - see the
-    * Cy_Flash_Init usage considerations.
-    *
-    *******************************************************************************/
-    void Cy_Flash_InitExt(cy_stc_flash_notify_t *ipcWaitMessageAddr)
+/*******************************************************************************
+* Function Name: Cy_Flash_InitExt
+****************************************************************************//**
+*
+* Initiates all needed prerequisites to support flash erase/write.
+* Should be called from each core. Defines the address of the message structure.
+*
+* Requires a call to Cy_IPC_Sema_Init(), Cy_IPC_Pipe_Config() and
+* Cy_IPC_Pipe_Init() functions before use.
+*
+* This function is called in the Cy_Flash_Init() function - see the
+* Cy_Flash_Init usage considerations.
+*
+*******************************************************************************/
+void Cy_Flash_InitExt(cy_stc_flash_notify_t *ipcWaitMessageAddr)
+{
+    ipcWaitMessage = ipcWaitMessageAddr;
+
+    if(ipcWaitMessage != NULL)
     {
-        ipcWaitMessage = ipcWaitMessageAddr;
-
-        if(ipcWaitMessage != NULL)
-        {
-            ipcWaitMessage->clientID = CY_FLASH_IPC_CLIENT_ID;
-            ipcWaitMessage->pktType = CY_FLASH_ENTER_WAIT_LOOP;
-            ipcWaitMessage->intrRelMask = 0U;
-        }
-
-        if (cy_device->flashRwwRequired != 0U)
-        {
-            #if (CY_CPU_CORTEX_M4)
-                cy_stc_sysint_t flashIntConfig =
-                {
-                    (IRQn_Type)cy_device->cpussFmIrq,   /* .intrSrc */
-                    0U                                  /* .intrPriority */
-                };
-
-                (void)Cy_SysInt_Init(&flashIntConfig, &Cy_Flash_ResumeIrqHandler);
-                NVIC_EnableIRQ(flashIntConfig.intrSrc);
-            #endif
-
-                if (cy_device->flashPipeRequired != 0U)
-                {
-                    (void)Cy_IPC_Pipe_RegisterCallback(CY_IPC_EP_CYPIPE_ADDR, &Cy_Flash_NotifyHandler,
-                                                      (uint32_t)CY_FLASH_IPC_CLIENT_ID);
-                }
-        }
+        ipcWaitMessage->clientID = CY_FLASH_IPC_CLIENT_ID;
+        ipcWaitMessage->pktType = CY_FLASH_ENTER_WAIT_LOOP;
+        ipcWaitMessage->intrRelMask = 0U;
     }
 
+    if (cy_device->flashRwwRequired != 0U)
+    {
+        #if (CY_CPU_CORTEX_M4)
+            cy_stc_sysint_t flashIntConfig =
+            {
+                (IRQn_Type)cy_device->cpussFmIrq,   /* .intrSrc */
+                0U                                  /* .intrPriority */
+            };
 
-    /*******************************************************************************
-    * Function Name: Cy_Flash_NotifyHandler
-    ****************************************************************************//**
-    *
-    * This is the interrupt service routine for the pipe notifications.
-    *
-    *******************************************************************************/
-    CY_SECTION_RAMFUNC_BEGIN
-    #if !defined (__ICCARM__)
-        CY_NOINLINE
-    #endif
-    static void Cy_Flash_NotifyHandler(uint32_t * msgPtr)
+            (void)Cy_SysInt_Init(&flashIntConfig, &Cy_Flash_ResumeIrqHandler);
+            NVIC_EnableIRQ(flashIntConfig.intrSrc);
+        #endif
+
+            if (cy_device->flashPipeRequired != 0U)
+            {
+                (void)Cy_IPC_Pipe_RegisterCallback(CY_IPC_EP_CYPIPE_ADDR, &Cy_Flash_NotifyHandler,
+                                                  (uint32_t)CY_FLASH_IPC_CLIENT_ID);
+            }
+    }
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Flash_NotifyHandler
+****************************************************************************//**
+*
+* This is the interrupt service routine for the pipe notifications.
+*
+*******************************************************************************/
+CY_SECTION_RAMFUNC_BEGIN
+#if !defined (__ICCARM__)
+    CY_NOINLINE
+#endif
+static void Cy_Flash_NotifyHandler(uint32_t * msgPtr)
+{
+#if !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE)))
+    uint32_t intr;
+#endif /* !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE))) */
+    static uint32_t semaIndex;
+    static uint32_t semaMask;
+    static volatile uint32_t *semaPtr;
+    static cy_stc_ipc_sema_t *semaStruct;
+
+    cy_stc_flash_notify_t *ipcMsgPtr = (cy_stc_flash_notify_t *) (void *) msgPtr;
+
+    if (CY_FLASH_ENTER_WAIT_LOOP == ipcMsgPtr->pktType)
     {
     #if !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE)))
-        uint32_t intr;
+        intr = Cy_SysLib_EnterCriticalSection();
     #endif /* !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE))) */
-        static uint32_t semaIndex;
-        static uint32_t semaMask;
-        static volatile uint32_t *semaPtr;
-        static cy_stc_ipc_sema_t *semaStruct;
 
-        cy_stc_flash_notify_t *ipcMsgPtr = (cy_stc_flash_notify_t *) (void *) msgPtr;
+        /* Get pointer to structure */
+        semaStruct = (cy_stc_ipc_sema_t *)Cy_IPC_Drv_ReadDataValue(Cy_IPC_Drv_GetIpcBaseAddress(CY_IPC_CHAN_SEMA));
 
-        if (CY_FLASH_ENTER_WAIT_LOOP == ipcMsgPtr->pktType)
+        /* Get the index into the semaphore array and calculate the mask */
+        semaIndex = CY_FLASH_WAIT_SEMA / CY_IPC_SEMA_PER_WORD;
+        semaMask = (uint32_t)(1UL << (CY_FLASH_WAIT_SEMA - (semaIndex * CY_IPC_SEMA_PER_WORD) ));
+        semaPtr = &semaStruct->arrayPtr[semaIndex];
+
+        /* Notification to the Flash driver to start the current operation */
+        *semaPtr |= semaMask;
+
+        /* Check a notification from other core to end of waiting */
+        while (((*semaPtr) & semaMask) != 0UL)
         {
-        #if !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE)))
-            intr = Cy_SysLib_EnterCriticalSection();
-        #endif /* !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE))) */
-
-            /* Get pointer to structure */
-            semaStruct = (cy_stc_ipc_sema_t *)Cy_IPC_Drv_ReadDataValue(Cy_IPC_Drv_GetIpcBaseAddress(CY_IPC_CHAN_SEMA));
-
-            /* Get the index into the semaphore array and calculate the mask */
-            semaIndex = CY_FLASH_WAIT_SEMA / CY_IPC_SEMA_PER_WORD;
-            semaMask = (uint32_t)(1UL << (CY_FLASH_WAIT_SEMA - (semaIndex * CY_IPC_SEMA_PER_WORD) ));
-            semaPtr = &semaStruct->arrayPtr[semaIndex];
-
-            /* Notification to the Flash driver to start the current operation */
-            *semaPtr |= semaMask;
-
-            /* Check a notification from other core to end of waiting */
-            while (((*semaPtr) & semaMask) != 0UL)
-            {
-            }
-
-        #if !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE)))
-            Cy_SysLib_ExitCriticalSection(intr);
-        #endif /* !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE))) */
         }
+
+    #if !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE)))
+        Cy_SysLib_ExitCriticalSection(intr);
+    #endif /* !((CY_CPU_CORTEX_M0P) && (defined (CY_DEVICE_SECURE))) */
     }
-    CY_SECTION_RAMFUNC_END
+}
+CY_SECTION_RAMFUNC_END
 #endif /* !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
-
+#if !defined (CY_IP_MXS40FLASHC)
 /*******************************************************************************
 * Function Name: Cy_Flash_Init
 ****************************************************************************//**
@@ -337,12 +365,14 @@ static volatile cy_stc_flash_context_t flashContext;
 *******************************************************************************/
 void Cy_Flash_Init(void)
 {
+
     #if !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
         CY_SECTION_SHAREDMEM
         static cy_stc_flash_notify_t ipcWaitMessageStc CY_ALIGN(4);
 
         Cy_Flash_InitExt(&ipcWaitMessageStc);
     #endif /* !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
+
 }
 
 
@@ -415,6 +445,11 @@ static cy_en_flashdrv_status_t Cy_Flash_SendCmd(uint32_t mode, uint32_t microsec
         {
             /* Notifier is ready, start of the operation */
             intr = Cy_SysLib_EnterCriticalSection();
+
+            while (0UL == _FLD2VAL(SRSS_CLK_CAL_CNT1_CAL_COUNTER_DONE, SRSS_CLK_CAL_CNT1))
+            {
+                /* wait here */
+            }
 
             if (0UL != _FLD2VAL(SRSS_CLK_CAL_CNT1_CAL_COUNTER_DONE, SRSS_CLK_CAL_CNT1))
             {
@@ -522,7 +557,7 @@ CY_SECTION_RAMFUNC_END
             {
                 /* Wait until the IPC structure is released by another process */
             }
-            
+
             SRSS_TST_DDFT_FAST_CTL_REG  = SRSS_TST_DDFT_FAST_CTL_MASK;
             SRSS_TST_DDFT_SLOW_CTL_REG  = SRSS_TST_DDFT_SLOW_CTL_MASK;
 
@@ -537,7 +572,7 @@ CY_SECTION_RAMFUNC_END
 
             /* Release the IPC */
             REG_IPC_STRUCT_RELEASE(CY_IPC_STRUCT_PTR(CY_IPC_CHAN_DDFT)) = 0U;
-            
+
             while (0UL == _FLD2VAL(SRSS_CLK_CAL_CNT1_CAL_COUNTER_DONE, SRSS_CLK_CAL_CNT1))
             {
                 /* Wait until the counter stops counting */
@@ -577,7 +612,7 @@ CY_SECTION_RAMFUNC_END
 
             uint32_t bookmark;
             #if ((CY_CPU_CORTEX_M4) && (defined (CY_DEVICE_SECURE)))
-                bookmark = CY_PRA_REG32_GET(CY_PRA_INDX_FLASHC_FM_CTL_BOOKMARK) & 0xffffUL; 
+                bookmark = CY_PRA_REG32_GET(CY_PRA_INDX_FLASHC_FM_CTL_BOOKMARK) & 0xffffUL;
             #else
                 bookmark = FLASHC_FM_CTL_BOOKMARK & 0xffffUL;
             #endif /* ((CY_CPU_CORTEX_M4) && (defined (CY_DEVICE_SECURE))) */
@@ -607,6 +642,154 @@ CY_SECTION_RAMFUNC_END
     #endif /* (CY_CPU_CORTEX_M4) */
 #endif /* !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
 
+#else
+
+/*******************************************************************************
+* Function Name: Cy_Flash_Process_BootRom_Error_Code
+****************************************************************************//**
+*
+* Converts Boot Rom Call returns to the Flash driver return defines.
+*******************************************************************************/
+static cy_en_flashdrv_status_t Cy_Flash_Process_BootRom_Error_Code(uint32_t error_code)
+{
+    cy_en_flashdrv_status_t result;
+
+    switch (error_code)
+    {
+        case CYBOOT_FLASH_SUCCESS:
+        {
+            result = CY_FLASH_DRV_SUCCESS;
+            break;
+        }
+        case CYBOOT_FLASH_INIT_FAILED:
+        {
+            result = CY_FLASH_DRV_INIT_FAILED;
+            break;
+        }
+        case CYBOOT_FLASH_ADDR_INVALID:
+        {
+            result = CY_FLASH_DRV_INVALID_FLASH_ADDR;
+            break;
+        }
+        case CYBOOT_FLASH_PARAM_INVALID:
+        {
+            result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
+            break;
+        }
+        case CYBOOT_FAULT_UNEXPECTED :
+        {
+            result = CY_FLASH_DRV_ERR_UNC;
+            break;
+        }
+        default:
+        {
+            result = CY_FLASH_DRV_ERR_UNC;
+            break;
+        }
+    }
+
+    return (result);
+}
+
+
+/* These API's are call back functions from boot rom code.
+   These needs to be passed to the boot rom in the init function.
+   Current architecture in the PDL is not using the callback calls from boot rom.
+   PDL gets the status of the operation complete by calling cyboot_is_flash_ready().
+   cyboot_is_flash_ready is called from the existing function Cy_Flash_IsOperationComplete().
+*/
+/*******************************************************************************
+* Function Name: Cy_Flash_Callback_PreIRQ
+****************************************************************************//**
+*
+* Call back function from boot rom before the non blocking operation is started.
+*
+*******************************************************************************/
+static void Cy_Flash_Callback_PreIRQ(cyboot_flash_context_t *ctx)
+{
+    (void) ctx;
+}
+/*******************************************************************************
+* Function Name: Cy_Flash_Callback_PostIRQ
+****************************************************************************//**
+*
+* Call back function from boot rom after the non blocking operation is started.
+*
+*******************************************************************************/
+static void Cy_Flash_Callback_PostIRQ(cyboot_flash_context_t *ctx)
+{
+    (void) ctx;
+}
+/*******************************************************************************
+* Function Name: Cy_Flash_Callback_IRQComplete
+****************************************************************************//**
+*
+* Call back function from boot rom after the completion of non blocking operation.
+*
+*******************************************************************************/
+static void Cy_Flash_Callback_IRQComplete(cyboot_flash_context_t *ctx)
+{
+    (void) ctx;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flash_Init
+****************************************************************************//**
+*
+* Initiates all needed prerequisites to support flash erase/write.
+* Should be once before starting any flash operations.
+*
+* param refresh_enable enable disable refresh feature
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_Init(bool refresh_enable)
+{
+    cy_en_sysint_status_t sysStatus;
+    const cy_stc_sysint_t flash_isr_cfg =
+    {
+        .intrSrc = (IRQn_Type) cpuss_interrupt_fm_cbus_IRQn,
+        .intrPriority = 7,
+    };
+
+    sysStatus = Cy_SysInt_Init(&flash_isr_cfg, ROM_FUNC->cyboot_flash_irq_handler);
+    if(CY_SYSINT_SUCCESS != sysStatus)
+    {
+        return CY_FLASH_DRV_ERR_UNC;
+    }
+    NVIC_EnableIRQ(flash_isr_cfg.intrSrc);
+
+    __enable_irq();
+    boot_rom_context.callback_pre_irq  = (cyboot_flash_callback_t)Cy_Flash_Callback_PreIRQ;
+    boot_rom_context.callback_post_irq = (cyboot_flash_callback_t)Cy_Flash_Callback_PostIRQ;
+    boot_rom_context.callback_complete = (cyboot_flash_callback_t)Cy_Flash_Callback_IRQComplete;
+
+    if(refresh_enable)
+    {
+        refresh_feature_enable = refresh_enable;
+        boot_rom_context.refresh = &flash_refresh;
+        /* Need to initialize boot_rom_context.refresh before working with flash */
+        ROM_FUNC->cyboot_flash_refresh_init_all(&flash_refresh);
+        /* To recover a previous failure, if any */
+        uint32_t ret = ROM_FUNC->cyboot_flash_refresh_recover_all(&flash_refresh);
+        return Cy_Flash_Process_BootRom_Error_Code(ret);
+    }
+    return CY_FLASH_DRV_SUCCESS;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flash_Is_Refresh_Required
+********************************************************************************
+* Checks whether a flash refresh is needed for a sector.
+* \param refresh    A pointer to a single refresh structure.
+* \returns
+* - TRUE, if a refresh is needed.
+* - FALSE, if a refresh is not needed.
+*******************************************************************************/
+bool Cy_Flash_Is_Refresh_Required(void)
+{
+    return ROM_FUNC->cyboot_flash_refresh_test(&flash_refresh);
+}
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
 /*******************************************************************************
 * Function Name: Cy_Flash_EraseRow
@@ -628,11 +811,11 @@ cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
 
+#if !defined (CY_IP_MXS40FLASHC)
     /* Prepares arguments to be passed to SROM API */
     if (Cy_Flash_BoundsCheck(rowAddr) != false)
     {
         SystemCoreClockUpdate();
-
         flashContext.opcode = CY_FLASH_OPCODE_ERASE_ROW | CY_FLASH_BLOCKING_MODE;
         flashContext.arg1 = rowAddr;
         flashContext.arg2 = 0UL;
@@ -647,6 +830,12 @@ cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr)
             result = Cy_Flash_SendCmd(CY_FLASH_BLOCKING_MODE, CY_FLASH_NO_DELAY);
         }
     }
+#else
+        boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
+        uint32_t status = ROM_FUNC->cyboot_flash_erase_row(rowAddr, &boot_rom_context);
+        result = Cy_Flash_Process_BootRom_Error_Code(status);
+#endif /* !defined (CY_IP_MXS40FLASHC) */
+
 
     return (result);
 }
@@ -674,7 +863,7 @@ cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr)
 cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
-
+#if !defined (CY_IP_MXS40FLASHC)
     if (Cy_Flash_BoundsCheck(rowAddr) != false)
     {
         SystemCoreClockUpdate();
@@ -699,11 +888,23 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr)
             result = Cy_Flash_SendCmd(CY_FLASH_NON_BLOCKING_MODE, CY_FLASH_NO_DELAY);
         }
     }
+#else
+        boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
+        uint32_t status = ROM_FUNC->cyboot_flash_erase_row_start(rowAddr, &boot_rom_context);
+        if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
+        {
+            result = CY_FLASH_DRV_OPERATION_STARTED;
+        }
+        else
+        {
+            result = Cy_Flash_Process_BootRom_Error_Code(status);
+        }
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
     return (result);
 }
 
-
+#if !defined (CY_IP_MXS40FLASHC)
 /*******************************************************************************
 * Function Name: Cy_Flash_EraseSector
 ****************************************************************************//**
@@ -746,7 +947,6 @@ cy_en_flashdrv_status_t Cy_Flash_EraseSector(uint32_t sectorAddr)
 
     return (result);
 }
-
 
 /*******************************************************************************
 * Function Name: Cy_Flash_StartEraseSector
@@ -799,7 +999,6 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseSector(uint32_t sectorAddr)
     return (result);
 }
 
-
 /*******************************************************************************
 * Function Name: Cy_Flash_EraseSubsector
 ****************************************************************************//**
@@ -841,7 +1040,6 @@ cy_en_flashdrv_status_t Cy_Flash_EraseSubsector(uint32_t subSectorAddr)
 
     return (result);
 }
-
 
 /*******************************************************************************
 * Function Name: Cy_Flash_StartEraseSubsector
@@ -891,7 +1089,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseSubsector(uint32_t subSectorAddr)
 
     return (result);
 }
-
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
 /*******************************************************************************
 * Function Name: Cy_Flash_ProgramRow
@@ -920,11 +1118,11 @@ cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* da
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
 
+#if !defined (CY_IP_MXS40FLASHC)
     /* Checks whether the input parameters are valid */
     if ((Cy_Flash_BoundsCheck(rowAddr) != false) && (NULL != data))
     {
         SystemCoreClockUpdate();
-
         /* Prepares arguments to be passed to SROM API */
         flashContext.opcode = CY_FLASH_OPCODE_PROGRAM_ROW | CY_FLASH_BLOCKING_MODE;
         flashContext.arg1   = CY_FLASH_DATA_LOC_SRAM;
@@ -940,6 +1138,12 @@ cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* da
             result = Cy_Flash_SendCmd(CY_FLASH_BLOCKING_MODE, CY_FLASH_NO_DELAY);
         }
     }
+#else
+
+        boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
+        uint32_t status = ROM_FUNC->cyboot_flash_program_row(rowAddr, (void *)data, &boot_rom_context);
+        result = Cy_Flash_Process_BootRom_Error_Code(status);
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
     return (result);
 }
@@ -968,11 +1172,11 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
 
+#if !defined (CY_IP_MXS40FLASHC)
     /* Checks whether the input parameters are valid */
     if ((Cy_Flash_BoundsCheck(rowAddr) != false) && (NULL != data))
     {
         SystemCoreClockUpdate();
-
         /* Prepares arguments to be passed to SROM API */
         flashContext.opcode = CY_FLASH_OPCODE_WRITE_ROW | CY_FLASH_BLOCKING_MODE;
         flashContext.arg1   = 0UL;
@@ -988,6 +1192,13 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
             result = Cy_Flash_SendCmd(CY_FLASH_BLOCKING_MODE, CY_FLASH_NO_DELAY);
         }
     }
+#else
+
+        boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
+        uint32_t status = ROM_FUNC->cyboot_flash_write_row(rowAddr, (void *)data, &boot_rom_context);
+        result = Cy_Flash_Process_BootRom_Error_Code(status);
+#endif /* !defined (CY_IP_MXS40FLASHC) */
+
 
     return (result);
 }
@@ -1015,7 +1226,7 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* data)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
-
+#if !defined (CY_IP_MXS40FLASHC)
     /* Checks whether the input parameters are valid */
     if ((Cy_Flash_BoundsCheck(rowAddr) != false) && (NULL != data))
     {
@@ -1035,8 +1246,21 @@ cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* da
                 result = Cy_Flash_StartProgram(rowAddr, data);
             }
         }
+
     }
 
+#else
+        boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
+        uint32_t status = ROM_FUNC->cyboot_flash_write_row_start(rowAddr, (void *)data, &boot_rom_context);
+        if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
+        {
+            result = CY_FLASH_DRV_OPERATION_STARTED;
+        }
+        else
+        {
+            result = Cy_Flash_Process_BootRom_Error_Code(status);
+        }
+#endif /* !defined (CY_IP_MXS40FLASHC) */
     return (result);
 }
 
@@ -1077,11 +1301,10 @@ cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void)
 cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* data)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
-
+#if !defined (CY_IP_MXS40FLASHC)
     if ((Cy_Flash_BoundsCheck(rowAddr) != false) && (NULL != data))
     {
         SystemCoreClockUpdate();
-
         /* Prepares arguments to be passed to SROM API */
         flashContext.opcode = CY_FLASH_OPCODE_PROGRAM_ROW;
 
@@ -1103,6 +1326,18 @@ cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* 
             result = Cy_Flash_SendCmd(CY_FLASH_NON_BLOCKING_MODE, CY_FLASH_NO_DELAY);
         }
     }
+#else
+        boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
+        uint32_t status = ROM_FUNC->cyboot_flash_program_row_start(rowAddr, (void *)data, &boot_rom_context);
+        if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
+        {
+            result = CY_FLASH_DRV_OPERATION_STARTED;
+        }
+        else
+        {
+            result = Cy_Flash_Process_BootRom_Error_Code(status);
+        }
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
     return (result);
 }
@@ -1118,12 +1353,13 @@ cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* 
 cy_en_flashdrv_status_t Cy_Flash_RowChecksum (uint32_t rowAddr, uint32_t* checksumPtr)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
-    uint32_t resTmp;
-    uint32_t rowID;
-
+#if !defined (CY_IP_MXS40FLASHC)
     /* Checks whether the input parameters are valid */
-    if ((Cy_Flash_BoundsCheck(rowAddr)) && (NULL != checksumPtr))
+    if ((Cy_Flash_BoundsCheck(rowAddr) != false) && (NULL != checksumPtr))
     {
+
+        uint32_t resTmp;
+        uint32_t rowID;
         rowID = Cy_Flash_GetRowNum(rowAddr);
 
         /* Prepares arguments to be passed to SROM API */
@@ -1168,6 +1404,25 @@ cy_en_flashdrv_status_t Cy_Flash_RowChecksum (uint32_t rowAddr, uint32_t* checks
             result = CY_FLASH_DRV_IPC_BUSY;
         }
     }
+#else
+        uint32_t startAddress, endAddress;
+        volatile uint32_t i, j;
+        uint32_t checksum_value=0U;
+
+        startAddress = rowAddr;
+        endAddress = startAddress + CY_FLASH_SIZEOF_ROW;
+
+        i = startAddress;
+        j = endAddress;
+        do
+        {
+            checksum_value += REG8(i);
+            i++;
+            j--;
+        }while(i<endAddress);
+        *checksumPtr = checksum_value;
+        result = CY_FLASH_DRV_SUCCESS;
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
     return (result);
 }
@@ -1182,11 +1437,12 @@ cy_en_flashdrv_status_t Cy_Flash_RowChecksum (uint32_t rowAddr, uint32_t* checks
 cy_en_flashdrv_status_t Cy_Flash_CalculateHash (const uint32_t* data, uint32_t numberOfBytes,  uint32_t* hashPtr)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
-    volatile uint32_t resTmp;
 
     /* Checks whether the input parameters are valid */
     if ((data != NULL) && (0UL != numberOfBytes))
     {
+#if !defined (CY_IP_MXS40FLASHC)
+        volatile uint32_t resTmp;
         /* Prepares arguments to be passed to SROM API */
         flashContext.opcode = CY_FLASH_OPCODE_HASH;
         flashContext.arg1 = (uint32_t)data;
@@ -1219,12 +1475,17 @@ cy_en_flashdrv_status_t Cy_Flash_CalculateHash (const uint32_t* data, uint32_t n
             /* The IPC structure is already locked by another process */
             result = CY_FLASH_DRV_IPC_BUSY;
         }
+#else
+        *hashPtr = (uint32_t)Cy_Flash_GetHash((uint32_t) data, numberOfBytes);
+        result = CY_FLASH_DRV_SUCCESS;
+
+#endif /* !defined (CY_IP_MXS40FLASHC) */
     }
 
     return (result);
 }
 
-
+#if !defined (CY_IP_MXS40FLASHC)
 /*******************************************************************************
 * Function Name: Cy_Flash_GetRowNum
 ****************************************************************************//**
@@ -1352,7 +1613,7 @@ static cy_en_flashdrv_status_t Cy_Flash_ProcessOpcode(uint32_t opcode)
 
     return (result);
 }
-
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
 /*******************************************************************************
 * Function Name: Cy_Flash_OperationStatus
@@ -1363,7 +1624,7 @@ static cy_en_flashdrv_status_t Cy_Flash_ProcessOpcode(uint32_t opcode)
 static cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_OPCODE_BUSY;
-
+#if !defined (CY_IP_MXS40FLASHC)
     /* Checks if the IPC structure is not locked */
     if (Cy_IPC_Drv_IsLockAcquired(Cy_IPC_Drv_GetIpcBaseAddress(CY_IPC_CHAN_SYSCALL)) == false)
     {
@@ -1383,7 +1644,12 @@ static cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void)
             }
         #endif /* CY_CPU_CORTEX_M4 && defined (CY_DEVICE_SECURE) */
     }
-
+#else
+    if(ROM_FUNC->cyboot_is_flash_ready(&boot_rom_context))
+    {
+        return CY_FLASH_DRV_SUCCESS;
+    }
+#endif /* !defined (CY_IP_MXS40FLASHC) */
     return (result);
 }
 
@@ -1404,9 +1670,403 @@ static cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void)
 *******************************************************************************/
 uint32_t Cy_Flash_GetExternalStatus(void)
 {
+#if !defined (CY_IP_MXS40FLASHC)
     return (flashContext.opcode);
+#else
+    if(Cy_Flash_IsOperationComplete() == CY_FLASH_DRV_SUCCESS)
+    {
+        return (uint32_t)CY_FLASH_DRV_SUCCESS;
+    }
+    else
+    {
+        return (uint32_t)CY_FLASH_DRV_OPCODE_BUSY;
+    }
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 }
 
+
+#if defined (CY_IP_MXS40FLASHC)
+/*******************************************************************************
+* Function Name: Cy_Flash_Refresh
+****************************************************************************//**
+*
+* Refreshes the flash rows which were not updated by the user code. This is a blocking call.
+* If there are only limited number of flash row writes for each flash sector then
+* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
+* This refresh feature will prevent the flash sector from wear out
+*
+* param address of the row that needs to be refreshed.
+*
+* return success if refresh is complete. will return err
+*
+* \note Refresh is not allowed on sector which has SFLASH. That sector must be left immutable.
+*       This is a blocking call.
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_Refresh(uint32_t flashAddr)
+{
+    cy_en_flashdrv_status_t result = CY_FLASH_DRV_REFRESH_NOT_ENABLED;
+    if(refresh_feature_enable)
+    {
+        uint32_t sector_Idx;
+        uint32_t row_Idx;
+        uint32_t status = ROM_FUNC->cyboot_flash_refresh_get_sector_idx(flashAddr, &sector_Idx, &row_Idx);
+        if( status == CYBOOT_FLASH_SUCCESS)
+        {
+            status = ROM_FUNC->cyboot_flash_refresh_perform(sector_Idx, &flash_refresh);
+        }
+        (void)row_Idx;
+        result = Cy_Flash_Process_BootRom_Error_Code(status);
+    }
+    return result;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flash_Refresh_Start
+****************************************************************************//**
+*
+* Refreshes the flash rows which were not updated by the user code. This is a non-blocking call.
+* If there are only limited number of flash row writes for each flash sector then
+* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
+* This refresh feature will prevent the flash sector from wear out
+* This is not allowed on sector which has SFLASH
+*
+* \param address of the row that needs to be refreshed.
+*
+* \return success if refresh is started. Else will return err
+*
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_Refresh_Start(uint32_t flashAddr)
+{
+    cy_en_flashdrv_status_t result = CY_FLASH_DRV_REFRESH_NOT_ENABLED;
+    if(refresh_feature_enable)
+    {
+        uint32_t sector_Idx;
+        uint32_t row_Idx;
+        uint32_t status = ROM_FUNC->cyboot_flash_refresh_get_sector_idx(flashAddr, &sector_Idx, &row_Idx);
+        if( status == CYBOOT_FLASH_SUCCESS)
+        {
+            status = ROM_FUNC->cyboot_flash_refresh_perform_start(sector_Idx, &flash_refresh, &boot_rom_context);
+            if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
+            {
+                return CY_FLASH_DRV_OPERATION_STARTED;
+            }
+        }
+        (void)row_Idx;
+        result = Cy_Flash_Process_BootRom_Error_Code(status);
+    }
+    return result;
+}
+/*****************************************************************************
+* Function Name: GetHash()
+******************************************************************************
+* Summary:
+*  This function computes the hash based on formula
+*  H(n+1)=(H(n)*2+Byte)%127,where H(0)=0
+*
+* Parameters:
+*  uint32_t startAddr - 32 bit system address of  first byte of data chunk
+*  uint32_t numberOfBytes    - total number of bytes of data chunk on which hash needs
+*  to be computed
+
+* Return:
+*  uint8_t hash
+*
+* Calls:
+*  None
+*
+* Called by:
+*  Boot
+*
+* Note:
+*  cHash represents the calculated hash (H in the above formula).
+*  HASH_CALC_DIVISOR = 127 and HASH_CALC_DIVISOR_LEN = 7
+*  Mod 127 is calculated using the following method.
+*  Any number N (< 128*127 + 127 = 16383) can be represented in the form of
+*  N = 128*A + B = 127*A + A + B. Thus, N mod 127 can be calculated from A + B.
+*  If A + B == 254, then N mod 127 = 0
+*  Else if A + B >= 127, then N mod 127 = A + B - 127
+*  Else N mod 127 = A + B
+*  For the given implementation, N < 255*2 + 255 = 766. Hence, A + B < 254
+*  This method reduces the computational cost by avoiding divide operation.
+*****************************************************************************/
+static uint8_t Cy_Flash_GetHash(uint32_t startAddr,uint32_t numberOfBytes)
+{
+    uint32_t i;
+    uint8_t hash = 0U;
+    uint32_t cHashSum;
+
+     uint8_t cData, cHigherPart, cLowerPart;
+    for (i = 0U; i < numberOfBytes; i++)
+    {
+        cData = REG8(startAddr + i);
+        cHashSum = (((uint32_t) hash << 1U) + cData);
+         /* PRQA S 2985 4 */ /* FIXMISRA */ /* MISRA C:2012 Rule 2.2 Required
+            This operation is redundant. The value of the result is always that of the left-hand operand.
+            The cHashSum equals cData, that is 8-bit value, shifted left by 7 bit (HASH_CALC_DIVISOR_LEN).
+        */
+        cHigherPart = (uint8_t)(cHashSum >> HASH_CALC_DIVISOR_LEN) & HASH_CALC_DIVISOR;
+        cLowerPart = (uint8_t) (cHashSum & HASH_CALC_DIVISOR);
+        hash = ( (cHigherPart + cLowerPart) >=  HASH_CALC_DIVISOR ) ? (cHigherPart + cLowerPart - HASH_CALC_DIVISOR) :
+                 (cHigherPart + cLowerPart);
+    }
+    return hash;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_ECCEnable
+****************************************************************************//**
+*
+* \brief Enables ECC for flash
+* ECC checking/reporting on FLASH interface is enabled.
+* Correctable or non-correctable faults are reported by enabling ECC.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_ECCEnable(void)
+{
+    FLASHC_FLASH_CTL |= FLASHC_FLASH_CTL_ECC_EN_Msk;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_ECCDisable
+****************************************************************************//**
+*
+* \brief Disables ECC for flash
+* ECC checking/reporting on FLASH interface is disabled.
+* Correctable or non-correctable faults are not reported by disabling ECC.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_ECCDisable(void)
+{
+    FLASHC_FLASH_CTL &= (uint32_t) ~FLASHC_FLASH_CTL_ECC_EN_Msk;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_INJ_ECCEnable
+****************************************************************************//**
+*
+* This function enable ECC error injection for FLASH interface
+* And is applicable while ECC is enabled.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_INJ_ECCEnable(void)
+{
+    FLASHC_FLASH_ECC_INJ_EN |= (FLASHC_ECC_INJ_EN_ECC_INJ_ENABLE_Msk |
+                               FLASHC_ECC_INJ_EN_ECC_ERROR_Msk);
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_INJ_ECCDisable
+****************************************************************************//**
+*
+* This function disables ECC error injection for FLASH interface
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_INJ_ECCDisable(void)
+{
+    FLASHC_FLASH_ECC_INJ_EN &= (uint32_t) ~(FLASHC_ECC_INJ_EN_ECC_INJ_ENABLE_Msk |
+                               FLASHC_ECC_INJ_EN_ECC_ERROR_Msk);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_InjectECC
+****************************************************************************//**
+*
+* This function enables ECC injection and sets the address where a parity will be injected
+* and the parity value.
+* Reports success or a reason for failure.
+*
+* \address The address where ECC parity will be injected.
+*
+* \parity The parity value which will be injected.
+*
+* \returns none
+*
+*******************************************************************************/
+void Cy_Flashc_InjectECC(uint32_t address, uint8_t parity)
+{
+    FLASHC_FLASH_ECC_INJ_CTL = (_VAL2FLD(FLASHC_ECC_INJ_CTL_WORD_ADDR, address) |
+                                _VAL2FLD(FLASHC_ECC_INJ_CTL_PARITY, parity ));
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_Get_ECC_Error
+****************************************************************************//**
+*
+* \brief This function when ECC injection is enabled and error is injected will return no of errors generated.
+*
+* \returns no of errors generated with ECC error injection \ref cy_en_flash_ecc_inject_errors_t.
+*
+*******************************************************************************/
+cy_en_flash_ecc_inject_errors_t Cy_Flashc_Get_ECC_Error(void)
+{
+    if (0UL != _FLD2VAL(FLASHC_ECC_INJ_EN_ECC_ERROR, FLASHC_FLASH_ECC_INJ_EN))
+    {
+        return CY_FLASH_ECC_ERRORS_MORE_THAN_ONE;
+    }
+    return CY_FLASH_ECC_ERRORS_LESS_THAN_TWO;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_Dual_Bank_Mode_Enable
+****************************************************************************//**
+*
+* \brief Enables Dual bank Mode for flash
+*
+* \param mapping : Mapping for the main and work regions.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_Dual_Bank_Mode_Enable(cy_en_flash_dual_bank_mapping_t mapping)
+{
+    FLASHC_FLASH_CTL |= (_VAL2FLD(FLASHC_FLASH_CTL_BANK_MODE, 1U) |
+                         _VAL2FLD(FLASHC_FLASH_CTL_BANK_MAPPING, mapping ));;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_Dual_Bank_Mode_Disable
+****************************************************************************//**
+*
+* \brief Disables Dual bank Mode for flash
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_Dual_Bank_Mode_Disable(void)
+{
+    FLASHC_FLASH_CTL &= (uint32_t) ~(FLASHC_FLASH_CTL_BANK_MODE_Msk |
+                                     FLASHC_FLASH_CTL_BANK_MAPPING_Msk);
+}
+
+
+#endif /*defined (CY_IP_MXS40FLASHC)*/
+
+#if (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2))
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetWorkBankMode
+****************************************************************************//**
+*
+* Sets bank mode for work flash
+*
+* mode bank mode to be set
+*
+*******************************************************************************/
+void Cy_Flashc_SetWorkBankMode(cy_en_bankmode_t mode)
+{
+    if(CY_FLASH_DUAL_BANK_MODE == mode)
+    {
+        FLASHC_FLASH_CTL |= FLASHC_V2_FLASH_CTL_WORK_BANK_MODE_Msk;
+    }
+    else
+    {
+        FLASHC_FLASH_CTL &= (uint32_t) ~FLASHC_V2_FLASH_CTL_WORK_BANK_MODE_Msk;
+    }
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_GetWorkBankMode
+****************************************************************************//**
+*
+* Gets current bank mode for work flash
+*
+*******************************************************************************/
+cy_en_bankmode_t Cy_Flashc_GetWorkBankMode(void)
+{
+   uint32_t bank_mode = _FLD2VAL(FLASHC_V2_FLASH_CTL_WORK_BANK_MODE, FLASHC_FLASH_CTL);
+   if(bank_mode == 0UL)
+    {
+        return CY_FLASH_SINGLE_BANK_MODE;
+    }
+    else
+    {
+        return CY_FLASH_DUAL_BANK_MODE;
+    }
+}
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetMainBankMode
+****************************************************************************//**
+*
+*  Sets bank mode for main flash
+*
+*  mode bank mode to be set
+*
+*******************************************************************************/
+void Cy_Flashc_SetMainBankMode(cy_en_bankmode_t mode)
+{
+   if(CY_FLASH_DUAL_BANK_MODE == mode)
+    {
+        FLASHC_FLASH_CTL |= FLASHC_V2_FLASH_CTL_MAIN_BANK_MODE_Msk;
+    }
+    else
+    {
+        FLASHC_FLASH_CTL &= (uint32_t) ~FLASHC_V2_FLASH_CTL_MAIN_BANK_MODE_Msk;
+    }
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_GetMainBankMode
+****************************************************************************//**
+*
+*  Gets current bank mode for main flash
+*
+*******************************************************************************/
+cy_en_bankmode_t Cy_Flashc_GetMainBankMode(void)
+{
+    uint32_t bank_mode = _FLD2VAL(FLASHC_V2_FLASH_CTL_MAIN_BANK_MODE, FLASHC_FLASH_CTL);
+    if(bank_mode == 0UL)
+    {
+        return CY_FLASH_SINGLE_BANK_MODE;
+    }
+    else
+    {
+        return CY_FLASH_DUAL_BANK_MODE;
+    }
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetMain_Flash_Mapping
+****************************************************************************//**
+*
+* \brief Sets mapping for main flash region. Applicable only in Dual Bank mode of Main flash region
+*
+* \param mapping mapping to be set
+*
+* \return none
+*******************************************************************************/
+void Cy_Flashc_SetMain_Flash_Mapping(cy_en_maptype_t  mapping)
+{
+    FLASHC_FLASH_CTL &= ~FLASHC_V2_FLASH_CTL_MAIN_MAP_Msk;
+    FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_V2_FLASH_CTL_MAIN_MAP, mapping);
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetWork_Flash_Mapping
+****************************************************************************//**
+*
+* \brief Sets mapping for work flash region. Applicable only in Dual Bank mode of Work flash region
+*
+* \param mapping mapping to be set
+*
+* \return none
+*******************************************************************************/
+void Cy_Flashc_SetWork_Flash_Mapping(cy_en_maptype_t mapping)
+{
+    FLASHC_FLASH_CTL &= ~FLASHC_V2_FLASH_CTL_WORK_MAP_Msk;
+    FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_V2_FLASH_CTL_WORK_MAP, mapping);
+}
+
+#endif /* (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) */
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
 #endif /* CY_IP_M4CPUSS */
 

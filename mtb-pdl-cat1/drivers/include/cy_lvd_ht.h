@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_lvd_ht.h
-* \version 1.0
+* \version 1.10
 *
 * The header file of the LVD HT driver.
 *
@@ -59,6 +59,12 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason of Change</th></tr>
 *   <tr>
+*     <td>1.10</td>
+*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
+*       Changed pre-processor logic so SRSS version 2 is grouped with version 3 instead of version 1.</td>
+*     <td>Code enhancement and support for new devices.</td>
+*   </tr> 
+*   <tr>
 *     <td>1.0</td>
 *     <td>Initial Version</td>
 *     <td></td>
@@ -79,7 +85,7 @@
 
 #include "cy_device.h"
 
-#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3))
+#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2))
 
 #include "cy_pra.h"
 #include "cy_syspm.h"
@@ -96,7 +102,7 @@ extern "C" {
 #define CY_LVD_HT_DRV_VERSION_MAJOR       1
 
 /** The driver minor version */
-#define CY_LVD_HT_DRV_VERSION_MINOR       0
+#define CY_LVD_HT_DRV_VERSION_MINOR       10
 
 /** The LVD driver identifier */
 #define CY_LVD_HT_ID                      (CY_PDL_DRV_ID(0x78U))
@@ -729,7 +735,7 @@ __STATIC_INLINE bool Cy_LVD_HT_IsDeepSleepEnabled(cy_en_lvd_ht_select_t lvdNum)
 }
 #endif
 
-#endif /* CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3) */
+#endif /* CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2) */
 
 #endif /* CY_LVD_HT_H */
 

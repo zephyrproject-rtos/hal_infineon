@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm_btss.h
-* \version 5.92
+* \version 5.150
 *
 * Provides the API declarations of the BTSS driver.
 *
@@ -36,6 +36,11 @@
 * \section group_syspm_btss_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>5.150</td>
+*     <td>Version updated to match SYSPM driver.</td>
+*     <td></td>
+*   </tr>
 *   <tr>
 *     <td>1.0</td>
 *     <td>Initial version</td>
@@ -79,7 +84,7 @@ extern "C" {
 /** Driver major version */
 #define CY_BTSS_DRV_VERSION_MAJOR       5
 /** Driver minor version */
-#define CY_BTSS_DRV_VERSION_MINOR       91
+#define CY_BTSS_DRV_VERSION_MINOR       150
 /** Timeout for SL CTL3 register wait in micro seconds */
 #define CY_BTSS_SL_CTL3_WAIT_DELAY_US   500000UL
 /** \} group_syspm_btss_macros */
@@ -147,6 +152,18 @@ cy_en_btss_status_t Cy_BTSS_PowerDep(bool enable);
 *
 *******************************************************************************/
 cy_en_btss_status_t Cy_BTSS_CPUSSPowerDep(bool enable);
+
+/*******************************************************************************
+* Function Name: Cy_BTSS_PowerDepResetCount
+****************************************************************************//**
+*
+* Reset Power dependency use count.
+*
+* \note
+* This API can be used to reset use count to Zero when BT Reset happens.
+*
+*******************************************************************************/
+void Cy_BTSS_PowerDepResetCount(void);
 
 /*******************************************************************************
 * Function Name: Cy_BTSS_AssertReset

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_bt.h
-* \version 1.91
+* \version 1.130
 *
 * \brief
 * Provides an API declaration for the BT IPC driver.
@@ -189,6 +189,7 @@ typedef enum
     CY_BT_IPC_HPC_RESACCESS      = (0x05u),                /**<  HPC payload type Resource Access */
     CY_BT_IPC_HPC_LPO_SWITCH     = (0x06u),                /**<  HPC payload type LPO Clk switch */
     CY_BT_IPC_HPC_INRUSH_MODE    = (0x07u),                /**<  HPC payload type inrush mode select */
+    CY_BT_IPC_HPC_BUFFER_REMOVE  = (0x08u),                /**<  HPC payload type buffer remove, sent from BT only */
     CY_BT_IPC_HPC_LONG           = (0xFFu),                /**<  HPC payload type long message */
 } cy_en_btipc_hpcpti_t;
 
@@ -695,6 +696,18 @@ typedef __PACKED_STRUCT cy_stc_ipc_msg_inrush_mode_t
     uint8_t dummy2;                                 /**< Not used */
     uint32_t dummy3;                                /**< Not used */
 } cy_stc_ipc_msg_inrush_mode_t;
+
+/**
+* This is the definition of HPC structure to indicate buffer removal from BTSS to MCU
+*/
+typedef __PACKED_STRUCT cy_stc_ipc_msg_buf_remove_t
+{
+    uint8_t msgId;                                  /**< Message ID for HPC message */
+    uint8_t bufType;                                /**< Buffer type indicator */
+    uint8_t dummy1;                                 /**< Not used */
+    uint8_t dummy2;                                 /**< Not used */
+    uint32_t dummy3;                                /**< Not used */
+} cy_stc_ipc_msg_buf_remove_t;
 /** \} group_ipc_bt_data_structures */
 
 

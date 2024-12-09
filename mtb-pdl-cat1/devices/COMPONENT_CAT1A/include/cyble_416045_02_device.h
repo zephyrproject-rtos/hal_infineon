@@ -522,7 +522,7 @@ typedef enum {
 #define CY_IP_MXPROFILE_INSTANCES       1u
 #define CY_IP_MXPROFILE_VERSION         1u
 #define CY_IP_MXSCB                     1u
-#define CY_IP_MXSCB_INSTANCES           9u
+#define CY_IP_MXSCB_INSTANCES           5u
 #define CY_IP_MXSCB_VERSION             1u
 #define CY_IP_MXS40SRSS                 1u
 #define CY_IP_MXS40SRSS_INSTANCES       1u
@@ -1165,23 +1165,15 @@ typedef enum {
 *                                     SCB
 *******************************************************************************/
 
-#define SCB0_BASE                               0x40610000UL
 #define SCB1_BASE                               0x40620000UL
 #define SCB2_BASE                               0x40630000UL
-#define SCB3_BASE                               0x40640000UL
-#define SCB4_BASE                               0x40650000UL
 #define SCB5_BASE                               0x40660000UL
 #define SCB6_BASE                               0x40670000UL
-#define SCB7_BASE                               0x40680000UL
 #define SCB8_BASE                               0x40690000UL
-#define SCB0                                    ((CySCB_Type*) SCB0_BASE)                                         /* 0x40610000 */
 #define SCB1                                    ((CySCB_Type*) SCB1_BASE)                                         /* 0x40620000 */
 #define SCB2                                    ((CySCB_Type*) SCB2_BASE)                                         /* 0x40630000 */
-#define SCB3                                    ((CySCB_Type*) SCB3_BASE)                                         /* 0x40640000 */
-#define SCB4                                    ((CySCB_Type*) SCB4_BASE)                                         /* 0x40650000 */
 #define SCB5                                    ((CySCB_Type*) SCB5_BASE)                                         /* 0x40660000 */
 #define SCB6                                    ((CySCB_Type*) SCB6_BASE)                                         /* 0x40670000 */
-#define SCB7                                    ((CySCB_Type*) SCB7_BASE)                                         /* 0x40680000 */
 #define SCB8                                    ((CySCB_Type*) SCB8_BASE)                                         /* 0x40690000 */
 
 /*******************************************************************************

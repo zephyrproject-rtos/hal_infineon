@@ -47,7 +47,9 @@ typedef struct {
   __IOM uint32_t SL_CTL;                        /*!< 0x00000010 Slave control */
   __IOM uint32_t SL_CTL2;                       /*!< 0x00000014 Slave control2 */
    __IM uint32_t SL_CTL3;                       /*!< 0x00000018 Slave control3 */
-   __IM uint32_t RESERVED1[9];
+   __IM uint32_t RESERVED1;
+  __IOM uint32_t SL_WOUND;                      /*!< 0x00000020 Slave wounding */
+   __IM uint32_t RESERVED2[7];
 } PERI_GR_Type;                                 /*!< Size = 64 (0x40) */
 
 /**
@@ -101,6 +103,9 @@ typedef struct {
 /* PERI_GR.SL_CTL3 */
 #define PERI_GR_SL_CTL3_SS_POWERSTATE_Pos       0UL
 #define PERI_GR_SL_CTL3_SS_POWERSTATE_Msk       0xFFFFFFFFUL
+/* PERI_GR.SL_WOUND */
+#define PERI_GR_SL_WOUND_DISABLED_Pos           0UL
+#define PERI_GR_SL_WOUND_DISABLED_Msk           0xFFFFFFFFUL
 
 
 /* PERI_TR_GR.TR_CTL */

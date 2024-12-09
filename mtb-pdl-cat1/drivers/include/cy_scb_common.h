@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_common.h
-* \version 3.10
+* \version 3.20
 *
 * Provides common API declarations of the SCB driver.
 *
@@ -56,6 +56,23 @@
 *******************************************************************************
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td rowspan="2">3.20</td>
+*     <td>Added APIs \ref Cy_SCB_UART_EnableSingleWireHalfDuplex, \ref Cy_SCB_UART_DisableSingleWireHalfDuplex.
+*       - Updated struct \ref cy_stc_scb_uart_config_t.
+*     </td>
+*     <td>UART half duplex mode implementation. Bug fixes.</td>
+*   </tr>
+*   <tr>
+*     <td>Added API \ref Cy_SCB_SPI_Transfer_Buffer and new macros.
+*       - Updated struct \ref cy_stc_scb_spi_context_t.</td>
+*     <td>Added support for SPI transfer with different length and bug fixes for buffer transfer with different sizes.</td>
+*   </tr>
+*   <tr>
+*     <td>3.10.1</td>
+*     <td>Minor documentation updates.</td>
+*     <td>Documentation enhancement.</td>
+*   </tr>
 *   <tr>
 *     <td>3.10</td>
 *     <td>Fixed MISRA 2012 violations.</td>
@@ -456,7 +473,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 #define CY_SCB_DRV_VERSION_MAJOR    (3)
 
 /** Driver minor version */
-#define CY_SCB_DRV_VERSION_MINOR    (10)
+#define CY_SCB_DRV_VERSION_MINOR    (20)
 
 /** SCB driver identifier */
 #define CY_SCB_ID           CY_PDL_DRV_ID(0x2AU)
@@ -1124,7 +1141,7 @@ __STATIC_INLINE void Cy_SCB_SetByteMode(CySCB_Type *base, bool byteMode)
 * If 0x2, the FIFOs are 32-bit wide.
 *
 * \note
-* This API is available for CAT1B and CAT1C devices.
+* This API is available for CAT1B, CAT1C and CAT1D devices.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SCB_SetMemWidth(CySCB_Type *base, uint32_t MemWidthMode)
@@ -2013,7 +2030,7 @@ __STATIC_INLINE bool Cy_SCB_IsRxDataWidthByte(CySCB_Type const *base)
 *
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B, CAT1C and CAT1D devices.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SCB_Get_RxDataWidth(CySCB_Type const *base)
@@ -2055,7 +2072,7 @@ __STATIC_INLINE bool Cy_SCB_IsTxDataWidthByte(CySCB_Type const *base)
 *
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B, CAT1C and CAT1D devices.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base)

@@ -124,6 +124,7 @@ typedef enum {
   canfd_0_interrupt0_IRQn           =  66,      /*!<  66 [Active] Can #0, Consolidated interrupt #0 */
   adcmic_interrupt_adcmic_IRQn      =  67,      /*!<  67 [Active] ADCMIC interrupt */
   btss_interrupt_btss_exception_IRQn =  68,     /*!<  68 [Active] interrupt indicating BTSS has encountered exception */
+  crypto_interrupt_trng_IRQn        =  69,      /*!<  69 [Active] Crypto TRNG Interrupt */
   unconnected_IRQn                  = 240       /*!< 240 Unconnected */
 } IRQn_Type;
 
@@ -138,7 +139,7 @@ typedef enum {
 #define __Vendor_SysTickConfig          0       /*!< Set to 1 if different SysTick Config is used */
 #define __VTOR_PRESENT                  1       /*!< Set to 1 if CPU supports Vector Table Offset Register */
 #define __MPU_PRESENT                   1       /*!< MPU present or not */
-#define __FPU_PRESENT                   1       /*!< FPU present or not */
+#define __FPU_PRESENT                   0       /*!< FPU present or not */
 #define __CM0P_PRESENT                  0       /*!< CM0P present or not */
 #define __DTCM_PRESENT                  0       /*!< Data Tightly Coupled Memory is present or not */
 #define __ICACHE_PRESENT                0       /*!< Instruction Cache present or not */
@@ -153,24 +154,40 @@ typedef enum {
 
 /* Memory Blocks */
 #define CY_ROM_BASE                     0x00000000UL
+#define CY_ROM_CBUS_BASE                0x00000000UL
 #define CY_ROM_SIZE                     0x00010000UL
-#define CY_ROM_SECURE_OFFSET            0x10000000UL
-#define CY_ROM_REMAP_OFFSET             0x00000000UL
-#define CY_ROM_REMAP_SECURE_OFFSET      0x10000000UL
+#define CY_ROM_NS_SBUS_BASE             0x00000000UL
+#define CY_ROM_NS_CBUS_BASE             0x00000000UL
+#define CY_ROM_S_SBUS_BASE              0x10000000UL
+#define CY_ROM_S_CBUS_BASE              0x10000000UL
 #define CY_CAN0MRAM_BASE                0x40450000UL
+#define CY_CAN0MRAM_CBUS_BASE           0x40450000UL
 #define CY_CAN0MRAM_SIZE                0x00010000UL
+#define CY_CAN0MRAM_NS_SBUS_BASE        0x40450000UL
+#define CY_CAN0MRAM_NS_CBUS_BASE        0x40450000UL
+#define CY_CAN0MRAM_S_SBUS_BASE         0x50450000UL
+#define CY_CAN0MRAM_S_CBUS_BASE         0x50450000UL
 #define CY_EFUSE_BASE                   0x40810800UL
+#define CY_EFUSE_CBUS_BASE              0x40810800UL
 #define CY_EFUSE_SIZE                   0x00000200UL
+#define CY_EFUSE_NS_SBUS_BASE           0x40810800UL
+#define CY_EFUSE_NS_CBUS_BASE           0x40810800UL
+#define CY_EFUSE_S_SBUS_BASE            0x50810800UL
+#define CY_EFUSE_S_CBUS_BASE            0x50810800UL
 #define CY_XIP_BASE                     0x60000000UL
+#define CY_XIP_CBUS_BASE                0x08000000UL
 #define CY_XIP_SIZE                     0x08000000UL
-#define CY_XIP_SECURE_OFFSET            0x70000000UL
-#define CY_XIP_REMAP_OFFSET             0x08000000UL
-#define CY_XIP_REMAP_SECURE_OFFSET      0x18000000UL
+#define CY_XIP_NS_SBUS_BASE             0x60000000UL
+#define CY_XIP_NS_CBUS_BASE             0x08000000UL
+#define CY_XIP_S_SBUS_BASE              0x70000000UL
+#define CY_XIP_S_CBUS_BASE              0x18000000UL
 #define CY_SRAM0_BASE                   0x20000000UL
+#define CY_SRAM0_CBUS_BASE              0x04000000UL
 #define CY_SRAM0_SIZE                   0x00020000UL
-#define CY_SRAM0_SECURE_OFFSET          0x30000000UL
-#define CY_SRAM0_REMAP_OFFSET           0x04000000UL
-#define CY_SRAM0_REMAP_SECURE_OFFSET    0x14000000UL
+#define CY_SRAM0_NS_SBUS_BASE           0x20000000UL
+#define CY_SRAM0_NS_CBUS_BASE           0x04000000UL
+#define CY_SRAM0_S_SBUS_BASE            0x30000000UL
+#define CY_SRAM0_S_CBUS_BASE            0x14000000UL
 
 #include "system_cat1b.h"                       /*!< Category 1B System */
 
@@ -249,8 +266,8 @@ typedef enum {
 #include "gpio_cyw20829_40_qfn.h"
 
 #define CY_DEVICE_CYW20829
-#define CY_DEVICE_SERIES_20829
-#define CY_SILICON_ID                   0x1EB42069UL
+#define CY_DEVICE_SERIES_89829
+#define CY_SILICON_ID                   0xEB421110UL
 #define CY_HF_CLK_MAX_FREQ              96000000UL
 
 

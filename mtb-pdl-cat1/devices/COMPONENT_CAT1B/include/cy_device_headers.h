@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -27,14 +27,24 @@
 #ifndef _CY_DEVICE_HEADERS_H_
 #define _CY_DEVICE_HEADERS_H_
 
-#if defined (CYW20829A0LKML)
+#if defined (CYW20829B0LKML)
+    #include "cyw20829b0lkml.h"
+#elif defined (CYW89829B0022)
+    #include "cyw89829b0022.h"
+#elif defined (CYW89829B0232)
+    #include "cyw89829b0232.h"
+#elif defined (CYW20829B0000)
+    #include "cyw20829b0000.h"
+#elif defined (CYW20829B0010)
+    #include "cyw20829b0010.h"
+#elif defined (CYW20829B0021)
+    #include "cyw20829b0021.h"
+#elif defined (CYW20829A0LKML)
     #include "cyw20829a0lkml.h"
 #elif defined (CYW20829A0KML)
     #include "cyw20829a0kml.h"
 #elif defined (CYW89829A0KML)
     #include "cyw89829a0kml.h"
-#elif defined (CYW20829B0LKML)
-    #include "cyw20829b0lkml.h"
 #elif defined (CYW20829B0KML)
     #include "cyw20829b0kml.h"
 #elif defined (CYW89829B0KML)
@@ -42,6 +52,7 @@
 #else
     #error Undefined part number
 #endif
+
 
 #endif /* _CY_DEVICE_HEADERS_H_ */
 

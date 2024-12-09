@@ -28,38 +28,19 @@
 
 /**
  * \addtogroup group_board_libs Serial Flash
- * \ingroup group_lib_impl
+ * \ingroup group_lib
  * \{
  *
- * \section section_dma_qspi_frequency DMA vs QSPI frequencies consideration
- * When DMA-based functions are used (e.g. \ref cy_serial_flash_qspi_read_async), it is critical to
- * understand on what frequency DMA is operating and to configure QSPI frequency accordingly
- * (or vice versa - configure DMA frequency accoring to QSPI frequency being set). Recommendation is
- * to have QSPI clock not more than 2 times differ (lower or higher) comparing to DMA clock.
- *
- * \section section_dma_qspi_transfers_len DMA transfers data length constraints
- * Due to limitations of underlying DMA, DMA-based transfers (e.g. triggered with help ofis_busy
- * \ref cy_serial_flash_qspi_read_async) with length greater than 256, number of total elements to
- * be transferred should be divisible by 256, e.g. 512, 768, 1024, etc.
- *
- * \section section_serial_flash_pre_initialized Attaching to a preinitialized peripheral
- * For devices that don't have internal NVM or simply decide to store their code on an external
- * memory region, it is still possible to use the serial flash library to interface other memory
- * areas of that same external memory.
- * It is necessary to take precautions while doing so: first of all the configuration of the SMIF
- * peripheral should not be altered in a way that makes it interfere with the XIP of the core
- * region.
- * API \ref cy_serial_flash_qspi_attach is the API to use the existing SMIF configuration and
- * configure only the SMIF DEVICE for correctly being able to then use the read/write/erase
- * functionality of serial flash. The initialization of the memory device for octal memories
- * requires SMIF's rxCaptureMode to not be already setup in HyperBus with Data strobe line mode.
- * Therefore \ref cy_serial_flash_qspi_attach checks this setting of the SMIF and if needed changes
- * it back to Normal SPI. After the memory device initialization if the device requires to work
- * in octal mode then the code flow makes sure to restore the setting once more.
- * When wanting to free the serial flash object, function \ref cy_serial_flash_qspi_detach needs
- * to be used to free up the QSPI object but not interfere with the preexisting configuration of the
- * peripheral, rather than \ref cy_serial_flash_qspi_deinit.
- *
+ * \section section_resource_usage DMA Resource Usage
+ * This library uses fixed DMA (Datawire or DW) resources and supports DMA only
+ * for the following devices. DMA is not supported for other devices and the
+ * functions \ref cy_serial_flash_qspi_read_async() and
+ * \ref cy_serial_flash_qspi_abort_read() will return
+ * \ref CY_RSLT_SERIAL_FLASH_ERR_UNSUPPORTED error and
+ * \ref cy_serial_flash_qspi_set_dma_interrupt_priority() will simply return
+ * doing nothing.
+ * * CY8C6xx4, CY8C6xx5, CY8C6xx8, CY8C6xxA, CYB06xx5, CYB06xxA, CYS06xxA: <b>DW1, Channel 23</b>
+ * * CY8C6xx6, CY8C6xx7, CYB06xx7: <b>DW1, Channel 15</b>
  */
 
 #pragma once
@@ -201,7 +182,8 @@ cy_rslt_t cy_serial_flash_qspi_read(uint32_t addr, size_t length, uint8_t* buf);
 /**
  * \brief Reads data from the serial flash memory. This is a non-blocking
  * function. Returns error if (addr + length) exceeds the flash size.
- * Uses DMA for transferring the data from QSPI RX FIFO to the user-provided buffer.
+ * Uses fixed DMA (DW) instance and channel for transferring the data from
+ * QSPI RX FIFO to the user-provided buffer.
  * \param addr Starting address to read from
  * \param length Number of data bytes to read
  * \param buf Pointer to the buffer to store the data read from the memory
@@ -280,48 +262,6 @@ void cy_serial_flash_qspi_set_interrupt_priority(uint8_t priority);
  */
 void cy_serial_flash_qspi_set_dma_interrupt_priority(uint8_t priority);
 
-#if defined(CYHAL_API_AVAILABLE_QSPI_ATTACH)
-/**
- * \brief Attaches to a preinitialized serial flash memory. This function accepts up to 8
- * I/Os. Number of I/Os depend on the type of memory interface. Pass NC when an
- * I/O is unused.
- * Single SPI - (io0, io1) or (io2, io3) or (io4, io5) or (io6, io7)
- * Dual SPI   - (io0, io1) or (io2, io3) or (io4, io5) or (io6, io7)
- * Quad SPI   - (io0, io1, io2, io3) or (io4, io5, io6, io7)
- * Octal SPI  - All 8 I/Os are used.
- * \param mem_config Memory configuration to be used for initializing
- * \param io0 Data/IO pin 0 connected to the memory, Pass NC when unused.
- * \param io1 Data/IO pin 1 connected to the memory, Pass NC when unused.
- * \param io2 Data/IO pin 2 connected to the memory, Pass NC when unused.
- * \param io3 Data/IO pin 3 connected to the memory, Pass NC when unused.
- * \param io4 Data/IO pin 4 connected to the memory, Pass NC when unused.
- * \param io5 Data/IO pin 5 connected to the memory, Pass NC when unused.
- * \param io6 Data/IO pin 6 connected to the memory, Pass NC when unused.
- * \param io7 Data/IO pin 7 connected to the memory, Pass NC when unused.
- * \param ssel Slave select pin connected to the memory
- * \returns CY_RSLT_SUCCESS if the attach was successful, an error code
- *          otherwise.
- */
-cy_rslt_t cy_serial_flash_qspi_attach(
-    const cy_stc_smif_mem_config_t* mem_config,
-    cyhal_gpio_t io0,
-    cyhal_gpio_t io1,
-    cyhal_gpio_t io2,
-    cyhal_gpio_t io3,
-    cyhal_gpio_t io4,
-    cyhal_gpio_t io5,
-    cyhal_gpio_t io6,
-    cyhal_gpio_t io7,
-    cyhal_gpio_t ssel);
-
-#endif /* if defined(CYHAL_API_AVAILABLE_QSPI_ATTACH)*/
-
-#if defined(CYHAL_API_AVAILABLE_QSPI_DETACH)
-/**
- * \brief Detach the serial flash memory.
- */
-void cy_serial_flash_qspi_detach(void);
-#endif /* if defined(CYHAL_API_AVAILABLE_QSPI_DETACH)*/
 
 #if defined(__cplusplus)
 }

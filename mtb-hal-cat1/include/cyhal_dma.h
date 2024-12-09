@@ -110,6 +110,23 @@
  * instead; with the same note as above about ensuring a connection between instances.
  *
  * \snippet hal_dma.c snippet_cyhal_dma_triggers_input
+ *
+ *
+ * \subsection subsection_dma_snippet_5 Snippet 5: DMA transfers with D-cache
+ * If CPU D-cache is enabled, DMA transfers must be handled using cache management API when dealing with cacheable memory
+ * in order to maintain CPU data cache coherency.
+ * Regarding the CPU data cache coherence with DMA, the general rules are, <br>
+ * - Source and destination buffers must be cacheline aligned (__SCB_DCACHE_LINE_SIZE) <br>
+ * - D-cache of DMA descriptor and D-cache of source's buffers must be cleaned before a DMA transfer <br>
+ * - D-cache of destination buffer must be invalidated after a DMA transfer <br>
+ *
+ * The following snippet initializes a DMA channel and uses it to transfer a single block from one cacheable memory
+ * to another cacheable memory. Cleaning D-cache of DMA descriptor is done by calling \ref cyhal_dma_configure.
+ * Cleaning D-cache of source's buffer and Invalidating D-cache of destination's buffer should be done explicitly.
+ *
+ * Refer to \ref DCACHE_Management for more information.
+ *
+ * \snippet hal_dma.c snippet_cyhal_dma_with_dcache
  */
 
 #pragma once
@@ -338,6 +355,7 @@ void cyhal_dma_free(cyhal_dma_t *obj);
  * \note The automatic enablement of the channel as part of this function is expected to change
  * in a future update. This would only happen on a new major release (eg: 1.0 -> 2.0).
  * \note If the DMA was setup using \ref cyhal_dma_init_cfg, this function should not be used.
+ * \note If D-cache is enabled, this function cleans D-cache of DMA descriptor.
  *
  * @param[in] obj    The DMA object
  * @param[in] cfg    Configuration parameters for the transfer

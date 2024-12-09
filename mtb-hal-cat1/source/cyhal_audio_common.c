@@ -2340,6 +2340,10 @@ static cy_rslt_t _cyhal_audioss_dma_perform_rx(_cyhal_audioss_t *obj)
     };
     cy_rslt_t result = cyhal_dma_configure(&(obj->rx_dma), &dma_cfg);
 
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_InvalidateDCache_by_Addr((void *)obj->async_rx_buff, transfer_size * (_cyhal_audioss_rounded_word_length(obj, false) / 8));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
+
     if(CY_RSLT_SUCCESS == result)
     {
         result = cyhal_dma_enable(&(obj->rx_dma));
@@ -2398,6 +2402,10 @@ static cy_rslt_t _cyhal_audioss_dma_perform_tx(_cyhal_audioss_t *obj)
         .action = CYHAL_DMA_TRANSFER_FULL,
     };
     cy_rslt_t result = cyhal_dma_configure(&(obj->tx_dma), &dma_cfg);
+
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void *)obj->async_tx_buff, transfer_size * (_cyhal_audioss_rounded_word_length(obj, true) / 8));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
     if(CY_RSLT_SUCCESS == result)
     {

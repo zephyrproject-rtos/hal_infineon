@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_systick.h
-* \version 1.70.1
+* \version 1.80
 *
 * Provides the API declarations of the SysTick driver.
 *
@@ -62,6 +62,11 @@
 *
 * <table class="doxtable">
 * <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.80</td>
+*     <td>Newly added macro CY_SYSTICK_IS_CLK_SRC_VALID and updated APIs \ref Cy_SysTick_Init, \ref Cy_SysTick_SetClockSource.<br>
+*     <td>Added check for IMO clock source.</td>
+*   </tr>
 *    <tr>
 *     <td>1.70.1</td>
 *     <td>Updated driver guards.<br>
@@ -156,9 +161,6 @@
 extern "C" {
 #endif
 
-/** \cond */
-typedef void (*Cy_SysTick_Callback)(void);
-/** \endcond */
 
 /**
 * \addtogroup group_systick_data_structures
@@ -174,6 +176,10 @@ typedef enum
     CY_SYSTICK_CLOCK_SOURCE_CLK_CPU   = 4u,     /**< The CPU clock is selected. */
 } cy_en_systick_clock_source_t;
 
+
+/** Pointer to the callback function */
+typedef void (*Cy_SysTick_Callback)(void);
+
 /** \} group_systick_data_structures */
 
 
@@ -186,7 +192,7 @@ typedef enum
 #define CY_SYSTICK_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_SYSTICK_DRV_VERSION_MINOR       70
+#define CY_SYSTICK_DRV_VERSION_MINOR       80
 
 /** SysTick driver ID */
 #define CY_SYSTICK_ID           CY_PDL_DRV_ID(0x79U)
@@ -199,6 +205,12 @@ typedef enum
 /** \cond */
 /** Macros for the conditions used by CY_ASSERT calls */
 #define CY_SYSTICK_IS_RELOAD_VALID(load)     ((load) <= 0xFFFFFFUL)
+
+#define CY_SYSTICK_IS_CLK_SRC_VALID(clkSrc)   (((clkSrc) == CY_SYSTICK_CLOCK_SOURCE_CLK_LF) || \
+                                                ((clkSrc) == CY_SYSTICK_CLOCK_SOURCE_CLK_IMO) || \
+                                                ((clkSrc) == CY_SYSTICK_CLOCK_SOURCE_CLK_ECO) || \
+                                                ((clkSrc) == CY_SYSTICK_CLOCK_SOURCE_CLK_TIMER) || \
+                                                ((clkSrc) == CY_SYSTICK_CLOCK_SOURCE_CLK_CPU))
 /** \endcond */
 
 /** \cond */
@@ -229,6 +241,9 @@ typedef enum
 *
 * \param clockSource The SysTick clock source \ref cy_en_systick_clock_source_t
 * \param interval The SysTick reload value.
+* \note The parameter interval is a tick value not the actual time interval.
+* If user wants to configure systick interrupt based on time then the interval
+* parameter value will be (((time in micro seconds) / 1000000.0) * source clock frequency in Hz)
 *
 * \sideeffect Clears the SysTick count flag if it was set.
 *
@@ -272,7 +287,7 @@ void Cy_SysTick_Disable(void);
 * \param function The pointer to the function that will be associated with the
 * SysTick ISR for the specified number.
 *
-* \return Returns the address of the previous callback function.
+* \return \ref Cy_SysTick_Callback Returns the address of the previous callback function.
 * The NULL is returned if the specified address in not set or incorrect
 * parameter is specified.
 
@@ -292,7 +307,7 @@ Cy_SysTick_Callback Cy_SysTick_SetCallback(uint32_t number, Cy_SysTick_Callback 
 * \param number The number of the callback function address to get. The valid
 * range is from 0 to \ref CY_SYS_SYST_NUM_OF_CALLBACKS - 1.
 *
-* \return Returns the address of the specified callback function.
+* \return \ref Cy_SysTick_Callback Returns the address of the specified callback function.
 * The NULL is returned if the specified address in not initialized or incorrect
 * parameter is specified.
 *

@@ -90,7 +90,7 @@ extern "C" {
 #endif
 
 
-#if defined(COMPONENT_CAT1C)
+#if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     /* CAT1C devices define _CYHAL_SRSS_NUM_PLL to be the macro that documents the number of 200MHz PLL's present */
     #define SRSS_NUM_PLL200M    SRSS_NUM_PLL
 #elif defined(COMPONENT_CAT1D)
@@ -99,19 +99,23 @@ extern "C" {
     #define SRSS_NUM_DPLL500M   SRSS_NUM_DPLL_HP
 #endif
 
-#if defined(COMPONENT_CAT1C) && (SRSS_HT_VARIANT)
+#if ((defined(COMPONENT_CAT1C) && (SRSS_HT_VARIANT)) || (defined(COMPONENT_CAT1A) && SRSS_HT_VARIANT))
     #define _CYHAL_SRSS_NUM_ILO 2U
 #else
     #define _CYHAL_SRSS_NUM_ILO 1U
 #endif
 
+#if defined(CPUSS_CM7_1_PRESENT)
 #define _CYHAL_SRSS_NUM_FAST (1 + CPUSS_CM7_1_PRESENT)
+#else
+#define _CYHAL_SRSS_NUM_FAST (1)
+#endif
 
 /* Alignment for DMA descriptors */
 #if (CY_IP_MXSAXIDMAC)
     /* AXI DMA controller has a 64-bit AXI master interface */
     #define _CYHAL_DMA_ALIGN        CY_ALIGN(8)
-#elif (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#elif (CY_CPU_CORTEX_M7) && defined(ENABLE_CM7_DATA_CACHE)
     #define _CYHAL_DMA_ALIGN        CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
 #else
     #define _CYHAL_DMA_ALIGN
@@ -148,7 +152,7 @@ extern "C" {
 #define CYHAL_DRIVER_AVAILABLE_IPC          (0)
 #endif /* !defined(COMPONENT_CAT1B) && !defined(COMPONENT_CAT1D) or other */
 #define CYHAL_DRIVER_AVAILABLE_QSPI         ((CY_IP_MXSMIF_INSTANCES) > 0)
-#if (defined (COMPONENT_CM0P) && defined(COMPONENT_CAT1D))//CAT 1D CM0P cannot have LPTimer instances because no interrupts are routed to this CPU
+#if (defined(COMPONENT_CM0P) && defined(COMPONENT_CAT1D))//CAT 1D CM0P cannot have LPTimer instances because no interrupts are routed to this CPU
 #define CYHAL_DRIVER_AVAILABLE_LPTIMER  (0)
 #else
 #define CYHAL_DRIVER_AVAILABLE_LPTIMER      ((SRSS_NUM_MCWDT) > 0)
@@ -282,14 +286,22 @@ typedef enum
     CYHAL_CLOCK_BLOCK_ALTHF,                                        /*!< Alternate High Frequency Input Clock */
     CYHAL_CLOCK_BLOCK_ALTLF,                                        /*!< Alternate Low Frequency Input Clock */
     CYHAL_CLOCK_BLOCK_ILO,                                          /*!< Internal Low Speed Oscillator Input Clock */
+#if !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
     CYHAL_CLOCK_BLOCK_PILO,                                         /*!< Precision ILO Input Clock */
+#endif
+
     CYHAL_CLOCK_BLOCK_WCO,                                          /*!< Watch Crystal Oscillator Input Clock */
     CYHAL_CLOCK_BLOCK_MFO,                                          /*!< Medium Frequency Oscillator Clock */
 
     CYHAL_CLOCK_BLOCK_PATHMUX,                                      /*!< Path selection mux for input to FLL/PLLs */
 
     CYHAL_CLOCK_BLOCK_FLL,                                          /*!< Frequency-Locked Loop Clock */
+#if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
+    CYHAL_CLOCK_BLOCK_PLL200,                                       /*!< 200MHz Phase-Locked Loop Clock */
+    CYHAL_CLOCK_BLOCK_PLL400,                                       /*!< 400MHz Phase-Locked Loop Clock */
+#else
     CYHAL_CLOCK_BLOCK_PLL,                                          /*!< Phase-Locked Loop Clock */
+#endif
 
     CYHAL_CLOCK_BLOCK_LF,                                           /*!< Low Frequency Clock */
     CYHAL_CLOCK_BLOCK_MF,                                           /*!< Medium Frequency Clock */
@@ -303,6 +315,8 @@ typedef enum
     CYHAL_CLOCK_BLOCK_FAST,                                         /*!< Fast Clock for CM4 */
     CYHAL_CLOCK_BLOCK_PERI,                                         /*!< Peripheral Clock */
     CYHAL_CLOCK_BLOCK_SLOW,                                         /*!< Slow Clock for CM0+ */
+
+
 #elif defined(COMPONENT_CAT1B)
 
     CYHAL_CLOCK_BLOCK_PERIPHERAL_8BIT = CY_SYSCLK_DIV_8_BIT,        /*!< Equivalent to CYHAL_CLOCK_BLOCK_PERIPHERAL0_8_BIT */

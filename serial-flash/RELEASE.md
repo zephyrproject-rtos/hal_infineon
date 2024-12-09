@@ -8,11 +8,8 @@ Provides functions for interacting with an external flash connected through its 
 * Allows for providing information to the programming tool to program the external memory.
 
 ### What Changed?
-#### v1.4.3
-* Added functions for attach/detach to pre-existing peripheral configurations
-#### v1.4.0
+#### v1.4.2
 * Added support for CAT1C devices.
-* Switched driver from PDL functions call to corresponding HAL calls, where it is possible.
 #### v1.3.0
 * Added support for CAT1B device - CYW20829.
 #### v1.2.0
@@ -38,9 +35,9 @@ This version of the Serial Flash library was validated for compatibility with th
 
 | Software and Tools                        | Version |
 | :---                                      | :----:  |
-| ModusToolbox™ Software Environment        | 2.4.0   |
-| GCC Compiler                              | 10.3.1  |
-| IAR Compiler                              | 8.4     |
+| ModusToolbox™ Software Environment        | 3.0.0   |
+| GCC Compiler                              | 11.3.1  |
+| IAR Compiler                              | 9.30.1  |
 | ARM Compiler 6                            | 6.11    |
 
 Minimum required ModusToolbox™ Software Environment: v2.0

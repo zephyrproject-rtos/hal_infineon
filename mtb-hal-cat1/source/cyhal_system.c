@@ -122,7 +122,9 @@ cy_rslt_t cyhal_system_set_isr(int32_t irq_num, int32_t irq_src, uint8_t priorit
     cy_stc_sysint_t cfg =
     {
 #if defined (CY_IP_M7CPUSS)
-        .intrSrc = (uint32_t)irq_src | ((uint32_t)irq_num << 16),
+        .intrSrc = (uint32_t)irq_src | ((uint32_t)irq_num << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT),
+#elif defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT)
+        .intrSrc = (IRQn_Type)((uint32_t)irq_src | ((uint32_t)irq_num << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT)),
 #else
         .intrSrc = (IRQn_Type)irq_num,
 #endif

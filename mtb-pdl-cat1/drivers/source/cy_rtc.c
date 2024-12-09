@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_rtc.c
-* \version 2.70
+* \version 2.90
 *
 * This file provides constants and parameter values for the APIs for the
 * Real-Time Clock (RTC).
@@ -36,13 +36,13 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 2.2', 3, \
 extern "C" {
 #endif
 
-#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 3))
+#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 3)) || defined (CY_IP_MXS22SRSS)
 #define CONVERT_BCD_TO_DEC(bcdNum) (bcdNum)
 #define CONVERT_DEC_TO_BCD(decNum) (decNum)
 #else
 #define CONVERT_BCD_TO_DEC(bcdNum) Cy_RTC_ConvertBcdToDec(bcdNum)
 #define CONVERT_DEC_TO_BCD(decNum) Cy_RTC_ConvertDecToBcd(decNum)
-#endif /* CY_IP_MXS40SRSS_RTC, CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS */
+#endif /* CY_IP_MXS40SRSS_RTC, CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS, CY_IP_MXS22SRSS*/
 
 /** RTC days in months table */
 uint8_t const cy_RTC_daysInMonthTbl[CY_RTC_MONTHS_PER_YEAR] = {CY_RTC_DAYS_IN_JANUARY,
@@ -1296,6 +1296,10 @@ __WEAK void Cy_RTC_CenturyInterrupt(void)
 *******************************************************************************/
 uint32_t Cy_RTC_GetInterruptStatus(void)
 {
+#if defined (CY_IP_MXS22SRSS)
+/* Work around for A0 silicon as described in CDT_005821-35 */
+    (void) BACKUP_INTR;
+#endif
     return(BACKUP_INTR);
 }
 
@@ -1595,7 +1599,7 @@ cy_en_rtc_status_t Cy_RTC_CalibrationControlEnable(uint8_t calib_val, cy_en_rtc_
         BACKUP_CAL_CTL =
         _VAL2FLD(BACKUP_CAL_CTL_CALIB_VAL, calib_val)  |
         _VAL2FLD(BACKUP_CAL_CTL_CALIB_SIGN, (uint32_t)calib_sign) |
-#if defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 2))
+#if defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 2)) || defined (CY_IP_MXS22SRSS)
         _VAL2FLD(BACKUP_CAL_CTL_CAL_SEL, (uint32_t)calib_sel) |
 #endif
         _VAL2FLD(BACKUP_CAL_CTL_CAL_OUT, 1U);
@@ -1703,9 +1707,7 @@ static void ConstructTimeDate(cy_stc_rtc_config_t const *timeDate, uint32_t *tim
             tmpTime &= ((uint32_t) ~CY_RTC_BACKUP_RTC_TIME_RTC_PM);
         }
         tmpTime |= BACKUP_RTC_TIME_CTRL_12HR_Msk;
-        tmpTime |= 
-        (_VAL2FLD(BACKUP_RTC_TIME_RTC_HOUR, 
-        (CONVERT_DEC_TO_BCD(timeDate->hour) & ((uint32_t) ~CY_RTC_12HRS_PM_BIT))));
+        tmpTime |= (_VAL2FLD(BACKUP_RTC_TIME_RTC_HOUR, (CONVERT_DEC_TO_BCD(timeDate->hour) & ((uint32_t) ~CY_RTC_12HRS_PM_BIT))));
     }
     else
     {
@@ -1894,6 +1896,6 @@ static uint32_t RelativeToFixed(cy_stc_rtc_dst_format_t const *convertDst)
 #endif
 
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 2.2')
-#endif /* CY_IP_MXS40SRSS_RTC, CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS */
+#endif /* CY_IP_MXS40SRSS_RTC, CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS, CY_IP_MXS22SRSS */
 
 /* [] END OF FILE */

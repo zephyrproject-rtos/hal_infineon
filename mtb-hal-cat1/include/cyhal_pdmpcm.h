@@ -246,6 +246,14 @@ cy_rslt_t cyhal_pdm_pcm_read(cyhal_pdm_pcm_t *obj, void *data, size_t *length);
  *
  * cyhal_pdm_pcm_set_async_mode can be used to control whether this uses DMA or a CPU-driven transfer.
  *
+ * @note If D-cache is enabled, cyhal_pdm_pcm_set_async_mode is DMA and data Cache line is 32 bytes,
+ * the user needs to make sure that the data pointer passed to the cyhal_pdm_pcm_read_async
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
+ *
  * @param[in]  obj     The PDM/PCM object
  * @param[out] data    Pointer to word array where incoming data will be stored. Buffer must be aligned to word-size.
  *                     Each word will be aligned to the next largest power of 2. For example, if the word length is 16 bits,

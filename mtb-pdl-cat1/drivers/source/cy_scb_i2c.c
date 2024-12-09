@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_i2c.c
-* \version 3.10
+* \version 3.20
 *
 * Provides I2C API implementation of the SCB driver.
 *
@@ -276,6 +276,8 @@ void Cy_SCB_I2C_Disable(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 * from Deep Sleep mode, this function must be copied and modified by the user.
 * The I2C clock disable code must be inserted in the \ref CY_SYSPM_BEFORE_TRANSITION
 * and clock enable code in the \ref CY_SYSPM_AFTER_TRANSITION mode processing.
+*
+* Please refer to the section \ref group_scb_i2c_mclk_sync for more information.
 *
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
@@ -2305,7 +2307,7 @@ void Cy_SCB_I2C_SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
 *   will be set.
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B and CAT1D devices.
 *
 *******************************************************************************/
 void Cy_SCB_I2C_SetStretchThreshold(CySCB_Type const *base, uint32_t value)
@@ -2329,7 +2331,7 @@ void Cy_SCB_I2C_SetStretchThreshold(CySCB_Type const *base, uint32_t value)
 * The stretch count.
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B and CAT1D devices.
 *
 *******************************************************************************/
 uint32_t Cy_SCB_I2C_GetStretchCount(CySCB_Type const *base)
@@ -2350,7 +2352,7 @@ uint32_t Cy_SCB_I2C_GetStretchCount(CySCB_Type const *base)
 * If true, stretch is detected; false otherwise.
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B and CAT1D devices.
 *
 *******************************************************************************/
 bool Cy_SCB_I2C_IsStretchDetected(CySCB_Type const *base)
@@ -2371,7 +2373,7 @@ bool Cy_SCB_I2C_IsStretchDetected(CySCB_Type const *base)
 * If true, synchronization is detected; false otherwise.
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B and CAT1D devices.
 *
 *******************************************************************************/
 bool Cy_SCB_I2C_IsSyncDetected(CySCB_Type const *base)
@@ -2392,7 +2394,7 @@ bool Cy_SCB_I2C_IsSyncDetected(CySCB_Type const *base)
 * If true, I2C SCL is being stretch by the block, false otherwise.
 *
 * \note
-* This API is available for CAT1B devices.
+* This API is available for CAT1B and CAT1D devices.
 *
 *******************************************************************************/
 bool Cy_SCB_I2C_IsStretching(CySCB_Type const *base)

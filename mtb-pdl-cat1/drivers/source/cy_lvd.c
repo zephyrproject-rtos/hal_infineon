@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_lvd.c
-* \version 1.60
+* \version 1.80
 *
 * The source code file for the LVD driver.
 *
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3)) || defined (CY_IP_MXS22SRSS)
+#if defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 1)) || defined (CY_IP_MXS22SRSS)
 
 #include "cy_lvd.h"
 
@@ -80,5 +80,5 @@ cy_en_syspm_status_t Cy_LVD_DeepSleepCallback(cy_stc_syspm_callback_params_t * c
 }
 #endif
 
-#endif
+#endif  // defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 1)) || defined (CY_IP_MXS22SRSS)
 /* [] END OF FILE */

@@ -56,7 +56,7 @@ typedef enum
 } cy_en_amux_split_t;
 
 /* Port List */
-/* PORT 0 (SLEW_EXT, DRIVE_EXT, SLEW_WIDTH, DRIVE_WIDTH) */
+/* PORT 0 (GPIO) */
 #define P0_4_PORT                       GPIO_PRT0
 #define P0_4_PIN                        4u
 #define P0_4_NUM                        4u
@@ -64,7 +64,7 @@ typedef enum
 #define P0_5_PIN                        5u
 #define P0_5_NUM                        5u
 
-/* PORT 1 (SLEW_EXT, DRIVE_EXT, SLEW_WIDTH, DRIVE_WIDTH) */
+/* PORT 1 (GPIO) */
 #define P1_0_PORT                       GPIO_PRT1
 #define P1_0_PIN                        0u
 #define P1_0_NUM                        0u
@@ -78,7 +78,7 @@ typedef enum
 #define P1_3_PIN                        3u
 #define P1_3_NUM                        3u
 
-/* PORT 2 (HSIO, SLEW_EXT, DRIVE_EXT, SLEW_WIDTH, DRIVE_WIDTH) */
+/* PORT 2 (GPIO) */
 #define P2_0_PORT                       GPIO_PRT2
 #define P2_0_PIN                        0u
 #define P2_0_NUM                        0u
@@ -98,7 +98,7 @@ typedef enum
 #define P2_5_PIN                        5u
 #define P2_5_NUM                        5u
 
-/* PORT 3 (SLEW_EXT, DRIVE_EXT, SLEW_WIDTH, DRIVE_WIDTH) */
+/* PORT 3 (GPIO) */
 #define P3_1_PORT                       GPIO_PRT3
 #define P3_1_PIN                        1u
 #define P3_1_NUM                        1u
@@ -109,7 +109,7 @@ typedef enum
 #define P3_3_PIN                        3u
 #define P3_3_NUM                        3u
 
-/* PORT 4 (GPIO_OVT, SLEW_EXT, DRIVE_EXT, SLEW_WIDTH, DRIVE_WIDTH) */
+/* PORT 4 (GPIO_OVT) */
 #define P4_0_PORT                       GPIO_PRT4
 #define P4_0_PIN                        0u
 #define P4_0_NUM                        0u
@@ -119,7 +119,7 @@ typedef enum
 #define P4_1_NUM                        1u
 #define P4_1_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 5 (SLEW_EXT, DRIVE_EXT, SLEW_WIDTH, DRIVE_WIDTH) */
+/* PORT 5 (GPIO) */
 #define P5_0_PORT                       GPIO_PRT5
 #define P5_0_PIN                        0u
 #define P5_0_NUM                        0u

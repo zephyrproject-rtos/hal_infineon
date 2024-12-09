@@ -2,7 +2,7 @@
     "core": {
         "id": "a76a909a-61d7-56ca-96ca-378d4e732287",
         "name": "mtb-template-cat1",
-        "version": "1.2.1.33410"
+        "version": "1.3.0.35366"
     },
     "opt": {
         "props": {
@@ -11,7 +11,8 @@
                     "components": "cat1b_components",
                     "defines": [
                         "hal_defines",
-                        "cat1b_defines"
+                        "cat1b_defines",
+                        "connectivity_defines"
                     ],
                     "deps": "cat1b_dependencies",
                     "files": [
@@ -58,7 +59,10 @@
                                     "cat1a_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -72,7 +76,10 @@
                                     "cat1a_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -90,7 +97,10 @@
                                     "cat1_cm0p_crypto_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -107,7 +117,10 @@
                                         "cat1a_cm0p_secure_components",
                                         "connectivity_components"
                                     ],
-                                    "defines": "hal_defines",
+                                    "defines": [
+                                        "hal_defines",
+                                        "connectivity_defines"
+                                    ],
                                     "deps": "cat1a_dependencies",
                                     "files": [
                                         "filelist/cat1a.txt",
@@ -123,7 +136,10 @@
                                         "cat1_cm0p_crypto_components",
                                         "connectivity_components"
                                     ],
-                                    "defines": "hal_defines",
+                                    "defines": [
+                                        "hal_defines",
+                                        "connectivity_defines"
+                                    ],
                                     "deps": "cat1a_dependencies",
                                     "files": [
                                         "filelist/cat1a.txt",
@@ -140,7 +156,10 @@
                                     "cat1_cm0p_crypto_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -160,7 +179,10 @@
                                     "cat1a_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -174,7 +196,10 @@
                                     "cat1a_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -192,7 +217,10 @@
                                     "cat1_cm0p_crypto_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -209,7 +237,10 @@
                                         "cat1a_cm0p_secure_components",
                                         "connectivity_components"
                                     ],
-                                    "defines": "hal_defines",
+                                    "defines": [
+                                        "hal_defines",
+                                        "connectivity_defines"
+                                    ],
                                     "deps": "cat1a_dependencies",
                                     "files": [
                                         "filelist/cat1a.txt",
@@ -225,7 +256,10 @@
                                         "cat1_cm0p_crypto_components",
                                         "connectivity_components"
                                     ],
-                                    "defines": "hal_defines",
+                                    "defines": [
+                                        "hal_defines",
+                                        "connectivity_defines"
+                                    ],
                                     "deps": "cat1a_dependencies",
                                     "files": [
                                         "filelist/cat1a.txt",
@@ -242,7 +276,10 @@
                                     "cat1_cm0p_crypto_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -265,7 +302,10 @@
                                         "cat1_cm0p_crypto_components",
                                         "connectivity_components"
                                     ],
-                                    "defines": "hal_defines",
+                                    "defines": [
+                                        "hal_defines",
+                                        "connectivity_defines"
+                                    ],
                                     "deps": "cat1a_dependencies",
                                     "files": [
                                         "filelist/cat1a.txt",
@@ -281,7 +321,10 @@
                                         "cat1_cm0p_crypto_components",
                                         "connectivity_components"
                                     ],
-                                    "defines": "hal_defines",
+                                    "defines": [
+                                        "hal_defines",
+                                        "connectivity_defines"
+                                    ],
                                     "deps": "cat1a_dependencies",
                                     "files": [
                                         "filelist/cat1a.txt",
@@ -305,7 +348,10 @@
                                 "cat1a_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1a_dependencies",
                             "files": [
                                 "filelist/cat1a.txt",
@@ -321,7 +367,10 @@
                                     "cat1_cm0p_crypto_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -340,7 +389,10 @@
                                 "cat1a_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1a_dependencies",
                             "files": [
                                 "filelist/cat1a.txt",
@@ -356,7 +408,10 @@
                                     "cat1_cm0p_crypto_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -371,7 +426,10 @@
                                     "cat1_cm0p_crypto_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -390,7 +448,10 @@
                                 "cat1a_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1a_dependencies",
                             "files": [
                                 "filelist/cat1a.txt",
@@ -407,7 +468,10 @@
                                     "cat1a_cm0p_secure_components",
                                     "connectivity_components"
                                 ],
-                                "defines": "hal_defines",
+                                "defines": [
+                                    "hal_defines",
+                                    "connectivity_defines"
+                                ],
                                 "deps": "cat1a_dependencies",
                                 "files": [
                                     "filelist/cat1a.txt",
@@ -445,7 +509,8 @@
                             ],
                             "defines": [
                                 "hal_defines",
-                                "cat1a_udb_sdio_defines"
+                                "cat1a_udb_sdio_defines",
+                                "connectivity_defines"
                             ],
                             "deps": "cat1a_dependencies_with_sdio",
                             "files": [
@@ -463,7 +528,8 @@
                             ],
                             "defines": [
                                 "hal_defines",
-                                "cat1a_udb_sdio_defines"
+                                "cat1a_udb_sdio_defines",
+                                "connectivity_defines"
                             ],
                             "deps": "cat1a_dependencies_with_sdio",
                             "files": [
@@ -485,7 +551,8 @@
                             ],
                             "defines": [
                                 "hal_defines",
-                                "cat1a_udb_sdio_defines"
+                                "cat1a_udb_sdio_defines",
+                                "connectivity_defines"
                             ],
                             "deps": "cat1a_dependencies_with_sdio",
                             "files": [
@@ -504,7 +571,8 @@
                             ],
                             "defines": [
                                 "hal_defines",
-                                "cat1a_udb_sdio_defines"
+                                "cat1a_udb_sdio_defines",
+                                "connectivity_defines"
                             ],
                             "deps": "cat1a_dependencies_with_sdio",
                             "files": [
@@ -586,7 +654,8 @@
                         ],
                         "defines": [
                             "hal_defines",
-                            "cat1a_udb_sdio_defines"
+                            "cat1a_udb_sdio_defines",
+                            "connectivity_defines"
                         ],
                         "deps": "cat1a_dependencies_with_sdio",
                         "files": [
@@ -607,7 +676,10 @@
                                 "cat1c_cm0p_single_cm7_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1c_dependencies",
                             "files": [
                                 "filelist/cat1c.txt",
@@ -621,7 +693,10 @@
                                 "cat1c_cm0p_single_cm7_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1c_dependencies",
                             "files": [
                                 "filelist/cat1c.txt",
@@ -635,7 +710,10 @@
                                 "cat1c_cm0p_single_cm7_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1c_dependencies",
                             "files": [
                                 "filelist/cat1c.txt",
@@ -652,7 +730,10 @@
                                 "cat1c_cm0p_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1c_dependencies",
                             "files": [
                                 "filelist/cat1c.txt",
@@ -666,7 +747,10 @@
                                 "cat1c_cm0p_components",
                                 "connectivity_components"
                             ],
-                            "defines": "hal_defines",
+                            "defines": [
+                                "hal_defines",
+                                "connectivity_defines"
+                            ],
                             "deps": "cat1c_dependencies",
                             "files": [
                                 "filelist/cat1c.txt",
@@ -685,7 +769,10 @@
                             "cat1c_cm0p_single_cm7_components",
                             "connectivity_components"
                         ],
-                        "defines": "hal_defines",
+                        "defines": [
+                            "hal_defines",
+                            "connectivity_defines"
+                        ],
                         "deps": "cat1c_dependencies",
                         "files": [
                             "filelist/cat1c.txt",
@@ -699,7 +786,10 @@
                             "cat1c_cm0p_components",
                             "connectivity_components"
                         ],
-                        "defines": "hal_defines",
+                        "defines": [
+                            "hal_defines",
+                            "connectivity_defines"
+                        ],
                         "deps": "cat1c_dependencies",
                         "files": [
                             "filelist/cat1c.txt",
@@ -800,11 +890,11 @@
                         "display": "CM0+ pre-built firmware image",
                         "options": [
                             {
+                                "default": true,
                                 "display": "This image starts the CM7_0 core at CY_CORTEX_M7_0_APPL_ADDR=0x10080000 and puts CM0+ core into a deep sleep mode.",
                                 "name": "XMC7x_CM0P_SLEEP"
                             },
                             {
-                                "default": true,
                                 "display": "This image starts both CM7 cores at CY_CORTEX_M7_0_APPL_ADDR=0x10080000 and CY_CORTEX_M7_1_APPL_ADDR=0x10280000, and puts CM0+ core into a deep sleep mode.",
                                 "name": "XMC7xDUAL_CM0P_SLEEP"
                             }
@@ -881,6 +971,77 @@
                                 "default": true,
                                 "define": "FLASH_BOOT",
                                 "display": "FLASH_BOOT",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    }
+                ],
+                "connectivity_defines": [
+                    {
+                        "description": "Option to set the GPIO drive mode for the WL_REG_ON output.",
+                        "display": "WIFI WL_REG_ON GPIO Drive Mode",
+                        "options": [
+                            {
+                                "default": true,
+                                "define": "CYBSP_WIFI_WL_REG_ON_GPIO_DRIVE_MODE=CYHAL_GPIO_DRIVE_PULLUP",
+                                "display": "Pull up",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_WL_REG_ON_GPIO_DRIVE_MODE=CYHAL_GPIO_DRIVE_STRONG",
+                                "display": "Strong Drive",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    },
+                    {
+                        "description": "Option to set the GPIO drive mode for the WL_HOSTWAKE output.",
+                        "display": "WIFI WL_HOSTWAKE Drive Mode",
+                        "options": [
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_DRIVE_MODE=CYHAL_GPIO_DRIVE_PULLUP",
+                                "display": "Pull up",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_DRIVE_MODE=DRIVE_NONE",
+                                "display": "High impedance digital",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    },
+                    {
+                        "description": "Option to set the Init State for the WL_HOSTWAKE output.",
+                        "display": "WIFI WL_HOSTWAKE Init State",
+                        "options": [
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_INIT_STATE=WHD_TRUE",
+                                "display": "True",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_INIT_STATE=WHD_FALSE",
+                                "display": "False",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    },
+                    {
+                        "description": "Option to set the IRQ Event for the WL_HOSTWAKE output.",
+                        "display": "WIFI WL_HOSTWAKE IRQ Event",
+                        "options": [
+                            {
+                                "define": "CYBSP_WIFI_HOST_WAKE_IRQ_EVENT=CYHAL_GPIO_IRQ_FALL",
+                                "display": "Fall",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_HOST_WAKE_IRQ_EVENT=CYHAL_GPIO_IRQ_RISE",
+                                "display": "Rise",
                                 "value": ""
                             }
                         ],

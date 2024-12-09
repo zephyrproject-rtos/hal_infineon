@@ -60,6 +60,16 @@ static inline void CY_HALT(void)
 }
 
 
+/** Default assert handler.
+ *
+ * To override, define CY_CUSTOM_ASSERT_HANDLER and define own CY_ASSERT_HANDLER API
+ */
+#if defined(CY_CUSTOM_ASSERT_HANDLER)
+void CY_ASSERT_HANDLER(void);
+#else
+#define CY_ASSERT_HANDLER() CY_HALT()
+#endif
+
 #ifdef CY_ASSERT
 #undef CY_ASSERT
 #endif // ifdef(CY_ASSERT)
@@ -67,15 +77,46 @@ static inline void CY_HALT(void)
 /** Utility macro when neither NDEBUG or CY_NO_ASSERT is not declared to check a condition and, if
    false, trigger a breakpoint */
 #if defined(NDEBUG) || defined(CY_NO_ASSERT)
-    #define CY_ASSERT(x)    do {                \
+/** Assert an argument is true, else call assert handler */
+    #define CY_ASSERT(x)    do {                        \
                             } while(false)
-#else
-    #define CY_ASSERT(x)    do {                \
-                                if(!(x))        \
-                                {               \
-                                    CY_HALT();  \
-                                }               \
+/** Assert an argument is true, else call assert handler and return a value */
+    #define CY_ASSERT_AND_RETURN(condition, value)      \
+                            do {                        \
+                                (void)(condition);      \
+                                (void)(value);          \
                             } while(false)
+/** Assert an argument is true, else call assert handler and return */
+    #define CY_ASSERT_AND_RETURN_VOID(condition)        \
+                            do {                        \
+                                (void)(condition);      \
+                            } while(false)
+#else // if defined(NDEBUG) || defined(CY_NO_ASSERT)
+/** Assert an argument is true, else call assert handler */
+    #define CY_ASSERT(x)    do {                        \
+                                if(!(x))                \
+                                {                       \
+                                    CY_ASSERT_HANDLER();\
+                                }                       \
+                            } while (false)
+/** Assert an argument is true, else call assert handler and return a value */
+    #define CY_ASSERT_AND_RETURN(condition, value)      \
+                            do {                        \
+                                if(!(condition))        \
+                                {                       \
+                                    CY_ASSERT_HANDLER();\
+                                    return (value);     \
+                                }                       \
+                            } while (false)
+/** Assert an argument is true, else call assert handler and return */
+    #define CY_ASSERT_AND_RETURN_VOID(condition)        \
+                            do {                        \
+                                if(!(condition))        \
+                                {                       \
+                                    CY_ASSERT_HANDLER();\
+                                    return;             \
+                                }                       \
+                            } while (false)
 #endif // defined(NDEBUG)
 
 

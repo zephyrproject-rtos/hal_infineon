@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_tcpwm_pwm.h
-* \version 1.60
+* \version 1.70
 *
 * \brief
 * The header file of the TCPWM PWM driver.
@@ -120,35 +120,68 @@ extern "C" {
 * \addtogroup group_tcpwm_data_structures_pwm
 * \{
 */
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
-/** Group Dithering  */
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
+/** TCPWM Dithering  */
 typedef enum
 {
-    CY_TCPWM_GROUP_DITHERING_DISABLE        = 0UL,   /**< Group dithering is disabled */
-    CY_TCPWM_GROUP_DITHERING_PERIOD         = 1UL,   /**< Group dithering is set to period */
-    CY_TCPWM_GROUP_DITHERING_DUTY           = 2UL,   /**< Group dithering is set to duty */
-    CY_TCPWM_GROUP_DITHERING_PERIOD_DUTY    = 3UL,   /**< Group dithering is set to period and duty */
-} cy_en_group_dithering_t;
+    CY_TCPWM_DITHERING_DISABLE        = 0UL,   /**< TCPWM dithering is disabled */
+    CY_TCPWM_DITHERING_PERIOD         = 1UL,   /**< TCPWM dithering is set to period */
+    CY_TCPWM_DITHERING_DUTY           = 2UL,   /**< TCPWM dithering is set to duty */
+    CY_TCPWM_DITHERING_PERIOD_DUTY    = 3UL,   /**< TCPWM dithering is set to period and duty */
+} cy_en_tcpwm_dithering_t ;
 
-/** Group dithering limiter values */
+/** TCPWM dithering limiter values */
 typedef enum
 {
-    CY_GROUP_DITHERING_LIMITER_0           = 0UL,   /**< Group dithering limiter value 0. */
-    CY_GROUP_DITHERING_LIMITER_1           = 1UL,   /**< Group dithering limiter value 1. */
-    CY_GROUP_DITHERING_LIMITER_2           = 2UL,   /**< Group dithering limiter value 2. */
-    CY_GROUP_DITHERING_LIMITER_3           = 3UL,   /**< Group dithering limiter value 3. */
-    CY_GROUP_DITHERING_LIMITER_4           = 4UL,   /**< Group dithering limiter value 4. */
-    CY_GROUP_DITHERING_LIMITER_5           = 5UL,   /**< Group dithering limiter value 5. */
-    CY_GROUP_DITHERING_LIMITER_6           = 6UL,   /**< Group dithering limiter value 6. */
-    CY_GROUP_DITHERING_LIMITER_7           = 7UL,   /**< Group dithering limiter value 7. */
+    CY_TCPWM_DITHERING_LIMITER_1           = 1UL,   /**< TCPWM dithering limiter value 1. */
+    CY_TCPWM_DITHERING_LIMITER_2           = 2UL,   /**< TCPWM dithering limiter value 2. */
+    CY_TCPWM_DITHERING_LIMITER_3           = 3UL,   /**< TCPWM dithering limiter value 3. */
+    CY_TCPWM_DITHERING_LIMITER_4           = 4UL,   /**< TCPWM dithering limiter value 4. */
+    CY_TCPWM_DITHERING_LIMITER_5           = 5UL,   /**< TCPWM dithering limiter value 5. */
+    CY_TCPWM_DITHERING_LIMITER_6           = 6UL,   /**< TCPWM dithering limiter value 6. */
+    CY_TCPWM_DITHERING_LIMITER_7           = 7UL,   /**< TCPWM dithering limiter value 7. */
 } cy_en_dithering_limiter_t;
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+
+/** HRPWM Operation Frequency
+    Selects the frequency of operation of HRPWM feature. Micro tick is adjusted based on this information. These bits specifies the frequency of CLK_OUT from TCPWM counter. CLK_OUT = CLK_PERI = CLK_HF */
+typedef enum
+{
+    CY_TCPWM_HRPWM_FREQ_80MHZ_OR_100MHZ                    = 0UL,   /**< HRPWM Iput Frequency is 80MHz or 100 MHz  */
+    CY_TCPWM_HRPWM_FREQ_150MHZ_OR_160MHZ_OR_180MHZ         = 1UL,   /**< HRPWM Iput Frequency is 150MHz or 160 MHz or 180 MHz */
+    CY_TCPWM_HRPWM_FREQ_200MHZ                             = 2UL,   /**< HRPWM Iput Frequency is 200 MHz  */
+    CY_TCPWM_HRPWM_FREQ_240MHZ                             = 3UL,   /**< HRPWM Iput Frequency is 240 MHz  */
+} cy_en_hrpwm_operating_frequency_t;
+
+/**  Specifies the behavior of the PWM outputs line_out and line_out_compl_out while the TCPWM counter is disabled or stopped. */
+typedef enum
+{
+    CY_TCPWM_LINEOUT_AND_LINECMPOUT_IS_LOW           = 0UL,   /**< Line Out and Line Compl Out is Low during the kill and counter is disabled. */
+    CY_TCPWM_LINEOUT_IS_HIGH_AND_LINECMPOUT_IS_LOW   = 1UL,   /**< Line Out is High during the kill and counter is disabled. */
+    CY_TCPWM_LINECMPOUT_IS_HIGH_LINEOUT_IS_LOW       = 2UL,   /**< Line Compl Out is High during the kill and counter is disabled. */
+    CY_TCPWM_LINEOUT_AND_LINECMPOUT_IS_HIGH          = 3UL,   /**< Line Out and Line Compl Out is Hig during the kill and counter is disabled. */
+} cy_en_kill_line_polarity_t;
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
+
+#if (CY_IP_MXTCPWM_VERSION >= 2U) || defined (CY_DOXYGEN)
+
+/**  Source for the output signal "line_out" and  "line_compl_out" */
+typedef enum
+{
+    CY_TCPWM_OUTPUT_CONSTANT_0           = 0UL,   /**< Output signal is 0. */
+    CY_TCPWM_OUTPUT_CONSTANT_1           = 1UL,   /**< Output signal is 1. */
+    CY_TCPWM_OUTPUT_PWM_SIGNAL           = 2UL,   /**< Output signal is PWM Signal. */
+    CY_TCPWM_OUTPUT_INVERTED_PWM_SIGNAL  = 3UL,   /**< Output signal is inverted PWM Signal. */
+    CY_TCPWM_OUTPUT_PORT_DEFAULT         = 4UL,   /**< Output is not driven by the TCPWM. Instead the port default level configuration applies, e.g. "Z" (high impedance). */
+    CY_TCPWM_OUTPUT_SOURCE_MOTIF         = 5UL,   /**< Source for PWM signal conditioning comes from MOTIF modulation output control signals. It can be set to '0' , '1' or PWM. */
+} cy_en_line_select_config_t;
+#endif /* (CY_IP_MXTCPWM_VERSION >= 2U) || defined (CY_DOXYGEN) */
+
 /** PWM configuration structure */
 typedef struct cy_stc_tcpwm_pwm_config
 {
     uint32_t    pwmMode;            /**< Sets the PWM mode. See \ref group_tcpwm_pwm_modes */
     /** Sets the clock prescaler inside the TCWPM block. See \ref group_tcpwm_pwm_clk_prescalers */
-    uint32_t     clockPrescaler;
+    uint32_t    clockPrescaler;
     uint32_t    pwmAlignment;       /**< Sets the PWM alignment. See \ref group_tcpwm_pwm_alignment */
     uint32_t    deadTimeClocks;     /**< The number of dead time-clocks if PWM with dead time is chosen */
     uint32_t    runMode;            /**< Sets the PWM run mode. See \ref group_tcpwm_pwm_run_modes */
@@ -196,12 +229,28 @@ typedef struct cy_stc_tcpwm_pwm_config
     uint32_t    kill1Input;         /**< Selects which input the kill 1 uses. The inputs are device-specific. See \ref group_tcpwm_input_selection */
     uint32_t    pwmOnDisable;       /**< Specifies the behavior of the PWM outputs line_out and line_compl_out while the TCPWM counter is disabled */
     uint32_t    trigger0Event;      /**< Configures which internal event generates on output trigger 0*/
-    uint32_t    trigger1Event;        /**< Configures which internal event generates on output trigger 1*/
+    uint32_t    trigger1Event;      /**< Configures which internal event generates on output trigger 1*/
+    bool        reloadLineSelect;   /**< Configures how the reload line select behaves. */
+    cy_en_line_select_config_t line_out_sel;          /**< Output signal source for PWM line out. */
+    cy_en_line_select_config_t linecompl_out_sel;     /**< Output signal source for PWM line compl out. */
+    cy_en_line_select_config_t line_out_sel_buff;      /**< Buffer Value Output signal source for PWM line out. Can be swapped with Line out on a terminal count event. */
+    cy_en_line_select_config_t linecompl_out_sel_buff; /**< Buffer Value Output signal source for PWM line compl out. Can be swapped with Linecompl out on a terminal count event. */
+    uint16_t    deadTimeClocks_linecompl_out;     /**< The number of dead time-clocks for line compl out if PWM with dead time is chosen */
 #endif /* (CY_IP_MXTCPWM_VERSION >= 2U) || defined (CY_DOXYGEN) */
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
     bool        buffer_swap_enable; /**< Configures swapping mechanism between CC0 and buffered CC0, CC1 and buffered CC1, PERIOD and buffered PERIOD, DT and buffered DT  */
-    cy_en_group_dithering_t dithering_mode; /**< Dithering mode is group specific configuration and will be applicable if the group supports dithering */
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+    cy_en_tcpwm_dithering_t  dithering_mode; /**< Dithering mode is group specific configuration and will be applicable if the group supports dithering */
+    uint8_t period_dithering_value;      /**< Dithering value for period LFSR. Should be non zero value. */
+    uint8_t duty_dithering_value;        /**< Dithering value for duty LFSR. Should be non zero value. */
+    cy_en_dithering_limiter_t limiter;  /**< Magnitude of the pseudo-random value to be added to period/CC0/CC1 \ref cy_en_dithering_limiter_t */
+    bool        hrpwm_enable;            /**< If enabled, high resolution PWM path is enabled */
+    cy_en_hrpwm_operating_frequency_t hrpwm_input_freq; /**< Frequency of operation for HRPWM */
+    cy_en_kill_line_polarity_t kill_line_polarity; /**< Outputs line_out and line_out_compl_out while the TCPWM counter is disabled or stopped. */
+    uint32_t    deadTimeClocksBuff;     /**< Buffer value for the number of dead time-clocks if PWM with dead time is chosen. Can be swapped with Line out on a terminal count event. */
+    uint16_t    deadTimeClocksBuff_linecompl_out;     /**< The number of dead time-clocks for line compl out if PWM with dead time is chosen */
+    bool        glitch_filter_enable;   /**< Enables Glitch filter for input triggers. */
+    cy_en_gf_depth_value_t gf_depth;    /**< Glitch filter depth value. */
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 }cy_stc_tcpwm_pwm_config_t;
 /** \} group_tcpwm_data_structures_pwm */
 
@@ -431,11 +480,18 @@ __STATIC_INLINE uint32_t Cy_TCPWM_PWM_LineOutStatus (TCPWM_Type const *base, uin
 __STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTime (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime);
 #if (CY_IP_MXTCPWM_VERSION >= 2U) || defined (CY_DOXYGEN)
 __STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTimeN (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime);
+__STATIC_INLINE void Cy_TCPWM_PWM_Configure_LineSelect(TCPWM_Type *base, uint32_t cntNum,  cy_en_line_select_config_t line_out_val, cy_en_line_select_config_t line_compl_value);
+__STATIC_INLINE void Cy_TCPWM_PWM_Configure_LineSelectBuff(TCPWM_Type *base, uint32_t cntNum,  cy_en_line_select_config_t line_out_val, cy_en_line_select_config_t line_compl_value);
+__STATIC_INLINE void Cy_TCPWM_PWM_EnableLineSelectSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable);
+__STATIC_INLINE void Cy_TCPWM_PWM_SetDT (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime);
 #endif
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 __STATIC_INLINE void Cy_TCPWM_PWM_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable);
-cy_en_tcpwm_status_t Cy_TCPWM_Configure_Dithering_Values_and_Mode(TCPWM_Type *base, uint32_t cntNum, cy_en_group_dithering_t mode, uint8_t period, uint8_t duty, cy_en_dithering_limiter_t limiter);
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+cy_en_tcpwm_status_t Cy_TCPWM_PWM_Configure_Dithering(TCPWM_Type *base, uint32_t cntNum, cy_en_tcpwm_dithering_t  mode, uint8_t period, uint8_t duty, cy_en_dithering_limiter_t limiter);
+__STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTimeBuff (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime);
+__STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTimeBuffN (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime);
+__STATIC_INLINE void Cy_TCPWM_PWM_SetDTBuff (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime);
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 /*******************************************************************************
 * Function Name: Cy_TCPWM_PWM_Enable
 ****************************************************************************//**
@@ -741,6 +797,11 @@ __STATIC_INLINE uint32_t Cy_TCPWM_PWM_GetCompare1BufVal(TCPWM_Type const *base, 
 * \funcusage
 * \snippet tcpwm/pwm/snippet/main.c snippet_Cy_TCPWM_PWM_EnableCompare0Swap
 *
+* \note From Version 3 of TCPWM, this feature is coupled with the swap enable feature (Cy_TCPWM_PWM_EnableSwap()).
+* when both reload and swap are enabled then CC0 value is swapped with CC0 buff value.
+* When only reload is enabled then CC0 buff value is copied to CC0.
+* There is no action when reload is disabled.
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_PWM_EnableCompare0Swap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
 {
@@ -763,6 +824,11 @@ __STATIC_INLINE void Cy_TCPWM_PWM_EnableCompare0Swap(TCPWM_Type *base, uint32_t 
 *
 * \param enable
 * true = swap enabled; false = swap disabled
+*
+* \note From Version 3 of TCPWM, this feature is coupled with the swap enable feature (Cy_TCPWM_PWM_EnableSwap()).
+* when both reload and swap are enabled then CC1 value is swapped with CC1 buff value.
+* When only reload is enabled then CC1 buff value is copied to CC1.
+* There is no action when reload is disabled.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_PWM_EnableCompare1Swap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
@@ -954,6 +1020,11 @@ __STATIC_INLINE uint32_t Cy_TCPWM_PWM_GetPeriod1(TCPWM_Type const *base, uint32_
 * \funcusage
 * \snippet tcpwm/pwm/snippet/main.c snippet_Cy_TCPWM_PWM_EnablePeriodSwap
 *
+* \note From Version 3 of TCPWM, this feature is coupled with the swap enable feature (Cy_TCPWM_PWM_EnableSwap()).
+* when both reload and swap are enabled then period value is swapped with period buff value.
+* When only reload is enabled then period buff value is copied to period.
+* There is no action when reload is disabled.
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_PWM_EnablePeriodSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
 {
@@ -1066,8 +1137,7 @@ __STATIC_INLINE uint32_t Cy_TCPWM_PWM_LineOutStatus (TCPWM_Type const *base, uin
 * Function Name: Cy_TCPWM_PWM_PWMDeadTime
 ****************************************************************************//**
 *
-* Writes the dead time value for PWM. This is the number of clock cycles between 
-* PWM_n (line_compl) going LOW and PWM (line) going HIGH.
+* Writes the dead time value for PWM. This is the number of clock cycles of dead time to activate Line Out
 *
 * \param base
 * The pointer to a TCPWM instance.
@@ -1110,8 +1180,7 @@ __STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTime (TCPWM_Type const *base, uint32_t 
 * Function Name: Cy_TCPWM_PWM_PWMDeadTimeN
 ****************************************************************************//**
 *
-* Writes the dead time value for PWM_n. This is the number of clock cycles between 
-* PWM (line) going LOW and PWM_n (line_compl) going HIGH.
+* Writes the dead time value for PWM. This is the number of clock cycles of dead time to activate Line Compliment Out
 *
 * \param base
 * The pointer to a TCPWM instance.
@@ -1138,11 +1207,120 @@ __STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTimeN (TCPWM_Type const *base, uint32_t
             _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_COMPL_OUT, (uint16_t)(deadTime));
 
 }
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_SetDT
+****************************************************************************//**
+*
+* Writes the dead time value for PWM. This is the number of clock cycles of dead time to activate Line Out and  Line Compliment Out
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param deadTime
+* The dead time value for both Line Out and Line Compliment Out.
+*
+* \note 32 bit value with 0-15 bits to set Line out Dead Time value and 16-31 bits to set Line Compliment Out Deat Time Value.
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_SetDT (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime)
+{
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+    TCPWM_GRP_CNT_DT(base, grp, cntNum) = deadTime;
+}
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_Configure_LineSelect
+****************************************************************************//**
+*
+* Configures the source for the output signal "line_out"  and "line_compl_out"
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param line_out_val
+* Source for the lie out signal \ref cy_en_line_select_config_t
+*
+* \param line_compl_value
+* Source for the lie compl out signal \ref cy_en_line_select_config_t
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_Configure_LineSelect(TCPWM_Type *base, uint32_t cntNum,  cy_en_line_select_config_t line_out_val, cy_en_line_select_config_t line_compl_value)
+{
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+    TCPWM_GRP_CNT_LINE_SEL(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_OUT_SEL, line_out_val) |
+                                                 _VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_COMPL_OUT_SEL, line_compl_value));
+}
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_Configure_LineSelectBuff
+****************************************************************************//**
+*
+* Buffer for LINE SELCT. Can be exchanged with Line Select values on a terminal count event with an actively pending switch event.
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param line_out_val
+* Source for the lie out signal \ref cy_en_line_select_config_t
+*
+* \param line_compl_value
+* Source for the lie compl out signal \ref cy_en_line_select_config_t
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_Configure_LineSelectBuff(TCPWM_Type *base, uint32_t cntNum,  cy_en_line_select_config_t line_out_val, cy_en_line_select_config_t line_compl_value)
+{
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+    TCPWM_GRP_CNT_LINE_SEL_BUFF(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_BUFF_OUT_SEL, line_out_val) |
+                                                 _VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_BUFF_COMPL_OUT_SEL, line_compl_value));
+}
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_EnableLineSelectSwap
+****************************************************************************//**
+*
+* Enables a Line Select swap on OV and/or UN, depending on the PWM alignment
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param enable
+* true = swap enabled; false = swap disabled
+*
+* \note From Version 3 of TCPWM, this feature is coupled with the swap enable feature (Cy_TCPWM_PWM_EnableSwap()).
+* when both reload and swap are enabled then line select value is swapped with line select buff value.
+* When only reload is enabled then line select buff value is copied to line select.
+* There is no action when reload is disabled.
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_EnableLineSelectSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
+{
+    if (enable)
+    {
+        TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) |=
+                                 TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_LINE_SEL_Msk;
+    }
+    else
+    {
+        TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) &=
+                                ~TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_LINE_SEL_Msk;
+    }
+}
 #endif
 
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 /*******************************************************************************
-* Function Name: Cy_TCPWM_Counter_EnableSwap
+* Function Name: Cy_TCPWM_PWM_EnableSwap
 ****************************************************************************//**
 *
 * Enables/disables swapping mechanism between CC0 and buffered CC0, CC1 and buffered CC1, PERIOD and buffered PERIOD, DT and buffered DT.
@@ -1156,13 +1334,133 @@ __STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTimeN (TCPWM_Type const *base, uint32_t
 * \param enable
 * true = swap enabled; false = swap disabled
 *
+* \note This feature is coupled with the reload feature.
+* when both reload and swap are enabled then CC0/CC1/PERIOD/DT values are swapped with CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values respectively
+* When only reload is enabled then CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values are copied to CC0/CC1/PERIOD/DT respectively.
+* There is no action when reload is disabled.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_PWM_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
 {
     Cy_TCPWM_Block_EnableSwap(base, cntNum, enable);
 }
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) */
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_Set_KillLinePolarity
+****************************************************************************//**
+*
+* Configures the source for the output signal "line_out"  and "line_compl_out"
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param kill_line_polarity
+* Kill Line polarity value \ref cy_en_kill_line_polarity_t
+*
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_Set_KillLinePolarity(TCPWM_Type *base, uint32_t cntNum,  cy_en_kill_line_polarity_t kill_line_polarity)
+{
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+
+    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) &= ~TCPWM_GRP_CNT_CTRL_KILL_LINE_POLARITY_Msk;
+    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= (_VAL2FLD(TCPWM_GRP_CNT_CTRL_KILL_LINE_POLARITY, kill_line_polarity));
+}
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_PWMDeadTimeBuff
+****************************************************************************//**
+*
+* Writes the dead time buffered value for PWM. This is the number of clock cycles of dead time to activate Line Out
+* Data from DT_BUFF will be shallow transferred to DT (when swap enable is disabled) on a terminal count event with an actively pending switch event.
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param deadTime
+* The dead time value.
+*
+* \funcusage
+* \snippet tcpwm/pwm/snippet/main.c snippet_Cy_TCPWM_PWM_PWMDeadTime
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTimeBuff (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime)
+{
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+    uint32_t result = TCPWM_GRP_CNT_DT_BUFF(base, grp, cntNum);
+    result &= ~(TCPWM_GRP_CNT_DT_BUFF_DT_LINE_OUT_L_Msk | TCPWM_GRP_CNT_DT_BUFF_DT_LINE_OUT_H_Msk);
+
+    TCPWM_GRP_CNT_DT_BUFF(base, grp, cntNum) = result |
+                        (_VAL2FLD(TCPWM_GRP_CNT_DT_BUFF_DT_LINE_OUT_L, (uint8_t)(deadTime)) |
+                        _VAL2FLD(TCPWM_GRP_CNT_DT_BUFF_DT_LINE_OUT_H, (uint8_t)(deadTime >> 8)));
+
+}
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_PWMDeadTimeBuffN
+****************************************************************************//**
+*
+* Writes the dead time buffered value for PWM. This is the number of clock cycles of dead time to activate Line Compliment Out
+* Data from DT_BUFF will be shallow transferred to DT (when swap enable is disabled) on a terminal count event with an actively pending switch event.
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param deadTime
+* The dead time value.
+*
+* \funcusage
+* \snippet tcpwm/pwm/snippet/main.c snippet_Cy_TCPWM_PWM_PWMDeadTime
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_PWMDeadTimeBuffN (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime)
+{
+    uint32_t result;
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+
+    result = TCPWM_GRP_CNT_DT_BUFF(base, grp, cntNum);
+    result &= ~(TCPWM_GRP_CNT_V2_DT_DT_LINE_COMPL_OUT_Msk);
+
+    TCPWM_GRP_CNT_DT_BUFF(base, grp, cntNum) = result |
+            _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_COMPL_OUT, (uint16_t)(deadTime));
+
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_PWM_SetDTBuff
+****************************************************************************//**
+*
+* Writes the dead time buffered value for PWM. This is the number of clock cycles of dead time to activate Line Out and  Line Compliment Out
+* Data from DT_BUFF will be shallow transferred to DT (when swap enable is disabled) on a terminal count event with an actively pending switch event.
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param deadTime
+* The dead time value for both Line Out and Line Compliment Out.
+*
+* \note 32 bit value with 0-15 bits to set Line out Dead Time value and 16-31 bits to set Line Compliment Out Deat Time Value.
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_PWM_SetDTBuff (TCPWM_Type const *base, uint32_t cntNum, uint32_t deadTime)
+{
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+    TCPWM_GRP_CNT_DT_BUFF(base, grp, cntNum) = deadTime;
+}
+
+#endif /* defined (CY_IP_MXS40TCPWM) */
 
 /** \} group_tcpwm_functions_pwm */
 

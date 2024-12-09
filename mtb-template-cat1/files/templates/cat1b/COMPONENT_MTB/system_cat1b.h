@@ -135,7 +135,7 @@
 * functions. Then it calls C runtime initialization function which calls main function of the application code.
 *
 * Below sequence diagram captures the initialization process in the startup code.
-* ![](explorer_ns_startup.png)
+* ![](cm33_ns_startup.png)
 *
 * \subsection group_system_config_heap_stack_config_cm33 Heap and Stack Configuration
 * By default, the stack size is set to 0x00001000 and the entire remaining ram is used for the heap

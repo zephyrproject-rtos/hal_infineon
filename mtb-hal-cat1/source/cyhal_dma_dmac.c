@@ -496,9 +496,6 @@ static cy_rslt_t _cyhal_dma_dmac_stage(cyhal_dma_t *obj)
 {
     cyhal_dmac_hw_type* base = _cyhal_dma_dmac_get_base(obj->resource.block_num);
 #if defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC) || defined(CY_IP_MXAHBDMAC) || defined(CY_IP_MXSAXIDMAC)
-    #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
-    SCB_CleanDCache_by_Addr((void *)&(obj->descriptor), sizeof(obj->descriptor));
-    #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
 #if defined(CY_IP_MXSAXIDMAC)
     cy_en_axidmac_descriptor_type_t descr_type = GET_RESOURCE_DATA(&obj->descriptor_config)->descriptorType;
     GET_RESOURCE_DATA(&obj->descriptor_config)->descriptorType = CY_AXIDMAC_3D_MEMORY_COPY;
@@ -519,9 +516,6 @@ static cy_rslt_t _cyhal_dma_dmac_stage(cyhal_dma_t *obj)
         return CYHAL_DMA_RSLT_ERR_INVALID_PARAMETER;
 
     /* Setup channel and enable */
-    #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
-    SCB_CleanDCache_by_Addr((void *)&(obj->channel_config), sizeof(obj->channel_config));
-    #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
 #if defined(CY_IP_MXSAXIDMAC)
     if(CY_AXIDMAC_SUCCESS != Cy_AXIDMAC_Channel_Init(base, obj->resource.channel_num, GET_RESOURCE_DATA(&obj->channel_config)))
 #else
@@ -572,6 +566,10 @@ static cy_rslt_t _cyhal_dma_dmac_stage(cyhal_dma_t *obj)
     if(CY_RSLT_SUCCESS != _cyhal_irq_register(irqn, priority, _cyhal_dma_dmac_irq_handler))
         return CYHAL_DMA_RSLT_ERR_INVALID_PARAMETER;
     _cyhal_irq_enable(irqn);
+
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void *)&(obj->descriptor), sizeof(obj->descriptor));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
     return CY_RSLT_SUCCESS;
 }
@@ -711,10 +709,6 @@ cy_rslt_t _cyhal_dma_dmac_configure(cyhal_dma_t *obj, const cyhal_dma_cfg_t *cfg
     }
 #endif
 
-    #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
-    SCB_CleanDCache_by_Addr((void *)cfg->src_addr, cfg->length * (cfg->transfer_width / 8));
-    SCB_CleanDCache_by_Addr((void *)cfg->dst_addr, cfg->length * (cfg->transfer_width / 8));
-    #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
     GET_RESOURCE_DATA(obj->descriptor_config).srcAddress = (void*)cfg->src_addr;
     GET_RESOURCE_DATA(obj->descriptor_config).dstAddress = (void*)cfg->dst_addr;
 
@@ -987,6 +981,9 @@ cy_rslt_t _cyhal_dma_dmac_connect_digital(cyhal_dma_t *obj, cyhal_source_t sourc
 
     obj->descriptor.dmac.ctl &= ~_CYHAL_DMAC_CH_DESCR_CTL_TR_IN_TYPE_Msk;
     obj->descriptor.dmac.ctl |= _VAL2FLD(_CYHAL_DMAC_CH_DESCR_CTL_TR_IN_TYPE, obj->descriptor_config.dmac.triggerInType);
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void *)&(obj->descriptor), sizeof(obj->descriptor));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
     _cyhal_dmac_channel_enable(_cyhal_dma_dmac_get_base(obj->resource.block_num), obj->resource.channel_num);
 
@@ -1006,6 +1003,9 @@ cy_rslt_t _cyhal_dma_dmac_enable_output(cyhal_dma_t *obj, cyhal_dma_output_t out
 
     obj->descriptor.dmac.ctl &= ~_CYHAL_DMAC_CH_DESCR_CTL_TR_OUT_TYPE_Msk;
     obj->descriptor.dmac.ctl |= _VAL2FLD(_CYHAL_DMAC_CH_DESCR_CTL_TR_OUT_TYPE, _cyhal_convert_output_t(output));
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void *)&(obj->descriptor), sizeof(obj->descriptor));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
     _cyhal_dmac_channel_enable(_cyhal_dma_dmac_get_base(obj->resource.block_num), obj->resource.channel_num);
     *source = _cyhal_dma_dmac_get_src(obj->resource.block_num, obj->resource.channel_num);
@@ -1028,6 +1028,9 @@ cy_rslt_t _cyhal_dma_dmac_disconnect_digital(cyhal_dma_t *obj, cyhal_source_t so
 
     obj->descriptor.dmac.ctl &= ~_CYHAL_DMAC_CH_DESCR_CTL_TR_IN_TYPE_Msk;
     obj->descriptor.dmac.ctl |= _VAL2FLD(_CYHAL_DMAC_CH_DESCR_CTL_TR_IN_TYPE, _cyhal_dma_dmac_default_descriptor_config.interruptType);
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void *)&(obj->descriptor), sizeof(obj->descriptor));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
     _cyhal_dmac_channel_enable(_cyhal_dma_dmac_get_base(obj->resource.block_num), obj->resource.channel_num);
 
@@ -1048,6 +1051,9 @@ cy_rslt_t _cyhal_dma_dmac_disable_output(cyhal_dma_t *obj, cyhal_dma_output_t ou
 
     obj->descriptor.dmac.ctl &= ~_CYHAL_DMAC_CH_DESCR_CTL_TR_OUT_TYPE_Msk;
     obj->descriptor.dmac.ctl |= _VAL2FLD(_CYHAL_DMAC_CH_DESCR_CTL_TR_OUT_TYPE, _cyhal_dma_dmac_default_descriptor_config.triggerOutType);
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void *)&(obj->descriptor), sizeof(obj->descriptor));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
     _cyhal_dmac_channel_enable(_cyhal_dma_dmac_get_base(obj->resource.block_num), obj->resource.channel_num);
 

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_ecdsa.c
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides constant and parameters
@@ -38,6 +38,7 @@ extern "C" {
 #if defined(CY_CRYPTOLITE_CFG_ECDSA_C)
 
 #include "cy_cryptolite_utils.h"
+#include "cy_cryptolite_ecc_key_gen.h"
 
 /*******************************************************************************
 * Function Name: Cy_Cryptolite_ECC_GetCurveParams
@@ -52,7 +53,6 @@ extern "C" {
 * Pointer to curve domain parameters. See \ref cy_stc_cryptolite_ecc_dp_type.
 *
 *******************************************************************************/
-cy_stc_cryptolite_ecc_dp_type *Cy_Cryptolite_ECC_GetCurveParams(cy_en_cryptolite_ecc_curve_id_t curveId);
 cy_stc_cryptolite_ecc_dp_type *Cy_Cryptolite_ECC_GetCurveParams(cy_en_cryptolite_ecc_curve_id_t curveId)
 {
     /* P192 CURVE PARAMETERS */
@@ -629,11 +629,14 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_Free(CRYPTOLITE_Type *base,
     return CY_CRYPTOLITE_SUCCESS;
 }
 
+#if defined(CY_CRYPTOLITE_CFG_ECDSA_SIGN_C)
 /*******************************************************************************
-* Function Name: Cy_Cryptolite_ECC_MakePublicKey
-****************************************************************************//**
+* Function Name: Cy_Cryptolite_ECC_SignHash
+****************************************************************************//*
 *
-* Generate a public key.
+* Function to generate an ECC signature.
+* key, hash and messageKey must be in little endian.
+* Cy_Cryptolite_InvertEndianness() function is used for converting the endianness.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -641,60 +644,134 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_Free(CRYPTOLITE_Type *base,
 * \param cfContext
 * The pointer to the cy_stc_cryptolite_context_ecdsa_t.
 *
-* \param curveID
-* The ECC curve id.
+* \param hash
+* The hash (message digest) to be signed.
 *
-* \param privateKey
-* The pointer to the ECC private key.
+* \param hashlen
+* The length of the hash (octets).
 *
-* \param publicKey
-* The generated public ECC key. See \ref cy_stc_cryptolite_ecc_key.
+* \param sig
+* The pointer to the buffer to store the generated signature 'R' followed by 'S'.
+*
+* \param key
+* The  private ECC key to sign the hash. See \ref cy_stc_cryptolite_ecc_key.
+*
+* \param messageKey
+* The random number for generating the signature.
 *
 * \return status code. See \ref cy_en_cryptolite_status_t.
 *
 *******************************************************************************/
-cy_en_cryptolite_status_t Cy_Cryptolite_ECC_MakePublicKey(CRYPTOLITE_Type *base,
-        cy_stc_cryptolite_context_ecdsa_t *cfContext,
-        cy_en_cryptolite_ecc_curve_id_t curveID,
-        const uint8_t *privateKey,
-        cy_stc_cryptolite_ecc_key *publicKey)
+cy_en_cryptolite_status_t Cy_Cryptolite_ECC_SignHash(CRYPTOLITE_Type *base,
+cy_stc_cryptolite_context_ecdsa_t *cfContext, const uint8_t *hash, uint32_t hashlen, uint8_t *sig,
+        const cy_stc_cryptolite_ecc_key *key, const uint8_t *messageKey)
 {
-
     cy_en_cryptolite_status_t result = CY_CRYPTOLITE_BAD_PARAMS;
-    const cy_stc_cryptolite_ecc_dp_type *eccDp = Cy_Cryptolite_ECC_GetCurveParams(curveID);
+    const cy_stc_cryptolite_ecc_dp_type *eccDp;
 
-     if ((eccDp != NULL) && (cfContext != NULL) && (privateKey != NULL) && (publicKey != NULL) &&
-        (publicKey->pubkey.x != NULL) && (publicKey->pubkey.y != NULL))
+    /* NULL parameters checking */
+    if ((base != NULL) && (sig != NULL) && (hash != NULL) && (0u != hashlen) && (key != NULL) && (messageKey != NULL))
     {
+        cy_stc_cryptolite_descr_t *vu_struct0 = &cfContext->vu_desptr[0];
+        cy_stc_cryptolite_descr_t *vu_struct1 = &cfContext->vu_desptr[1];
 
-        uint8_t *p_gx = cfContext->p_gx;
-        uint8_t *p_gy = cfContext->p_gy;
-        uint8_t *p_o = cfContext->p_o;
-        uint8_t *my_BARRETT_U = cfContext->my_BARRETT_U;
-        uint8_t *my_P = cfContext->my_P;
-        uint8_t *p_u1 = cfContext->p_u1;
+        result = CY_CRYPTOLITE_NOT_SUPPORTED;
+        eccDp = Cy_Cryptolite_ECC_GetCurveParams(key->curveID);
 
-        uint32_t bitsize  = eccDp->size;
-        uint32_t bytesize = VU_BITS_TO_BYTES(eccDp->size);
+        if (eccDp != NULL)
+        {
+            uint8_t *p_r = cfContext->p_r;
+            uint8_t *p_s = cfContext->p_s;
+            uint8_t *p_u1 = cfContext->p_u1;
+            uint8_t *p_u2 = cfContext->p_u2;
+            uint8_t *my_P = cfContext->my_P;
+            uint8_t *my_BARRETT_U = cfContext->my_BARRETT_U;
+            uint32_t bytesize = VU_BITS_TO_BYTES(eccDp->size);
+            uint32_t bitsize  = eccDp->size;
+            CY_ALIGN(4) uint8_t temp[VU_BITS_TO_BYTES(VU_TEST_EQUAL_LESS_SIZE+1U)]={0};
+            cy_stc_cryptolite_ecc_key publicKey;
+            uint8_t pubkey[128];
 
-        Crypto_SetNumber(my_P, (uint8_t *) eccDp->prime, bytesize);
-        Crypto_SetNumber(p_o, (uint8_t *) eccDp->order, VU_BITS_TO_BYTES(bitsize));
-        Crypto_SetNumber(my_BARRETT_U, (uint8_t *) eccDp->barrett_o, VU_BITS_TO_BYTES(bitsize+1U));
-        Crypto_SetNumber(p_gx, (uint8_t *) eccDp->Gx, bytesize);
-        Crypto_SetNumber(p_gy, (uint8_t *) eccDp->Gy, bytesize);
-        Crypto_SetNumber(p_u1,(uint8_t *)privateKey, bytesize);
+            publicKey.pubkey.x = pubkey;
+            publicKey.pubkey.y = &pubkey[bytesize];
 
-        Cryptolite_EC_NistP_PointMul(base, cfContext, p_gx, p_gy, p_u1, p_o, (int)bitsize);
+            //Generate the public key 
+            result = Cy_Cryptolite_ECC_MakePublicKey(base, cfContext, key->curveID,  //(x1, y1) = k * G.
+                messageKey, &publicKey);
+            
+            if(CY_CRYPTOLITE_SUCCESS != result)
+            {
+                return result;
+            }
 
-        Crypto_SetNumber((uint8_t *)publicKey->pubkey.x, p_gx, bytesize);
-        Crypto_SetNumber((uint8_t *)publicKey->pubkey.y, p_gy, bytesize);
+            // load prime, order and barrett coefficient
+            Cy_Cryptolite_Setnumber(my_P, (uint8_t *) eccDp->order, bytesize);
+            Cy_Cryptolite_Setnumber(my_BARRETT_U, (uint8_t *) eccDp->barrett_o, VU_BITS_TO_BYTES(bitsize+1U));
 
-        result = CY_CRYPTOLITE_SUCCESS;
+            Cy_Cryptolite_Setnumber(p_r, (uint8_t *)publicKey.pubkey.x, bytesize);
+
+            if (Cy_Cryptolite_Vu_test_zero(base, vu_struct0, p_r, (uint16_t)bitsize) == true)
+            {
+                return CY_CRYPTOLITE_BAD_PARAMS;
+            }
+
+            // Setting the R component of the signature  // r = x1
+            if (Cy_Cryptolite_Vu_test_less_than(base, vu_struct1, p_r, my_P, (uint16_t)bitsize) == false)
+            {
+                (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct0, temp, VU_BITS_TO_WORDS(bitsize+1U), p_r, VU_BITS_TO_WORDS(bitsize));
+                Cy_Cryptolite_EC_Bar_MulRed( base, cfContext, p_r, temp, bitsize);
+                if (Cy_Cryptolite_Vu_test_zero(base, vu_struct0, p_r, (uint16_t)bitsize) == true)
+                {
+                    return CY_CRYPTOLITE_BAD_PARAMS;
+                }
+                Cy_Cryptolite_Setnumber(sig, (uint8_t *)p_r, bytesize);
+            }
+            else
+            {
+                Cy_Cryptolite_Setnumber(sig, (uint8_t *)publicKey.pubkey.x, bytesize);
+            }
+
+            // d*r mod n
+            Cy_Cryptolite_Setnumber(p_u2, (uint8_t *)key->k, bytesize);
+            Cy_Cryptolite_EC_MulMod(base, cfContext, p_s, p_u2, p_r, (int)bitsize);
+
+            // load message hash, truncate it if needed
+            Cy_Cryptolite_Vu_wait_hw(base);
+            Cy_Cryptolite_Vu_clr(p_u1, VU_BITS_TO_WORDS(bitsize));
+            if (hashlen * 8U > bitsize)
+            {
+                Cy_Cryptolite_Setnumber(p_u1, (uint8_t *)(&hash[hashlen - CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(bitsize)]), CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(bitsize));
+            }
+            else
+            {
+                Cy_Cryptolite_Setnumber(p_u1, (uint8_t *)hash, hashlen);
+            }
+
+            // e + d*r mod n
+            Cy_Cryptolite_EC_AddMod (base, cfContext, p_s, p_u1, p_s);
+
+            // z = a / b % mod
+            Cy_Cryptolite_Vu_wait_hw(base);
+            (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct0, temp, VU_BITS_TO_WORDS(bitsize+1U), p_s, VU_BITS_TO_WORDS(bitsize));
+
+            Cy_Cryptolite_Setnumber(p_u1, (uint8_t *)messageKey, bytesize);
+
+            // (e + d*r)/k  mod n
+            Cy_Cryptolite_EC_DivMod(base, cfContext, p_s, temp, p_u1, (int)bitsize); 
+
+            if (Cy_Cryptolite_Vu_test_zero(base, vu_struct0, p_s, (uint16_t)bitsize) == true)
+            {
+                return CY_CRYPTOLITE_BAD_PARAMS;
+            }
+
+            Cy_Cryptolite_Setnumber(&sig[bytesize], (uint8_t *)p_s, bytesize);
+            result = CY_CRYPTOLITE_SUCCESS;
+        }
     }
 
     return result;
-
 }
+#endif
 
 #if defined(CY_CRYPTOLITE_CFG_ECDSA_VERIFY_C)
 /*******************************************************************************
@@ -707,6 +784,9 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_MakePublicKey(CRYPTOLITE_Type *base,
 *
 * \param base
 * The pointer to a Cryptolite instance.
+*
+* \param cfContext
+* The pointer to the cy_stc_cryptolite_context_ecdsa_t.
 *
 * \param sig
 * The signature to verify, 'R' followed by 'S'.
@@ -771,12 +851,12 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_VerifyHash(CRYPTOLITE_Type *base,
             *stat = CY_CRYPTOLITE_SIG_INVALID;
             cfContext->bitsize = bitsize;
             /* load values needed for reduction modulo order of the base point */
-            Crypto_SetNumber (my_P, (uint8_t *)eccDp->order, VU_BITS_TO_BYTES(bitsize));
-            Crypto_SetNumber (my_BARRETT_U, (uint8_t *)eccDp->barrett_o, VU_BITS_TO_BYTES(bitsize+1U));
+            Cy_Cryptolite_Setnumber (my_P, (uint8_t *)eccDp->order, VU_BITS_TO_BYTES(bitsize));
+            Cy_Cryptolite_Setnumber (my_BARRETT_U, (uint8_t *)eccDp->barrett_o, VU_BITS_TO_BYTES(bitsize+1U));
 
             /* check that R and S are within the valid range, i.e. 0 < R < n and 0 < S < n */
-            Crypto_SetNumber(p_r, (uint8_t *)sig, bytesize);
-            Crypto_SetNumber(p_s, (uint8_t *)&sig[VU_BITS_TO_BYTES(bitsize)], bytesize);
+            Cy_Cryptolite_Setnumber(p_r, (uint8_t *)sig, bytesize);
+            Cy_Cryptolite_Setnumber(p_s, (uint8_t *)&sig[VU_BITS_TO_BYTES(bitsize)], bytesize);
  
             if (Cy_Cryptolite_Vu_test_zero(base, vu_struct0, p_r, (uint16_t)bitsize) == true) {
                 return CY_CRYPTOLITE_BAD_PARAMS;
@@ -795,11 +875,11 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_VerifyHash(CRYPTOLITE_Type *base,
             Cy_Cryptolite_Vu_clr(p_u1, VU_BITS_TO_WORDS(bitsize));
             if (hashlen * 8U > bitsize)
             {
-                Crypto_SetNumber(p_u1, (uint8_t *)(&hash[hashlen - CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(bitsize)]), CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(bitsize));
+                Cy_Cryptolite_Setnumber(p_u1, (uint8_t *)(&hash[hashlen - CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(bitsize)]), CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(bitsize));
             }
             else
             {
-                Crypto_SetNumber(p_u1, (uint8_t *)hash, hashlen);
+                Cy_Cryptolite_Setnumber(p_u1, (uint8_t *)hash, hashlen);
             }
             /* Check if message hash is zero */
             if(Cy_Cryptolite_Vu_test_zero(base, vu_struct1, p_u1, (uint16_t)bitsize))
@@ -811,37 +891,37 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_VerifyHash(CRYPTOLITE_Type *base,
             Cy_Cryptolite_Vu_clr(dividend, VU_BITS_TO_WORDS(bitsize));
             Cy_Cryptolite_Vu_set_bit(dividend, 0);
 
-            Cryptolite_EC_DivMod(base, cfContext, p_s, dividend, p_s, (int)bitsize);
+            Cy_Cryptolite_EC_DivMod(base, cfContext, p_s, dividend, p_s, (int)bitsize);
 
             // u1 = e*w mod n
-            Cryptolite_EC_MulMod(base, cfContext, p_u1, p_u1, p_s, (int)bitsize);
+            Cy_Cryptolite_EC_MulMod(base, cfContext, p_u1, p_u1, p_s, (int)bitsize);
             // u2 = r*w mod n
-            Cryptolite_EC_MulMod(base, cfContext, p_u2, p_r, p_s, (int)bitsize);
+            Cy_Cryptolite_EC_MulMod(base, cfContext, p_u2, p_r, p_s, (int)bitsize);
 
             //-----------------------------------------------------------------------------
             // Initialize point multiplication
             //
             // load prime, order and barrett coefficient
-            Crypto_SetNumber(my_P, (uint8_t *) eccDp->prime, bytesize);
-            Crypto_SetNumber(p_o, (uint8_t *) eccDp->order, bytesize);
-            Crypto_SetNumber(my_BARRETT_U, (uint8_t *) eccDp->barrett_p, VU_BITS_TO_BYTES(bitsize+1U));
+            Cy_Cryptolite_Setnumber(my_P, (uint8_t *) eccDp->prime, bytesize);
+            Cy_Cryptolite_Setnumber(p_o, (uint8_t *) eccDp->order, bytesize);
+            Cy_Cryptolite_Setnumber(my_BARRETT_U, (uint8_t *) eccDp->barrett_p, VU_BITS_TO_BYTES(bitsize+1U));
             // load base Point G
-            Crypto_SetNumber(p_gx, (uint8_t *) eccDp->Gx, bytesize);
-            Crypto_SetNumber(p_gy, (uint8_t *) eccDp->Gy, bytesize);
+            Cy_Cryptolite_Setnumber(p_gx, (uint8_t *) eccDp->Gx, bytesize);
+            Cy_Cryptolite_Setnumber(p_gy, (uint8_t *) eccDp->Gy, bytesize);
             // load public key Qa
-            Crypto_SetNumber(p_qx, (uint8_t *)key->pubkey.x, bytesize);
-            Crypto_SetNumber(p_qy, (uint8_t *)key->pubkey.y, bytesize);
+            Cy_Cryptolite_Setnumber(p_qx, (uint8_t *)key->pubkey.x, bytesize);
+            Cy_Cryptolite_Setnumber(p_qy, (uint8_t *)key->pubkey.y, bytesize);
             // u1 * G
             if(!isHashZero)
             {
-                Cryptolite_EC_NistP_PointMul(base, cfContext, p_gx, p_gy, p_u1, p_o, (int)bitsize);
+                Cy_Cryptolite_EC_NistP_PointMul(base, cfContext, p_gx, p_gy, p_u1, p_o, (int)bitsize);
             }
 
             // reload order since p_o is modified by Crypto_EC_JacobianEcScalarMul_coZ (!!!!)
-            Crypto_SetNumber(p_o, (uint8_t *) eccDp->order, bytesize);
+            Cy_Cryptolite_Setnumber(p_o, (uint8_t *) eccDp->order, bytesize);
 
             // u2 * Qa
-            Cryptolite_EC_NistP_PointMul(base, cfContext, p_qx, p_qy, p_u2, p_o, (int)bitsize);
+            Cy_Cryptolite_EC_NistP_PointMul(base, cfContext, p_qx, p_qy, p_u2, p_o, (int)bitsize);
 
             //-----------------------------------------------------------------------------
             // P = u1 * G + u2 * Qa. Only Px is needed
@@ -849,17 +929,17 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_VerifyHash(CRYPTOLITE_Type *base,
             if(isHashZero)
             {
                 /* GECC 3.22 */
-                Crypto_SetNumber(p_s, p_qx, bytesize);
+                Cy_Cryptolite_Setnumber(p_s, p_qx, bytesize);
             }
             else
             {
-                Cryptolite_EC_SubMod(base, cfContext, dividend, p_qy, p_gy);     // (y2-y1)
-                Cryptolite_EC_SubMod(base, cfContext, p_s, p_qx, p_gx);          // (x2-x1)
-                Cryptolite_EC_DivMod(base, cfContext, p_s, dividend, p_s, (int)bitsize);  // s = (y2-y1)/(x2-x1)
+                Cy_Cryptolite_EC_SubMod(base, cfContext, dividend, p_qy, p_gy);     // (y2-y1)
+                Cy_Cryptolite_EC_SubMod(base, cfContext, p_s, p_qx, p_gx);          // (x2-x1)
+                Cy_Cryptolite_EC_DivMod(base, cfContext, p_s, dividend, p_s, (int)bitsize);  // s = (y2-y1)/(x2-x1)
 
-                Cryptolite_EC_SquareMod(base, cfContext, p_s, p_s, (int)bitsize);     // s^2
-                Cryptolite_EC_SubMod(base, cfContext, p_s, p_s, p_gx);           // s^2 - x1
-                Cryptolite_EC_SubMod(base, cfContext, p_s, p_s, p_qx);           // s^2 - x1 - x2 which is Px mod n
+                Cy_Cryptolite_EC_SquareMod(base, cfContext, p_s, p_s, (int)bitsize);     // s^2
+                Cy_Cryptolite_EC_SubMod(base, cfContext, p_s, p_s, p_gx);           // s^2 - x1
+                Cy_Cryptolite_EC_SubMod(base, cfContext, p_s, p_s, p_qx);           // s^2 - x1 - x2 which is Px mod n
             }
 
             if (Cy_Cryptolite_Vu_test_equal(base, vu_struct0, p_s, p_r, (uint16_t)bitsize))

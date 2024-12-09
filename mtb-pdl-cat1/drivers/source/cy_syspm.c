@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm.c
-* \version 5.94
+* \version 5.150
 *
 * This driver provides the source code for API power management.
 *
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3)
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 1)
 
 #include "cy_syspm.h"
 #include "cy_ipc_drv.h"
@@ -1908,6 +1908,7 @@ void Cy_SysPm_SaveRegisters(cy_stc_syspm_backup_regs_t *regs)
     regs->CY_SYSPM_CM0_CLOCK_CTL_REG = CPUSS_CM0_CLOCK_CTL;
     regs->CY_SYSPM_CM4_CLOCK_CTL_REG = CPUSS_CM4_CLOCK_CTL;
 
+#if (CPUSS_UDB_PRESENT != 0)
     if ((0U != cy_device->udbPresent) && (0UL != (PERI_GR_SL_CTL(MMIO_UDB_SLAVE_NR) & PERI_UDB_SLAVE_ENABLED)))
     {
         regs->CY_SYSPM_UDB_UDBIF_BANK_CTL_REG = UDB_UDBIF_BANK_CTL;
@@ -1920,6 +1921,7 @@ void Cy_SysPm_SaveRegisters(cy_stc_syspm_backup_regs_t *regs)
         regs->CY_SYSPM_UDB_BCTL_QCLK_EN1_REG = UDB_BCTL_QCLK_EN_1;
         regs->CY_SYSPM_UDB_BCTL_QCLK_EN2_REG = UDB_BCTL_QCLK_EN_2;
     }
+#endif /* CPUSS_UDB_PRESENT */
 }
 
 
@@ -1931,6 +1933,7 @@ void Cy_SysPm_RestoreRegisters(cy_stc_syspm_backup_regs_t const *regs)
     CPUSS_CM0_CLOCK_CTL = regs->CY_SYSPM_CM0_CLOCK_CTL_REG;
     CPUSS_CM4_CLOCK_CTL = regs->CY_SYSPM_CM4_CLOCK_CTL_REG;
 
+#if (CPUSS_UDB_PRESENT != 0)
     if ((0U != cy_device->udbPresent) && (0UL != (PERI_GR_SL_CTL(MMIO_UDB_SLAVE_NR) & PERI_UDB_SLAVE_ENABLED)))
     {
         UDB_BCTL_MDCLK_EN  = regs->CY_SYSPM_UDB_BCTL_MDCLK_EN_REG;
@@ -1943,6 +1946,7 @@ void Cy_SysPm_RestoreRegisters(cy_stc_syspm_backup_regs_t const *regs)
 
         UDB_UDBIF_BANK_CTL = regs->CY_SYSPM_UDB_UDBIF_BANK_CTL_REG;
     }
+#endif /* CPUSS_UDB_PRESENT */
 }
 #endif /* !((CY_CPU_CORTEX_M4) && (defined(CY_DEVICE_SECURE))) */
 
@@ -2325,7 +2329,6 @@ static bool IsVoltageChangePossible(void)
 {
     bool retVal = false;
     uint32_t trimRamCheckVal = (CPUSS_TRIM_RAM_CTL & CPUSS_TRIM_RAM_CTL_WC_MASK);
-
 
     if (Cy_SysLib_GetDevice() == CY_SYSLIB_DEVICE_PSOC6ABLE2)
     {

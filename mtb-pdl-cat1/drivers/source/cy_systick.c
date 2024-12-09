@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_systick.c
-* \version 1.70.1
+* \version 1.80
 *
 * Provides the API definitions of the SisTick driver.
 *

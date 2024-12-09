@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_uart.h
-* \version 3.10
+* \version 3.20
 *
 * Provides UART API declarations of the SCB driver.
 *
@@ -387,6 +387,11 @@ typedef struct stc_scb_uart_config
     /** Specifies the UART's mode of operation */
     cy_en_scb_uart_mode_t    uartMode;
 
+#if ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4))
+    /** Single Wire Half-Duplex Mode */
+    bool halfDuplexMode;
+#endif
+
     /**
     * Oversample factor for UART.
     * * The UART baud rate is the SCB Clock frequency / oversample
@@ -502,7 +507,7 @@ typedef struct stc_scb_uart_config
     /** Specifies the low or high level pulse detection for break condition */
     /**
     * \note
-    * This parameter is available for CAT1B and CAT1C devices.
+    * This parameter is available for CAT1B, CAT1C and CAT1D devices.
     **/
     bool        breaklevel;
 #endif /* (((CY_IP_MXSCB_VERSION>=2) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN)) */
@@ -601,6 +606,10 @@ __STATIC_INLINE uint32_t Cy_SCB_UART_GetRtsFifoLevel(CySCB_Type const *base);
 
 __STATIC_INLINE void Cy_SCB_UART_EnableSkipStart (CySCB_Type *base);
 __STATIC_INLINE void Cy_SCB_UART_DisableSkipStart(CySCB_Type *base);
+#if ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4))
+__STATIC_INLINE void Cy_SCB_UART_EnableSingleWireHalfDuplex(CySCB_Type *base);
+__STATIC_INLINE void Cy_SCB_UART_DisableSingleWireHalfDuplex(CySCB_Type *base);
+#endif/* ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) */
 /** \} group_scb_uart_general_functions */
 
 /**
@@ -1114,6 +1123,48 @@ __STATIC_INLINE void Cy_SCB_UART_DisableSkipStart(CySCB_Type *base)
 {
     SCB_UART_RX_CTRL(base) &= (uint32_t) ~SCB_UART_RX_CTRL_SKIP_START_Msk;
 }
+
+#if ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) || defined (CY_DOXYGEN)
+/*******************************************************************************
+* Function Name: Cy_SCB_UART_EnableSingleWireHalfDuplex
+****************************************************************************//**
+*
+* Enables Single Wire Half Duplex Communication.
+* \note This is applicable in standard UART submode only.
+*
+* \param base
+* The pointer to the UART SCB instance.
+*
+* \note
+* This API is available for PSoC C3 (CAT1B) devices.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SCB_UART_EnableSingleWireHalfDuplex(CySCB_Type *base)
+{
+    SCB_UART_RX_CTRL(base) |= SCB_UART_RX_CTRL_HDRXEN_Msk;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SCB_UART_DisableSingleWireHalfDuplex
+****************************************************************************//**
+*
+* Disables Single Wire Half Duplex Communication.
+* \note This is applicable in standard UART submode only.
+*
+* \param base
+* The pointer to the UART SCB instance.
+*
+* \note
+* This API is available for PSoC C3 (CAT1B) devices.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SCB_UART_DisableSingleWireHalfDuplex(CySCB_Type *base)
+{
+    SCB_UART_RX_CTRL(base) &= (uint32_t) ~SCB_UART_RX_CTRL_HDRXEN_Msk;
+}
+#endif /* ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) */
+
 /** \} group_scb_uart_general_functions */
 
 

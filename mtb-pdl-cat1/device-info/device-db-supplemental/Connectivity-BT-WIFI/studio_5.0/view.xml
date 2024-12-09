@@ -17,9 +17,11 @@
   <!--There are no TriggerGroup type="ONE_TO_ONE" in triggers.cydata so TrigMuxSelectTemplate is not used.-->
   <TrigMuxSelectTemplate value="/* NOT USED */" />
   <Profiles>
-    <Profile displayName="Connectivity" fileName="connectivity_wifi" evalPriority="1" displayPriority="4" description="Connectivity Wi-Fi configuration" resources="(wifi)(\[\d+\])?\..+" />
-    <Profile displayName="Connectivity" fileName="connectivity_bt" evalPriority="1" displayPriority="4" description="Connectivity BT configuration" resources="(bt)(\[\d+\])?\..+" />
-    <Profile displayName="Connectivity" fileName="connectivity_coex" evalPriority="1" displayPriority="4" description="Connectivity Coex configuration" resources="(coex)(\[\d+\])?\..+" />
+    <Profile purpose="MEMORY" displayName="Memory" fileName="memory" evalPriority="8" displayPriority="5" description="Memory configuration" resources="(vres\[\d+\]\.(reserved_memory_region|memory|security)\[\d+\].*)|(m33syscpuss\[\d+\]\.cm33.*)|(m55appcpuss\[\d+\]\.cm55.*)|(.*\.mpc\[\d+\])" />
+    <Profile displayName="Solutions" fileName="solutions" evalPriority="7" displayPriority="1" description="Solution configuration" resources="vres\[\d+\].*" />
+    <Profile displayName="Connectivity" fileName="connectivity_wifi" evalPriority="1" displayPriority="4" description="Connectivity Wi-Fi configuration" resources="wifi(\[\d+\])?\..+" />
+    <Profile displayName="Connectivity" fileName="connectivity_bt" evalPriority="1" displayPriority="4" description="Connectivity BT configuration" resources="bt(\[\d+\])?\..+" />
+    <Profile displayName="Connectivity" fileName="connectivity_coex" evalPriority="1" displayPriority="4" description="Connectivity Coex configuration" resources="coex(\[\d+\])?\..+" />
     <Profile displayName="Pins" diagramType="PACKAGE" fileName="pins" evalPriority="6" displayPriority="2" description="Pin configuration" resources=".*" />
     <!--This won't match any HW locations because it is after the catchall (.*). This is on purpose and needed to specify code gen order for routing.-->
     <Profile purpose="ROUTING" displayName="" fileName="routing" evalPriority="4" displayPriority="3" description="Establishes all necessary connections between hardware elements." resources="NONE" >

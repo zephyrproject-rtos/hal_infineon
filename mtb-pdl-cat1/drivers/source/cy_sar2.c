@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sar2.c
-* \version 1.0
+* \version 1.1
 *
 * Provides API implementation of the SAR2 Driver.
 *

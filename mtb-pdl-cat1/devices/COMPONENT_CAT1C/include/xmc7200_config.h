@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -2417,6 +2417,77 @@ typedef enum
 #define TRIGGER_TYPE_TR_GROUP_INPUT__LEVEL      TRIGGER_TYPE_LEVEL
 #define TRIGGER_TYPE_TR_GROUP_INPUT__EDGE       TRIGGER_TYPE_EDGE
 
+/* Fault connections */
+typedef enum
+{
+    CPUSS_MPU_VIO_0                 = 0x0000u,
+    CPUSS_MPU_VIO_1                 = 0x0001u,
+    CPUSS_MPU_VIO_2                 = 0x0002u,
+    CPUSS_MPU_VIO_3                 = 0x0003u,
+    CPUSS_MPU_VIO_4                 = 0x0004u,
+    CPUSS_MPU_VIO_5                 = 0x0005u,
+    CPUSS_MPU_VIO_9                 = 0x0009u,
+    CPUSS_MPU_VIO_10                = 0x000Au,
+    CPUSS_MPU_VIO_13                = 0x000Du,
+    CPUSS_MPU_VIO_14                = 0x000Eu,
+    CPUSS_MPU_VIO_15                = 0x000Fu,
+    CPUSS_CM7_1_TCM_C_ECC           = 0x0010u,
+    CPUSS_CM7_1_TCM_NC_ECC          = 0x0011u,
+    CPUSS_CM7_0_CACHE_C_ECC         = 0x0012u,
+    CPUSS_CM7_0_CACHE_NC_ECC        = 0x0013u,
+    CPUSS_CM7_1_CACHE_C_ECC         = 0x0014u,
+    CPUSS_CM7_1_CACHE_NC_ECC        = 0x0015u,
+    PERI_MS_VIO_4                   = 0x0019u,
+    PERI_PERI_C_ECC                 = 0x001Au,
+    PERI_PERI_NC_ECC                = 0x001Bu,
+    PERI_MS_VIO_0                   = 0x001Cu,
+    PERI_MS_VIO_1                   = 0x001Du,
+    PERI_MS_VIO_2                   = 0x001Eu,
+    PERI_MS_VIO_3                   = 0x001Fu,
+    PERI_GROUP_VIO_0                = 0x0020u,
+    PERI_GROUP_VIO_1                = 0x0021u,
+    PERI_GROUP_VIO_2                = 0x0022u,
+    PERI_GROUP_VIO_3                = 0x0023u,
+    PERI_GROUP_VIO_4                = 0x0024u,
+    PERI_GROUP_VIO_5                = 0x0025u,
+    PERI_GROUP_VIO_6                = 0x0026u,
+    PERI_GROUP_VIO_8                = 0x0028u,
+    PERI_GROUP_VIO_9                = 0x0029u,
+    CPUSS_FLASHC_MAIN_BUS_ERR       = 0x0030u,
+    CPUSS_FLASHC_MAIN_C_ECC         = 0x0031u,
+    CPUSS_FLASHC_MAIN_NC_ECC        = 0x0032u,
+    CPUSS_FLASHC_WORK_BUS_ERR       = 0x0033u,
+    CPUSS_FLASHC_WORK_C_ECC         = 0x0034u,
+    CPUSS_FLASHC_WORK_NC_ECC        = 0x0035u,
+    CPUSS_FLASHC_CM0_CA_C_ECC       = 0x0036u,
+    CPUSS_FLASHC_CM0_CA_NC_ECC      = 0x0037u,
+    CPUSS_CM7_0_TCM_C_ECC           = 0x0038u,
+    CPUSS_CM7_0_TCM_NC_ECC          = 0x0039u,
+    CPUSS_RAMC0_C_ECC               = 0x003Au,
+    CPUSS_RAMC0_NC_ECC              = 0x003Bu,
+    CPUSS_RAMC1_C_ECC               = 0x003Cu,
+    CPUSS_RAMC1_NC_ECC              = 0x003Du,
+    CPUSS_RAMC2_C_ECC               = 0x003Eu,
+    CPUSS_RAMC2_NC_ECC              = 0x003Fu,
+    CPUSS_CRYPTO_C_ECC              = 0x0040u,
+    CPUSS_CRYPTO_NC_ECC             = 0x0041u,
+    CPUSS_DW0_C_ECC                 = 0x0046u,
+    CPUSS_DW0_NC_ECC                = 0x0047u,
+    CPUSS_DW1_C_ECC                 = 0x0048u,
+    CPUSS_DW1_NC_ECC                = 0x0049u,
+    CPUSS_FM_SRAM_C_ECC             = 0x004Au,
+    CPUSS_FM_SRAM_NC_ECC            = 0x004Bu,
+    CANFD_0_CAN_C_ECC               = 0x0050u,
+    CANFD_0_CAN_NC_ECC              = 0x0051u,
+    CANFD_1_CAN_C_ECC               = 0x0052u,
+    CANFD_1_CAN_NC_ECC              = 0x0053u,
+    SRSS_FAULT_CSV                  = 0x005Au,
+    SRSS_FAULT_SSV                  = 0x005Bu,
+    SRSS_FAULT_MCWDT0               = 0x005Cu,
+    SRSS_FAULT_MCWDT1               = 0x005Du,
+    SRSS_FAULT_MCWDT2               = 0x005Eu
+} en_sysfault_source_t;
+
 /* Bus masters */
 typedef enum
 {
@@ -2437,7 +2508,7 @@ typedef enum
 } en_prot_master_t;
 
 /* Include IP definitions */
-#include "ip/cyip_sflash_v2.h"
+#include "ip/cyip_sflash_xmc7200.h"
 #include "ip/cyip_peri_v3.h"
 #include "ip/cyip_peri_ms_v3.h"
 #include "ip/cyip_peri_pclk_v3.h"
@@ -2446,9 +2517,9 @@ typedef enum
 #include "ip/cyip_fault.h"
 #include "ip/cyip_ipc.h"
 #include "ip/cyip_prot.h"
-#include "ip/cyip_flashc.h"
-#include "ip/cyip_srss_v3.h"
-#include "ip/cyip_backup_v3.h"
+#include "ip/cyip_flashc_ect.h"
+#include "ip/cyip_srss_v3_2.h"
+#include "ip/cyip_backup_v3_2.h"
 #include "ip/cyip_dw.h"
 #include "ip/cyip_dmac.h"
 #include "ip/cyip_efuse_v2.h"
@@ -2558,7 +2629,7 @@ typedef CRYPTO_V2_Type CRYPTO_Type;
 /* Flash memory type ('0' : SONOS, '1': ECT) */
 #define CPUSS_FLASHC_ECT                1u
 /* Flash main region size in KB */
-#define CPUSS_FLASH_SIZE                8192u
+#define CPUSS_FLASH_SIZE                0x00002000u
 /* Flash work region size in KB (EEPROM emulation, data) */
 #define CPUSS_WFLASH_SIZE               256u
 /* Flash supervisory region size in KB */
@@ -3703,7 +3774,7 @@ typedef CRYPTO_V2_Type CRYPTO_Type;
 /* Indicates the presence of alternate JTAG interface */
 #define IOSS_HSIOM_ALTJTAG_PRESENT      1u
 /* Mask of SMARTIO instances presence */
-#define IOSS_SMARTIO_SMARTIO_MASK       192512u
+#define IOSS_SMARTIO_SMARTIO_MASK       0x0002F000u
 /* Number of LIN channels ([2, 32]). For test functionality (two channels are
    connected), the minimal number of LIN channels is 2. */
 #define LIN_CH_NR                       20u
@@ -5053,14 +5124,14 @@ typedef CRYPTO_V2_Type CRYPTO_Type;
    memory region (to ensure a connection to the ARM CM4 CPU ICode/DCode memory
    region [0x0000:0000, 0x1fff:ffff]). The external memory devices are located
    within the SMIF XIP memory region. */
-#define SMIF_SMIF_XIP_ADDR              1610612736u
+#define SMIF_SMIF_XIP_ADDR              0x60000000u
 /* Capacity of the SMIF XIP memory region. The capacity must be a power of 2 and
    greater or equal than 64 KB). The more significant bits of this parameter are
    '1' and the lesser significant bits of this parameter are '0'. E.g.,
    0xfff0:0000 specifies a 1 MB memory region. Legal values are {0xffff:0000,
    0xfffe:0000, 0xfffc:0000, 0xfff8:0000, 0xfff0:0000, 0xffe0:0000, ...,
    0x8000:0000, 0x0000:0000}. */
-#define SMIF_SMIF_XIP_MASK              4160749568u
+#define SMIF_SMIF_XIP_MASK              0xF8000000u
 /* Cryptography (AES) support. This is a 1-bit parameter: '0' = no support, '1' =
    support. */
 #define SMIF_CRYPTO                     1u
@@ -5172,7 +5243,7 @@ typedef CRYPTO_V2_Type CRYPTO_Type;
    (CDBGPWRUPREQ). For each clock root i, SRSS enables the clock in response to
    CDBGPWRUPREQ, if bit[i] of mask is high. SRSS automatically enables clk_hf0,
    regardless of setting of mask bit0. */
-#define SRSS_MASK_DEBUG_CLK             65535u
+#define SRSS_MASK_DEBUG_CLK             0x0000FFFFu
 /* Total number of PLLs present. Must be calculated (NUM_PLL+NUM_PLL400M). Cannot
    exceed max or NUM_CLKPATH. */
 #define SRSS_NUM_TOTAL_PLL              4u
@@ -5282,86 +5353,127 @@ typedef CRYPTO_V2_Type CRYPTO_Type;
 #define TCPWM1_MASTER_WIDTH             8u
 
 /* MMIO Targets Defines */
+/* MMIO1.CRYPTO */
 #define CY_MMIO_CRYPTO_GROUP_NR         1u
 #define CY_MMIO_CRYPTO_SLAVE_NR         0u
+/* MMIO2.CPUSS */
 #define CY_MMIO_CPUSS_GROUP_NR          2u
 #define CY_MMIO_CPUSS_SLAVE_NR          0u
+/* MMIO2.FAULT */
 #define CY_MMIO_FAULT_GROUP_NR          2u
 #define CY_MMIO_FAULT_SLAVE_NR          1u
+/* MMIO2.IPC */
 #define CY_MMIO_IPC_GROUP_NR            2u
 #define CY_MMIO_IPC_SLAVE_NR            2u
+/* MMIO2.PROT */
 #define CY_MMIO_PROT_GROUP_NR           2u
 #define CY_MMIO_PROT_SLAVE_NR           3u
+/* MMIO2.FLASHC */
 #define CY_MMIO_FLASHC_GROUP_NR         2u
 #define CY_MMIO_FLASHC_SLAVE_NR         4u
+/* MMIO2.SRSS */
 #define CY_MMIO_SRSS_GROUP_NR           2u
 #define CY_MMIO_SRSS_SLAVE_NR           5u
+/* MMIO2.BACKUP */
 #define CY_MMIO_BACKUP_GROUP_NR         2u
 #define CY_MMIO_BACKUP_SLAVE_NR         6u
+/* MMIO2.DW */
 #define CY_MMIO_DW_GROUP_NR             2u
 #define CY_MMIO_DW_SLAVE_NR             7u
+/* MMIO2.DMAC */
 #define CY_MMIO_DMAC_GROUP_NR           2u
 #define CY_MMIO_DMAC_SLAVE_NR           9u
+/* MMIO2.EFUSE */
 #define CY_MMIO_EFUSE_GROUP_NR          2u
 #define CY_MMIO_EFUSE_SLAVE_NR          10u
+/* MMIO2.DFT */
 #define CY_MMIO_DFT_GROUP_NR            2u
 #define CY_MMIO_DFT_SLAVE_NR            11u
+/* MMIO3.HSIOM */
 #define CY_MMIO_HSIOM_GROUP_NR          3u
 #define CY_MMIO_HSIOM_SLAVE_NR          0u
+/* MMIO3.GPIO */
 #define CY_MMIO_GPIO_GROUP_NR           3u
 #define CY_MMIO_GPIO_SLAVE_NR           1u
+/* MMIO3.SMARTIO */
 #define CY_MMIO_SMARTIO_GROUP_NR        3u
 #define CY_MMIO_SMARTIO_SLAVE_NR        2u
+/* MMIO3.TCPWM0 */
 #define CY_MMIO_TCPWM0_GROUP_NR         3u
 #define CY_MMIO_TCPWM0_SLAVE_NR         3u
+/* MMIO3.EVTGEN0 */
 #define CY_MMIO_EVTGEN0_GROUP_NR        3u
 #define CY_MMIO_EVTGEN0_SLAVE_NR        4u
+/* MMIO4.SMIF0 */
 #define CY_MMIO_SMIF0_GROUP_NR          4u
 #define CY_MMIO_SMIF0_SLAVE_NR          0u
+/* MMIO4.SDHC0 */
 #define CY_MMIO_SDHC0_GROUP_NR          4u
 #define CY_MMIO_SDHC0_SLAVE_NR          1u
+/* MMIO4.ETH0 */
 #define CY_MMIO_ETH0_GROUP_NR           4u
 #define CY_MMIO_ETH0_SLAVE_NR           2u
+/* MMIO4.ETH1 */
 #define CY_MMIO_ETH1_GROUP_NR           4u
 #define CY_MMIO_ETH1_SLAVE_NR           3u
+/* MMIO5.LIN0 */
 #define CY_MMIO_LIN0_GROUP_NR           5u
 #define CY_MMIO_LIN0_SLAVE_NR           0u
+/* MMIO5.CANFD0 */
 #define CY_MMIO_CANFD0_GROUP_NR         5u
 #define CY_MMIO_CANFD0_SLAVE_NR         1u
+/* MMIO5.CANFD1 */
 #define CY_MMIO_CANFD1_GROUP_NR         5u
 #define CY_MMIO_CANFD1_SLAVE_NR         2u
+/* MMIO5.FLEXRAY0 */
 #define CY_MMIO_FLEXRAY0_GROUP_NR       5u
 #define CY_MMIO_FLEXRAY0_SLAVE_NR       3u
+/* MMIO5.TCPWM1 */
 #define CY_MMIO_TCPWM1_GROUP_NR         5u
 #define CY_MMIO_TCPWM1_SLAVE_NR         4u
+/* MMIO6.SCB0 */
 #define CY_MMIO_SCB0_GROUP_NR           6u
 #define CY_MMIO_SCB0_SLAVE_NR           0u
+/* MMIO6.SCB1 */
 #define CY_MMIO_SCB1_GROUP_NR           6u
 #define CY_MMIO_SCB1_SLAVE_NR           1u
+/* MMIO6.SCB2 */
 #define CY_MMIO_SCB2_GROUP_NR           6u
 #define CY_MMIO_SCB2_SLAVE_NR           2u
+/* MMIO6.SCB3 */
 #define CY_MMIO_SCB3_GROUP_NR           6u
 #define CY_MMIO_SCB3_SLAVE_NR           3u
+/* MMIO6.SCB4 */
 #define CY_MMIO_SCB4_GROUP_NR           6u
 #define CY_MMIO_SCB4_SLAVE_NR           4u
+/* MMIO6.SCB5 */
 #define CY_MMIO_SCB5_GROUP_NR           6u
 #define CY_MMIO_SCB5_SLAVE_NR           5u
+/* MMIO6.SCB6 */
 #define CY_MMIO_SCB6_GROUP_NR           6u
 #define CY_MMIO_SCB6_SLAVE_NR           6u
+/* MMIO6.SCB7 */
 #define CY_MMIO_SCB7_GROUP_NR           6u
 #define CY_MMIO_SCB7_SLAVE_NR           7u
+/* MMIO6.SCB8 */
 #define CY_MMIO_SCB8_GROUP_NR           6u
 #define CY_MMIO_SCB8_SLAVE_NR           8u
+/* MMIO6.SCB9 */
 #define CY_MMIO_SCB9_GROUP_NR           6u
 #define CY_MMIO_SCB9_SLAVE_NR           9u
+/* MMIO6.SCB10 */
 #define CY_MMIO_SCB10_GROUP_NR          6u
 #define CY_MMIO_SCB10_SLAVE_NR          10u
+/* MMIO8.I2S0 */
 #define CY_MMIO_I2S0_GROUP_NR           8u
 #define CY_MMIO_I2S0_SLAVE_NR           0u
+/* MMIO8.I2S1 */
 #define CY_MMIO_I2S1_GROUP_NR           8u
 #define CY_MMIO_I2S1_SLAVE_NR           1u
+/* MMIO8.I2S2 */
 #define CY_MMIO_I2S2_GROUP_NR           8u
 #define CY_MMIO_I2S2_SLAVE_NR           2u
+/* MMIO9.PASS0 */
 #define CY_MMIO_PASS0_GROUP_NR          9u
 #define CY_MMIO_PASS0_SLAVE_NR          0u
 

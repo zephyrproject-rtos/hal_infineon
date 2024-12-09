@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm_v2.c
-* \version 5.94
+* \version 5.150
 *
 * This driver provides the source code for API power management.
 *
@@ -38,19 +38,70 @@
 *       Internal Functions
 *******************************************************************************/
 __WEAK void Cy_SysPm_Dsramoff_Entry(void);
+static bool IsVoltageChangePossible(void);
 
 #ifdef ENABLE_MEM_VOLTAGE_TRIMS
 /* RAM and ROM Voltage TRIM functions */
 static void SetMemoryVoltageTrims(cy_en_syspm_sdr_voltage_t voltage);
-static bool IsVoltageChangePossible(void);
 #endif /* ENABLE_MEM_VOLTAGE_TRIMS */
+
+#if defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)
+static void SetReadMarginTrimUlp(void);
+static void SetReadMarginTrimLp(void);
+static void SetReadMarginTrimMf(void);
+static void SetReadMarginTrimOd(void);
+static void SetWriteAssistTrimUlp(void);
+static void SetWriteAssistTrimLp(void);
+static void SetWriteAssistTrimMf(void);
+static void SetWriteAssistTrimOd(void);
+#endif
 
 /*******************************************************************************
 *       Internal Defines
 *******************************************************************************/
 
+
+#if defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)
+/* The define for number of callback roots */
+#define CALLBACK_ROOT_NR                (9U)
+
+/* Define for transitional 1.0 V for the LDO regulator */
+#define LDO_OUT_VOLTAGE_1_0V          (0x0CU)
+
+/* Define for transitional 1.2 V for the LDO regulator */
+#define LDO_OUT_VOLTAGE_1_2V          (0x1CU)
+
+/* Define for transitional 1.1 V for the LDO regulator */
+#define LDO_OUT_VOLTAGE_1_1V           (0x14U)
+
+/* Define for an LDO stabilization delay to 1.0 V */
+#define LDO_TO_1_0V_DELAY_US          (3U)
+
+/* Define for an LDO regulator stabilization delay to 1.1 V */
+#define LDO_TO_1_1V_DELAY_US          (3U)
+
+/* Define for an LDO stabilization delay 1.2 V */
+#define LDO_TO_1_2V_DELAY_US          (3U)
+
+/* Mask for the RAM read assist bits */
+#define SRSS_TRIM_RAM_CTL_RA_MASK                   ((uint32_t) 0x3U << 8U)
+
+/* Wake up delay for LP mode */
+#define SRSS_PWR_TRIM_WAKE_LP                   (0x50U)
+
+/* Wake up delay for MF mode */
+#define SRSS_PWR_TRIM_WAKE_MF                   (0x50U)
+
+/* Wake up delay for OD mode*/
+#define SRSS_PWR_TRIM_WAKE_OD                   (0x50U)
+
+/* Mask for the RAM write check bits */
+#define SRSS_TRIM_RAM_CTL_WC_MASK        (0x3UL << 10U)
+
+#else
 /* The define for number of callback roots */
 #define CALLBACK_ROOT_NR                (7U)
+#endif
 
 /* The mask to unlock the Hibernate power mode */
 #define HIBERNATE_UNLOCK_VAL                 ((uint32_t) 0x3Au << SRSS_PWR_HIBERNATE_UNLOCK_Pos)
@@ -123,16 +174,25 @@ static bool IsVoltageChangePossible(void);
 /* Mask for the RAM write check bits */
 #define CPUSS_TRIM_RAM_CTL_WC_MASK        (0x3UL << 10U)
 
+/* Define for transitional 0.95 V for the LDO regulator */
+#define LDO_OUT_VOLTAGE_0_95V          (0x0BU)
+
 /*******************************************************************************
 *       Internal Variables
 *******************************************************************************/
+#if defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)
+/* Array of the callback roots */
+static cy_stc_syspm_callback_t* pmCallbackRoot[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
 
+/* The array of the pointers to failed callback */
+static cy_stc_syspm_callback_t* failedCallback[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
+#else
 /* Array of the callback roots */
 static cy_stc_syspm_callback_t* pmCallbackRoot[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
 
 /* The array of the pointers to failed callback */
 static cy_stc_syspm_callback_t* failedCallback[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
-
+#endif
 
 void Cy_SysPm_Init(void)
 {
@@ -253,7 +313,20 @@ cy_en_syspm_status_t Cy_SysPm_SystemLpActiveEnter(void)
                 (void)Cy_SysClk_FllDisable(); /* Suppress a compiler warning about unused return value */
             }
 
-            /* Step-3: If reducing the regulator output voltage for RegSetB, perform the extra requester sequence.
+            //Disable PLL if enabled
+            #if (defined (SRSS_NUM_TOTAL_PLL) && (SRSS_NUM_TOTAL_PLL > 0UL))
+            if(Cy_SysClk_PllIsEnabled(1U))
+            {
+                (void)Cy_SysClk_PllDisable(1U); /* Suppress a compiler warning about unused return value */
+            }
+
+            if(Cy_SysClk_PllIsEnabled(2U))
+            {
+                (void)Cy_SysClk_PllDisable(2U); /* Suppress a compiler warning about unused return value */
+            }
+            #endif
+
+            /* Step-3: If reducing the regulator output voltage for RegSetA, perform the extra requester sequence.
              * Call API-Cy_SysPm_LdoExtraRequesterConfig before calling this if the voltage needs to be reduced
              */
 
@@ -318,11 +391,22 @@ cy_en_syspm_status_t Cy_SysPm_SystemLpActiveExit(void)
          */
 
         /* Step-3: High Frequency clocks could be enabled */
-        (void)Cy_SysClk_FllEnable(0UL);
         if (CY_SYSCLK_SUCCESS != Cy_SysClk_FllEnable(0UL))
         {
             retVal = CY_SYSPM_FAIL;
         }
+
+        #if (defined (SRSS_NUM_TOTAL_PLL) && (SRSS_NUM_TOTAL_PLL > 0UL))
+        if (CY_SYSCLK_SUCCESS != Cy_SysClk_PllEnable(1UL, 10000u))
+        {
+            retVal = CY_SYSPM_FAIL;
+        }
+        if (CY_SYSCLK_SUCCESS != Cy_SysClk_PllEnable(2UL, 10000u))
+        {
+            retVal = CY_SYSPM_FAIL;
+        }
+        #endif
+
         (void)Cy_SysClk_ClkHfDirectSel(0U, false);
 
         Cy_SysLib_ExitCriticalSection(interruptState);
@@ -466,6 +550,14 @@ cy_en_syspm_boot_mode_t Cy_SysPm_GetBootMode(void)
     return ((cy_en_syspm_boot_mode_t)deepSleepWakeMode);
 }
 
+/*Weak declaration allows for both RTOS and non-RTOS based
+ * implementation to handle any context store before WFI
+ * This PDL implements a weak handler for non-RTOS based deep sleep */
+__WEAK void Cy_SysPm_StoreDSContext_Wfi(void)
+{
+    __WFI();
+}
+
 cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
 {
     uint32_t interruptState;
@@ -510,7 +602,14 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
 
                 if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
                 {
-                    __WFI();
+                    if (cbDeepSleepRootIdx == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM)
+                    {
+                        Cy_SysPm_StoreDSContext_Wfi();
+                    }
+                    else
+                    {
+                        __WFI();
+                    }
                 }
                 else
                 {
@@ -780,9 +879,13 @@ cy_en_syspm_status_t Cy_SysPm_SystemSetNormalRegulatorCurrent(void)
 
 bool Cy_SysPm_SystemIsMinRegulatorCurrentSet(void)
 {
+#if (defined (CY_IP_MXS40SSRSS) && (SRSS_S40S_REGSETB_PRESENT == 1UL))
     uint32_t regMask = Cy_SysPm_LdoIsEnabled() ? CY_SYSPM_PWR_CIRCUITS_LPMODE_ACTIVE_LDO_MASK : CY_SYSPM_PWR_CIRCUITS_LPMODE_ACTIVE_BUCK_MASK;
 
     return ((SRSS_PWR_CTL & regMask) == regMask);
+#else
+    return ((0U == _FLD2VAL(SRSS_PWR_CTL2_REFV_DIS, SRSS_PWR_CTL2)) ? false : true);
+#endif
 }
 
 cy_en_syspm_status_t Cy_SysPm_LdoSetMode(cy_en_syspm_ldo_mode_t mode)
@@ -849,6 +952,179 @@ bool Cy_SysPm_LdoIsEnabled(void)
     return ((0U != _FLD2VAL(SRSS_PWR_CTL2_LINREG_DIS, SRSS_PWR_CTL2)) ? false : true);
 }
 
+#if defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)
+
+cy_en_syspm_status_t Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
+{
+    CY_ASSERT_L1(CY_SYSPM_IS_LDO_VOLTAGE_VALID(voltage));
+
+    cy_en_syspm_status_t retVal = CY_SYSPM_INVALID_STATE;
+
+    /* Voltage change is possible only when the specific device revision
+    * support registers modification.
+    */
+    if (IsVoltageChangePossible())
+    {
+        uint32_t interruptState;
+        uint32_t trimVoltage;
+        cy_en_syspm_ldo_voltage_t currVoltage = Cy_SysPm_LdoGetVoltage();
+
+        interruptState = Cy_SysLib_EnterCriticalSection();
+
+        if (CY_SYSPM_LDO_VOLTAGE_0_9V == voltage)
+        {
+            SRSS_PWR_TRIM_WAKE_CTL = 0UL;
+
+            trimVoltage =  SFLASH_LDO_0P9V_TRIM;
+
+            /* Update read-write margin value for the ULP mode */
+            SetReadMarginTrimUlp();
+        }
+        else if(CY_SYSPM_LDO_VOLTAGE_1_0V == voltage)
+        {
+            if (Cy_SysPm_SystemIsMinRegulatorCurrentSet())
+            {
+                SRSS_PWR_TRIM_WAKE_CTL = SRSS_PWR_TRIM_WAKE_MF;
+            }
+            else
+            {
+                SRSS_PWR_TRIM_WAKE_CTL = SFLASH_PWR_TRIM_WAKE_CTL;
+            }
+
+            trimVoltage = SFLASH_LDO_1P0V_TRIM;
+
+            /* A delay for the supply to stabilize at the new higher voltage */
+            Cy_SysLib_DelayUs(LDO_TO_1_0V_DELAY_US);
+
+            if(currVoltage > CY_SYSPM_LDO_VOLTAGE_1_0V)
+            {
+                /* Update read-write margin value for the MF mode */
+                SetReadMarginTrimMf();
+            }
+            else
+            {
+                /* Update write assist value for the MF mode */
+                SetWriteAssistTrimMf();
+            }
+        }
+        else if(CY_SYSPM_LDO_VOLTAGE_1_1V == voltage)
+        {
+            if (Cy_SysPm_SystemIsMinRegulatorCurrentSet())
+            {
+                SRSS_PWR_TRIM_WAKE_CTL = SRSS_PWR_TRIM_WAKE_LP;
+            }
+            else
+            {
+                SRSS_PWR_TRIM_WAKE_CTL = SFLASH_PWR_TRIM_WAKE_CTL;
+            }
+
+            trimVoltage = SFLASH_LDO_1P1V_TRIM;
+            /* A delay for the supply to stabilize at the new higher voltage */
+            Cy_SysLib_DelayUs(LDO_TO_1_1V_DELAY_US);
+
+            if(currVoltage < CY_SYSPM_LDO_VOLTAGE_1_1V)
+            {
+                /* Update read-write margin value for the LP mode */
+                SetReadMarginTrimLp();
+            }
+            else
+            {
+                /* Update write assist value for the LP mode */
+                SetWriteAssistTrimLp();
+            }
+        }
+        else
+        {
+            if (Cy_SysPm_SystemIsMinRegulatorCurrentSet())
+            {
+                SRSS_PWR_TRIM_WAKE_CTL = SRSS_PWR_TRIM_WAKE_OD;
+            }
+            else
+            {
+                SRSS_PWR_TRIM_WAKE_CTL = SFLASH_PWR_TRIM_WAKE_CTL;
+            }
+
+            trimVoltage = SFLASH_LDO_1P2V_TRIM;
+
+            /* A delay for the supply to stabilize at the new higher voltage */
+            Cy_SysLib_DelayUs(LDO_TO_1_2V_DELAY_US);
+
+            /* Update write assist value for the OD mode */
+            SetWriteAssistTrimOd();
+        }
+
+        /* The system may continue operating while the voltage on Vccd
+        *  discharges to the new voltage. The time it takes to reach the
+        *  new voltage depends on the conditions, including the load current
+        *  on Vccd and the external capacitor size.
+        */
+        SRSS_PWR_TRIM_PWRSYS_CTL =
+        _CLR_SET_FLD32U((SRSS_PWR_TRIM_PWRSYS_CTL), SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM, trimVoltage);
+
+        if (CY_SYSPM_LDO_VOLTAGE_0_9V == voltage)
+        {
+            /* Update write assist value for the ULP mode */
+            SetWriteAssistTrimUlp();
+        }
+        else if(CY_SYSPM_LDO_VOLTAGE_1_0V == voltage)
+        {
+            /* A delay for the supply to stabilize at the new intermediate voltage */
+            Cy_SysLib_DelayUs(LDO_TO_1_0V_DELAY_US);
+
+            if(currVoltage > CY_SYSPM_LDO_VOLTAGE_1_1V)
+            {
+                /* Update write assist value for the MF mode */
+                SetWriteAssistTrimMf();
+            }
+            else
+            {
+                /* Update read-write margin value for the MF mode */
+                SetReadMarginTrimMf();
+            }
+        }
+        else if(CY_SYSPM_LDO_VOLTAGE_1_1V == voltage)
+        {
+            /* A delay for the supply to stabilize at the new intermediate voltage */
+            Cy_SysLib_DelayUs(LDO_TO_1_1V_DELAY_US);
+            if(currVoltage > CY_SYSPM_LDO_VOLTAGE_1_1V)
+            {
+                /* Update write assist value for the LP mode */
+                SetWriteAssistTrimLp();
+            }
+            else
+            {
+                /* Update read-write margin value for the LP mode */
+                SetReadMarginTrimLp();
+            }
+        }
+        else
+        {
+            /* A delay for the supply to stabilize at the new intermediate voltage */
+            Cy_SysLib_DelayUs(LDO_TO_1_2V_DELAY_US);
+
+            /* Update read-write margin value for the OD mode */
+            SetReadMarginTrimOd();
+        }
+
+        Cy_SysLib_ExitCriticalSection(interruptState);
+        retVal = CY_SYSPM_SUCCESS;
+    }
+    return retVal;
+}
+
+cy_en_syspm_ldo_voltage_t Cy_SysPm_LdoGetVoltage(void)
+{
+    uint32_t curVoltage;
+
+    curVoltage = _FLD2VAL(SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM, SRSS_PWR_TRIM_PWRSYS_CTL);
+
+    return ((curVoltage == (SFLASH_LDO_0P9V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_ULP :
+            (curVoltage == (SFLASH_LDO_1P1V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_MF :
+            (curVoltage == (SFLASH_LDO_1P2V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_OD :
+                                                                                 CY_SYSPM_LDO_VOLTAGE_LP);
+
+}
+#endif
 
 void Cy_SysPm_CpuSleepOnExit(bool enable)
 {
@@ -1807,7 +2083,7 @@ void Cy_SysPm_BackupWordReStore(uint32_t wordIndex, uint32_t *wordDstPointer, ui
 
     while(wordSize != 0UL)
     {
-    
+
         if(wordIndex < CY_SRSS_BACKUP_BREG1_START_POS)
         {
             *wordDstPointer = BACKUP_BREG_SET0[wordIndex];
@@ -1990,6 +2266,12 @@ void Cy_SysPm_TriggerSoftReset(void)
     SRSS_RES_SOFT_CTL = SRSS_RES_SOFT_CTL_TRIGGER_SOFT_Msk;
 }
 
+void Cy_SysPm_TriggerXRes(void)
+{
+    SRSS_RES_PXRES_CTL = SRSS_RES_PXRES_CTL_PXRES_TRIGGER_Msk;
+}
+
+
 #ifdef ENABLE_MEM_VOLTAGE_TRIMS
 /*******************************************************************************
 * Function Name: SetMemoryVoltageTrims
@@ -2041,23 +2323,176 @@ static void SetMemoryVoltageTrims(cy_en_syspm_sdr_voltage_t voltage)
     CPUSS_TRIM_ROM_CTL = romVoltgeTrim;
 
 }
+#endif /* ENABLE_MEM_VOLTAGE_TRIMS */
 
+#if defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)
+
+/*******************************************************************************
+* Function Name: SetReadMarginTrimUlp
+****************************************************************************//**
+*
+* This is the internal function that updates the read-margin trim values for the
+* RAM and ROM. The trim update is done during transition of regulator voltage
+* from higher to a lower one.
+*
+*******************************************************************************/
+static void SetReadMarginTrimUlp(void)
+{
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_ULP;
+}
+
+
+/*******************************************************************************
+* Function Name: SetReadMarginTrimLp
+****************************************************************************//**
+*
+* The internal function that updates the read-margin trim values for the
+* RAM and ROM. The trim update is done during transition of regulator voltage
+* from a lower to a higher one.
+*
+*******************************************************************************/
+static void SetReadMarginTrimLp(void)
+{
+        SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                             (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+
+        SRSS_TRIM_ROM_CTL =  SFLASH_CPUSS_TRIM_ROM_CTL_LP;
+
+}
+
+
+/*******************************************************************************
+* Function Name: SetReadMarginTrimMf
+****************************************************************************//**
+*
+* The internal function that updates the read-margin trim values for the
+* RAM and ROM. The trim update is done during transition of regulator voltage
+* from a lower to a higher one.
+*
+*******************************************************************************/
+static void SetReadMarginTrimMf(void)
+{
+        SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                             (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+
+        SRSS_TRIM_ROM_CTL =  SFLASH_CPUSS_TRIM_ROM_CTL_LP;
+}
+
+
+/*******************************************************************************
+* Function Name: SetReadMarginTrimOd
+****************************************************************************//**
+*
+* The internal function that updates the read-margin trim values for the
+* RAM and ROM. The trim update is done during transition of regulator voltage
+* from a lower to a higher one.
+*
+*******************************************************************************/
+static void SetReadMarginTrimOd(void)
+{
+        SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                             (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+
+        SRSS_TRIM_ROM_CTL =  SFLASH_CPUSS_TRIM_ROM_CTL_LP;
+}
+
+
+/*******************************************************************************
+* Function Name: SetWriteAssistTrimUlp
+****************************************************************************//**
+*
+* The internal function that updates the write assistant trim value for the
+* RAM. The trim update is done during transition of regulator voltage
+* from higher to a lower.
+*
+*******************************************************************************/
+static void SetWriteAssistTrimUlp(void)
+{
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+}
+
+
+/*******************************************************************************
+* Function Name: SetWriteAssistTrimLp
+****************************************************************************//**
+*
+* The internal function that updates the write assistant trim value for the
+* RAM. The trim update is done during transition of regulator voltage
+* from lower to a higher one.
+*
+*******************************************************************************/
+static void SetWriteAssistTrimLp(void)
+{
+     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP;
+}
+
+
+/*******************************************************************************
+* Function Name: SetWriteAssistTrimMf
+****************************************************************************//**
+*
+* The internal function that updates the write assistant trim value for the
+* RAM. The trim update is done during transition of regulator voltage
+* from lower to a higher one.
+*
+*******************************************************************************/
+static void SetWriteAssistTrimMf(void)
+{
+     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP;
+}
+
+
+/*******************************************************************************
+* Function Name: SetWriteAssistTrimOd
+****************************************************************************//**
+*
+* The internal function that updates the write assistant trim value for the
+* RAM. The trim update is done during transition of regulator voltage
+* from lower to a higher one.
+*
+*******************************************************************************/
+static void SetWriteAssistTrimOd(void)
+{
+     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP;
+}
+#endif
 
 /*******************************************************************************
 * Function Name: IsVoltageChangePossible
 ****************************************************************************//**
 *
 * The internal function that checks wherever it is possible to change the core
-* voltage. The voltage change is possible only when the protection context is
-* set to zero (PC = 0), or the device supports modifying registers via syscall.
+* voltage. Voltage change is possible only when the specific device revision
+* support registers modification.
 *
 *******************************************************************************/
 static bool IsVoltageChangePossible(void)
 {
 
     bool retVal = false;
+#if defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)
 
-#if (CY_SYSLIB_GET_SILICON_REV_ID != CY_SYSLIB_20829A0_SILICON_REV)
+    uint32_t trimRamCheckVal = (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_WC_MASK);
+
+    SRSS_TRIM_RAM_CTL &= ~SRSS_TRIM_RAM_CTL_WC_MASK;
+    SRSS_TRIM_RAM_CTL |= ((~trimRamCheckVal) & SRSS_TRIM_RAM_CTL_WC_MASK);
+
+    retVal = (trimRamCheckVal != (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_WC_MASK));
+
+#elif (CY_SYSLIB_GET_SILICON_REV_ID != CY_SYSLIB_20829A0_SILICON_REV)
     {
         uint32_t trimRamCheckVal = (CPUSS_TRIM_RAM_CTL & CPUSS_TRIM_RAM_CTL_WC_MASK);
 
@@ -2067,9 +2502,443 @@ static bool IsVoltageChangePossible(void)
         retVal = (trimRamCheckVal != (CPUSS_TRIM_RAM_CTL & CPUSS_TRIM_RAM_CTL_WC_MASK));
     }
 #endif
+
     return retVal;
 }
-#endif /* ENABLE_MEM_VOLTAGE_TRIMS */
+
+
+#if (defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)) 
+
+uint32_t Cy_SysPm_ReadStatus(void)
+{
+    uint32_t pmStatus = 0UL;
+
+    /* Check whether the device is in LP, MF, ULP, OD mode by reading
+    *  the core voltage:
+    *  - 0.9V (nominal) - System ULP mode
+    *  - 1.0V (nominal) - System MF mode
+    *  - 1.1V (nominal) - System LP mode
+    *  - 1.2V (nominal) - System OD mode
+    */
+
+    /* Read current active regulator */
+    if (Cy_SysPm_LdoIsEnabled())
+    {
+        /* Current active regulator is LDO */
+        if (Cy_SysPm_LdoGetVoltage() == CY_SYSPM_LDO_VOLTAGE_LP)
+        {
+            pmStatus |= CY_SYSPM_STATUS_SYSTEM_LP;
+        }
+        else if (Cy_SysPm_LdoGetVoltage() == CY_SYSPM_LDO_VOLTAGE_ULP)
+        {
+            pmStatus |= CY_SYSPM_STATUS_SYSTEM_ULP;
+        }
+        else if (Cy_SysPm_LdoGetVoltage() == CY_SYSPM_LDO_VOLTAGE_MF)
+        {
+            pmStatus |= CY_SYSPM_STATUS_SYSTEM_MF;
+        }
+        else
+        {
+            pmStatus |= CY_SYSPM_STATUS_SYSTEM_OD;
+        }
+    }
+    return pmStatus;
+}
+
+
+bool Cy_SysPm_IsSystemLp(void)
+{
+    return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_SYSTEM_LP) != 0U);
+}
+
+
+bool Cy_SysPm_IsSystemUlp(void)
+{
+    return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_SYSTEM_ULP) != 0U);
+}
+
+
+bool Cy_SysPm_IsSystemMf(void)
+{
+    return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_SYSTEM_MF) != 0U);
+}
+
+
+bool Cy_SysPm_IsSystemOd(void)
+{
+    return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_SYSTEM_OD) != 0U);
+}
+
+
+cy_en_syspm_status_t Cy_SysPm_SystemEnterLp(void)
+{
+    uint32_t interruptState;
+    uint32_t cbLpRootIdx = (uint32_t) CY_SYSPM_LP;
+    cy_en_syspm_status_t retVal = CY_SYSPM_SUCCESS;
+
+    /* Call the registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter
+    */
+    if (pmCallbackRoot[cbLpRootIdx] != NULL)
+    {
+        retVal = Cy_SysPm_ExecuteCallback(CY_SYSPM_LP, CY_SYSPM_CHECK_READY);
+    }
+
+    /* The system can switch into LP only when
+    * all executed registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter return CY_SYSPM_SUCCESS
+    */
+    if (retVal == CY_SYSPM_SUCCESS)
+    {
+
+        /* Call the registered callback functions with the
+        * CY_SYSPM_BEFORE_TRANSITION parameter
+        */
+        interruptState = Cy_SysLib_EnterCriticalSection();
+        if (pmCallbackRoot[cbLpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_LP, CY_SYSPM_BEFORE_TRANSITION);
+        }
+
+        /* Read current active regulator and set LP voltage*/
+        if (Cy_SysPm_LdoIsEnabled()) // Comment : Is this check req for PSoC C3 (CAT1B)
+        {
+            /* Current active regulator is LDO */
+            if (Cy_SysPm_LdoGetVoltage() != CY_SYSPM_LDO_VOLTAGE_LP)
+            {
+                retVal = Cy_SysPm_LdoSetVoltage(CY_SYSPM_LDO_VOLTAGE_LP);
+            }
+        }
+
+        Cy_SysLib_ExitCriticalSection(interruptState);
+
+        /* Call the registered callback functions with the
+        * CY_SYSPM_AFTER_TRANSITION parameter
+        */
+        if (pmCallbackRoot[cbLpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_LP, CY_SYSPM_AFTER_TRANSITION);
+        }
+    }
+    else
+    {
+        /* Execute callback functions with the CY_SYSPM_CHECK_FAIL parameter to
+        * undo everything done in the callback with the CY_SYSPM_CHECK_READY
+        * parameter
+        */
+        (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_LP, CY_SYSPM_CHECK_FAIL);
+        retVal = CY_SYSPM_FAIL;
+    }
+
+    return retVal;
+}
+
+cy_en_syspm_status_t Cy_SysPm_SystemEnterUlp(void)
+{
+    uint32_t interruptState;
+    cy_en_syspm_status_t retVal = CY_SYSPM_SUCCESS;
+    uint32_t cbUlpRootIdx = (uint32_t) CY_SYSPM_ULP;
+
+    /* Call the registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter
+    */
+    if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+    {
+        retVal = Cy_SysPm_ExecuteCallback(CY_SYSPM_ULP, CY_SYSPM_CHECK_READY);
+    }
+
+    /* The system can switch into the ULP only when
+    * all executed registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter return CY_SYSPM_SUCCESS
+    */
+    if (retVal == CY_SYSPM_SUCCESS)
+    {
+        /* Call the registered callback functions with the
+        * CY_SYSPM_BEFORE_TRANSITION parameter
+        */
+        interruptState = Cy_SysLib_EnterCriticalSection();
+        if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_ULP, CY_SYSPM_BEFORE_TRANSITION);
+        }
+
+        /* Read current active regulator and set ULP voltage*/
+        if (Cy_SysPm_LdoIsEnabled())
+        {
+            /* Current active regulator is LDO */
+            if (Cy_SysPm_LdoGetVoltage() != CY_SYSPM_LDO_VOLTAGE_ULP)
+            {
+                retVal = Cy_SysPm_LdoSetVoltage(CY_SYSPM_LDO_VOLTAGE_ULP);
+            }
+        }
+
+        Cy_SysLib_ExitCriticalSection(interruptState);
+
+        /* Call the registered callback functions with the
+        * CY_SYSPM_AFTER_TRANSITION parameter
+        */
+        if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_ULP, CY_SYSPM_AFTER_TRANSITION);
+        }
+    }
+    else
+    {
+        /* Execute callback functions with the CY_SYSPM_CHECK_FAIL parameter to
+        * undo everything done in the callback with the CY_SYSPM_CHECK_READY
+        * parameter
+        */
+        (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_ULP, CY_SYSPM_CHECK_FAIL);
+        retVal = CY_SYSPM_FAIL;
+    }
+
+    return retVal;
+}
+
+cy_en_syspm_status_t Cy_SysPm_SystemEnterMf(void)
+{
+    uint32_t interruptState;
+    cy_en_syspm_status_t retVal = CY_SYSPM_SUCCESS;
+    uint32_t cbUlpRootIdx = (uint32_t) CY_SYSPM_MF;
+
+    /* Call the registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter
+    */
+    if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+    {
+        retVal = Cy_SysPm_ExecuteCallback(CY_SYSPM_MF, CY_SYSPM_CHECK_READY);
+    }
+
+    /* The system can switch into the MF only when
+    * all executed registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter return CY_SYSPM_SUCCESS
+    */
+    if (retVal == CY_SYSPM_SUCCESS)
+    {
+        /* Call the registered callback functions with the
+        * CY_SYSPM_BEFORE_TRANSITION parameter
+        */
+        interruptState = Cy_SysLib_EnterCriticalSection();
+        if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_MF, CY_SYSPM_BEFORE_TRANSITION);
+        }
+
+        /* Read current active regulator and set ULP voltage*/
+        if (Cy_SysPm_LdoIsEnabled())
+        {
+            /* Current active regulator is LDO */
+            if (Cy_SysPm_LdoGetVoltage() != CY_SYSPM_LDO_VOLTAGE_MF)
+            {
+                retVal = Cy_SysPm_LdoSetVoltage(CY_SYSPM_LDO_VOLTAGE_MF);
+            }
+        }
+
+        Cy_SysLib_ExitCriticalSection(interruptState);
+
+        /* Call the registered callback functions with the
+        * CY_SYSPM_AFTER_TRANSITION parameter
+        */
+        if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_MF, CY_SYSPM_AFTER_TRANSITION);
+        }
+    }
+    else
+    {
+        /* Execute callback functions with the CY_SYSPM_CHECK_FAIL parameter to
+        * undo everything done in the callback with the CY_SYSPM_CHECK_READY
+        * parameter
+        */
+        (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_MF, CY_SYSPM_CHECK_FAIL);
+        retVal = CY_SYSPM_FAIL;
+    }
+
+    return retVal;
+}
+
+cy_en_syspm_status_t Cy_SysPm_SystemEnterOd(void)
+{
+    uint32_t interruptState;
+    cy_en_syspm_status_t retVal = CY_SYSPM_SUCCESS;
+    uint32_t cbUlpRootIdx = (uint32_t) CY_SYSPM_OD;
+
+    /* Call the registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter
+    */
+    if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+    {
+        retVal = Cy_SysPm_ExecuteCallback(CY_SYSPM_OD, CY_SYSPM_CHECK_READY);
+    }
+
+    /* The system can switch into the OD only when
+    * all executed registered callback functions with the
+    * CY_SYSPM_CHECK_READY parameter return CY_SYSPM_SUCCESS
+    */
+    if (retVal == CY_SYSPM_SUCCESS)
+    {
+        /* Call the registered callback functions with the
+        * CY_SYSPM_BEFORE_TRANSITION parameter
+        */
+        interruptState = Cy_SysLib_EnterCriticalSection();
+        if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_OD, CY_SYSPM_BEFORE_TRANSITION);
+        }
+
+        /* Read current active regulator and set ULP voltage*/
+        if (Cy_SysPm_LdoIsEnabled())
+        {
+            /* Current active regulator is LDO */
+            if (Cy_SysPm_LdoGetVoltage() != CY_SYSPM_LDO_VOLTAGE_OD)
+            {
+                retVal = Cy_SysPm_LdoSetVoltage(CY_SYSPM_LDO_VOLTAGE_OD);
+            }
+        }
+
+        Cy_SysLib_ExitCriticalSection(interruptState);
+
+        /* Call the registered callback functions with the
+        * CY_SYSPM_AFTER_TRANSITION parameter
+        */
+        if (pmCallbackRoot[cbUlpRootIdx] != NULL)
+        {
+            (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_OD, CY_SYSPM_AFTER_TRANSITION);
+        }
+    }
+    else
+    {
+        /* Execute callback functions with the CY_SYSPM_CHECK_FAIL parameter to
+        * undo everything done in the callback with the CY_SYSPM_CHECK_READY
+        * parameter
+        */
+        (void) Cy_SysPm_ExecuteCallback(CY_SYSPM_OD, CY_SYSPM_CHECK_FAIL);
+        retVal = CY_SYSPM_FAIL;
+    }
+
+    return retVal;
+}
+#endif
+
+#if ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2u)) || \
+    ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2u)) && (defined (SRSS_BACKUP_VBCK_PRESENT) && (SRSS_BACKUP_VBCK_PRESENT == 1u)))) || \
+    defined (CY_DOXYGEN)
+
+void Cy_SysPm_PmicEnable(void)
+{
+    if (CY_SYSPM_PMIC_UNLOCK_KEY == _FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL))
+    {
+        BACKUP_PMIC_CTL =
+        _VAL2FLD(BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY) |
+        _VAL2FLD(BACKUP_PMIC_CTL_PMIC_EN_OUTEN, 1U) |
+        _VAL2FLD(BACKUP_PMIC_CTL_PMIC_EN, 1U);
+    }
+}
+
+
+void Cy_SysPm_PmicDisable(cy_en_syspm_pmic_wakeup_polarity_t polarity)
+{
+    CY_ASSERT_L3(CY_SYSPM_IS_POLARITY_VALID(polarity));
+
+    if (CY_SYSPM_PMIC_UNLOCK_KEY == _FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL))
+    {
+        BACKUP_PMIC_CTL =
+        (_VAL2FLD(BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY) |
+         _CLR_SET_FLD32U(BACKUP_PMIC_CTL, BACKUP_PMIC_CTL_POLARITY, (uint32_t) polarity)) &
+        ((uint32_t) ~ _VAL2FLD(BACKUP_PMIC_CTL_PMIC_EN, 1U));
+    }
+}
+
+
+void Cy_SysPm_PmicAlwaysEnable(void)
+{
+    BACKUP_PMIC_CTL |= _VAL2FLD(BACKUP_PMIC_CTL_PMIC_ALWAYSEN, 1U);
+}
+
+
+void Cy_SysPm_PmicEnableOutput(void)
+{
+    if (CY_SYSPM_PMIC_UNLOCK_KEY == _FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL))
+    {
+        BACKUP_PMIC_CTL |=
+        _VAL2FLD(BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY) | _VAL2FLD(BACKUP_PMIC_CTL_PMIC_EN_OUTEN, 1U);
+    }
+}
+
+
+void Cy_SysPm_PmicDisableOutput(void)
+{
+    if (CY_SYSPM_PMIC_UNLOCK_KEY == _FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL))
+    {
+        BACKUP_PMIC_CTL =
+        (BACKUP_PMIC_CTL | _VAL2FLD(BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY)) &
+        ((uint32_t) ~ _VAL2FLD(BACKUP_PMIC_CTL_PMIC_EN_OUTEN, 1U));
+    }
+}
+
+
+void Cy_SysPm_PmicLock(void)
+{
+    BACKUP_PMIC_CTL = _CLR_SET_FLD32U(BACKUP_PMIC_CTL, BACKUP_PMIC_CTL_UNLOCK, 0U);
+}
+
+
+void Cy_SysPm_PmicUnlock(void)
+{
+    BACKUP_PMIC_CTL = _CLR_SET_FLD32U(BACKUP_PMIC_CTL, BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY);
+}
+
+
+bool Cy_SysPm_PmicIsEnabled(void)
+{
+    return (0U != _FLD2VAL(BACKUP_PMIC_CTL_PMIC_EN, BACKUP_PMIC_CTL));
+}
+
+
+bool Cy_SysPm_PmicIsOutputEnabled(void)
+{
+    return (0U != _FLD2VAL(BACKUP_PMIC_CTL_PMIC_EN_OUTEN, BACKUP_PMIC_CTL));
+}
+
+
+bool Cy_SysPm_PmicIsLocked(void)
+{
+    return ((_FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL) == CY_SYSPM_PMIC_UNLOCK_KEY) ? false : true);
+}
+#endif  /* (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) || ((CY_IP_MXS40SRSS_VERSION >= 2u) && (SRSS_BACKUP_VBCK_PRESENT)) */
+
+#if (defined (CY_IP_MXS40SSRSS) && (SRSS_S40S_REGSETA_PRESENT == 1UL))
+
+void Cy_SysPm_LinearRegDisable(void)
+{
+    SRSS_PWR_CTL2 |= SRSS_PWR_CTL2_LINREG_DIS_Msk;
+}
+
+void Cy_SysPm_LinearRegEnable(void)
+{
+    SRSS_PWR_CTL2 &= (uint32_t) ~SRSS_PWR_CTL2_LINREG_DIS_Msk;
+}
+
+bool Cy_SysPm_LinearRegGetStatus(void)
+{
+    return (_FLD2BOOL(SRSS_PWR_CTL2_LINREG_OK, SRSS_PWR_CTL2));
+}
+
+void Cy_SysPm_DeepSleepRegDisable(void)
+{
+    SRSS_PWR_CTL2 |= SRSS_PWR_CTL2_DPSLP_REG_DIS_Msk;
+}
+
+void Cy_SysPm_DeepSleepRegEnable(void)
+{
+    SRSS_PWR_CTL2 &= (uint32_t) ~SRSS_PWR_CTL2_DPSLP_REG_DIS_Msk;
+}
+
+bool Cy_SySPm_IsDeepSleepRegEnabled(void)
+{
+    return(0u == _FLD2VAL(SRSS_PWR_CTL2_DPSLP_REG_DIS, SRSS_PWR_CTL2));
+}
+#endif /* Linear Regulator */
 
 #endif
 /* [] END OF FILE */

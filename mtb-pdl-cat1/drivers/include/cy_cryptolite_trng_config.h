@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_trng_config.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides  constants and parameters
@@ -127,7 +127,7 @@ extern "C" {
 * so that the more significant bits (bit 30 and down) contain the polynomial and the less
 * significant bits (bit 0 and up) contain padding '0's.
 */
-#define CY_CRYPTOLITE_DEF_TRNG_GARO                                    (0x21f81910U)
+#define CY_CRYPTOLITE_DEF_TRNG_GARO                                    (0xb2d1ab70U)
 
 /**
 * The polynomial for the programmable Fibonacci ring oscillator. The polynomial is represented
@@ -135,7 +135,7 @@ extern "C" {
 * be aligned so that the more significant bits (bit 30 and down) contain the polynomial
 * and the less significant bits (bit 0 and up) contain padding '0's.
 */
-#define CY_CRYPTOLITE_DEF_TRNG_FIRO                                    (0xe6b8c3b3U)
+#define CY_CRYPTOLITE_DEF_TRNG_FIRO                                    (0xe6b8c3b3UL)
 
 /**
 * Selection of the bit stream:

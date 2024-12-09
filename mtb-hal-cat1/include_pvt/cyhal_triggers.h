@@ -29,7 +29,7 @@
 * \ingroup group_hal_impl_interconnect
 * \{
 * Trigger connections for supported device families:
-* 
+*
 * \addtogroup group_hal_impl_triggers_psoc6_01
 * \{
 * <b>PSoC™ 6S1 Triggers:</b>
@@ -89,6 +89,12 @@ extern "C" {
 #include "triggers/cyhal_triggers_xmc7100.h"
 #elif defined(CY_DEVICE_TVIIBH8M)
 #include "triggers/cyhal_triggers_xmc7200.h"
+#elif defined(CY_DEVICE_TVIIBE1M)
+#include "triggers/cyhal_triggers_tviibe1m.h"
+#elif defined(CY_DEVICE_TVIIBE2M)
+#include "triggers/cyhal_triggers_tviibe2m.h"
+#elif defined(CY_DEVICE_TVIIBE4M)
+#include "triggers/cyhal_triggers_tviibe4m.h"
 #endif
 
 #if defined(__cplusplus)

@@ -28,6 +28,22 @@
 * limitations under the License.
 *******************************************************************************/
 
+
+/**
+* \addtogroup group_hal_impl_wdt WDT (Watchdog Timer)
+* \ingroup group_hal_impl
+* \{
+*\section subsection_wdt_notes Notes
+* WDT timeout values for Active and Hibernate modes are different.
+* In Active mode, the timeout value is used to create a match count that is matched
+* by the hardware twice, then triggers (ISR) on the third match.
+* In Hibernate mode, the trigger (reset) happens on the first match. Depending on
+* the timing of starting the WDT and entering Hibernate mode, this can lead to
+* WDT reset occurring earlier than it would if the device had not entered Hibernate.
+*
+* \} group_hal_wdt
+*/
+
 #include <stdbool.h>
 #include "cyhal_wdt.h"
 #include "cyhal_wdt_impl.h"
@@ -42,10 +58,14 @@ extern "C" {
 
 #if defined(SRSS_NUM_WDT_A_BITS)
 #define _CYHAL_WDT_MATCH_BITS     (SRSS_NUM_WDT_A_BITS)
-#elif defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
+#elif defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C) 
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)
 #define _CYHAL_WDT_MATCH_BITS     (16)
-#elif defined(COMPONENT_CAT1C)
+#else /* CY_IP_MXS40SRSS_VERSION >= 2 */
 #define _CYHAL_WDT_MATCH_BITS     (32)
+#endif
+#elif defined(COMPONENT_CAT1B)
+#define _CYHAL_WDT_MATCH_BITS     (16)
 #elif defined(COMPONENT_CAT2)
 #define _CYHAL_WDT_MATCH_BITS     (16)
 #else
@@ -60,7 +80,7 @@ extern "C" {
 #define _cyhal_wdt_unlock()
 #endif
 
-#if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)
+#if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)
 // 2^32 * .030518 ms
 /** Maximum WDT timeout in milliseconds */
 #define _CYHAL_WDT_MAX_TIMEOUT_MS 131073812
@@ -93,7 +113,7 @@ static const _cyhal_wdt_ignore_bits_data_t _cyhal_wdt_ignore_data[] = {
     {     2,      2}, // 17 bit(s): min period:      2ms, max period:      2ms, round up from 2+ms
     {     1,      1}, // 18 bit(s): min period:      1ms, max period:      1ms, round up from 1+ms
 };
-#elif defined(CY_IP_MXS40SRSS) || defined(CY_IP_MXS40SSRSS)
+#elif defined(CY_IP_MXS40SRSS)
 // ILO Frequency = 32768 Hz
 // ILO Period = 1 / 32768 Hz = .030518 ms
 // WDT Reset Period (timeout_ms) = .030518 ms * (2 * 2^(16 - ignore_bits) + match)
@@ -113,6 +133,34 @@ static const _cyhal_wdt_ignore_bits_data_t _cyhal_wdt_ignore_data[] = {
     {   4,    3}, // 10 bit(s): min period:    4ms, max period:    5ms, round up from 3+ms
     {   2,    2}, // 11 bit(s): min period:    2ms, max period:    2ms, round up from 2+ms
     {   1,    1}, // 12 bit(s): min period:    1ms, max period:    1ms, round up from 1+ms
+};
+#elif defined(CY_IP_MXS40SSRSS)
+// ILO Frequency = 32768 Hz
+// ILO Period = 1 / 32768 Hz = .030518 ms
+// WDT Reset Period (timeout_ms) = .030518 ms * (2 * 2^(_CYHAL_WDT_MAX_IGNORE_BITS - ignore_bits) + match)
+// ignore_bits range: 0 - 18
+// match range: 0 - 2^(_CYHAL_WDT_MAX_IGNORE_BITS - ignore_bits)
+
+static const _cyhal_wdt_ignore_bits_data_t _cyhal_wdt_ignore_data[] = {
+    {256000, 192001}, //  0 bit(s): min period: 256000ms, max period: 384000ms, round up from 192001+ms
+    {128000,  96001}, //  1 bit(s): min period: 128000ms, max period: 192000ms, round up from 96001+ms
+    { 64000,  48001}, //  2 bit(s): min period:  64000ms, max period:  96000ms, round up from 48001+ms
+    { 32000,  24001}, //  3 bit(s): min period:  32000ms, max period:  48000ms, round up from 24001+ms
+    { 16000,  12001}, //  4 bit(s): min period:  16000ms, max period:  24000ms, round up from 12001+ms
+    {  8000,   6001}, //  5 bit(s): min period:   8000ms, max period:  12000ms, round up from 6001+ms
+    {  4000,   3001}, //  6 bit(s): min period:   4000ms, max period:   6000ms, round up from 3001+ms
+    {  2000,   1501}, //  7 bit(s): min period:   2000ms, max period:   3000ms, round up from 1501+ms
+    {  1000,    751}, //  8 bit(s): min period:   1000ms, max period:   1500ms, round up from 751+ms
+    {   500,    376}, //  9 bit(s): min period:    500ms, max period:    750ms, round up from 376+ms
+    {   250,    188}, // 10 bit(s): min period:    250ms, max period:    375ms, round up from 188+ms
+    {   125,     94}, // 11 bit(s): min period:    125ms, max period:    187ms, round up from 94+ms
+    {    63,     47}, // 12 bit(s): min period:     63ms, max period:     93ms, round up from 47+ms
+    {    32,     24}, // 13 bit(s): min period:     32ms, max period:     46ms, round up from 24+ms
+    {    16,     12}, // 14 bit(s): min period:     16ms, max period:     23ms, round up from 12+ms
+    {     8,      6}, // 15 bit(s): min period:      8ms, max period:     11ms, round up from 6+ms
+    {     4,      3}, // 16 bit(s): min period:      4ms, max period:      5ms, round up from 3+ms
+    {     2,      2}, // 17 bit(s): min period:      2ms, max period:      2ms, round up from 2+ms
+    {     1,      1}, // 18 bit(s): min period:      1ms, max period:      1ms, round up from 1+ms
 };
 #elif defined(COMPONENT_CAT2)
 // ILO Frequency = 40000 Hz
@@ -138,23 +186,29 @@ static const _cyhal_wdt_ignore_bits_data_t _cyhal_wdt_ignore_data[] = {
 #endif
 
 static bool _cyhal_wdt_initialized = false;
-static uint16_t _cyhal_wdt_initial_timeout_ms = 0;
+static uint32_t _cyhal_wdt_initial_timeout_ms = 0;
 
-#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)
 __STATIC_INLINE uint32_t _cyhal_wdt_timeout_to_match(uint16_t timeout_ms)
 {
     uint32_t timeout = ((uint64_t)timeout_ms * CY_SYSCLK_ILO_FREQ) / 1000;
     return (uint32_t)(timeout + Cy_WDT_GetCount());
 }
-#else
+#else /* defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2) */
 
-static uint16_t _cyhal_wdt_rounded_timeout_ms = 0;
+static uint32_t _cyhal_wdt_rounded_timeout_ms = 0;
 static uint32_t _cyhal_wdt_ignore_bits = 0;
 
-__STATIC_INLINE uint16_t _cyhal_wdt_timeout_to_match(uint16_t timeout_ms, uint16_t ignore_bits)
+#define _CYHAL_DETERMINE_MATCH_BITS(bits)   ( (WDT_MAX_IGNORE_BITS) - (bits) )
+#define _CYHAL_GET_COUNT_FROM_MATCH_BITS(bits)  (2UL << _CYHAL_DETERMINE_MATCH_BITS(bits) )
+
+__STATIC_INLINE uint32_t _cyhal_wdt_timeout_to_match(uint32_t timeout_ms, uint32_t ignore_bits)
 {
-    uint32_t timeout = ((uint32_t)timeout_ms * CY_SYSCLK_ILO_FREQ) / 1000;
-    return (uint16_t)(timeout - (1UL << ((_CYHAL_WDT_MATCH_BITS + 1) - ignore_bits)) + Cy_WDT_GetCount());
+    uint32_t wrap_count_for_ignore_bits = (_CYHAL_GET_COUNT_FROM_MATCH_BITS(ignore_bits) );
+    uint32_t timeout_count = ( (timeout_ms * CY_SYSCLK_ILO_FREQ) / 1000UL);
+    /* handle multiple possible wraps of WDT counter */
+    timeout_count = ( (timeout_count + Cy_WDT_GetCount()) % wrap_count_for_ignore_bits);
+    return timeout_count;
 }
 
 // Rounds up *timeout_ms if it's outside of the valid timeout range (_cyhal_wdt_ignore_data)
@@ -173,7 +227,8 @@ __STATIC_INLINE uint32_t _cyhal_wdt_timeout_to_ignore_bits(uint32_t *timeout_ms)
     }
     return _CYHAL_WDT_MAX_IGNORE_BITS; // Ideally should never reach this
 }
-#endif
+
+#endif /* defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2) */
 
 cy_rslt_t cyhal_wdt_init(cyhal_wdt_t *obj, uint32_t timeout_ms)
 {
@@ -183,19 +238,36 @@ cy_rslt_t cyhal_wdt_init(cyhal_wdt_t *obj, uint32_t timeout_ms)
         return CY_RSLT_WDT_ALREADY_INITIALIZED;
 
     cyhal_wdt_stop(obj); // Stop and unlock before doing other work
+
     Cy_WDT_ClearInterrupt();
     Cy_WDT_MaskInterrupt();
 
     _cyhal_wdt_initial_timeout_ms = timeout_ms;
-    #if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)
+#if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)
     Cy_WDT_SetUpperLimit(_cyhal_wdt_timeout_to_match(_cyhal_wdt_initial_timeout_ms));
     Cy_WDT_SetUpperAction(CY_WDT_LOW_UPPER_LIMIT_ACTION_RESET);
-    #else
+#else
     _cyhal_wdt_ignore_bits = _cyhal_wdt_timeout_to_ignore_bits(&timeout_ms);
     _cyhal_wdt_rounded_timeout_ms = timeout_ms;
+    #if defined(SRSS_NUM_WDT_A_BITS) && (SRSS_NUM_WDT_A_BITS == 22)
+    /* Cy_WDT_SetMatchBits configures the bit position above which the bits will be ignored for match,
+     * while _cyhal_wdt_timeout_to_ignore_bits returns number of timer MSB to ignore, so conversion
+     * is needed. */
+    Cy_WDT_SetMatchBits(_CYHAL_DETERMINE_MATCH_BITS(_cyhal_wdt_ignore_bits) );
+    #else
     Cy_WDT_SetIgnoreBits(_cyhal_wdt_ignore_bits);
-    Cy_WDT_SetMatch(_cyhal_wdt_timeout_to_match(_cyhal_wdt_rounded_timeout_ms, _cyhal_wdt_ignore_bits));
     #endif
+
+#if defined(COMPONENT_CAT1) && (CY_WDT_DRV_VERSION_MAJOR > 1 ) && (CY_WDT_DRV_VERSION_MINOR > 6 )
+    /* Reset counter every time - large current counts in WDT can cause problems on some boards */
+    Cy_WDT_ResetCounter();
+    /* Twice, as reading back after 1 reset gives same value as before single reset */
+    Cy_WDT_ResetCounter();
+#endif
+
+    Cy_WDT_SetMatch(_cyhal_wdt_timeout_to_match(_cyhal_wdt_rounded_timeout_ms, _cyhal_wdt_ignore_bits));
+#endif
+
     cyhal_wdt_start(obj);
     _cyhal_wdt_initialized = true;
 
@@ -214,7 +286,7 @@ void cyhal_wdt_kick(cyhal_wdt_t *obj)
     CY_UNUSED_PARAMETER(obj);
     _cyhal_wdt_unlock();
     Cy_WDT_ClearWatchdog(); /* Clear to prevent reset from WDT */
-    #if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)
+    #if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)
     Cy_WDT_SetUpperLimit(_cyhal_wdt_timeout_to_match(_cyhal_wdt_initial_timeout_ms));
     #else
     Cy_WDT_SetMatch(_cyhal_wdt_timeout_to_match(_cyhal_wdt_rounded_timeout_ms, _cyhal_wdt_ignore_bits));

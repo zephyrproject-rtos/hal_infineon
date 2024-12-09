@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_uart.c
-* \version 3.10
+* \version 3.20
 *
 * Provides UART API implementation of the SCB driver.
 *
@@ -328,6 +328,10 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Init(CySCB_Type *base, cy_stc_scb_uart_confi
 #if((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
     SCB_UART_RX_CTRL(base)|=_BOOL2FLD(SCB_UART_RX_CTRL_BREAK_LEVEL, config->breaklevel);
 #endif /* CY_IP_MXSCB_VERSION */
+
+#if ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4))
+    SCB_UART_RX_CTRL(base)|=_BOOL2FLD(SCB_UART_RX_CTRL_HDRXEN, config->halfDuplexMode);
+#endif /* ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) */
 
     SCB_RX_CTRL(base) = _BOOL2FLD(SCB_RX_CTRL_MSB_FIRST, config->enableMsbFirst)          |
                     _BOOL2FLD(SCB_RX_CTRL_MEDIAN, ((config->enableInputFilter) || \
@@ -1407,8 +1411,16 @@ void Cy_SCB_UART_Interrupt(CySCB_Type *base, cy_stc_scb_uart_context_t *context)
         /* Handle the TX complete */
         if (0UL != (CY_SCB_TX_INTR_UART_DONE & Cy_SCB_GetTxInterruptStatusMasked(base)))
         {
-            /* Disable all TX interrupt sources */
-            Cy_SCB_SetTxInterruptMask(base, CY_SCB_CLEAR_ALL_INTR_SRC);
+            if(context->txStatus != CY_SCB_UART_TRANSMIT_ACTIVE)
+            {
+                /* Clear UART TX complete interrupt sources if UART transfer doesn't use high level APIs */
+                Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UART_DONE);
+            }
+            else
+            {
+                /* Disable all TX interrupt sources */
+                Cy_SCB_SetTxInterruptMask(base, CY_SCB_CLEAR_ALL_INTR_SRC);
+            }
 
             context->txStatus &= (uint32_t) ~CY_SCB_UART_TRANSMIT_ACTIVE;
             context->txLeftToTransmit = 0UL;

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash_srom.h
-* \version 3.70
+* \version 3.110
 *
 * \brief
 * Provides declaration of API controlling the SROM APIs.
@@ -19,7 +19,7 @@
 #if !defined(CY_FLAH_SROM_H)
 #define CY_FLAH_SROM_H
 #include "cy_device.h"
-#if defined (CY_IP_M7CPUSS)
+#if defined (CY_IP_M7CPUSS) || defined (CY_IP_MXFLASHC_VERSION_ECT)
 #include "cy_syslib.h"
 #include "cy_ipc_drv.h"
 #include "cy_sysint.h"

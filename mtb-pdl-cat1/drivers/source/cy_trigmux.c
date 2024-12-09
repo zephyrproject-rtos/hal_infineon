@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_trigmux.c
-* \version 1.60.1
+* \version 1.70
 *
 * \brief Trigger mux API.
 *
@@ -30,54 +30,6 @@
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 14.3', 4, \
 'CY_PERI_V1 is not available for CAT1B devices.')
-
-#define CY_TRIGMUX_IS_TRIGTYPE_VALID(trigType)  (((trigType) == TRIGGER_TYPE_EDGE) || \
-                                                 ((trigType) == TRIGGER_TYPE_LEVEL))
-
-#define CY_TRIGMUX_V1_IS_CYCLES_VALID(cycles)   (CY_TRIGGER_INFINITE >= (cycles))
-#define CY_TRIGMUX_V2_IS_CYCLES_VALID(cycles)   ((CY_TRIGGER_DEACTIVATE == (cycles)) || \
-                                                 (CY_TRIGGER_TWO_CYCLES == (cycles)) || \
-                                                 (CY_TRIGGER_INFINITE   == (cycles)))
-#define CY_TRIGMUX_IS_CYCLES_VALID(cycles)      ((CY_PERI_V1 && CY_TRIGMUX_V1_IS_CYCLES_VALID(cycles)) || \
-                                                                CY_TRIGMUX_V2_IS_CYCLES_VALID(cycles))
-
-# if defined (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES == 2)
-#define CY_TRIGMUX_INTRIG_MASK                  (PERI_TR_CMD_GROUP_SEL_Msk | PERI_TR_GR_TR_OUT_CTL_TR_SEL_Msk | PERI_INSTANCE_1_IDENT_Msk)
-#else
-#define CY_TRIGMUX_INTRIG_MASK                  (PERI_TR_CMD_GROUP_SEL_Msk | PERI_TR_GR_TR_OUT_CTL_TR_SEL_Msk)
-#endif /* (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES==2) */
-#define CY_TRIGMUX_IS_INTRIG_VALID(inTrg)       (0UL == ((inTrg) & (uint32_t)~CY_TRIGMUX_INTRIG_MASK))
-
-# if defined (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES == 2)
-#define CY_TRIGMUX_OUTTRIG_MASK                 (PERI_TR_CMD_OUT_SEL_Msk | PERI_TR_CMD_GROUP_SEL_Msk | CY_PERI_TR_CTL_SEL_Msk | PERI_INSTANCE_1_IDENT_Msk)
-#else
-#define CY_TRIGMUX_OUTTRIG_MASK                 (PERI_TR_CMD_OUT_SEL_Msk | PERI_TR_CMD_GROUP_SEL_Msk | CY_PERI_TR_CTL_SEL_Msk)
-#endif /* (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES==2) */
-#define CY_TRIGMUX_IS_OUTTRIG_VALID(outTrg)     ((0UL == ((outTrg) & (uint32_t)~CY_TRIGMUX_OUTTRIG_MASK)) && \
-                                                 (0UL != ((outTrg) & PERI_TR_CMD_OUT_SEL_Msk)))
-
-#define CY_TRIGMUX_ONETRIG_MASK                 (PERI_V2_TR_CMD_OUT_SEL_Msk | PERI_V2_TR_CMD_GROUP_SEL_Msk | CY_PERI_TR_CTL_SEL_Msk)
-
-#if defined (CY_IP_MXSPERI) || (CY_IP_MXPERI_VERSION >= 3)
-#define CY_TRIGMUX_ONETRIG_GR_START                0x10UL /* trigger 1-1 group [16-31] */
-#define CY_TRIGMUX_IS_ONETRIG_VALID(oneTrg)     ((0UL == ((oneTrg) & (uint32_t)~CY_TRIGMUX_ONETRIG_MASK)) && \
-                                                 (0UL != ((oneTrg) & PERI_V2_TR_CMD_OUT_SEL_Msk)) && \
-                                                 (0UL != (_FLD2VAL(PERI_V2_TR_CMD_GROUP_SEL, oneTrg) & (uint32_t)CY_TRIGMUX_ONETRIG_GR_START)))
-#else
-#define CY_TRIGMUX_IS_ONETRIG_VALID(oneTrg)     ((0UL == ((oneTrg) & (uint32_t)~CY_TRIGMUX_ONETRIG_MASK)) && \
-                                                 (0UL != ((oneTrg) & PERI_V2_TR_CMD_OUT_SEL_Msk)) && \
-                                                 (0UL != ((oneTrg) & (PERI_V2_TR_CMD_GROUP_SEL_Msk & (uint32_t)~PERI_TR_CMD_GROUP_SEL_Msk))))
-#endif
-
-# if defined (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES == 2U)
-#define CY_TRIGMUX_TRIGLINE_MASK                (PERI_TR_CMD_OUT_SEL_Msk | CY_PERI_TR_CMD_GROUP_SEL_Msk | CY_PERI_TR_CTL_SEL_Msk | PERI_INSTANCE_1_IDENT_Msk)
-#else
-#define CY_TRIGMUX_TRIGLINE_MASK                (PERI_TR_CMD_OUT_SEL_Msk | CY_PERI_TR_CMD_GROUP_SEL_Msk | CY_PERI_TR_CTL_SEL_Msk)
-#endif /* (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES == 2U) */
-#define CY_TRIGMUX_IS_TRIGLINE_VALID(trgLn)     (0U == ((trgLn) & (uint32_t)~CY_TRIGMUX_TRIGLINE_MASK))
-
-#define CY_TRIGMUX_TR_CTL(outTrig)              (PERI_TR_GR_TR_CTL(_FLD2VAL(CY_PERI_TR_CMD_GROUP_SEL, outTrig), \
-                                                                   _FLD2VAL(CY_PERI_TR_CTL_SEL,       outTrig)))
 
 
 /*******************************************************************************
@@ -132,6 +84,30 @@ cy_en_trigmux_status_t Cy_TrigMux_Connect(uint32_t inTrig, uint32_t outTrig, boo
     {
         uint32_t interruptState = Cy_SysLib_EnterCriticalSection();
 
+#if defined (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES == 2U)
+        if (0UL != (outTrig & PERI_INSTANCE_1_IDENT_Msk))
+        {
+            CY_TRIGMUX1_TR_CTL(outTrig) = (CY_TRIGMUX1_TR_CTL(outTrig) &
+                                      (uint32_t)~(PERI_TR_GR_TR_OUT_CTL_TR_SEL_Msk |
+                                                  PERI_TR_GR_TR_OUT_CTL_TR_INV_Msk |
+                                                  PERI_TR_GR_TR_OUT_CTL_TR_EDGE_Msk)) |
+                                        (_VAL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_SEL, inTrig) |
+                                        _BOOL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_INV, invert) |
+                                         _VAL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_EDGE, trigType));
+
+        }
+        else
+        {
+            CY_TRIGMUX_TR_CTL(outTrig) = (CY_TRIGMUX_TR_CTL(outTrig) &
+                                      (uint32_t)~(PERI_TR_GR_TR_OUT_CTL_TR_SEL_Msk |
+                                                  PERI_TR_GR_TR_OUT_CTL_TR_INV_Msk |
+                                                  PERI_TR_GR_TR_OUT_CTL_TR_EDGE_Msk)) |
+                                        (_VAL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_SEL, inTrig) |
+                                        _BOOL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_INV, invert) |
+                                         _VAL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_EDGE, trigType));
+        }
+#else
+
         CY_TRIGMUX_TR_CTL(outTrig) = (CY_TRIGMUX_TR_CTL(outTrig) &
                                       (uint32_t)~(PERI_TR_GR_TR_OUT_CTL_TR_SEL_Msk |
                                                   PERI_TR_GR_TR_OUT_CTL_TR_INV_Msk |
@@ -139,6 +115,7 @@ cy_en_trigmux_status_t Cy_TrigMux_Connect(uint32_t inTrig, uint32_t outTrig, boo
                                         (_VAL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_SEL, inTrig) |
                                         _BOOL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_INV, invert) |
                                          _VAL2FLD(PERI_TR_GR_TR_OUT_CTL_TR_EDGE, trigType));
+#endif
 
         Cy_SysLib_ExitCriticalSection(interruptState);
 
@@ -307,113 +284,6 @@ cy_en_trigmux_status_t Cy_TrigMux_SetDebugFreeze(uint32_t outTrig, bool enable)
     return retVal;
 }
 
-
-/*******************************************************************************
-* Function Name: Cy_TrigMux_SwTrigger
-****************************************************************************//**
-*
-* This function generates a software trigger on an input trigger line.
-* All output triggers connected to this input trigger will be triggered.
-* The function also verifies that there is no activated trigger before
-* generating another activation.
-*
-* \param trigLine
-* The input of the trigger mux.
-* - Bit 30 represents if the signal is an input/output. When this bit is set,
-*   the trigger activation is for an output trigger from the trigger multiplexer.
-*   When this bit is reset, the trigger activation is for an input trigger to
-*   the trigger multiplexer.<br>
-* - For PERI_ver1 Bits 11:8 represent the trigger group selection.<br>
-* - For PERI_ver2 Bits 12:8 represent the trigger group selection.<br>
-* In case of output trigger line (bit 30 is set):<br>
-* For PERI_ver1:
-* - Bits 6:0 select the output trigger number in the trigger group.<br>
-* For PERI_ver2:
-* - Bits 7:0 select the output trigger number in the trigger group.<br>
-* In case of input trigger line (bit 30 is unset):
-* - Bits 7:0 select the input trigger signal for the trigger multiplexer.
-*
-* \param cycles
-*  The number of "Clk_Peri" cycles during which the trigger remains activated.<br>
-*  For PERI_ver1: The valid range of cycles is 1 ... 254.<br>
-*  For PERI_ver2: The only valid value of cycles is 2 (\ref CY_TRIGGER_TWO_CYCLES).<br>
-*  Also there are special values (supported with both PERI_ver1 and PERI_ver2):
-*   - CY_TRIGGER_INFINITE - trigger remains activated until the user deactivates it by
-*   calling this function with CY_TRIGGER_DEACTIVATE parameter.
-*   - CY_TRIGGER_DEACTIVATE - this is used to deactivate the trigger activated by
-*   calling this function with CY_TRIGGER_INFINITE parameter.
-*
-* \return status:
-* - CY_TRIGMUX_SUCCESS: The trigger is successfully activated/deactivated.
-* - CY_TRIGMUX_INVALID_STATE: The trigger is already activated/not active.
-* - CY_TRIGMUX_BAD_PARAM: Some parameter is invalid.
-*
-* \funcusage
-* \snippet trigmux/snippet/main.c snippet_Cy_TrigMux_SwTrigger
-*
-*******************************************************************************/
-cy_en_trigmux_status_t Cy_TrigMux_SwTrigger(uint32_t trigLine, uint32_t cycles)
-{
-    cy_en_trigmux_status_t retVal = CY_TRIGMUX_INVALID_STATE;
-
-    CY_ASSERT_L2(CY_TRIGMUX_IS_TRIGLINE_VALID(trigLine));
-    CY_ASSERT_L2(CY_TRIGMUX_IS_CYCLES_VALID(cycles));
-
-    if (CY_TRIGGER_DEACTIVATE != cycles)
-    {
-        /* Activate the trigger if it is not in the active state. */
-        if (PERI_TR_CMD_ACTIVATE_Msk != (PERI_TR_CMD & PERI_TR_CMD_ACTIVATE_Msk))
-        {
-
-            uint32_t trCmd = (trigLine & (PERI_TR_CMD_TR_SEL_Msk |
-                                          PERI_TR_CMD_OUT_SEL_Msk |
-                                       CY_PERI_TR_CMD_GROUP_SEL_Msk)) |
-                                          PERI_TR_CMD_ACTIVATE_Msk;
-
-            retVal = CY_TRIGMUX_SUCCESS;
-
-            if (CY_PERI_V1 != 0U) /* mxperi_v1 */
-            {
-                PERI_TR_CMD = trCmd | _VAL2FLD(PERI_TR_CMD_COUNT, cycles);
-            }
-            else if (CY_TRIGGER_TWO_CYCLES == cycles) /* mxperi_v2 or later, 2 cycles pulse */
-            {
-#if defined(CY_IP_MXSPERI_INSTANCES) && (CY_IP_MXSPERI_INSTANCES == 2U)
-                if (0UL != (trigLine & PERI_INSTANCE_1_IDENT_Msk))
-                {
-                    PERI1_TR_CMD = trCmd | PERI_V2_TR_CMD_TR_EDGE_Msk;
-                }
-                else
-                {
-                    PERI_TR_CMD = trCmd | PERI_V2_TR_CMD_TR_EDGE_Msk;
-                }
-#else
-                PERI_TR_CMD = trCmd | PERI_V2_TR_CMD_TR_EDGE_Msk;
-#endif
-            }
-            else if (CY_TRIGGER_INFINITE == cycles) /* mxperi_v2 or later, infinite activating */
-            {
-                PERI_TR_CMD = trCmd;
-            }
-            else /* mxperi_v2 or later, invalid cycles value */
-            {
-                retVal = CY_TRIGMUX_BAD_PARAM;
-            }
-        }
-    }
-    else
-    {
-        /* Forcibly deactivate the trigger if it is in the active state. */
-        if (PERI_TR_CMD_ACTIVATE_Msk == (PERI_TR_CMD & PERI_TR_CMD_ACTIVATE_Msk))
-        {
-            PERI_TR_CMD = 0UL;
-
-            retVal = CY_TRIGMUX_SUCCESS;
-        }
-    }
-
-    return retVal;
-}
 
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 14.3')
 

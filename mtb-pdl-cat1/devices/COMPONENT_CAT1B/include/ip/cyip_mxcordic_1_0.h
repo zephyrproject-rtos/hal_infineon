@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -39,7 +39,8 @@
   * \brief N/A (MXCORDIC_1_0)
   */
 typedef struct {
-   __IM uint32_t RESERVED[2];
+  __IOM uint32_t CTL;                           /*!< 0x00000000 N/A */
+   __IM uint32_t RESERVED;
    __IM uint32_t ID;                            /*!< 0x00000008 Module Identification Register */
    __IM uint32_t RESERVED1;
   __IOM uint32_t INTR;                          /*!< 0x00000010 Interrupt Cause Register */
@@ -60,6 +61,9 @@ typedef struct {
 } MXCORDIC_1_0_Type;                            /*!< Size = 104 (0x68) */
 
 
+/* MXCORDIC_1_0.CTL */
+#define MXCORDIC_1_0_CTL_ENABLED_Pos            31UL
+#define MXCORDIC_1_0_CTL_ENABLED_Msk            0x80000000UL
 /* MXCORDIC_1_0.ID */
 #define MXCORDIC_1_0_ID_MOD_REV_Pos             0UL
 #define MXCORDIC_1_0_ID_MOD_REV_Msk             0xFFUL

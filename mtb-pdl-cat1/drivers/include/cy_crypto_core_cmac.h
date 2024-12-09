@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_cmac.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -121,6 +121,244 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Cmac(CRYPTO_Type *base,
 
     return tmpResult;
 }
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Cmac_Init
+****************************************************************************//**
+*
+* The function for initialization of CMAC operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param cmacState
+* The pointer to the structure which stores the CMAC context.
+*
+* \param buffer
+* The pointer to the cmac buffer.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Cmac_Init(CRYPTO_Type *base, void* cmacState, void  *buffer)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)cmacState;
+        (void)buffer;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Cmac_Init(base, (cy_stc_crypto_v2_cmac_state_t *)cmacState, (cy_stc_crypto_v2_cmac_buffers_t *)buffer);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Cmac_Start
+****************************************************************************//**
+*
+* Starts CMAC calculation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param cmacState
+* The pointer to the structure which stores the CMAC context.
+*
+* \param aesKey
+* The pointer to the cmac key.
+*
+* \param keyLength
+* \ref cy_en_crypto_aes_key_length_t
+*
+* \return
+* \ref cy_en_crypto_status_t
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Cmac_Start(CRYPTO_Type *base, void *cmacState,
+                                                                uint8_t const *aesKey, cy_en_crypto_aes_key_length_t keyLength)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)cmacState;
+        (void)aesKey;   
+        (void)keyLength;        
+     
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Cmac_Start(base, (cy_stc_crypto_v2_cmac_state_t *)cmacState, aesKey, keyLength);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Cmac_Update
+****************************************************************************//**
+*
+* Performs cmac update for multi stage operation.
+*
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameter message must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param cmacState
+* The pointer to the structure which stores the CMAC context.
+*
+* \param message
+* The pointer to the message whose CMAC is being computed.
+*
+* \param messageSize
+* The size of the message whose CMAC is being computed.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Cmac_Update(CRYPTO_Type *base,
+                                                                void *cmacState,
+                                                                uint8_t const *message,
+                                                                uint32_t  messageSize)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)cmacState;
+        (void)message;   
+        (void)messageSize;             
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Cmac_Update(base, (cy_stc_crypto_v2_cmac_state_t *)cmacState, message, messageSize);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Cmac_Finish
+****************************************************************************//**
+*
+* Completes CMAC calculation.
+*
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameter cmac must align and end in 32 byte boundary.
+*
+* \param cmacState
+* The pointer to the structure which stores the CMAC context.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param cmac
+* The pointer to the computed CMAC value.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Cmac_Finish(CRYPTO_Type *base, void *cmacState, uint8_t* cmac)
+
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)cmacState;
+        (void)cmac;   
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Cmac_Finish(base, (cy_stc_crypto_v2_cmac_state_t *)cmacState, cmac);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Cmac_Free
+****************************************************************************//**
+*
+*
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameter cmac must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param cmacState
+* The pointer to the structure which stores the CMAC context.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Cmac_Free(CRYPTO_Type *base,
+                                void *cmacState
+                                )
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)cmacState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Cmac_Free(base, (cy_stc_crypto_v2_cmac_state_t *)cmacState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
 
 /** \} group_crypto_lld_mac_functions */
 

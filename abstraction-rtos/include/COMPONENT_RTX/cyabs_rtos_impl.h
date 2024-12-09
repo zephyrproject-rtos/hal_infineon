@@ -28,6 +28,9 @@
 
 #include "cmsis_os2.h"
 #include "rtx_os.h"
+#if !defined (COMPONENT_CAT5)
+#include <cmsis_compiler.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"

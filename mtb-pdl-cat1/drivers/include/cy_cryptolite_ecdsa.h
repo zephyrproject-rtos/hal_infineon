@@ -190,14 +190,8 @@ typedef struct cy_stc_cryptolite_context_ecdsa_t
 
 #define CY_CRYPTOLITE_ECC_MAX_SIZE             (CY_CRYPTOLITE_ECC_P521_SIZE)
 #define CY_CRYPTOLITE_ECC_MAX_BYTE_SIZE        (CY_CRYPTOLITE_ECC_P521_BYTE_SIZE)
-
-
-
-cy_en_cryptolite_status_t Cy_Cryptolite_ECC_MakePublicKey(CRYPTOLITE_Type *base,
-                            cy_stc_cryptolite_context_ecdsa_t *cfContext,
-                            cy_en_cryptolite_ecc_curve_id_t curveID,
-                            const uint8_t *privateKey,
-                            cy_stc_cryptolite_ecc_key *publicKey);
+        
+cy_stc_cryptolite_ecc_dp_type *Cy_Cryptolite_ECC_GetCurveParams(cy_en_cryptolite_ecc_curve_id_t curveId);
 
 #if defined(CY_CRYPTOLITE_CFG_ECDSA_C)
 /**
@@ -211,7 +205,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_MakePublicKey(CRYPTOLITE_Type *base,
 ****************************************************************************//**
 *
 * Init ECC Context.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -237,7 +230,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_Init(CRYPTOLITE_Type *base,
 ****************************************************************************//**
 *
 * Clean up ECC Context.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -253,6 +245,44 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_Init(CRYPTOLITE_Type *base,
 cy_en_cryptolite_status_t Cy_Cryptolite_ECC_Free(CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext);
 
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_ECC_SignHash
+****************************************************************************//**
+*
+* Function to generate an ECC signature.
+* key, hash and messageKey must be in little endian.
+* Cy_Cryptolite_InvertEndianness() function is used for converting the endianness.
+*
+* \param base
+* The pointer to a Cryptolite instance.
+*
+* \param cfContext
+* The pointer to the cy_stc_cryptolite_context_ecdsa_t.
+*
+* \param hash
+* The hash (message digest) to be signed.
+*
+* \param hashlen
+* The length of the hash (octets).
+*
+* \param sig
+* The pointer to the buffer to store the generated signature 'R' followed by 'S'.
+*
+* \param key
+* The  private ECC key to sign the hash. See \ref cy_stc_cryptolite_ecc_key.
+*
+* \param messageKey
+* The random number for generating the signature.
+*
+* \return status code. See \ref cy_en_cryptolite_status_t.
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_ECC_SignHash(CRYPTOLITE_Type *base,
+cy_stc_cryptolite_context_ecdsa_t *cfContext, const uint8_t *hash, uint32_t hashlen, uint8_t *sig,
+        const cy_stc_cryptolite_ecc_key *key, const uint8_t *messageKey);
+
 /*******************************************************************************
 * Function Name: Cy_Cryptolite_Core_ECC_VerifyHash
 ****************************************************************************//**
@@ -260,7 +290,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_Free(CRYPTOLITE_Type *base,
 * Verify an ECC signature.
 * sig, hash and key must be in little endian.
 * Cy_Cryptolite_InvertEndianness() function is used for converting the endianness.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -295,6 +324,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_VerifyHash(CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             const uint8_t *sig, uint32_t siglen, const uint8_t *hash, uint32_t hashlen,
                             cy_en_cryptolite_sig_verify_result_t *stat, const cy_stc_cryptolite_ecc_key *key);
+
 #endif
 /** \} group_cryptolite_lld_asymmetric_functions */
 

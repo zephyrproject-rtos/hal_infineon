@@ -95,33 +95,33 @@
                                                                                    actPwrMode eq POWER_PROFILE_1   ? &quot;1.16V High Power&quot;   :
                                                                                    actPwrMode eq POWER_PROFILE_2A  ? &quot;1.16V High Power&quot;   :
                                                                                    actPwrMode eq POWER_PROFILE_2B  ? &quot;1.1V Low Power&quot;   :
-                                                                                   actPwrMode eq POWER_PROFILE_3   ? &quot;0.9V Low Power&quot;   :
+                                                                                   actPwrMode eq POWER_PROFILE_3   ? &quot;1.0V Low Power&quot;   :
 																				   &quot;1.16V High Power&quot;}`" visible="false" editable="false" desc="Core Buck Voltage and Mode." />
 
     <ParamString id="coreBuckVoltMacro" name="Core Buck Voltage Macro" group="Internal" default="`${coreBuckParam eq &quot;1.16V High Power&quot;    ? &quot;CY_SYSPM_CORE_BUCK_VOLTAGE_1_16V&quot;   :
                                                                                    coreBuckParam eq &quot;1.1V Low Power&quot;   ? &quot;CY_SYSPM_CORE_BUCK_VOLTAGE_1_10V&quot;   :
-                                                                                   coreBuckParam eq &quot;0.9V Low Power&quot;   ? &quot;CY_SYSPM_CORE_BUCK_VOLTAGE_0_90V&quot;   :
+                                                                                   coreBuckParam eq &quot;1.0V Low Power&quot;   ? &quot;CY_SYSPM_CORE_BUCK_VOLTAGE_1_00V&quot;   :
 																				   &quot;CY_SYSPM_CORE_BUCK_VOLTAGE_1_16V&quot;}`" visible="false" editable="false" desc="Core Buck Voltage Macro." />
 
     <ParamString id="coreBuckModeMacro" name="Core Buck Mode Macro" group="Internal" default="`${coreBuckParam eq &quot;1.16V High Power&quot;    ? &quot;CY_SYSPM_CORE_BUCK_MODE_HP&quot;   :
                                                                                    coreBuckParam eq &quot;1.1V Low Power&quot;   ? &quot;CY_SYSPM_CORE_BUCK_MODE_LP&quot;   :
-                                                                                   coreBuckParam eq &quot;0.9V Low Power&quot;   ? &quot;CY_SYSPM_CORE_BUCK_MODE_LP&quot;   :
+                                                                                   coreBuckParam eq &quot;1.0V Low Power&quot;   ? &quot;CY_SYSPM_CORE_BUCK_MODE_LP&quot;   :
 																				   &quot;CY_SYSPM_CORE_BUCK_MODE_HP&quot;}`" visible="false" editable="false" desc="Core Buck Mode Macro." />
 
     <ParamString id="coreBuckVoltagemode" name="Core Buck Voltage and Mode" group="Operating Conditions" default="`${coreBuckParam}`" visible="true" editable="false" desc="Core Buck Voltage and Mode.." />
 
     <!-- SDR0 Regulator -->
     <ParamString id="sdr0Param" name="SDR0 Parameters" group="Internal" default="`${actPwrMode eq POWER_PROFILE_0    ? &quot;1.1V Regulated&quot;   :
-                                                                                   actPwrMode eq POWER_PROFILE_1   ? &quot;0.9V Regulated&quot;   :
+                                                                                   actPwrMode eq POWER_PROFILE_1   ? &quot;1.0V Regulated&quot;   :
                                                                                    actPwrMode eq POWER_PROFILE_2A  ? &quot;1.1V Regulated&quot;   :
                                                                                    actPwrMode eq POWER_PROFILE_2B  ? &quot;1.1V Bypassed&quot;   :
-                                                                                   actPwrMode eq POWER_PROFILE_3   ? &quot;0.9V Bypassed&quot;   :
+                                                                                   actPwrMode eq POWER_PROFILE_3   ? &quot;1.0V Bypassed&quot;   :
 																				   &quot;1.1V Regulated&quot;}`" visible="false" editable="false" desc="SDR0 Regulator Voltage and Mode." />
 
     <ParamString id="sdr0VoltMacro" name="SDR0 Voltage Macro" group="Internal" default="`${sdr0Param eq &quot;1.1V Regulated&quot;    ? &quot;CY_SYSPM_SDR_VOLTAGE_1_100V&quot;   :
                                                                                    sdr0Param eq &quot;1.1V Bypassed&quot;   ? &quot;CY_SYSPM_SDR_VOLTAGE_1_100V&quot;   :
-                                                                                   sdr0Param eq &quot;0.9V Regulated&quot;   ? &quot;CY_SYSPM_SDR_VOLTAGE_0_900V&quot;   :
-                                                                                   sdr0Param eq &quot;0.9V Bypassed&quot;   ? &quot;CY_SYSPM_SDR_VOLTAGE_0_900V&quot;   :
+                                                                                   sdr0Param eq &quot;1.0V Regulated&quot;   ? &quot;CY_SYSPM_SDR_VOLTAGE_1_000V&quot;   :
+                                                                                   sdr0Param eq &quot;1.0V Bypassed&quot;   ? &quot;CY_SYSPM_SDR_VOLTAGE_1_000V&quot;   :
 																				   &quot;CY_SYSPM_SDR_VOLTAGE_1_100V&quot;}`" visible="false" editable="false" desc="SDR0 Voltage Macro." />
 
     <ParamString id="sdr0Voltagemode" name="SDR0 Regulator Voltage and Mode" group="Operating Conditions" default="`${sdr0Param}`" visible="true" editable="false" desc="SDR0 Regulator Voltage and Mode.." />

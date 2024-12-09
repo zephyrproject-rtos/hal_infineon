@@ -516,6 +516,14 @@ cy_rslt_t cyhal_sdio_host_send_cmd(cyhal_sdio_t *obj, cyhal_sdio_host_transfer_t
  * of a large number of I/O registers with a single command.
  * This will block until the transfer is completed.
  *
+ * If D-cache is enabled and data Cache line is 32 bytes,
+ * the user needs to make sure that the data pointer passed to the cyhal_sdio_host_bulk_transfer
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
+ *
  * @param[in,out] obj       The SDIO host object
  * @param[in]     direction The direction of transfer (read/write)
  * @param[in]     argument  The argument to the command
@@ -539,6 +547,14 @@ cy_rslt_t cyhal_sdio_host_bulk_transfer(cyhal_sdio_t *obj, cyhal_sdio_host_trans
  * Sends \ref CYHAL_SDIO_CMD_IO_RW_EXTENDED command (CMD=53) which allows writing and reading
  * of a large number of I/O registers with a single command.
  * This will block until the transfer is completed.
+ *
+ * If D-cache is enabled and data Cache line is 32 bytes,
+ * the user needs to make sure that the data pointer passed to the cyhal_sdio_bulk_transfer
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
  *
  * @param[in,out] obj       The SDIO host object
  * @param[in]     direction The direction of transfer (read/write)
@@ -570,6 +586,14 @@ cy_rslt_t cyhal_sdio_host_bulk_transfer(cyhal_sdio_t *obj, cyhal_sdio_host_trans
  * When the transfer is complete, the \ref CYHAL_SDIO_XFER_COMPLETE event will be raised.
  * See \ref cyhal_sdio_register_callback and \ref cyhal_sdio_enable_event.
  *
+ * If D-cache is enabled and data Cache line is 32 bytes,
+ * the user needs to make sure that the data pointer passed to the cyhal_sdio_host_transfer_async
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
+ *
  * @param[in,out] obj       The SDIO host object
  * @param[in]     direction The direction of transfer (read/write)
  * @param[in]     argument  The argument to the command
@@ -593,6 +617,14 @@ cy_rslt_t cyhal_sdio_host_transfer_async(cyhal_sdio_t *obj, cyhal_sdio_host_tran
  * When the transfer is complete, the \ref CYHAL_SDIO_XFER_COMPLETE event will be raised.
  * See \ref cyhal_sdio_register_callback and \ref cyhal_sdio_enable_event.
  *
+ * If D-cache is enabled and data Cache line is 32 bytes,
+ * the user needs to make sure that the data pointer passed to the cyhal_sdio_transfer_async
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
+ * 
  * @param[in,out] obj       The SDIO host object
  * @param[in]     direction The direction of transfer (read/write)
  * @param[in]     argument  The argument to the command

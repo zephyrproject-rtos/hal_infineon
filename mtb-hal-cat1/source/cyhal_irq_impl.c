@@ -57,7 +57,7 @@
 
 static const uint8_t _CYHAL_IRQ_COUNT_M0 = 32; /* Fixed in the IP definition */
 #elif _CYHAL_IRQ_MUXING
-#if defined (COMPONENT_CAT1A)
+#if defined(COMPONENT_CAT1A)
 #include "cyhal_hwmgr.h" // TODO: This is a temporary workaround to assign 1:1 CPU to system mapping.
 #endif
 
@@ -121,7 +121,7 @@ uint8_t _cyhal_system_irq_lowest_priority(IRQn_Type cpu_irq)
 
 #endif
 
-#if (_CYHAL_IRQ_MUXING) && defined (COMPONENT_CAT1A) && (!_CYHAL_IRQ_LEGACY_M0)
+#if (_CYHAL_IRQ_MUXING) && defined(COMPONENT_CAT1A) && (!_CYHAL_IRQ_LEGACY_M0) && !defined(CY_DEVICE_TVIIBE)
 uint8_t _cpu_irq_tracker = 0u; // TODO: This is a temporary workaround to assign 1:1 CPU to system mapping.
 #endif
 
@@ -155,7 +155,7 @@ cy_rslt_t _cyhal_irq_register(_cyhal_system_irq_t system_intr, uint8_t intr_prio
         #if defined(CY_IP_M4CPUSS)
         const uint8_t NUM_CPU_INTERRUPTS = 8u; /* Value fixed in the IP */
         #else /* M7CPUSS */
-        #if defined(CY_CPU_CORTEX_M0P)
+        #if (CY_CPU_CORTEX_M0P)
         /* There are 8 general purpose interrupts on the CM0+, but per comments in Cy_SysInt_Init, the first two
          * CPU interrupts  are reserved for ROM */
         const uint8_t NUM_CPU_INTERRUPTS = 6u;
@@ -165,7 +165,8 @@ cy_rslt_t _cyhal_irq_register(_cyhal_system_irq_t system_intr, uint8_t intr_prio
         #endif
         // TODO: This is a temporary workaround to assign 1:1 CPU to system mapping. 
         // When the PDL allows more than one mapping, remove this logic.
-        #if defined (COMPONENT_CAT1A)
+        #if defined(COMPONENT_CAT1A) && !defined(CY_DEVICE_TVIIBE)
+        CY_UNUSED_PARAMETER(system_intr);
         cy_rslt_t status = CYHAL_HWMGR_RSLT_ERR_NONE_FREE;
         uint8_t cpu_irq;
         for (int idx = 0; idx < NUM_CPU_INTERRUPTS; idx++)
@@ -182,25 +183,47 @@ cy_rslt_t _cyhal_irq_register(_cyhal_system_irq_t system_intr, uint8_t intr_prio
         {
             return status;
         }
-        #else
-        const uint8_t SYSTEM_IRQ_PER_CPU_IRQ = (_CYHAL_IRQ_COUNT + (NUM_CPU_INTERRUPTS / 2)) / NUM_CPU_INTERRUPTS;
-        uint8_t cpu_irq = ((uint32_t)system_intr) / SYSTEM_IRQ_PER_CPU_IRQ;
-        #endif
-        #if defined (CY_IP_M7CPUSS)
-        #if defined(CY_CPU_CORTEX_M0P)
-        cpu_irq += 2u; /* Handle offset from interrupts reserved for ROM */
-        #endif
-        /* For CM7, the upper 16 bits of the intrSrc field are the CPU interrupt number */
         uint32_t intr_src = (uint32_t)system_intr;
-        intr_src |= cpu_irq << 16;
+        intr_src |= cpu_irq << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT;
+        #if !(CY_CPU_CORTEX_M0P)
         _cyhal_system_irq_store_priority(system_intr, intr_priority);
         /* We can avoid a "lowest priority" search here, because the currently set value is the lowest except
          * possibly for the one we're just now registering */
         uint8_t existing_priority = NVIC_GetPriority((IRQn_Type)cpu_irq);
         uint8_t lowest_priority = (existing_priority < intr_priority) ? existing_priority : intr_priority;
-        cy_stc_sysint_t intr_cfg = { intr_src, lowest_priority };
-        #else /* M4CPUSS */
-        cy_stc_sysint_t intr_cfg = { (IRQn_Type)cpu_irq, system_intr, intr_priority };
+        #endif /* !(CY_CPU_CORTEX_M0P) */
+        #else
+        /* We want to always round up to ensure that even the highest numbered system IRQ still falls into
+         * the top indexed CPU IRQ */
+        const uint8_t SYSTEM_IRQ_PER_CPU_IRQ = (_CYHAL_IRQ_COUNT + (NUM_CPU_INTERRUPTS - 1)) / NUM_CPU_INTERRUPTS;
+        uint8_t cpu_irq = ((uint32_t)system_intr) / SYSTEM_IRQ_PER_CPU_IRQ;
+        #endif
+        #if defined(CY_IP_M7CPUSS) || (defined(CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u) && (CPUSS_SYSTEM_IRQ_PRESENT))
+        #if (CY_CPU_CORTEX_M0P)
+        cpu_irq += 2u; /* Handle offset from interrupts reserved for ROM */
+        #endif
+        /* For CM7, the upper 20 bits of the intrSrc field are the CPU interrupt number */
+        uint32_t intr_src = (uint32_t)system_intr;
+        intr_src |= cpu_irq << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT;
+        _cyhal_system_irq_store_priority(system_intr, intr_priority);
+        /* Find the lowest priority between all of the configured interrupts
+           and the interrupt that is currently being registered */
+        uint8_t existing_priority = _cyhal_system_irq_lowest_priority((IRQn_Type)cpu_irq);
+        uint8_t lowest_priority = (existing_priority < intr_priority) ? existing_priority : intr_priority;
+            #if (CY_CPU_CORTEX_M0P) && defined(CY_IP_M4CPUSS)
+                CY_UNUSED_PARAMETER(lowest_priority);
+                cy_stc_sysint_t intr_cfg = { (IRQn_Type)cpu_irq, system_intr, intr_priority };
+            #elif defined(CY_IP_M7CPUSS)
+                cy_stc_sysint_t intr_cfg = { intr_src, lowest_priority };
+            #else
+                cy_stc_sysint_t intr_cfg = { (IRQn_Type)intr_src, lowest_priority };
+            #endif
+        #else /* M4CPUSS and CY_IP_M4CPUSS_VERSION is 1 */
+            #if (CY_CPU_CORTEX_M0P)
+                cy_stc_sysint_t intr_cfg = { (IRQn_Type)cpu_irq, system_intr, intr_priority };
+            #else
+                cy_stc_sysint_t intr_cfg = { (IRQn_Type)intr_src, lowest_priority };
+            #endif
         #endif
     #endif
 #else

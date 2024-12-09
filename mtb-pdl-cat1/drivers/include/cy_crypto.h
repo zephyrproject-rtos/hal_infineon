@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the public interface for the Crypto driver.
@@ -250,6 +250,31 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="2">2.120</td>
+*     <td> 
+*         <ul>
+*         <li>Added new enums \ref cy_en_eddsa_sig_type_t , updated enums \ref cy_en_crypto_ecc_curve_id_t and ED25519 macros.<br>
+*         <li>Added new APIs \ref Cy_Crypto_Core_ED25519_Sign, \ref Cy_Crypto_Core_ED25519_PointMultiplication,
+*             \ref Cy_Crypto_Core_ED25519_Verify, \ref Cy_Crypto_Core_ED25519_MakePublicKey. </td>
+*         </ul>
+*     <td>Added EDDSA Hardware acceleration for CAT1A and CAT1C MCUs.</td>
+*   </tr>
+*   <tr>
+*     <td>Updated structures \ref cy_stc_crypto_aes_buffers_t, \ref cy_stc_crypto_aes_state_t, \ref cy_stc_crypto_aes_ccm_buffers_t
+*            \ref cy_stc_crypto_aes_gcm_buffers_t, \ref cy_stc_crypto_aes_gcm_state_t, \ref cy_stc_crypto_sha_state_t.</td>
+*     <td>Fixed AES CCM, GCM and SHA algorithm issues with DCache enablement on CAT1C device. </td>
+*   </tr>
+*   <tr>
+*     <td> 2.110</td>
+*     <td>Fixed data synchronization barrier issue in AES</td>
+*     <td></td>
+*   </tr>
+*   <tr>
+*     <td> 2.100</td>
+*     <td>Added SHA3, HKDF, AES multistage support for modes ECB, CBC, CFB CTR added</td>
+*     <td></td>
+*   </tr>
+*   <tr>
 *     <td> 2.90</td>
 *     <td>Updated internal APIs and bug fixes.</td>
 *     <td>Fixed GCM initialization and coverity bugs.</td>
@@ -481,6 +506,8 @@
 *   the client. The firmware then provides configuration data required for
 *   the desired cryptographic technique and a request that the server run the
 *   cryptographic operation.
+*
+*   Note that Client-server model is not supported when DCache is enabled.
 *
 * This document contains the following topics:
 *   - \ref group_crypto_architecture

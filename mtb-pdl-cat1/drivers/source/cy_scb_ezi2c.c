@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_ezi2c.c
-* \version 3.10
+* \version 3.20
 *
 * Provides EZI2C API implementation of the SCB driver.
 *
@@ -660,6 +660,15 @@ void Cy_SCB_EZI2C_SetBuffer1(CySCB_Type const *base, uint8_t *buffer, uint32_t s
 * Calling this function when the EZI2C slave is configured for one-address
 * operation leads to unexpected behavior because it updates the address mask.
 *
+* \note
+* Please observe following limitation while using both primary and secondary
+* slave addresses. EZI2C IP has single address match mask. This mask is setup as
+* (address1 ^ address2), This can generate false address match. For example, if
+* address1 is 0x24 and address2 is 0x10, then slave address 0x20 will also
+* generate a false match. Hence, choose address1 and 2 such that all other
+* slave address on the bus satisfy
+* ((slave address) & (address1 ^ address2)) != 0
+*
 *******************************************************************************/
 void Cy_SCB_EZI2C_SetAddress2(CySCB_Type *base, uint8_t addr, cy_stc_scb_ezi2c_context_t *context)
 {
@@ -1287,6 +1296,15 @@ static void HandleStop(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
 * by the user. The structure is used during the EZI2C operation for internal
 * configuration and data retention. The user must not modify anything
 * in this structure.
+*
+* \note
+* Please observe following limitation while using both primary and secondary
+* slave addresses. EZI2C IP has single address match mask. This mask is setup as
+* (address1 ^ address2), This can generate false address match. For example, if
+* address1 is 0x24 and address2 is 0x10, then slave address 0x20 will also
+* generate a false match. Hence, choose address1 and 2 such that all other
+* slave address on the bus satisfy
+* ((slave address) & (address1 ^ address2)) != 0
 *
 *******************************************************************************/
 static void UpdateAddressMask(CySCB_Type *base, cy_stc_scb_ezi2c_context_t const *context)

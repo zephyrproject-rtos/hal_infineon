@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_utils.c
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  Provides utility functions.
@@ -30,7 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-void Crypto_String2ByteArray ( uint8_t* p_dst,
+void Cy_Cryptolite_String2ByteArray ( uint8_t* p_dst,
                             int8_t*  p_number_string,
                             int      byte_size)
 {
@@ -46,7 +46,7 @@ void Crypto_String2ByteArray ( uint8_t* p_dst,
       p_dst[byte_idx] = 0x00;
    }
    p_dst[byte_idx] = 0x00;
-   for (i = len - 1; i >= 0; i--) {
+   for (i = 0 ; i <= len - 1; i++) {
       character = (uint8_t)p_number_string[i];
       if ((character >= (uint8_t)'0') && (character <= (uint8_t)'9')) {
          nibble = (uint8_t) character - (uint8_t)'0';
@@ -64,7 +64,14 @@ void Crypto_String2ByteArray ( uint8_t* p_dst,
          valid  = false;
       }
       if (valid) {
-         byte |= (nibble << (4U*(nibble_pos)));
+        if(nibble_pos != 0u)
+        {
+            byte |= nibble;
+        }
+        else
+        {
+            byte |= nibble << 4U;
+        }
          nibble_pos++;
       }
       if (nibble_pos == 2U) {
@@ -74,13 +81,53 @@ void Crypto_String2ByteArray ( uint8_t* p_dst,
          byte       = 0;
       }
    }
-   if (nibble_pos != 0U)
-   {
-      p_dst[byte_idx] = byte;
-   }
+
 }
 
-void Crypto_SetNumber( uint8_t* rdst,
+cy_en_cryptolite_status_t Cy_Cryptolite_Memcpy(CRYPTOLITE_Type *base, uint8_t* dst,
+                        uint8_t* src,
+                        uint32_t size)
+{
+    uint32_t i;
+    cy_en_cryptolite_status_t status = CY_CRYPTOLITE_SUCCESS;
+
+    #if (CRYPTOLITE_VU_PRESENT == 1)
+    cy_stc_cryptolite_descr_t p_struct;
+    uint8_t *srcRemap;
+
+    srcRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(src);
+
+    if((((uint32_t)dst & 0x3UL) == 0UL) && (((uint32_t)srcRemap & 0x3UL) == 0UL))
+    {
+        status = Cy_Cryptolite_Vu_mov_hw(base, &p_struct, dst, CY_CRYPTOLITE_WORD_SIZE_OF_BYTES(size) , srcRemap, CY_CRYPTOLITE_WORD_SIZE_OF_BYTES(size));
+    }
+    else
+    #endif
+    {
+        (void)base;
+        for(i=0; i < size; i++)
+        {
+            dst[i] = src[i];
+        }
+    }
+
+    return status;
+}
+
+
+void Cy_Cryptolite_Memset (void  *dest, uint8_t data, uint32_t size)
+{
+   uint32_t i;
+   uint8_t  *dest_P = (uint8_t *)dest;
+
+   for(i=0u; i < size; i++)
+   {
+      dest_P[i] = data;
+   }
+
+}
+
+void Cy_Cryptolite_Setnumber( uint8_t* rdst,
                         uint8_t* p_number,
                         uint32_t size)
 {

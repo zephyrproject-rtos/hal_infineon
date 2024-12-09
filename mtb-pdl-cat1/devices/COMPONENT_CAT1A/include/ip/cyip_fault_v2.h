@@ -115,6 +115,92 @@ typedef struct {
 #define FAULT_STRUCT_V2_INTR_MASKED_FAULT_Msk   0x1UL
 
 
+/**
+  * \brief Instances of Fault data register.
+  */
+typedef enum
+{
+    CY_SYSFAULT_MPU_0                =   0,     /* Bus master 0 MPU/SMPU. */
+    CY_SYSFAULT_MPU_1                =   1,     /* Bus master 1 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_2                =   2,     /* Bus master 2 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_3                =   3,     /* Bus master 3 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_4                =   4,     /* Bus master 4 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_5                =   5,     /* Bus master 5 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_6                =   6,     /* Bus master 6 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_7                =   7,     /* Bus master 7 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_8                =   8,     /* Bus master 8 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_9                =   9,     /* Bus master 9 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_10               =  10,     /* Bus master 10 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_11               =  11,     /* Bus master 11 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_12               =  12,     /* Bus master 12 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_13               =  13,     /* Bus master 13 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_14               =  14,     /* Bus master 14 MPU. See MPU_0 description. */
+    CY_SYSFAULT_MPU_15               =  15,     /* Bus master 15 MPU. See MPU_0 description. */
+    CY_SYSFAULT_CM4_SYS_MPU          =  16,     /* CM4 system bus AHB-Lite interface MPU. See MPU_0 description. */
+    CY_SYSFAULT_CM4_CODE_MPU         =  17,     /* CM4 code bus AHB-Lite interface MPU for non flash controller accesses. See MPU_0 description. */
+    CY_SYSFAULT_CM4_CODE_FLASHC_MPU  =  18,     /* CM4 code bus AHB-Lite interface MPU for flash controller accesses. See MPU_0 description. */
+    CY_SYSFAULT_MS_PPU_4             =  25,     /* Peripheral interconnect, master interface 4 PPU. See MS_PPU_0 description. */
+    CY_SYSFAULT_PERI_ECC             =  26,     /* Peripheral interconnect, protection structures SRAM, correctable ECC error: */
+    CY_SYSFAULT_PERI_NC_ECC          =  27,     /* Peripheral interconnect, protection structures SRAM, non-correctable ECC error. See PERI_ECC description. */
+    CY_SYSFAULT_MS_PPU_0             =  28,     /* Peripheral interconnect, master interface 0 PPU. */
+    CY_SYSFAULT_MS_PPU_1             =  29,     /* Peripheral interconnect, master interface 1 PPU. See MS_PPU_0 description. */
+    CY_SYSFAULT_MS_PPU_2             =  30,     /* Peripheral interconnect, master interface 2 PPU. See MS_PPU_0 description. */
+    CY_SYSFAULT_MS_PPU_3             =  31,     /* Peripheral interconnect, master interface 3 PPU. See MS_PPU_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_0        =  32,     /* Peripheral group 0 fault detection. */
+    CY_SYSFAULT_GROUP_FAULT_1        =  33,     /* Peripheral group 1 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_2        =  34,     /* Peripheral group 2 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_3        =  35,     /* Peripheral group 3 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_4        =  36,     /* Peripheral group 4 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_5        =  37,     /* Peripheral group 5 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_6        =  38,     /* Peripheral group 6 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_7        =  39,     /* Peripheral group 7 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_8        =  40,     /* Peripheral group 8 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_9        =  41,     /* Peripheral group 9 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_10       =  42,     /* Peripheral group 10 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_11       =  43,     /* Peripheral group 11 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_12       =  44,     /* Peripheral group 12 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_13       =  45,     /* Peripheral group 13 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_14       =  46,     /* Peripheral group 14 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_GROUP_FAULT_15       =  47,     /* Peripheral group 15 fault detection. See GROUP_FAULT_0 description. */
+    CY_SYSFAULT_FLASHC_MAIN_BUS_ERROR  =  48,   /* Flash controller, main interface, bus error: */
+    CY_SYSFAULT_FLASHC_MAIN_C_ECC    =  49,     /* Flash controller, main interface, correctable ECC error: */
+    CY_SYSFAULT_FLASHC_MAIN_NC_ECC   =  50,     /* Flash controller, main interface, non-correctable ECC error.  See FLASHC_MAIN_C_ECC description. */
+    CY_SYSFAULT_FLASHC_WORK_BUS_ERROR  =  51,   /* Flash controller, work interface, bus error. */
+    CY_SYSFAULT_FLASHC_WORK_C_ECC    =  52,     /* Flash controller, work interface, correctable ECC error: */
+    CY_SYSFAULT_FLASHC_WORK_NC_ECC   =  53,     /* Flash controller, work interface, non-correctable ECC error. See FLASHC_WORK_C_ECC description. */
+    CY_SYSFAULT_FLASHC_CM0_CA_C_ECC  =  54,     /* Flash controller, CM0+ cache, correctable ECC error: */
+    CY_SYSFAULT_FLASHC_CM0_CA_NC_ECC  =  55,    /* Flash controller, CM0+ cache, non-correctable ECC error.  See FLASHC_CM0_CA_C_ECC description. */
+    CY_SYSFAULT_FLASHC_CM4_CA_C_ECC  =  56,     /* Flash controller, CM4 cache, correctable ECC error. See FLASHC_CM0_CA_C_ECC description. */
+    CY_SYSFAULT_FLASHC_CM4_CA_NC_ECC  =  57,    /* Flash controller, CM4 cache, non-correctable ECC error. See FLASHC_CM0_CA_C_ECC description. */
+    CY_SYSFAULT_RAMC0_C_ECC          =  58,     /* System SRAM 0 correctable ECC error: */
+    CY_SYSFAULT_RAMC0_NC_ECC         =  59,     /* System SRAM 0 non-correctable ECC error.  See RAMC0_C_ECC description. */
+    CY_SYSFAULT_RAMC1_C_ECC          =  60,     /* System SRAM 1 correctable ECC error. See RAMC0_C_ECC description. */
+    CY_SYSFAULT_RAMC1_NC_ECC         =  61,     /* System SRAM 1 non-correctable ECC error. See RAMC0_C_ECC description. */
+    CY_SYSFAULT_RAMC2_C_ECC          =  62,     /* System SRAM 2 correctable ECC error. See RAMC0_C_ECC description. */
+    CY_SYSFAULT_RAMC2_NC_ECC         =  63,     /* System SRAM 2 non-correctable ECC error. See RAMC0_C_ECC description. */
+    CY_SYSFAULT_CRYPTO_C_ECC         =  64,     /* Cryptography SRAM correctable ECC error. */
+    CY_SYSFAULT_CRYPTO_NC_ECC        =  65,     /* Cryptography SRAM non-correctable ECC error. See CRYPTO_C_ECC description. */
+    CY_SYSFAULT_DW0_C_ECC            =  70,     /* DataWire 0 SRAM 1 correctable ECC error: */
+    CY_SYSFAULT_DW0_NC_ECC           =  71,     /* DataWire 0 SRAM 1 non-correctable ECC error. See DW0_C_ECC description. */
+    CY_SYSFAULT_DW1_C_ECC            =  72,     /* DataWire 1 SRAM 1 correctable ECC error. See DW0_C_ECC description. */
+    CY_SYSFAULT_DW1_NC_ECC           =  73,     /* DataWire 1 SRAM 1 non-correctable ECC error. See DW0_C_ECC description. */
+    CY_SYSFAULT_FM_SRAM_C_ECC        =  74,     /* eCT Flash SRAM (for embedded operations) correctable ECC error: */
+    CY_SYSFAULT_FM_SRAM_NC_ECC       =  75,     /* eCT Flash SRAM non-correctable ECC error: See FM_SRAM_C_ECC description. */
+    CY_SYSFAULT_CAN0_C_ECC           =  80,     /* CAN controller 0 MRAM correctable ECC error: */
+    CY_SYSFAULT_CAN0_NC_ECC          =  81,     /* CAN controller 0 MRAM non-correctable ECC error: */
+    CY_SYSFAULT_CAN1_C_ECC           =  82,     /* CAN controller 1 MRAM correctable ECC error. See CAN0_C_ECC description. */
+    CY_SYSFAULT_CAN1_NC_ECC          =  83,     /* CAN controller 1 MRAM non-correctable ECC error. See CAN0_NC_ECC description. */
+    CY_SYSFAULT_CAN2_C_ECC           =  84,     /* CAN controller 2 MRAM correctable ECC error. See CAN0_C_ECC description. */
+    CY_SYSFAULT_CAN2_NC_ECC          =  85,     /* CAN controller 2 MRAM non-correctable ECC error. See CAN0_NC_ECC description. */
+    CY_SYSFAULT_SRSS_CSV             =  90,     /* SRSS Clock SuperVisor (CSV) violation detected. Multiple CSV can detect a violation at the same time. */
+    CY_SYSFAULT_SRSS_SSV             =  91,     /* SRSS Supply SuperVisor (SSV) violation detected. Multiple SSV can detect a violation at the same time. */
+    CY_SYSFAULT_SRSS_MCWDT0          =  92,     /* SRSS Multi-Counter Watch Dog Timer (MCWDT) #0 violation detected. Multiple counters can detect a violation at the same time. */
+    CY_SYSFAULT_SRSS_MCWDT1          =  93,     /* SRSS Multi-Counter Watch Dog Timer (MCWDT) #1 violation detected. See SRSS_MCWDT0 description. */
+    CY_SYSFAULT_SRSS_MCWDT2          =  94,     /* SRSS Multi-Counter Watch Dog Timer (MCWDT) #2 violation detected. See SRSS_MCWDT0 description. */
+    CY_SYSFAULT_SRSS_MCWDT3          =  95,     /* SRSS Multi-Counter Watch Dog Timer (MCWDT) #3 violation detected. See SRSS_MCWDT0 description. */
+    CY_SYSFAULT_NO_FAULT             =  96
+} cy_en_SysFault_source_t;
+
 #endif /* _CYIP_FAULT_V2_H_ */
 
 

@@ -31,7 +31,7 @@
 /**
  * \addtogroup group_board_libs
  * \{
- * In addition to the APIs for reading and writing to memory at runtime, this library also
+ * In addition to the APIs for reading and writting to memory at runtime, this library also
  * provides support for informing programming tools about the external memory so it can be
  * be written at the same time as internal flash. This support can be enabled by defining
  * CY_ENABLE_XIP_PROGRAM while building the application. With this define in place, code

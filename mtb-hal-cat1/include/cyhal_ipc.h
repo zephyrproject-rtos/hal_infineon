@@ -132,6 +132,9 @@ typedef struct cyhal_ipc_queue_s
     void *queue_tail;           //!< Pointer to the queue tail in circular buffer (not expected to be modified by user)
     uint32_t triggered_events;  //!< Events, that were triggered by latest performed operation (not expected to be modified by user)
     struct cyhal_ipc_queue_s *next_queue_obj;   //!< Pointer to the next queue object (not expected to be modified by user)
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    uint32_t padding[6];        //!< Necessary to make sure the total size is a multiple of __SCB_DCACHE_LINE_SIZE
+#endif
 }cyhal_ipc_queue_t;
 
 /** Creates a single semaphore based on a given number.

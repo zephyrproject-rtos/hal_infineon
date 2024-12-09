@@ -1350,6 +1350,8 @@ typedef enum
 #define MXCM33_DSP_PRESENT              0u
 /* AHB5 master bus width */
 #define MXKEYSCAN_AHB_MASTER_WIDTH      6u
+/* AHB5 data bus width */
+#define MXKEYSCAN_AHB_DATA_WIDTH        32u
 /* AHB5 address bus width */
 #define MXKEYSCAN_AHB_ADDR_WIDTH        12u
 /* AHB5 user bus width */
@@ -2514,46 +2516,67 @@ typedef enum
 #define TDM_TDM_TX_STRUCT_REPLAY_PRESENT 0u
 
 /* MMIO Targets Defines */
+/* MMIO0.SRSS */
 #define CY_MMIO_SRSS_GROUP_NR           0u
 #define CY_MMIO_SRSS_SLAVE_NR           4u
+/* MMIO0.PWRMODE */
 #define CY_MMIO_PWRMODE_GROUP_NR        0u
 #define CY_MMIO_PWRMODE_SLAVE_NR        5u
+/* MMIO0.BACKUP */
 #define CY_MMIO_BACKUP_GROUP_NR         0u
 #define CY_MMIO_BACKUP_SLAVE_NR         6u
+/* MMIO0.CRYPTO */
 #define CY_MMIO_CRYPTO_GROUP_NR         0u
 #define CY_MMIO_CRYPTO_SLAVE_NR         7u
+/* MMIO1.HSIOM */
 #define CY_MMIO_HSIOM_GROUP_NR          1u
 #define CY_MMIO_HSIOM_SLAVE_NR          0u
+/* MMIO1.GPIO */
 #define CY_MMIO_GPIO_GROUP_NR           1u
 #define CY_MMIO_GPIO_SLAVE_NR           1u
+/* MMIO1.SMARTIO */
 #define CY_MMIO_SMARTIO_GROUP_NR        1u
 #define CY_MMIO_SMARTIO_SLAVE_NR        2u
+/* MMIO1.LIN0 */
 #define CY_MMIO_LIN0_GROUP_NR           1u
 #define CY_MMIO_LIN0_SLAVE_NR           3u
+/* MMIO1.CANFD0 */
 #define CY_MMIO_CANFD0_GROUP_NR         1u
 #define CY_MMIO_CANFD0_SLAVE_NR         4u
+/* MMIO1.TCPWM0 */
 #define CY_MMIO_TCPWM0_GROUP_NR         1u
 #define CY_MMIO_TCPWM0_SLAVE_NR         5u
+/* MMIO1.MXS40ADCMIC0 */
 #define CY_MMIO_MXS40ADCMIC0_GROUP_NR   1u
 #define CY_MMIO_MXS40ADCMIC0_SLAVE_NR   6u
+/* MMIO1.SCB0 */
 #define CY_MMIO_SCB0_GROUP_NR           1u
 #define CY_MMIO_SCB0_SLAVE_NR           7u
-#define CY_MMIO_SCB01_GROUP_NR          1u
-#define CY_MMIO_SCB01_SLAVE_NR          8u
-#define CY_MMIO_SCB02_GROUP_NR          1u
-#define CY_MMIO_SCB02_SLAVE_NR          9u
+/* MMIO1.SCB1 */
+#define CY_MMIO_SCB1_GROUP_NR           1u
+#define CY_MMIO_SCB1_SLAVE_NR           8u
+/* MMIO1.SCB2 */
+#define CY_MMIO_SCB2_GROUP_NR           1u
+#define CY_MMIO_SCB2_SLAVE_NR           9u
+/* MMIO2.DFT */
 #define CY_MMIO_DFT_GROUP_NR            2u
 #define CY_MMIO_DFT_SLAVE_NR            0u
+/* MMIO2.EFUSE */
 #define CY_MMIO_EFUSE_GROUP_NR          2u
 #define CY_MMIO_EFUSE_SLAVE_NR          1u
+/* MMIO2.SMIF0 */
 #define CY_MMIO_SMIF0_GROUP_NR          2u
 #define CY_MMIO_SMIF0_SLAVE_NR          2u
+/* MMIO2.TDM0 */
 #define CY_MMIO_TDM0_GROUP_NR           2u
 #define CY_MMIO_TDM0_SLAVE_NR           3u
+/* MMIO2.PDM0 */
 #define CY_MMIO_PDM0_GROUP_NR           2u
 #define CY_MMIO_PDM0_SLAVE_NR           4u
+/* MMIO2.KEYSCAN */
 #define CY_MMIO_KEYSCAN_GROUP_NR        2u
 #define CY_MMIO_KEYSCAN_SLAVE_NR        5u
+/* MMIO3.BTSS */
 #define CY_MMIO_BTSS_GROUP_NR           3u
 #define CY_MMIO_BTSS_SLAVE_NR           0u
 

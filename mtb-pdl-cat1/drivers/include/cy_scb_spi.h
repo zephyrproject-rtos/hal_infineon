@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_spi.h
-* \version 3.10
+* \version 3.20
 *
 * Provides SPI API declarations of the SCB driver.
 *
@@ -389,7 +389,7 @@ typedef enum
 #if(((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB)) || defined (CY_DOXYGEN))
 /**
 * \note
-* This enum is available for CAT1B and CAT1C devices.
+* This enum is available for CAT1B, CAT1C and CAT1D devices.
 **/
 typedef enum
 {
@@ -437,7 +437,7 @@ typedef struct cy_stc_scb_spi_config
     /** Configures the SPI parity */
     /**
     * \note
-    * This parameter is available for CAT1B and CAT1C devices.
+    * This parameter is available for CAT1B, CAT1C and CAT1D devices.
     **/
     cy_en_scb_spi_parity_t parity;
     /**
@@ -446,7 +446,7 @@ typedef struct cy_stc_scb_spi_config
     */
     /**
     * \note
-    * This parameter is available for CAT1B and CAT1C devices.
+    * This parameter is available for CAT1B, CAT1C and CAT1D devices.
     **/
     bool        dropOnParityError;
 #endif /* CY_IP_MXSCB_VERSION */
@@ -521,7 +521,7 @@ typedef struct cy_stc_scb_spi_config
     */
     /**
     * \note
-    * This parameter is available for CAT1B and CAT1C devices.
+    * This parameter is available for CAT1B, CAT1C and CAT1D devices.
     **/
     bool        ssSetupDelay;
 
@@ -535,7 +535,7 @@ typedef struct cy_stc_scb_spi_config
     */
     /**
     * \note
-    * This parameter is available for CAT1B and CAT1C devices.
+    * This parameter is available for CAT1B, CAT1C and CAT1D devices.
     **/
     bool        ssHoldDelay;
 
@@ -549,7 +549,7 @@ typedef struct cy_stc_scb_spi_config
     */
     /**
     * \note
-    * This parameter is available for CAT1B and CAT1C devices.
+    * This parameter is available for CAT1B, CAT1C and CAT1D devices.
     **/
     bool        ssInterFrameDelay;
 #endif /* CY_IP_MXSCB_VERSION */
@@ -609,15 +609,19 @@ typedef struct cy_stc_scb_spi_config
 typedef struct cy_stc_scb_spi_context
 {
     /** \cond INTERNAL */
-    uint32_t volatile status;       /**< The receive status */
+    uint32_t volatile status;         /**< The receive status */
 
-    void    *rxBuf;                 /**< The pointer to the receive buffer */
-    uint32_t rxBufSize;             /**< The receive buffer size */
-    uint32_t volatile rxBufIdx;     /**< The current location in the receive buffer */
+    void    *rxBuf;                   /**< The pointer to the receive buffer */
+    uint32_t rxBufSize;               /**< The receive buffer size */
+    uint32_t volatile rxBufIdx;       /**< The current location in the receive buffer */
 
-    void    *txBuf;                 /**< The pointer to the transmit buffer */
-    uint32_t txBufSize;             /**< The transmit buffer size */
-    uint32_t volatile txBufIdx;     /**< The current location in the transmit buffer */
+    void    *txBuf;                   /**< The pointer to the transmit buffer */
+    uint32_t txBufSize;               /**< The transmit buffer size */
+    uint32_t volatile txBufIdx;       /**< The current location in the transmit buffer */
+
+    uint32_t volatile WriteFillSize;  /**< If rxSize is greater than txSize, the difference of receive and transmit buffer size */
+    uint32_t volatile DiscardRxSize;  /**< If txSize is greater than rxSize, the difference of transmit and receive buffer size */
+    uint32_t writeFill;               /**< If rxSize is greater than txSize, value to be used for filling end of tx data array. */
 
     /**
     * The pointer to an event callback that is called when any of
@@ -663,6 +667,9 @@ __STATIC_INLINE bool Cy_SCB_SPI_IsBusBusy(CySCB_Type const *base);
 */
 cy_en_scb_spi_status_t Cy_SCB_SPI_Transfer(CySCB_Type *base, void *txBuffer, void *rxBuffer, uint32_t size,
                                            cy_stc_scb_spi_context_t *context);
+cy_en_scb_spi_status_t Cy_SCB_SPI_Transfer_Buffer(CySCB_Type *base, void *txBuffer, void *rxBuffer,
+                                                               uint32_t txSize, uint32_t rxSize, uint32_t writeFill,
+                                                               cy_stc_scb_spi_context_t *context);
 void     Cy_SCB_SPI_AbortTransfer    (CySCB_Type *base, cy_stc_scb_spi_context_t *context);
 uint32_t Cy_SCB_SPI_GetTransferStatus(CySCB_Type const *base, cy_stc_scb_spi_context_t const *context);
 uint32_t Cy_SCB_SPI_GetNumTransfered (CySCB_Type const *base, cy_stc_scb_spi_context_t const *context);
@@ -910,6 +917,8 @@ cy_en_syspm_status_t Cy_SCB_SPI_HibernateCallback(cy_stc_syspm_callback_params_t
 #define CY_SCB_SPI_IS_SS_POLARITY_VALID(polarity)   ( (0UL == ((polarity) & (~0x0FUL))) )
 #define CY_SCB_SPI_IS_BUFFER_VALID(txBuffer, rxBuffer, size)  ( ((size) > 0UL)  && \
                                                                  (false == ((NULL == (txBuffer)) && (NULL == (rxBuffer)))) )
+#define CY_SCB_SPI_IS_TX_RX_BUFFER_VALID(txBuffer, rxBuffer, txSize, rxSize)  ( (false == (((txSize) <= 0UL)  && ((rxSize) <= 0UL)))  && \
+                                                                                (false == ((NULL == (txBuffer)) && (NULL == (rxBuffer)))) )
 
 #define CY_SCB_SPI_IS_BOTH_DATA_WIDTH_VALID(subMode, rxWidth, txWidth)  ( (CY_SCB_SPI_NATIONAL != (subMode)) ? \
                                                                                     ((rxWidth) == (txWidth)) : true )
@@ -1333,8 +1342,6 @@ __STATIC_INLINE void Cy_SCB_SPI_ClearSlaveMasterStatus(CySCB_Type *base, uint32_
 * \note
 * * This function only reads data available in the RX FIFO. It does not
 *   initiate an SPI transfer.
-* * When in the master mode, this function writes data into the TX FIFO and
-*   waits until the transfer is completed before reading data from the RX FIFO.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SCB_SPI_Read(CySCB_Type const *base)
@@ -1368,8 +1375,6 @@ __STATIC_INLINE uint32_t Cy_SCB_SPI_Read(CySCB_Type const *base)
 * \note
 * * This function only reads data available in the RX FIFO. It does not
 *   initiate an SPI transfer.
-* * When in the master mode, this function writes data into the TX FIFO and
-*   waits until the transfer is completed before reading data from the RX FIFO.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SCB_SPI_ReadArray(CySCB_Type const *base, void *buffer, uint32_t size)

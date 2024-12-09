@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_cryptolite_nist_p.c
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides Elliptic Curve (EC) Scalar Multiplication using (X,Y)-only,
@@ -63,16 +63,9 @@ extern "C" {
 ***************************************************************/
 // static cy_en_cryptolite_ecc_curve_id_t cryptolite_eccMode;
 //static cy_en_cryptolite_ecc_red_mul_algs_t cryptolite_mul_red_alg_select = CY_CRYPTOLITE_NIST_P_BARRETT_RED_ALG;
-/* Barrett reduction z = x % mod */
-void Cryptolite_EC_Bar_MulRed ( CRYPTOLITE_Type *base,
-                                cy_stc_cryptolite_context_ecdsa_t *cfContext,
-                                uint8_t* p_z,         //   bit_size
-                                uint8_t* p_x,         //   bit_size
-                                uint32_t bit_size );
-
 
 /* Barrett reduction z = x % mod */
-void Cryptolite_EC_Bar_MulRed ( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_Bar_MulRed ( CRYPTOLITE_Type *base,
                                 cy_stc_cryptolite_context_ecdsa_t *cfContext,
                                 uint8_t* p_z,         //   bit_size
                                 uint8_t* p_x,         //   bit_size
@@ -128,7 +121,7 @@ void Cryptolite_EC_MulRed( CRYPTOLITE_Type *base,
                             int size)
 {
 
-    Cryptolite_EC_Bar_MulRed(base, cfContext, z, x, (uint32_t)size);
+    Cy_Cryptolite_EC_Bar_MulRed(base, cfContext, z, x, (uint32_t)size);
 }
 
 /*
@@ -144,7 +137,7 @@ void Cryptolite_EC_MulRed( CRYPTOLITE_Type *base,
  @param[in] mod Register index for modulo value.
  @param[in] size Bit size.
 */
-void Cryptolite_EC_MulMod ( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_MulMod ( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t * z,
                             uint8_t * a,
@@ -170,13 +163,13 @@ void Cryptolite_EC_MulMod ( CRYPTOLITE_Type *base,
  @param[in] mod Register index for modulo value.
  @param[in] size Bit size.
 */
-void Cryptolite_EC_SquareMod( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_SquareMod( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t * z,
                             uint8_t * a,
                             int size )
 {
-    Cryptolite_EC_MulMod (base, cfContext, z, a, a, size);
+    Cy_Cryptolite_EC_MulMod (base, cfContext, z, a, a, size);
 }
 
 /*
@@ -191,7 +184,7 @@ void Cryptolite_EC_SquareMod( CRYPTOLITE_Type *base,
  @param[in] mod Register index for modulo value.
  @param[in] size Bit size.
 */
-void Cryptolite_EC_DivMod( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_DivMod( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t * z,
                             uint8_t * a,
@@ -243,29 +236,29 @@ void Cryptolite_EC_DivMod( CRYPTOLITE_Type *base,
         if (a_even)
         {
             (void)Cy_Cryptolite_Vu_lsr1_hw (base, vu_struct1, my_a, wordsize, my_a, wordsize);
-            Cryptolite_EC_HalfMod (base, cfContext, z, z);
+            Cy_Cryptolite_EC_HalfMod (base, cfContext, z, z);
 
         }
         else if (b_even)
         {
             (void)Cy_Cryptolite_Vu_lsr1_hw (base, vu_struct0, my_b, wordsize, my_b, wordsize);
-            Cryptolite_EC_HalfMod (base, cfContext, my_v, my_v);
+            Cy_Cryptolite_EC_HalfMod (base, cfContext, my_v, my_v);
 
         }
         else if (!sign)
         { // (a >= b)
             (void)Cy_Cryptolite_Vu_sub_hw (base, vu_struct1, my_a, wordsize, my_a, wordsize, my_b, wordsize);
             (void)Cy_Cryptolite_Vu_lsr1_hw (base, vu_struct0, my_a, wordsize, my_a, wordsize);
-            Cryptolite_EC_SubMod(base, cfContext, z, z, my_v);
-            Cryptolite_EC_HalfMod (base, cfContext, z, z);
+            Cy_Cryptolite_EC_SubMod(base, cfContext, z, z, my_v);
+            Cy_Cryptolite_EC_HalfMod (base, cfContext, z, z);
 
         }
         else
         {
             (void)Cy_Cryptolite_Vu_sub_hw (base, vu_struct1, my_b, wordsize, my_b, wordsize, my_a, wordsize);
             (void)Cy_Cryptolite_Vu_lsr1_hw (base, vu_struct0, my_b, wordsize, my_b, wordsize);
-            Cryptolite_EC_SubMod (base, cfContext, my_v, my_v, z);
-            Cryptolite_EC_HalfMod (base, cfContext, my_v, my_v);
+            Cy_Cryptolite_EC_SubMod (base, cfContext, my_v, my_v, z);
+            Cy_Cryptolite_EC_HalfMod (base, cfContext, my_v, my_v);
 
         }
 
@@ -286,7 +279,7 @@ void Cryptolite_EC_DivMod( CRYPTOLITE_Type *base,
  @param[in] mod :        Register index for modulo value.
  @param[in] size :       Bit size.
 */
-void Cryptolite_EC_XYCZ_ADD( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_XYCZ_ADD( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             int carry,
                             uint8_t * x1,
@@ -294,7 +287,7 @@ void Cryptolite_EC_XYCZ_ADD( CRYPTOLITE_Type *base,
                             uint8_t * x2,
                             uint8_t * y2,
                             int size );
-void Cryptolite_EC_XYCZ_ADD( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_XYCZ_ADD( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             int carry,
                             uint8_t * x1,
@@ -320,19 +313,19 @@ void Cryptolite_EC_XYCZ_ADD( CRYPTOLITE_Type *base,
         y2 = temp;
     }
 
-    Cryptolite_EC_SubMod( base, cfContext, t1, x1, x2);
-    Cryptolite_EC_SquareMod(base, cfContext, t1, t1, size);
-    Cryptolite_EC_MulMod(base, cfContext, t2, x1, t1, size);
-    Cryptolite_EC_MulMod(base, cfContext, x2, x2, t1, size);
-    Cryptolite_EC_SubMod(base, cfContext, t1, y1, y2);
-    Cryptolite_EC_SubMod(base, cfContext, x1, t2, x2);
-    Cryptolite_EC_MulMod(base, cfContext, y2, y2, x1, size);
-    Cryptolite_EC_AddMod(base, cfContext, x1, x2, t2);
-    Cryptolite_EC_SquareMod(base, cfContext, t2, t1, size);
-    Cryptolite_EC_SubMod(base, cfContext, x1, t2, x1);
-    Cryptolite_EC_SubMod(base, cfContext, t2, x2, x1);
-    Cryptolite_EC_MulMod(base, cfContext, t1, t1, t2, size);
-    Cryptolite_EC_SubMod(base, cfContext, y1, t1, y2);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, t1, x1, x2);
+    Cy_Cryptolite_EC_SquareMod(base, cfContext, t1, t1, size);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, t2, x1, t1, size);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, x2, x2, t1, size);
+    Cy_Cryptolite_EC_SubMod(base, cfContext, t1, y1, y2);
+    Cy_Cryptolite_EC_SubMod(base, cfContext, x1, t2, x2);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, y2, y2, x1, size);
+    Cy_Cryptolite_EC_AddMod(base, cfContext, x1, x2, t2);
+    Cy_Cryptolite_EC_SquareMod(base, cfContext, t2, t1, size);
+    Cy_Cryptolite_EC_SubMod(base, cfContext, x1, t2, x1);
+    Cy_Cryptolite_EC_SubMod(base, cfContext, t2, x2, x1);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, t1, t1, t2, size);
+    Cy_Cryptolite_EC_SubMod(base, cfContext, y1, t1, y2);
 }
 
 /*
@@ -350,7 +343,7 @@ void Cryptolite_EC_XYCZ_ADD( CRYPTOLITE_Type *base,
  @param[in] mod :        Register index for modulo value.
  @param[in] size :       Bit size.
 */
-void Cryptolite_EC_XYCZ_ADDC( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_XYCZ_ADDC( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             int carry,
                             uint8_t *x1,
@@ -358,7 +351,7 @@ void Cryptolite_EC_XYCZ_ADDC( CRYPTOLITE_Type *base,
                             uint8_t *x2,
                             uint8_t *y2,
                             int size );
-void Cryptolite_EC_XYCZ_ADDC( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_XYCZ_ADDC( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             int carry,
                             uint8_t *x1,
@@ -387,32 +380,28 @@ void Cryptolite_EC_XYCZ_ADDC( CRYPTOLITE_Type *base,
         y2 = temp;
     }
 
-
-
-   
-
-    Cryptolite_EC_SubMod( base, cfContext, t1, x2, x1);
-    Cryptolite_EC_SquareMod( base, cfContext, t1, t1, size);
-    Cryptolite_EC_MulMod( base, cfContext, t2, x2, t1, size);
-    Cryptolite_EC_MulMod( base, cfContext, t3, x1, t1, size);
-    Cryptolite_EC_SubMod( base, cfContext, t1, y2, y1);
-    Cryptolite_EC_AddMod( base, cfContext, t5, y1, y2);
-    Cryptolite_EC_SubMod( base, cfContext, x2, t2, t3);
-    Cryptolite_EC_MulMod( base, cfContext, y1, y1, x2, size);
-    Cryptolite_EC_AddMod( base, cfContext, t2, t3, t2);
-    Cryptolite_EC_SquareMod( base, cfContext, x2, t1, size);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, t1, x2, x1);
+    Cy_Cryptolite_EC_SquareMod( base, cfContext, t1, t1, size);
+    Cy_Cryptolite_EC_MulMod( base, cfContext, t2, x2, t1, size);
+    Cy_Cryptolite_EC_MulMod( base, cfContext, t3, x1, t1, size);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, t1, y2, y1);
+    Cy_Cryptolite_EC_AddMod( base, cfContext, t5, y1, y2);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, x2, t2, t3);
+    Cy_Cryptolite_EC_MulMod( base, cfContext, y1, y1, x2, size);
+    Cy_Cryptolite_EC_AddMod( base, cfContext, t2, t3, t2);
+    Cy_Cryptolite_EC_SquareMod( base, cfContext, x2, t1, size);
 
     
 
-    Cryptolite_EC_SubMod( base, cfContext, x2, x2, t2);
-    Cryptolite_EC_SquareMod( base, cfContext, t4, t5, size);
-    Cryptolite_EC_SubMod( base, cfContext, x1, t3, x2);
-    Cryptolite_EC_MulMod( base, cfContext, x1, t1, x1, size);
-    Cryptolite_EC_SubMod( base, cfContext, y2, x1, y1);
-    Cryptolite_EC_SubMod( base, cfContext, x1, t4, t2);
-    Cryptolite_EC_SubMod( base, cfContext, t1, x1, t3);
-    Cryptolite_EC_MulMod( base, cfContext, t3, t5, t1, size);
-    Cryptolite_EC_SubMod( base, cfContext, y1, t3, y1);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, x2, x2, t2);
+    Cy_Cryptolite_EC_SquareMod( base, cfContext, t4, t5, size);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, x1, t3, x2);
+    Cy_Cryptolite_EC_MulMod( base, cfContext, x1, t1, x1, size);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, y2, x1, y1);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, x1, t4, t2);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, t1, x1, t3);
+    Cy_Cryptolite_EC_MulMod( base, cfContext, t3, t5, t1, size);
+    Cy_Cryptolite_EC_SubMod( base, cfContext, y1, t3, y1);
 
     Cy_Cryptolite_Vu_wait_hw(base);
     temp = y1;
@@ -428,14 +417,14 @@ void Cryptolite_EC_XYCZ_ADDC( CRYPTOLITE_Type *base,
  @param[in] mod          Register index for modulo value.
  @param[in] size             Bit size.
 */
-void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t * px,
                             uint8_t * py,
                             uint8_t * pd,
                             int size,  // bit size
                             uint8_t * porder);
-void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t * px,
                             uint8_t * py,
@@ -506,15 +495,15 @@ void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
     */
 
 
-    Cryptolite_EC_SquareMod (base, cfContext, p_my_r1_y, my_p_y, size);
-    Cryptolite_EC_AddMod (base, cfContext, p_my_r1_y, p_my_r1_y,    p_my_r1_y);
-    Cryptolite_EC_SquareMod (base, cfContext, py, p_my_r1_y, size);
-    Cryptolite_EC_AddMod (base, cfContext, py, py, py);
-    Cryptolite_EC_AddMod (base, cfContext, px, p_my_r1_y, p_my_r1_y);
-    Cryptolite_EC_MulMod (base, cfContext, px, px, my_p_x, size);
-    Cryptolite_EC_SquareMod (base, cfContext, p_my_r1_x, my_p_x, size);
-    Cryptolite_EC_AddMod (base, cfContext, p_my_r1_y, p_my_r1_x, p_my_r1_x);
-    Cryptolite_EC_AddMod (base, cfContext, p_my_r1_x, p_my_r1_y, p_my_r1_x);
+    Cy_Cryptolite_EC_SquareMod (base, cfContext, p_my_r1_y, my_p_y, size);
+    Cy_Cryptolite_EC_AddMod (base, cfContext, p_my_r1_y, p_my_r1_y,    p_my_r1_y);
+    Cy_Cryptolite_EC_SquareMod (base, cfContext, py, p_my_r1_y, size);
+    Cy_Cryptolite_EC_AddMod (base, cfContext, py, py, py);
+    Cy_Cryptolite_EC_AddMod (base, cfContext, px, p_my_r1_y, p_my_r1_y);
+    Cy_Cryptolite_EC_MulMod (base, cfContext, px, px, my_p_x, size);
+    Cy_Cryptolite_EC_SquareMod (base, cfContext, p_my_r1_x, my_p_x, size);
+    Cy_Cryptolite_EC_AddMod (base, cfContext, p_my_r1_y, p_my_r1_x, p_my_r1_x);
+    Cy_Cryptolite_EC_AddMod (base, cfContext, p_my_r1_x, p_my_r1_y, p_my_r1_x);
     Cy_Cryptolite_Vu_wait_hw(base);
     Cy_Cryptolite_Vu_clr (p_t1, VU_BITS_TO_WORDS(bitsize));
     Cy_Cryptolite_Vu_set_bit (p_t1, 0);
@@ -522,13 +511,13 @@ void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
 
 
 
-    Cryptolite_EC_SubMod (base, cfContext, p_my_r1_y, p_my_r1_x, p_t1);
-    Cryptolite_EC_SquareMod (base, cfContext, p_my_r1_x, p_my_r1_y, size);
-    Cryptolite_EC_SubMod (base, cfContext, p_my_r1_x, p_my_r1_x, px);
-    Cryptolite_EC_SubMod (base, cfContext, p_my_r1_x, p_my_r1_x, px);
-    Cryptolite_EC_SubMod (base, cfContext, p_t1, px, p_my_r1_x);
-    Cryptolite_EC_MulMod (base, cfContext, p_my_r1_y, p_my_r1_y, p_t1, size);
-    Cryptolite_EC_SubMod (base, cfContext, p_my_r1_y, p_my_r1_y, py);
+    Cy_Cryptolite_EC_SubMod (base, cfContext, p_my_r1_y, p_my_r1_x, p_t1);
+    Cy_Cryptolite_EC_SquareMod (base, cfContext, p_my_r1_x, p_my_r1_y, size);
+    Cy_Cryptolite_EC_SubMod (base, cfContext, p_my_r1_x, p_my_r1_x, px);
+    Cy_Cryptolite_EC_SubMod (base, cfContext, p_my_r1_x, p_my_r1_x, px);
+    Cy_Cryptolite_EC_SubMod (base, cfContext, p_t1, px, p_my_r1_x);
+    Cy_Cryptolite_EC_MulMod (base, cfContext, p_my_r1_y, p_my_r1_y, p_t1, size);
+    Cy_Cryptolite_EC_SubMod (base, cfContext, p_my_r1_y, p_my_r1_y, py);
     (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct0, p_t1, VU_BITS_TO_WORDS(bitsize), p_my_r1_x, VU_BITS_TO_WORDS(bitsize));
     (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct1, p_t2, VU_BITS_TO_WORDS(bitsize), p_my_r1_y, VU_BITS_TO_WORDS(bitsize));
     (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct0, p_t3, VU_BITS_TO_WORDS(bitsize), px, VU_BITS_TO_WORDS(bitsize));
@@ -574,11 +563,11 @@ void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
 
     
 
-    Cryptolite_EC_XYCZ_ADDC(base, cfContext, (int)carry_size, px, py, p_my_r1_x, p_my_r1_y, size);
+    Cy_Cryptolite_EC_XYCZ_ADDC(base, cfContext, (int)carry_size, px, py, p_my_r1_x, p_my_r1_y, size);
 
 
 
-    Cryptolite_EC_XYCZ_ADD(base, cfContext, (int)carry_size, px, py, p_my_r1_x, p_my_r1_y, size);
+    Cy_Cryptolite_EC_XYCZ_ADD(base, cfContext, (int)carry_size, px, py, p_my_r1_x, p_my_r1_y, size);
 
 
 
@@ -605,8 +594,8 @@ void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
 
     carry_sizeminus1 = (dc[VU_BITS_TO_BYTES(bitsize+2U)-4U] & (0x2U)) >> 1U;
     (void)Cy_Cryptolite_Vu_lsl1_hw (base, vu_struct0, dc, VU_BITS_TO_WORDS(bitsize+2U), dc, VU_BITS_TO_WORDS(bitsize+2U));
-    Cryptolite_EC_XYCZ_ADDC(base, cfContext, (int)carry_sizeminus1, px, py, p_my_r1_x, p_my_r1_y, size);
-    Cryptolite_EC_XYCZ_ADD(base, cfContext, (int)carry_sizeminus1, px, py, p_my_r1_x, p_my_r1_y, size);
+    Cy_Cryptolite_EC_XYCZ_ADDC(base, cfContext, (int)carry_sizeminus1, px, py, p_my_r1_x, p_my_r1_y, size);
+    Cy_Cryptolite_EC_XYCZ_ADD(base, cfContext, (int)carry_sizeminus1, px, py, p_my_r1_x, p_my_r1_y, size);
 
     carry_combination = !(bool)carry_sizeplus1 && !(bool)carry_size && (bool)carry_sizeminus1;
 
@@ -634,29 +623,29 @@ void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
     {
         carry = (dc[VU_BITS_TO_BYTES(bitsize+2U)-4U] & (0x2U)) >> 1;
         (void)Cy_Cryptolite_Vu_lsl1_hw (base, vu_struct1, dc, VU_BITS_TO_WORDS(bitsize+2U), dc, VU_BITS_TO_WORDS(bitsize+2U));
-        Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
-        Cryptolite_EC_XYCZ_ADD  (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+        Cy_Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+        Cy_Cryptolite_EC_XYCZ_ADD  (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
 
         carry = (dc[VU_BITS_TO_BYTES(bitsize+2U)-4U] & (0x2U)) >> 1;
         (void)Cy_Cryptolite_Vu_lsl1_hw (base, vu_struct0, dc, VU_BITS_TO_WORDS(bitsize+2U), dc, VU_BITS_TO_WORDS(bitsize+2U));
-        Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
-        Cryptolite_EC_XYCZ_ADD  (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+        Cy_Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+        Cy_Cryptolite_EC_XYCZ_ADD  (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
     }
 
     if (!(bool)even_size)
     {
         carry = (dc[VU_BITS_TO_BYTES(bitsize+2U)-4U] & (0x2U)) >> 1;
         (void)Cy_Cryptolite_Vu_lsl1_hw (base, vu_struct1, dc, VU_BITS_TO_WORDS(bitsize+2U), dc, VU_BITS_TO_WORDS(bitsize+2U));
-        Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
-        Cryptolite_EC_XYCZ_ADD  (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+        Cy_Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+        Cy_Cryptolite_EC_XYCZ_ADD  (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
     }
 
     carry = (dc[VU_BITS_TO_BYTES(bitsize+2U)-4U] & (0x2U)) >> 1;
     (void)Cy_Cryptolite_Vu_lsl1_hw (base, vu_struct0, dc, VU_BITS_TO_WORDS(bitsize+2U), dc, VU_BITS_TO_WORDS(bitsize+2U));
 
-    Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
-    Cryptolite_EC_SubMod (base, cfContext, p_t1, p_my_r1_x, px);
-    Cryptolite_EC_MulMod (base, cfContext, p_t1, p_t1, my_p_x, size);
+    Cy_Cryptolite_EC_XYCZ_ADDC (base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+    Cy_Cryptolite_EC_SubMod (base, cfContext, p_t1, p_my_r1_x, px);
+    Cy_Cryptolite_EC_MulMod (base, cfContext, p_t1, p_t1, my_p_x, size);
 
     (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct0, p_t2, VU_BITS_TO_WORDS(bitsize), px, VU_BITS_TO_WORDS(bitsize));
     (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct1, p_t3, VU_BITS_TO_WORDS(bitsize), py, VU_BITS_TO_WORDS(bitsize));
@@ -668,21 +657,21 @@ void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
         p_t3 = p_my_r1_y;
     }
 
-    Cryptolite_EC_MulMod( base, cfContext, p_t3, p_t1, p_t3, size);
+    Cy_Cryptolite_EC_MulMod( base, cfContext, p_t3, p_t1, p_t3, size);
     Cy_Cryptolite_Vu_wait_hw(base);
 
     Cy_Cryptolite_Vu_clr(p_t1, VU_BITS_TO_WORDS(bitsize));
     Cy_Cryptolite_Vu_set_bit(p_t1, 0);
 
-    Cryptolite_EC_DivMod(base, cfContext, p_t3, p_t1, p_t3, (int)size);
-    Cryptolite_EC_MulMod(base, cfContext, p_t1, my_p_y, p_t3, size);
-    Cryptolite_EC_MulMod(base, cfContext, lambda, p_t2, p_t1, size);
-    Cryptolite_EC_XYCZ_ADD(base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
+    Cy_Cryptolite_EC_DivMod(base, cfContext, p_t3, p_t1, p_t3, (int)size);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, p_t1, my_p_y, p_t3, size);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, lambda, p_t2, p_t1, size);
+    Cy_Cryptolite_EC_XYCZ_ADD(base, cfContext, (int)carry, px, py, p_my_r1_x, p_my_r1_y, size);
 
-    Cryptolite_EC_SquareMod(base, cfContext, my_p_x, lambda, size);
-    Cryptolite_EC_MulMod(base, cfContext, lambda, my_p_x, lambda, size);
-    Cryptolite_EC_MulMod(base, cfContext, px, px, my_p_x, size);
-    Cryptolite_EC_MulMod(base, cfContext, py, py, lambda, size);
+    Cy_Cryptolite_EC_SquareMod(base, cfContext, my_p_x, lambda, size);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, lambda, my_p_x, lambda, size);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, px, px, my_p_x, size);
+    Cy_Cryptolite_EC_MulMod(base, cfContext, py, py, lambda, size);
 }
 
 /**
@@ -693,13 +682,13 @@ void Cryptolite_EC_JacobianEcScalarMul_coZ( CRYPTOLITE_Type *base,
 * @param[in] p_order    Register index for order value.
 * @param[in] bitsize    Bit size of the used curve.
 */
-void Cryptolite_EC_NistP_PointMul(CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_NistP_PointMul(CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t *p_x, uint8_t *p_y,
                             uint8_t *p_d, uint8_t *p_order,
                             int bitsize)
 {
-    Cryptolite_EC_JacobianEcScalarMul_coZ(base, cfContext, p_x, p_y, p_d, bitsize, p_order);
+    Cy_Cryptolite_EC_JacobianEcScalarMul_coZ(base, cfContext, p_x, p_y, p_d, bitsize, p_order);
     Cy_Cryptolite_Vu_wait_hw(base);
 }
 

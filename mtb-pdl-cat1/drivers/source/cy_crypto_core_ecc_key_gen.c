@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_ecc_key_gen.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constant and parameters for the API for the ECC key
@@ -98,7 +98,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakeKeyPair(CRYPTO_Type *base,
 *
 * Make a new ECC private key
 *
-* For CAT1C devices when D-Cache is enabled parameter key must align and end in 32 byte boundary.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameter key must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to a Crypto instance.
@@ -123,12 +123,13 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakePrivateKey(CRYPTO_Type *base,
         cy_func_get_random_data_t GetRandomDataFunc, void *randomDataInfo)
 {
     cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
+    uint8_t *keyRemap;
 
     const cy_stc_crypto_ecc_dp_type *eccDp = Cy_Crypto_Core_ECC_GetCurveParams(curveID);
 
     if ((eccDp != NULL) && (key != NULL))
     {
-        tmpResult = CY_CRYPTO_SUCCESS;
+        keyRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key);
 
         uint32_t bitsize = eccDp->size;
         uint32_t bytesize = CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize);
@@ -137,9 +138,16 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakePrivateKey(CRYPTO_Type *base,
         uint32_t p_key  = 9u;     /* private key */
 
         /* Load random data into VU */
-        CY_CRYPTO_VU_ALLOC_MEM(base, VR_D, bitsize);
-        CY_CRYPTO_VU_ALLOC_MEM(base, p_key, bytesize * 8u);
-
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, VR_D, bitsize);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }        
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, p_key, bytesize * 8u);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }
         /* generate random string */
         uint32_t *keyRegPtr = Cy_Crypto_Core_Vu_RegMemPointer(base, p_key);
 
@@ -149,9 +157,9 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakePrivateKey(CRYPTO_Type *base,
             {
                 tmpResult = CY_CRYPTO_HW_ERROR;
             }
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
             /* Flush the cache */
-            SCB_CleanDCache_by_Addr((volatile void *)keyRegPtr,(int32_t)bytesize);
+            SCB_CleanDCache_by_Addr((volatile void *)key,(int32_t)bytesize);
 #endif
         }
         else
@@ -196,17 +204,29 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakePrivateKey(CRYPTO_Type *base,
 
             /* load prime and order defining the curve as well as the barrett coefficient. */
             /* P and BARRETT_U are "globally" defined in cy_crypto_core_ecc.h */
-            CY_CRYPTO_VU_ALLOC_MEM(base, VR_P, bitsize);
-            Cy_Crypto_Core_Vu_SetMemValue (base, VR_P, eccDp->order, bitsize);
+            tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, VR_P, bitsize);
+            if(CY_CRYPTO_SUCCESS != tmpResult)
+            {
+                return tmpResult;
+            }            
+            Cy_Crypto_Core_Vu_SetMemValue (base, VR_P, (uint8_t const *)CY_REMAP_ADDRESS_FOR_CRYPTO(eccDp->order), bitsize);
 
             /* check that key is smaller than the order of the base point */
             if (!Cy_Crypto_Core_Vu_IsRegLess(base, VR_D, VR_P))
             {
                 /* private key (random data) >= order, needs reduction */
-                CY_CRYPTO_VU_ALLOC_MEM(base, VR_BARRETT, bitsize + 1u);
-                Cy_Crypto_Core_Vu_SetMemValue (base, VR_BARRETT, eccDp->barrett_o, bitsize + 1u);
+                tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, VR_BARRETT, bitsize + 1u);
+                if(CY_CRYPTO_SUCCESS != tmpResult)
+                {
+                    return tmpResult;
+                }                
+                Cy_Crypto_Core_Vu_SetMemValue (base, VR_BARRETT, (uint8_t const *)CY_REMAP_ADDRESS_FOR_CRYPTO(eccDp->barrett_o), bitsize + 1u);
 
-                CY_CRYPTO_VU_ALLOC_MEM(base, p_temp, bitsize);
+                tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, p_temp, bitsize);
+                if(CY_CRYPTO_SUCCESS != tmpResult)
+                {
+                    return tmpResult;
+                }                
                 CY_CRYPTO_VU_MOV(base, p_temp, VR_D);
 
                 /* use Barrett reduction algorithm for operations modulo n (order of the base point) */
@@ -214,16 +234,19 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakePrivateKey(CRYPTO_Type *base,
                 Cy_Crypto_Core_EC_NistP_SetMode(bitsize);
 
                 /* z = x % mod */
-                Cy_Crypto_Core_EC_Bar_MulRed(base, VR_D, p_temp, bitsize);
-
+                tmpResult = Cy_Crypto_Core_EC_Bar_MulRed(base, VR_D, p_temp, bitsize);
+                if(CY_CRYPTO_SUCCESS != tmpResult)
+                {
+                    return tmpResult;
+                }  
                 CY_CRYPTO_VU_FREE_MEM(base, CY_CRYPTO_VU_REG_BIT(VR_BARRETT) |
                                             CY_CRYPTO_VU_REG_BIT(p_temp));
             }
 
             CY_CRYPTO_VU_FREE_MEM(base, CY_CRYPTO_VU_REG_BIT(VR_P));
 
-            Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t *)key, VR_D, bitsize);
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+            Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t *)keyRemap, VR_D, bitsize);
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
             SCB_InvalidateDCache_by_Addr(key, (int32_t)bytesize);
 #endif
             tmpResult = CY_CRYPTO_SUCCESS;
@@ -243,7 +266,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakePrivateKey(CRYPTO_Type *base,
 *
 * Make a new ECC public key
 *
-* For CAT1C devices when D-Cache is enabled parameters privateKey and  x & y  of publicKey must align and end in 32 byte boundary.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameters privateKey and  x & y  of publicKey must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to a Crypto instance.
@@ -266,54 +289,95 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_MakePublicKey(CRYPTO_Type *base,
         cy_stc_crypto_ecc_key *publicKey)
 {
     cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
+    uint8_t * privateKeyRemap;
+    uint8_t * publicKeyXRemap;
+    uint8_t * publicKeyYRemap;
 
     cy_stc_crypto_ecc_dp_type *eccDp = Cy_Crypto_Core_ECC_GetCurveParams(curveID);
 
     if ((eccDp != NULL) && (privateKey != NULL) && (publicKey != NULL) &&
         (publicKey->pubkey.x != NULL) && (publicKey->pubkey.y != NULL))
     {
+
+        privateKeyRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(privateKey);
+        publicKeyXRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(publicKey->pubkey.x);
+        publicKeyYRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(publicKey->pubkey.y);
+
         uint32_t bitsize = eccDp->size;
 
         uint32_t p_order = 9u;    /* order of the curve */
         uint32_t p_d = 10u;       /* private key */
         uint32_t p_x = 11u;       /* x coordinate */
         uint32_t p_y = 12u;       /* y coordinate */
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
         /* Flush the cache */
         SCB_CleanDCache_by_Addr((volatile void *)privateKey,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
 #endif
         /* make the public key
          * EC scalar multiplication - X,Y-only co-Z arithmetic
          */
-        CY_CRYPTO_VU_ALLOC_MEM(base, VR_P, bitsize);
-        CY_CRYPTO_VU_ALLOC_MEM(base, p_order, bitsize);
-        CY_CRYPTO_VU_ALLOC_MEM(base, VR_BARRETT, bitsize + 1u);
-        CY_CRYPTO_VU_ALLOC_MEM(base, p_x, bitsize);
-        CY_CRYPTO_VU_ALLOC_MEM(base, p_y, bitsize);
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, VR_P, bitsize);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }
+
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, p_order, bitsize);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }
+
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, VR_BARRETT, bitsize + 1u);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }
+
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, p_x, bitsize);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }
+
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, p_y, bitsize);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }        
 
         /* Apply domain parameters */
         /* load prime and order defining the curve as well as the barrett coefficient. */
         /* P and BARRETT_U are "globally" defined in cy_crypto_core_ecc.h */
-        Cy_Crypto_Core_Vu_SetMemValue (base, VR_P, eccDp->prime, bitsize);
-        Cy_Crypto_Core_Vu_SetMemValue (base, p_order, eccDp->order, bitsize);
-        Cy_Crypto_Core_Vu_SetMemValue (base, VR_BARRETT, eccDp->barrett_p, bitsize + 1u);
+        Cy_Crypto_Core_Vu_SetMemValue (base, VR_P, (uint8_t const *)CY_REMAP_ADDRESS_FOR_CRYPTO(eccDp->prime), bitsize);
+        Cy_Crypto_Core_Vu_SetMemValue (base, p_order, (uint8_t const *)CY_REMAP_ADDRESS_FOR_CRYPTO(eccDp->order), bitsize);
+        Cy_Crypto_Core_Vu_SetMemValue (base, VR_BARRETT, (uint8_t const *)CY_REMAP_ADDRESS_FOR_CRYPTO(eccDp->barrett_p), bitsize + 1u);
 
         /*Base Point, G = (p_x, p_y) */
-        Cy_Crypto_Core_Vu_SetMemValue (base, p_x, eccDp->Gx, bitsize);
-        Cy_Crypto_Core_Vu_SetMemValue (base, p_y, eccDp->Gy, bitsize);
+        Cy_Crypto_Core_Vu_SetMemValue (base, p_x, (uint8_t const *)CY_REMAP_ADDRESS_FOR_CRYPTO(eccDp->Gx), bitsize);
+        Cy_Crypto_Core_Vu_SetMemValue (base, p_y, (uint8_t const *)CY_REMAP_ADDRESS_FOR_CRYPTO(eccDp->Gy), bitsize);
 
         Cy_Crypto_Core_EC_NistP_SetMode(bitsize);
         Cy_Crypto_Core_EC_NistP_SetRedAlg(eccDp->algo);
 
         /* Load private key */
-        CY_CRYPTO_VU_ALLOC_MEM(base, p_d, bitsize);
-        Cy_Crypto_Core_Vu_SetMemValue(base, p_d, (uint8_t *)privateKey, bitsize);
+        tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, p_d, bitsize);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }
+   
+        Cy_Crypto_Core_Vu_SetMemValue(base, p_d, (uint8_t *)privateKeyRemap, bitsize);
 
-        Cy_Crypto_Core_EC_NistP_PointMul(base, p_x, p_y, p_d, p_order, bitsize);
+        tmpResult = Cy_Crypto_Core_EC_NistP_PointMul(base, p_x, p_y, p_d, p_order, bitsize);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }       
 
-        Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t *)publicKey->pubkey.x, p_x, bitsize);
-        Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t *)publicKey->pubkey.y, p_y, bitsize);
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+        Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t *)publicKeyXRemap, p_x, bitsize);
+        Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t *)publicKeyYRemap, p_y, bitsize);
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
         SCB_InvalidateDCache_by_Addr(publicKey->pubkey.x, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
         SCB_InvalidateDCache_by_Addr(publicKey->pubkey.y, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
 #endif

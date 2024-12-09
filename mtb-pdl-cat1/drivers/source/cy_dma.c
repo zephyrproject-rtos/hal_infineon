@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_dma.c
-* \version 2.70
+* \version 2.90
 *
 * \brief
 * The source code file for the DMA driver.
@@ -95,6 +95,11 @@ cy_en_dma_status_t Cy_DMA_Crc_Init(DW_Type * base, cy_stc_dma_crc_config_t const
 * \return
 * The status /ref cy_en_dma_status_t.
 *
+* \note Based on the descriptor type, the offset of the address for the next descriptor may
+* vary. For a single-transfer descriptor type, this register is at offset 0x0c.
+* For the 1D-transfer descriptor type, this register is at offset 0x10.
+* For the 2D-transfer descriptor type, this register is at offset 0x14.
+*
 * \funcusage
 * \snippet dma/snippet/main.c snippet_Cy_DMA_Enable
 *
@@ -147,7 +152,7 @@ cy_en_dma_status_t Cy_DMA_Descriptor_Init(cy_stc_dma_descriptor_t * descriptor, 
                     _VAL2FLD(CY_DMA_CTL_DST_INCR, config->dstXincrement) |
     /* Convert the data count from the user's range (1-256) into the machine range (0-255). */
                     _VAL2FLD(CY_DMA_CTL_COUNT, config->xCount - 1UL);
-
+                /* offset varies based on the descriptor type */
                 descriptor->yCtl = (uint32_t)config->nextDescriptor;
                 ret = CY_DMA_SUCCESS;
                 break;
@@ -187,7 +192,7 @@ cy_en_dma_status_t Cy_DMA_Descriptor_Init(cy_stc_dma_descriptor_t * descriptor, 
                         _VAL2FLD(CY_DMA_CTL_SRC_INCR, config->srcXincrement) |
         /* Convert the data count from the user's range (1-256) into the machine range (0-255). */
                         _VAL2FLD(CY_DMA_CTL_COUNT, config->xCount - 1UL);
-
+                    /* offset varies based on the descriptor type */
                     descriptor->yCtl = (uint32_t)config->nextDescriptor;
                     ret = CY_DMA_SUCCESS;
                 }

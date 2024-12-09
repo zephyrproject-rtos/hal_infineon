@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_aes.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constant and parameters for the API for the AES method
@@ -98,6 +98,8 @@ typedef cy_en_crypto_status_t (*cy_crypto_aes_ctr_func_t)(CRYPTO_Type *base,
 ****************************************************************************//**
 *
 * Initializes AES mode of operation and prepares an inverse key.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters key must align and end in 32 byte boundary.
+*
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -244,6 +246,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Free(CRYPTO_Type *base,
 ****************************************************************************//**
 *
 * Performs the AES operation on a single block.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src & dst must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -292,6 +295,157 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ecb(CRYPTO_Type *base,
 
     return tmpResult;
 }
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ecb_Setup
+****************************************************************************//**
+*
+* Performs an AES ECB init operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param dirMode
+* Can be \ref CY_CRYPTO_ENCRYPT or \ref CY_CRYPTO_DECRYPT
+* (\ref cy_en_crypto_dir_mode_t).
+*
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ecb_Setup(CRYPTO_Type *base,
+                                            cy_en_crypto_dir_mode_t dirMode,
+                                            cy_stc_crypto_aes_state_t *aesState)
+
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)dirMode;
+        (void)aesState;
+
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ecb_Setup(base, dirMode, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ecb_Update
+****************************************************************************//**
+*
+* Performs an AES ECB Multistage update operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src & dst must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ecb_Update(CRYPTO_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t *dst,
+                                            uint8_t const *src,
+                                            cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)srcSize;
+        (void)dst;
+        (void)src;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ecb_Update(base, srcSize, dst, src, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ecb_Finish
+****************************************************************************//**
+*
+* Performs an AES ECB finish operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ecb_Finish(CRYPTO_Type *base, cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ecb_Finish(base, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
 
 #if defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC)
 /*******************************************************************************
@@ -353,6 +507,347 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cbc(CRYPTO_Type *base,
 
     return tmpResult;
 }
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cbc_Setup
+****************************************************************************//**
+*
+* Performs an AES CBC setup operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param dirMode
+* Can be \ref CY_CRYPTO_ENCRYPT or \ref CY_CRYPTO_DECRYPT
+* (\ref cy_en_crypto_dir_mode_t).
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cbc_Setup(CRYPTO_Type *base,
+                                            cy_en_crypto_dir_mode_t dirMode,
+                                            cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)dirMode;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cbc_Setup(base, dirMode, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cbc_Set_IV
+****************************************************************************//**
+*
+* Function to set AES CBC IV.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters iv must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param iv
+* The pointer to the IV.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cbc_Set_IV(CRYPTO_Type *base,
+                                            uint8_t const * iv,
+                                            cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)iv;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cbc_Set_IV(base, iv, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cbc_Update
+****************************************************************************//**
+*
+* Performs an AES CBC Multistage update operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src & dst must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cbc_Update(CRYPTO_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t *dst,
+                                            uint8_t const *src,
+                                            cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)srcSize;
+        (void)dst;
+        (void)src;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cbc_Update(base, srcSize, dst, src, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cbc_Finish
+****************************************************************************//**
+*
+* Performs an AES CBC finish operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cbc_Finish(CRYPTO_Type *base, cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cbc_Finish(base, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_CbcMac_Setup
+****************************************************************************//**
+*
+* Performs an AES CBC MAC setup operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_CbcMac_Setup(CRYPTO_Type *base, cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_CbcMac_Setup(base, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_CbcMac_Update
+****************************************************************************//**
+*
+* Performs an AES CBC MAC Multistage update operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_CbcMac_Update(CRYPTO_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t const *src,
+                                            cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)srcSize;
+        (void)src;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_CbcMac_Update(base, srcSize, src, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_CbcMac_Finish
+****************************************************************************//**
+*
+* Performs an AES CBC finish operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters mac must align and end in 32 byte boundary.
+*
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param mac
+* The pointer to the cbc-mac.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_CbcMac_Finish(CRYPTO_Type *base, uint8_t *mac, cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)mac;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_CbcMac_Finish(base, mac, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
 #endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC) */
 
 #if defined(CY_CRYPTO_CFG_CIPHER_MODE_CFB)
@@ -415,6 +910,209 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cfb(CRYPTO_Type *base,
 
     return tmpResult;
 }
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cfb_Setup
+****************************************************************************//**
+*
+* Performs an AES CFB setup operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param dirMode
+* Can be \ref CY_CRYPTO_ENCRYPT or \ref CY_CRYPTO_DECRYPT
+* (\ref cy_en_crypto_dir_mode_t).
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cfb_Setup(CRYPTO_Type *base,
+                                            cy_en_crypto_dir_mode_t dirMode,
+                                            cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)dirMode;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cfb_Setup(base, dirMode, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cfb_Set_IV
+****************************************************************************//**
+*
+* Sets IV for AES CFB mode.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters iv must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param iv
+* The pointer to iv.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cfb_Set_IV(CRYPTO_Type *base,
+                                            uint8_t const * iv,
+                                            cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)iv;
+        (void)aesState;        
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cfb_Set_IV(base, iv, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cfb_Update
+****************************************************************************//**
+*
+* Performs an AES CFB Multistage update operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src & dst must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cfb_Update(CRYPTO_Type *base,
+                                             uint32_t srcSize,
+                                             uint8_t *dst,
+                                             uint8_t const *src,
+                                             cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)srcSize;
+        (void)dst;
+        (void)src;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cfb_Update(base, srcSize, dst, src, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Cfb_Finish
+****************************************************************************//**
+*
+* Performs an AES CFB finish operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cfb_Finish(CRYPTO_Type *base, cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Cfb_Finish(base, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
 #endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CFB) */
 
 #if defined(CY_CRYPTO_CFG_CIPHER_MODE_CTR)
@@ -423,6 +1121,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Cfb(CRYPTO_Type *base,
 ****************************************************************************//**
 *
 * Performs the AES-CTR operation on a plain text defined in the src parameter.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters iv must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -480,6 +1179,202 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ctr(CRYPTO_Type *base,
 
     return tmpResult;
 }
+
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ctr_Setup
+****************************************************************************//**
+*
+* Performs an AES CTR Multistage update operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ctr_Setup(CRYPTO_Type *base,
+                                            cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ctr_Setup(base, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}  
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ctr_Set_IV
+****************************************************************************//**
+*
+* Sets IV for the AES CTR operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param iv
+* The pointer to iv.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ctr_Set_IV(CRYPTO_Type *base,
+                                            const uint8_t *iv,
+                                            cy_stc_crypto_aes_state_t *aesState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)iv;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ctr_Set_IV(base, iv, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}  
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ctr_Update
+****************************************************************************//**
+*
+* Performs an AES CTR Multistage update operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src & dst must align and end in 32 byte boundary.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ctr_Update(CRYPTO_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t *dst,
+                                            uint8_t const *src,
+                                            cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)srcSize;
+        (void)dst;
+        (void)src;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ctr_Update(base, srcSize, dst, src, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}  
+
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ctr_Finish
+****************************************************************************//**
+*
+* Performs an AES CTR Finish operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ctr_Finish(CRYPTO_Type *base, cy_stc_crypto_aes_state_t *aesState)
+
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ctr_Finish(base, aesState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}  
+
 #endif /* defined(CY_CRYPTO_CFG_CIPHER_MODE_CTR) */
 
 #if (CPUSS_CRYPTO_GCM == 1) && defined(CY_CRYPTO_CFG_GCM_C)
@@ -535,6 +1430,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_GCM_Init(CRYPTO_Type *b
 ****************************************************************************//**
 *
 * The function to set AES GCM Key.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters aeskey must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -583,6 +1479,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_GCM_SetKey(CRYPTO_Type 
 ****************************************************************************//**
 *
 * The function to start AES GCM operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters iv must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -636,6 +1533,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_GCM_Start(CRYPTO_Type *
 ****************************************************************************//**
 *
 * The function to update the Additional Authentication Data.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters aad must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -687,6 +1585,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_GCM_AAD_Update(CRYPTO_T
 ****************************************************************************//**
 *
 * The function to update the data
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters input & output must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -741,6 +1640,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_GCM_Update(CRYPTO_Type 
 ****************************************************************************//**
 *
 * The function to finish the AES GCM operation and to calculate the tag.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters p_tag must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -980,6 +1880,588 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_GCM_Decrypt_Tag(CRYPTO_
     return tmpResult;
 }
 #endif /* (CPUSS_CRYPTO_GCM == 1) && defined(CY_CRYPTO_CFG_GCM_C)*/
+
+
+#if defined(CY_CRYPTO_CFG_CCM_C)
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Init
+****************************************************************************//**
+*
+* Performs an AES CCM Init operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesCcmBuffer The buffers should be a SAHB mapped addresses.
+* The pointer to the memory buffers storage.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Init(CRYPTO_Type *base,
+                                            cy_stc_crypto_aes_ccm_buffers_t * aesCcmBuffer, cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesCcmBuffer;
+        (void)aesCcmState;
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Init(base, aesCcmBuffer, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}   
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_SetKey
+****************************************************************************//**
+*
+* Sets AES CCM Key for the operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param key
+* The pointer to the CCM key.
+*
+* \param keyLength
+* \ref cy_en_crypto_aes_key_length_t
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_SetKey(CRYPTO_Type *base,
+                                            uint8_t const *key, cy_en_crypto_aes_key_length_t keyLength,
+                                            cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)key;
+        (void)keyLength;
+        (void)aesCcmState;        
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_SetKey(base, key, keyLength, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}                                            
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Set_Length
+****************************************************************************//**
+*
+* Sets the length for Additional authentication data, plain text and Tag for AES CCM operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aadSize
+* The Size of the Additional Authentication Data.
+*
+* \param textSize
+* The Size of the Text.
+*
+* \param tagLength
+* The Size of the Tag.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Set_Length(CRYPTO_Type *base,
+                                            uint32_t aadSize,  uint32_t textSize, uint32_t tagLength,
+                                            cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aadSize;
+        (void)textSize;
+        (void)tagLength;
+        (void)aesCcmState;          
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Set_Length(base, aadSize, textSize, tagLength, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}   
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Start
+****************************************************************************//**
+*
+* Function to set IV for the AES CCM operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param dirMode
+* Can be \ref CY_CRYPTO_ENCRYPT or \ref CY_CRYPTO_DECRYPT
+* (\ref cy_en_crypto_dir_mode_t)
+*
+* \param ivSize
+* The size of the IV.
+*
+* \param iv
+* The pointer to the IV.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Start(CRYPTO_Type *base,
+                                            cy_en_crypto_dir_mode_t dirMode,    
+                                             uint32_t ivSize, uint8_t const * iv,
+                                            cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)dirMode;
+        (void)ivSize;
+        (void)iv;
+        (void)aesCcmState;          
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Start(base, dirMode, ivSize, iv, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}   
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Update_Aad
+****************************************************************************//**
+*
+* Performs an AES CCM update AAD Multistage  operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aadSize
+* The size of the AAD.
+*
+* \param aad
+* The pointer to a AAD.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Update_Aad(CRYPTO_Type *base,
+                                            uint32_t aadSize,
+                                            uint8_t const *aad,
+                                            cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aadSize;
+        (void)aad;
+        (void)aesCcmState;           
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Update_Aad(base, aadSize, aad, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Update
+***************************************************************************//**
+*
+* Performs an AES CCM Update Multistage update operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Update(CRYPTO_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t *dst,
+                                            uint8_t const *src,
+                                            cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)srcSize;
+        (void)dst;
+        (void)src;
+        (void)aesCcmState;              
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Update(base, srcSize, dst, src, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}   
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Finish
+****************************************************************************//**
+*
+* Performs an AES CCM finish operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param tag
+* The pointer to the CCM Tag.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Finish(CRYPTO_Type *base, uint8_t *tag, cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)tag;
+        (void)aesCcmState;          
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Finish(base, tag, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Encrypt_Tag
+****************************************************************************//**
+*
+* Performs an AES CCM Encrypt operation.
+* \note Cy_Crypto_Core_Aes_Ccm_Init() and Cy_Crypto_Core_Aes_Ccm_SetKey() should be called before calling this function
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param ivSize
+* The size of the IV.
+*
+* \param iv
+* The pointer to the IV.
+*
+* \param aadSize
+* The size of the AAD.
+*
+* \param aad
+* The pointer to a AAD.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param cipherTxt
+* The pointer to a cipher text block.
+*
+* \param plainTxt
+* The pointer to a plain text block.
+*
+* \param tagSize
+* The size of the Tag.
+*
+* \param tag
+* The pointer to the tags.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Encrypt_Tag(CRYPTO_Type *base,
+                                            uint32_t ivSize, uint8_t const * iv,
+                                            uint32_t aadSize, uint8_t const *aad,
+                                            uint32_t srcSize, uint8_t *cipherTxt, uint8_t const *plainTxt,
+                                            uint32_t tagSize, uint8_t *tag,
+                                            cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)ivSize;
+        (void)iv;
+        (void)aadSize;
+        (void)aad;
+        (void)srcSize;
+        (void)cipherTxt;
+        (void)plainTxt;
+        (void)tagSize;
+        (void)tag;
+        (void)aesCcmState;          
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Encrypt_Tag(base, ivSize, iv, aadSize, aad, srcSize, cipherTxt, plainTxt, tagSize, tag, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+}   
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Decrypt
+****************************************************************************//**
+*
+* Performs an AES CCM Decrypt operation.
+* \note Cy_Crypto_Core_Aes_Ccm_Init() and Cy_Crypto_Core_Aes_Ccm_SetKey() should be called before calling this function
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param ivSize
+* The size of the IV.
+*
+* \param iv
+* The pointer to the IV.
+*
+* \param aadSize
+* The size of the AAD.
+*
+* \param aad
+* The pointer to a AAD.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param plainTxt
+* The pointer to a plain text block.
+*
+* \param cipherTxt
+* The pointer to a cipher text block.
+*
+* \param tagSize
+* The size of the Tag.
+*
+* \param tag
+* The pointer to the tags.
+*
+* \param isValid
+* The pointer Store the authentication status.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Decrypt(CRYPTO_Type *base,
+                                            uint32_t ivSize, uint8_t const * iv,
+                                            uint32_t aadSize, uint8_t const *aad,
+                                            uint32_t srcSize, uint8_t *plainTxt, uint8_t const *cipherTxt,
+                                            uint32_t tagSize, uint8_t const *tag, cy_en_crypto_aesccm_tag_verify_result_t *isValid,
+                                            cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)ivSize;
+        (void)iv;
+        (void)aadSize;
+        (void)aad;
+        (void)srcSize;
+        (void)cipherTxt;
+        (void)plainTxt;
+        (void)tagSize;
+        (void)tag;
+        (void)isValid;
+        (void)aesCcmState;          
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Decrypt(base, ivSize, iv, aadSize, aad, srcSize, plainTxt, cipherTxt, tagSize, tag, isValid, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}   
+
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Aes_Ccm_Free
+****************************************************************************//**
+*
+* Clears AES CCM operation context.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesCcmState
+* The pointer to the AES CCM state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Aes_Ccm_Free(CRYPTO_Type *base, cy_stc_crypto_aes_ccm_state_t *aesCcmState)
+{
+
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+
+    if (CY_CRYPTO_V1)
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
+        (void)base;
+        (void)aesCcmState;         
+        tmpResult = CY_CRYPTO_NOT_SUPPORTED;
+        #endif /* defined(CY_CRYPTO_CFG_HW_V1_ENABLE) */
+    }
+    else
+    {
+        #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
+        tmpResult = Cy_Crypto_Core_V2_Aes_Ccm_Free(base, aesCcmState);
+        #endif /* defined(CY_CRYPTO_CFG_HW_V2_ENABLE) */
+    }
+
+    return tmpResult;
+
+}
+
+#endif /*CY_CRYPTO_CFG_CCM_C*/
 
 /** \} group_crypto_lld_symmetric_functions */
 

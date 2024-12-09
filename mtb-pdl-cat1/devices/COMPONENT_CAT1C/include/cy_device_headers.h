@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -117,8 +117,44 @@
     #include "cyt4bfcchs.h"
 #elif defined (CYT4BFCCHE)
     #include "cyt4bfcche.h"
+#elif defined (CYT4DNJBAS)
+    #include "cyt4dnjbas.h"
+#elif defined (CYT4DNJBBS)
+    #include "cyt4dnjbbs.h"
+#elif defined (CYT4DNJBCS)
+    #include "cyt4dnjbcs.h"
+#elif defined (CYT4DNJBDS)
+    #include "cyt4dnjbds.h"
+#elif defined (CYT4DNJBES)
+    #include "cyt4dnjbes.h"
+#elif defined (CYT4DNJBFS)
+    #include "cyt4dnjbfs.h"
+#elif defined (CYT4DNJBGS)
+    #include "cyt4dnjbgs.h"
+#elif defined (CYT4DNJBHS)
+    #include "cyt4dnjbhs.h"
+#elif defined (CYT4DNJBJS)
+    #include "cyt4dnjbjs.h"
+#elif defined (CYT4DNJBKS)
+    #include "cyt4dnjbks.h"
+#elif defined (CYT4DNJBLS)
+    #include "cyt4dnjbls.h"
+#elif defined (CYT4DNJBMS)
+    #include "cyt4dnjbms.h"
+#elif defined (CYT4DNJBNS)
+    #include "cyt4dnjbns.h"
+#elif defined (CYT4DNJBPS)
+    #include "cyt4dnjbps.h"
+#elif defined (CYT4DNJBQS)
+    #include "cyt4dnjbqs.h"
+#elif defined (CYT4DNJBRS)
+    #include "cyt4dnjbrs.h"
+#elif defined (CYT4DNJBSS)
+    #include "cyt4dnjbss.h"
+#elif defined (CYT4DNJBZS)
+    #include "cyt4dnjbzs.h"
 #else
-    #error Undefined part number
+    #error Undefined part number. Consider updating PDL via ModusToolbox Library Manager to resolve the issue.
 #endif
 
 #endif /* _CY_DEVICE_HEADERS_H_ */

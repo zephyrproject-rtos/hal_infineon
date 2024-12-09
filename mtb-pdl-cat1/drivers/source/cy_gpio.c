@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_gpio.c
-* \version 1.90
+* \version 1.110
 *
 * Provides an API implementation of the GPIO driver
 *
@@ -264,10 +264,11 @@ cy_en_gpio_status_t Cy_GPIO_Port_Init(GPIO_PRT_Type* base, const cy_stc_gpio_prt
         baseHSIOM = (HSIOM_PRT_V1_Type*)(CY_HSIOM_BASE + (HSIOM_PRT_SECTION_SIZE * portNum));
 
 #if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION >= 5)
-        if ((base == (GPIO_PRT_Type*)((void*)SMIF0_CORE0_SMIF_GPIO_SMIF_PRT0)) || (base == (GPIO_PRT_Type*)((void*)SMIF0_CORE1_SMIF_GPIO_SMIF_PRT0)))
+        if (CY_GPIO_IS_SMIF_GPIO(base))
         {
-            portNum = 0;
-            baseHSIOM = (HSIOM_PRT_V1_Type*) ((base == (GPIO_PRT_Type*)((void*)SMIF0_CORE0_SMIF_GPIO_SMIF_PRT0)) ? ((void*)SMIF0_CORE0_SMIF_HSIOM_SMIF_PRT0) : ((void*)SMIF0_CORE1_SMIF_HSIOM_SMIF_PRT0));
+            uint32_t smif_core_offset = ((void *)base >= (void *)SMIF0_CORE1_SMIF_GPIO_SMIF_PRT0) ? SMIF_CORE_SECTION_SIZE : 0U;
+            portNum = ((uint32_t)(base) - CY_SMIF_GPIO_BASE - smif_core_offset) / SMIF_CORE_SMIF_GPIO_SMIF_PRT_SECTION_SIZE;
+            baseHSIOM = (HSIOM_PRT_V1_Type*)(CY_SMIF_HSIOM_BASE + (SMIF_CORE_SMIF_HSIOM_SMIF_PRT_SECTION_SIZE * portNum) + smif_core_offset);
         }
 #endif
 
@@ -285,17 +286,12 @@ cy_en_gpio_status_t Cy_GPIO_Port_Init(GPIO_PRT_Type* base, const cy_stc_gpio_prt
 #if defined (CY_IP_MXS40SIOSS) || defined (CY_IP_MXS22IOSS)
 #if ((defined (IOSS_HSIOM_HSIOM_SEC_PORT_NR) && (IOSS_HSIOM_HSIOM_SEC_PORT_NR != 0)) || (CPUSS_CM33_0_SECEXT_PRESENT != 0))
         CY_ASSERT_L2(CY_GPIO_IS_PIN_BIT_VALID(config->nonSecMask));
-#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION >= 5)
-        if ((base == (GPIO_PRT_Type*)((void*)SMIF0_CORE0_SMIF_GPIO_SMIF_PRT0)) || (base == (GPIO_PRT_Type*)((void*)SMIF0_CORE1_SMIF_GPIO_SMIF_PRT0)))
-        {
-            baseSecHSIOM = (HSIOM_SECURE_PRT_Type*) ((base == (GPIO_PRT_Type*)((void*)SMIF0_CORE0_SMIF_GPIO_SMIF_PRT0)) ? ((void*)SMIF0_CORE0_SMIF_HSIOM_SMIF_SECURE_PRT0) : ((void*)SMIF0_CORE1_SMIF_HSIOM_SMIF_SECURE_PRT0));
-        }
-        else
-        {
-            baseSecHSIOM = (HSIOM_SECURE_PRT_Type*)(CY_HSIOM_SECURE_BASE + (HSIOM_SECURE_PRT_SECTION_SIZE * portNum));
-        }
-#else
+
         baseSecHSIOM = (HSIOM_SECURE_PRT_Type*)(CY_HSIOM_SECURE_BASE + (HSIOM_SECURE_PRT_SECTION_SIZE * portNum));
+
+#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION >= 5)
+        uint32_t smif_core_offset = ((void *)base >= (void *)SMIF0_CORE1_SMIF_GPIO_SMIF_PRT0) ? SMIF_CORE_SECTION_SIZE : 0U;
+        baseSecHSIOM = (HSIOM_SECURE_PRT_Type*)(CY_SMIF_SECURE_HSIOM_BASE + (SMIF_CORE_SMIF_HSIOM_SMIF_SECURE_PRT_SECTION_SIZE * portNum) + smif_core_offset);
 #endif /* CY_IP_MXSMIF, CY_IP_MXSMIF_VERSION */
         HSIOM_SEC_PRT_NONSEC_MASK(baseSecHSIOM) = config->nonSecMask;
 #endif /* IOSS_HSIOM_HSIOM_SEC_PORT_NR, CPUSS_CM33_0_SECEXT_PRESENT */
@@ -472,8 +468,8 @@ void Cy_GPIO_Pin_FastInit(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t driveMo
 
     if(CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ == driveMode)
     {
-        /* Enable CFG_OUT3 register and configure the extra drive mode. */
-        GPIO_PRT_CFG(base) = tempReg | ((0U & CY_GPIO_CFG_DM_MASK) << (pinNum << CY_GPIO_DRIVE_MODE_OFFSET));
+        /* Enable CFG_OUT3 register and configure the extra drive mode with input buffer enabled. */
+        GPIO_PRT_CFG(base) = tempReg | (GPIO_PRT_CFG_IN_EN0_Msk << (pinNum << CY_GPIO_DRIVE_MODE_OFFSET));
         GPIO_PRT_CFG_OUT3(base) = tempRegCfg3 | (((driveMode >> CY_GPIO_EXT_DM_SHIFT) & CY_GPIO_CFG_DM_MASK) << (pinNum << CY_GPIO_DRIVE_MODE_OFFSET));
     }
     else
@@ -523,12 +519,15 @@ void Cy_GPIO_Pin_FastInit(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t driveMo
 * Cy_GPIO_Pin_SecFastInit() function execution is not interrupted.
 *
 * \note
-* This API is only available for the CAT1B and CAT1D devices.
+* This API is only available for the CAT1B and CAT1D devices. It should be
+* accessed from secure domain only.
 *
 *******************************************************************************/
 void Cy_GPIO_Pin_SecFastInit(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t driveMode,
                                         uint32_t outVal, en_hsiom_sel_t hsiom)
 {
+/* Restrict access to secure API. It should be accessed from secure domain only */
+#if defined (CY_PDL_TZ_ENABLED)
     CY_ASSERT_L2(CY_GPIO_IS_PIN_VALID(pinNum));
     CY_ASSERT_L2(CY_GPIO_IS_DM_VALID(driveMode));
     CY_ASSERT_L2(CY_GPIO_IS_VALUE_VALID(outVal));
@@ -540,6 +539,8 @@ void Cy_GPIO_Pin_SecFastInit(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t driv
 #endif /* CY_IP_MXS22IOSS */
 
     Cy_GPIO_SetHSIOM_SecPin(base, pinNum, 0UL); /* make the pin as secure */
+
+    Cy_GPIO_SetHSIOM(base, pinNum, hsiom);
 
     tempReg = (GPIO_PRT_CFG(base) & ~(CY_GPIO_CFG_DM_MASK << (pinNum << CY_GPIO_DRIVE_MODE_OFFSET)));
 #if defined (CY_IP_MXS22IOSS)
@@ -562,11 +563,16 @@ void Cy_GPIO_Pin_SecFastInit(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t driv
     GPIO_PRT_CFG(base) = tempReg | ((driveMode & CY_GPIO_CFG_DM_MASK) << (pinNum << CY_GPIO_DRIVE_MODE_OFFSET));
 #endif /* CY_IP_MXS22IOSS */
 
-    Cy_GPIO_SetHSIOM(base, pinNum, hsiom);
-
     tempReg = (GPIO_PRT_OUT(base) & ~(CY_GPIO_OUT_MASK << pinNum));
     GPIO_PRT_OUT(base) = tempReg | ((outVal & CY_GPIO_OUT_MASK) << pinNum);
-
+#else
+    /* Suppress a compiler warning about unused variables */
+    (void)base;
+    (void)pinNum;
+    (void)driveMode;
+    (void)outVal;
+    (void)hsiom;
+#endif /* CY_PDL_TZ_ENABLED */
 }
 #endif /* CY_IP_MXS40SIOSS, IOSS_HSIOM_HSIOM_SEC_PORT_NR, CPUSS_CM33_0_SECEXT_PRESENT, CY_IP_MXS22IOSS */
 
@@ -594,10 +600,11 @@ void Cy_GPIO_Port_Deinit(GPIO_PRT_Type* base)
     baseHSIOM = (HSIOM_PRT_V1_Type*)(CY_HSIOM_BASE + (HSIOM_PRT_SECTION_SIZE * portNum));
 
 #if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION >= 5)
-    if ((base == (GPIO_PRT_Type*)((void*)SMIF0_CORE0_SMIF_GPIO_SMIF_PRT0)) || (base == (GPIO_PRT_Type*)((void*)SMIF0_CORE1_SMIF_GPIO_SMIF_PRT0)))
+    if (CY_GPIO_IS_SMIF_GPIO(base))
     {
-        portNum = 0;
-        baseHSIOM = (HSIOM_PRT_V1_Type*) ((void*)((base == (GPIO_PRT_Type*)((void*)SMIF0_CORE0_SMIF_GPIO_SMIF_PRT0)) ? ((void*)SMIF0_CORE0_SMIF_HSIOM_SMIF_PRT0) : ((void*)SMIF0_CORE1_SMIF_HSIOM_SMIF_PRT0)));
+        uint32_t smif_core_offset = ((void *)base >= (void *)SMIF0_CORE1_SMIF_GPIO_SMIF_PRT0) ? SMIF_CORE_SECTION_SIZE : 0U;
+        portNum = ((uint32_t)(base) - CY_SMIF_GPIO_BASE - smif_core_offset) / SMIF_CORE_SMIF_GPIO_SMIF_PRT_SECTION_SIZE;
+        baseHSIOM = (HSIOM_PRT_V1_Type*)(CY_SMIF_HSIOM_BASE + (SMIF_CORE_SMIF_HSIOM_SMIF_PRT_SECTION_SIZE * portNum) + smif_core_offset);
     }
 #endif
 
@@ -667,9 +674,6 @@ void Cy_GPIO_Port_Deinit(GPIO_PRT_Type* base)
     GPIO_PRT_CFG_OUT3(base)         = CY_GPIO_PRT_DEINIT;
     GPIO_PRT_CFG_RES(base)          = CY_GPIO_PRT_DEINIT;
 #endif /* CY_IP_MXS22IOSS */
-#if (defined(CY_IP_MXS40IOSS) && (CY_IP_MXS40IOSS_VERSION == 3U))
-    GPIO_PRT_CFG_IN_AUTOLVL(base)   = CY_GPIO_VTRIP_DIS_AUTO;
-#endif /* CY_IP_MXS40IOSS_VERSION */
 #endif /* (CY_CPU_CORTEX_M4) && defined(CY_DEVICE_SECURE) */
 }
 
@@ -1494,6 +1498,7 @@ void Cy_GPIO_SetDrivemode(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t value)
     if(CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ == value)
     {
         prtCfg = tempReg & (~(CY_GPIO_CFG_DM_WIDTH_MASK << pinLoc));
+        prtCfg |= (GPIO_PRT_CFG_IN_EN0_Msk << pinLoc);
         prtCfg3 = tempRegCfg3 | ((value >> CY_GPIO_EXT_DM_SHIFT) << pinLoc);
     }
     else
@@ -1586,7 +1591,7 @@ uint32_t Cy_GPIO_GetDrivemode(GPIO_PRT_Type* base, uint32_t pinNum)
     {
         tempRegCfg3 = GPIO_PRT_CFG_OUT3(base);
         /* Check driver mode value in CFG_OUT3 register to check if it is set to CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ */
-        if(((tempRegCfg3 >> (pinNum << CY_GPIO_DRIVE_MODE_OFFSET)) & CY_GPIO_PRT_PINS_MASK) == (CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ >> CY_GPIO_EXT_DM_SHIFT))
+        if(((tempRegCfg3 >> (pinNum << CY_GPIO_DRIVE_MODE_OFFSET)) & CY_GPIO_CFG_DM_WIDTH_MASK) == (CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ >> CY_GPIO_EXT_DM_SHIFT))
         {
             ret = CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ;
         }
@@ -1740,7 +1745,7 @@ uint32_t Cy_GPIO_GetVtrip(GPIO_PRT_Type* base, uint32_t pinNum)
     return (tempReg >> pinNum) & CY_GPIO_CFG_IN_VTRIP_SEL_0_MASK;
 }
 
-#if (defined(CY_IP_MXS40IOSS) && (CY_IP_MXS40IOSS_VERSION == 3U)) || defined(CY_IP_MXS40SIOSS_VERSION) || defined (CY_DOXYGEN)
+#if defined(GPIO_AUTOLVL_AVAIL) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_GPIO_SetVtripAuto
 ****************************************************************************//**
@@ -1754,7 +1759,7 @@ uint32_t Cy_GPIO_GetVtrip(GPIO_PRT_Type* base, uint32_t pinNum)
 * Position of the pin bit-field within the port register
 *
 * \param value
-* Pin voltage threshold mode. Options are detailed in
+* Pin voltage threshold mode. Options are detailed in 
 * \ref group_gpio_vtrip_auto macros
 *
 * \note
@@ -1762,8 +1767,10 @@ uint32_t Cy_GPIO_GetVtrip(GPIO_PRT_Type* base, uint32_t pinNum)
 * not thread safe as the resource is shared among multiple pins on a port.
 *
 * \note
-* This API is available for CAT1B and CAT1C devices.
+* This API is available for CAT1B and CAT1C devices. TVIIBE also supports this functionality.
 *
+* \funcusage
+* \snippet gpio/snippet/main.c snippet_Cy_GPIO_SetVtripSel
 *******************************************************************************/
 void Cy_GPIO_SetVtripAuto(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t value)
 {
@@ -1792,7 +1799,7 @@ void Cy_GPIO_SetVtripAuto(GPIO_PRT_Type* base, uint32_t pinNum, uint32_t value)
 * Position of the pin bit-field within the port register
 *
 * \return
-* Pin voltage for automotive or not. Options are detailed in
+* Pin voltage for automotive or not. Options are detailed in 
 * \ref group_gpio_vtrip_auto macros
 *
 * \note
@@ -1809,7 +1816,7 @@ uint32_t Cy_GPIO_GetVtripAuto(GPIO_PRT_Type* base, uint32_t pinNum)
 
     return (tempReg >> pinNum) & CY_GPIO_CFG_IN_VTRIP_SEL_1_MASK;
 }
-#endif /* CY_IP_MXS40IOSS_VERSION */
+#endif /* defined(GPIO_AUTOLVL_AVAIL) || defined (CY_DOXYGEN) */
 /*******************************************************************************
 * Function Name: Cy_GPIO_SetSlewRate
 ****************************************************************************//**
@@ -2597,6 +2604,7 @@ uint32_t Cy_GPIO_GetVtripSel(GPIO_PRT_Type* base, uint32_t pinNum)
 }
 
 
+
 /*******************************************************************************
 * Function Name: Cy_GPIO_SetVrefSel
 ****************************************************************************//**
@@ -2747,6 +2755,7 @@ uint32_t Cy_GPIO_GetVrefSel(GPIO_PRT_Type* base, uint32_t pinNum)
     return CYRET_INVALID_STATE;
 #endif /* CY_IP_MXS40IOSS */
 }
+
 
 
 /*******************************************************************************
@@ -2957,6 +2966,7 @@ uint32_t Cy_GPIO_GetInterruptStatus(GPIO_PRT_Type* base, uint32_t pinNum)
 
     return (tempReg >> pinNum) & CY_GPIO_INTR_STATUS_MASK;
 }
+
 
 
 /*******************************************************************************
@@ -3565,7 +3575,7 @@ uint32_t Cy_GPIO_GetFilter(GPIO_PRT_Type* base)
 * Position of the pin bit-field within the port register
 *
 * \param value
-* Pull-up mode for a pin. Options are detailed in
+* Pull-up mode for a pin. Options are detailed in 
 * \ref group_gpio_PullUpMode macros
 *
 * \note

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sd_host.h
-* \version 2.1
+* \version 2.20
 *
 *  This file provides constants and parameter values for
 *  the SD Host Controller driver.
@@ -248,7 +248,13 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
-*     <td> 2.1</td>
+*     <td> 2.20</td>
+*     <td>Updated API \ref Cy_SD_Host_InitDataTransfer to check for CMD/DATA line BUSY status.
+*         Updated API \ref Cy_SD_Host_DeepSleepCallback to support SW retention after deep sleep in CAT1C devices. </td>
+*     <td>Defect fixing.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.10</td>
 *     <td>Updated the behaviour of \ref Cy_SD_Host_AbortTransfer function to check the R1B response. Minor documentation updates.</td>
 *     <td>Defect fixing. Documentation enhancement.</td>
 *   </tr>
@@ -426,7 +432,7 @@ extern "C"
 #define CY_SD_HOST_DRV_VERSION_MAJOR       2
 
 /** Driver minor version */
-#define CY_SD_HOST_DRV_VERSION_MINOR       1
+#define CY_SD_HOST_DRV_VERSION_MINOR       20
 
 /******************************************************************************
 * API Constants

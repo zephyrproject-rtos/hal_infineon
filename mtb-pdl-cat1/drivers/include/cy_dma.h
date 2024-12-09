@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_dma.h
-* \version 2.70
+* \version 2.90
 *
 * \brief
 * The header file of the DMA driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright 2016-2023 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,6 +74,7 @@
 * in a typical user application:
 * \image html dma.png
 *
+* <B>NOTE:</B> DMA Trigger can also be provided through \ref Cy_DMA_Channel_SetSWTrigger API on supported targets. \n
 * <B>NOTE:</B> DMA will read descriptors from SRAM memory. To run DMA on devices with Core CM7,
 * D cache needs to be cleaned before DMA transfer and should be invalidated after DMA transfer. \n
 * <B>NOTE:</B> Even if a DMA channel is enabled, it is not operational until
@@ -87,12 +88,12 @@
 *
 * CM7 cores in CAT1C devices support Data Cache. Data Cache line is 32 bytes.
 * User needs to make sure that the source and destination buffer pointers and the config structure pointers passed
-* to the following functions points to 32 byte aligned data.
+* to the following functions points to 32 bit aligned data.
 * Cy_DMA_Channel_SetDescriptor, Cy_DMA_Descriptor_SetNextDescriptor, Cy_DMA_Descriptor_SetSrcAddress, Cy_DMA_Descriptor_SetDstAddress.
-* User can use CY_ALIGN(32) macro for 32 byte alignment.
+* User can use CY_ALIGN(32) macro for 32 bit alignment.
 * User needs to clean the following data elements from the cache and invalidate before accessing them.
 * source and destination buffers and descriptor structure.
-* * \snippet dma/snippet/main.c snippet_Cy_DMA_Cache_usage
+* \snippet dma/snippet/main.c snippet_Cy_DMA_Cache_usage
 *
 * \section group_dma_more_information More Information.
 * See: the DMA chapter of the device technical reference manual (TRM);
@@ -103,6 +104,16 @@
 *
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>2.90</td>
+*     <td>Added new APIs \ref Cy_DMA_Channel_IsEnabled and \ref Cy_DMA_Channel_GetCurrentYIndex.</td>
+*     <td>New devices support.</td>
+*   </tr>
+*   <tr>
+*     <td>2.80</td>
+*     <td>Updated \ref Cy_DMA_GetActiveChannel. Added new API \ref Cy_DMA_GetActiveChannelIndex.</td>
+*     <td>Bug fix.</td>
+*   </tr>
 *   <tr>
 *     <td>2.70</td>
 *     <td>Updated \ref Cy_DMA_Descriptor_SetNextDescriptor and \ref Cy_DMA_Descriptor_GetNextDescriptor.</td>
@@ -229,7 +240,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 15, \
 #define CY_DMA_DRV_VERSION_MAJOR       2
 
 /** The driver minor version */
-#define CY_DMA_DRV_VERSION_MINOR       70
+#define CY_DMA_DRV_VERSION_MINOR       90
 
 /** The DMA driver identifier */
 #define CY_DMA_ID                      (CY_PDL_DRV_ID(0x13U))
@@ -246,6 +257,9 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 15, \
 #define CY_DMA_LOOP_INCREMENT_MIN      (-2048L)
 /** The maximum X/Y Increment API parameters */
 #define CY_DMA_LOOP_INCREMENT_MAX      (2047L)
+
+/** No active channels */
+#define CY_DMA_NO_ACTIVE_CHANNELS      (0xFFFFFFFFU)
 
 /** The backward compatibility flag. Enables a group of macros which provide
 * the backward compatibility with most of the DMA driver version 1.0 interface. */
@@ -368,6 +382,8 @@ typedef enum
 
 #define CY_DMA_IS_CH_NR_VALID(base, chNr)      ((CY_DW0_BASE == (base)) ? ((chNr) < CY_DW0_CH_NR) : \
                                                                           ((chNr) < CY_DW1_CH_NR))
+
+#define CY_DMA_CH_NR_AVAILABLE(base)      ((CY_DW0_BASE == (base)) ? CY_DW0_CH_NR : CY_DW1_CH_NR)
 
 /* The descriptor structure bit field definitions */
 #define CY_DMA_CTL_RETRIG_Pos      (0UL)
@@ -528,6 +544,7 @@ __STATIC_INLINE void *   Cy_DMA_GetActiveDstAddress(DW_Type const * base);
                 void     Cy_DMA_Channel_DeInit                  (DW_Type       * base, uint32_t channel);
 __STATIC_INLINE void     Cy_DMA_Channel_SetDescriptor           (DW_Type       * base, uint32_t channel, cy_stc_dma_descriptor_t const * descriptor);
 __STATIC_INLINE void     Cy_DMA_Channel_Enable                  (DW_Type       * base, uint32_t channel);
+__STATIC_INLINE bool     Cy_DMA_Channel_IsEnabled               (DW_Type       * base, uint32_t channel);
 __STATIC_INLINE void     Cy_DMA_Channel_Disable                 (DW_Type       * base, uint32_t channel);
 __STATIC_INLINE void     Cy_DMA_Channel_SetPriority             (DW_Type       * base, uint32_t channel, uint32_t priority);
 __STATIC_INLINE uint32_t Cy_DMA_Channel_GetPriority             (DW_Type const * base, uint32_t channel);
@@ -535,6 +552,7 @@ __STATIC_INLINE
   cy_en_dma_intr_cause_t Cy_DMA_Channel_GetStatus               (DW_Type const * base, uint32_t channel);
 __STATIC_INLINE
 cy_stc_dma_descriptor_t * Cy_DMA_Channel_GetCurrentDescriptor   (DW_Type const * base, uint32_t channel);
+__STATIC_INLINE uint8_t  Cy_DMA_Channel_GetCurrentYIndex        (DW_Type const * base, uint32_t channel);
 
 __STATIC_INLINE uint32_t Cy_DMA_Channel_GetInterruptStatus      (DW_Type const * base, uint32_t channel);
 __STATIC_INLINE void     Cy_DMA_Channel_ClearInterrupt          (DW_Type       * base, uint32_t channel);
@@ -542,7 +560,9 @@ __STATIC_INLINE void     Cy_DMA_Channel_SetInterrupt            (DW_Type       *
 __STATIC_INLINE uint32_t Cy_DMA_Channel_GetInterruptMask        (DW_Type const * base, uint32_t channel);
 __STATIC_INLINE void     Cy_DMA_Channel_SetInterruptMask        (DW_Type       * base, uint32_t channel, uint32_t interrupt);
 __STATIC_INLINE uint32_t Cy_DMA_Channel_GetInterruptStatusMasked(DW_Type const * base, uint32_t channel);
-
+#if !(defined (CY_IP_M4CPUSS_DMA) && (CY_IP_M4CPUSS_DMA_VERSION == 1u)) || defined (CY_DOXYGEN)
+__STATIC_FORCEINLINE  void Cy_DMA_Channel_SetSWTrigger(DW_Type const * base, uint32_t channel);
+#endif /* (defined (CY_IP_M4CPUSS_DMA) && (CY_IP_M4CPUSS_DMA_VERSION >= 1u)) || defined (CY_IP_MXDW) || defined (CY_IP_M7CPUSS_DMA) */
 /** \} group_dma_channel_functions */
 
 
@@ -649,15 +669,20 @@ __STATIC_INLINE void Cy_DMA_Disable(DW_Type * base)
 * Function Name: Cy_DMA_GetActiveChannel
 ****************************************************************************//**
 *
-* Returns the status of the active/pending channels.
+* Returns the status of the active/pending channels in
 * the DMA block.
 *
 * \param base
 * The pointer to the hardware DMA block.
 *
 * \return
-* Returns a bit-field with all of the currently active/pending channels in the
+* For DW Version 1 based devices,
+* returns a bit-field with all of the currently active/pending channels in the
 * DMA block.
+*
+* \note For DW Version 2 based devices,
+* returns a bit-field with first 32 channels currently active/pending in the DMA block.
+* In addition to this, user can get the active channel index using \ref Cy_DMA_GetActiveChannelIndex.
 *
 * \funcusage
 * \snippet dma/snippet/main.c snippet_Cy_DMA_Disable
@@ -665,7 +690,52 @@ __STATIC_INLINE void Cy_DMA_Disable(DW_Type * base)
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_DMA_GetActiveChannel(DW_Type const * base)
 {
-    return(_FLD2VAL(CY_DW_STATUS_CH_IDX, DW_STATUS(base)));
+
+#if defined (CY_IP_M4CPUSS_DMA) && (CY_IP_M4CPUSS_DMA_VERSION == 1u)
+        /* DW version 1 provides consolidated status of pending and active channels in PENDING register */
+        return (DW_PENDING(base));
+#else
+        /* DW version 2 supports upto 512 channels and cannot fit the status in a 32-bit integer */
+        /* Returns bit-field for 32 channels in case more channels are available user to use new API */
+        {
+            uint32_t channels_pending = 0UL;
+            uint32_t max_channels = CY_DMA_CH_NR_AVAILABLE(base);
+
+            /* Get Channel Pending status from individual channel status information */
+            CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 14.3','channel_nr may be higher or lower than 32 depending on target device.');
+            for(uint8_t channel_nr = 0U; (channel_nr < 32U && channel_nr < max_channels); channel_nr++)
+            {
+                channels_pending |= (_FLD2VAL(DW_CH_STRUCT_CH_STATUS_PENDING, DW_CH_STATUS(base, channel_nr)) << channel_nr);
+            }
+
+            return channels_pending;
+        }
+#endif
+
+}
+/*******************************************************************************
+* Function Name: Cy_DMA_GetActiveChannelIndex
+****************************************************************************//**
+*
+* Returns the index of the active channel within the DMA block.
+*
+* \param base
+* The pointer to the hardware DMA block.
+*
+* \return
+* active channel index if present otherwise \ref CY_DMA_NO_ACTIVE_CHANNELS
+*
+*******************************************************************************/
+__STATIC_INLINE uint32_t Cy_DMA_GetActiveChannelIndex(DW_Type const * base)
+{
+    if (_FLD2VAL(DW_STATUS_ACTIVE, DW_STATUS(base)) == 1U)
+    {
+        return(_FLD2VAL(CY_DW_STATUS_CH_IDX, DW_STATUS(base)));
+    }
+    else
+    {
+        return CY_DMA_NO_ACTIVE_CHANNELS;
+    }
 }
 
 
@@ -731,7 +801,7 @@ __STATIC_INLINE void * Cy_DMA_GetActiveDstAddress(DW_Type const * base)
 *
 * \param srcAddress
 * The source address value for the descriptor.
-* For CAT1C devices this data pointer needs to point to 32 byte aligned data.
+* For CAT1C devices this data pointer needs to point to 32 bit aligned data.
 *
 * \funcusage
 * \snippet dma/snippet/main.c snippet_Cy_DMA_Descriptor_SetterFunctions
@@ -1596,6 +1666,30 @@ __STATIC_INLINE void Cy_DMA_Channel_Disable(DW_Type * base, uint32_t channel)
 
 
 /*******************************************************************************
+* Function Name: Cy_DMA_Channel_IsEnabled
+****************************************************************************//**
+*
+* The function checks whether a channel is in the enabled state.
+*
+* \param base
+* The pointer to the hardware DMA block.
+*
+* \param channel
+* The channel number.
+*
+* \funcusage
+* \snippet dma/snippet/main.c snippet_Cy_DMA_Enable
+*
+*******************************************************************************/
+__STATIC_INLINE bool Cy_DMA_Channel_IsEnabled(DW_Type * base, uint32_t channel)
+{
+    CY_ASSERT_L1(CY_DMA_IS_CH_NR_VALID(base, channel));
+
+    return ((bool)((DW_CH_CTL(base, channel) & DW_CH_STRUCT_CH_CTL_ENABLED_Msk) != 0u));
+}
+
+
+/*******************************************************************************
 * Function Name: Cy_DMA_Channel_SetPriority
 ****************************************************************************//**
 *
@@ -1676,7 +1770,31 @@ __STATIC_INLINE cy_stc_dma_descriptor_t * Cy_DMA_Channel_GetCurrentDescriptor(DW
     return ((cy_stc_dma_descriptor_t*)(DW_CH_CURR_PTR(base, channel)));
 }
 
+/*******************************************************************************
+* Function Name: Cy_DMA_Channel_GetCurrentYIndex
+****************************************************************************//**
+*
+* Returns the current Y loop index for the channel.
+*
+* \param base
+* The pointer to the hardware DMA block.
+*
+* \param channel
+* The channel number.
+*
+* \return
+* Y loop index value.
+*
+* \funcusage
+* \snippet dma/snippet/main.c snippet_Cy_DMA_Enable
+*
+*******************************************************************************/
+__STATIC_INLINE uint8_t  Cy_DMA_Channel_GetCurrentYIndex(DW_Type const * base, uint32_t channel)
+{
+    CY_ASSERT_L1(CY_DMA_IS_CH_NR_VALID(base, channel));
 
+    return (uint8_t)((DW_CH_IDX(base, channel) & DW_CH_STRUCT_CH_IDX_Y_IDX_Msk) >> DW_CH_STRUCT_CH_IDX_Y_IDX_Pos);
+}
 
 /*******************************************************************************
 * Function Name: Cy_DMA_Channel_GetInterruptStatus
@@ -1861,7 +1979,27 @@ __STATIC_INLINE uint32_t Cy_DMA_Channel_GetInterruptStatusMasked(DW_Type const *
     return (DW_CH_INTR_MASKED(base, channel));
 }
 
-
+#if !(defined (CY_IP_M4CPUSS_DMA) && (CY_IP_M4CPUSS_DMA_VERSION == 1u)) || defined (CY_DOXYGEN)
+/*******************************************************************************
+* Function Name: Cy_DMA_Channel_SetSWTrigger
+****************************************************************************//**
+*
+* The function is used to set a SW trigger for a channel.
+*
+* \param base
+* The pointer to the hardware DMA block.
+*
+* \param channel
+* The channel number.
+*
+*
+*******************************************************************************/
+__STATIC_FORCEINLINE  void Cy_DMA_Channel_SetSWTrigger(DW_Type const * base, uint32_t channel)
+{
+    CY_ASSERT_L1(CY_DMA_IS_CH_NR_VALID(base, channel));
+    CY_REG32_CLR_SET(DW_CH_TR_CMD(base, channel), DW_CH_STRUCT_TR_CMD_ACTIVATE, 1U);
+}
+#endif /* !(defined (CY_IP_M4CPUSS_DMA) && (CY_IP_M4CPUSS_DMA_VERSION == 1u)) || defined (CY_DOXYGEN) */
 /** \} group_dma_channel_functions */
 
 /** \} group_dma_functions */

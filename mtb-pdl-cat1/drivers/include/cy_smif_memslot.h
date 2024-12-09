@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smif_memslot.h
-* \version 2.60
+* \version 2.100
 *
 * \brief
 *  This file provides the constants and parameter values for the memory-level
@@ -937,6 +937,8 @@ cy_en_smif_status_t    Cy_SMIF_MemSfdpDetect(SMIF_Type *base,
                                     cy_en_smif_data_select_t dataSelect,
                                     cy_stc_smif_context_t *context);
 
+void Cy_SMIF_Reset_Memory(SMIF_Type *base, cy_en_smif_slave_select_t slaveSelect);
+
 cy_en_smif_status_t Cy_SMIF_MemInitSfdpMode(SMIF_Type *base,
                                     const cy_stc_smif_mem_config_t *memCfg,
                                     cy_en_smif_txfr_width_t maxdataWidth,
@@ -1143,6 +1145,62 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_CalibrateDelay(SMIF_Type *base, cy_stc_smif
                                         uint32_t dummyCycles,
                                         bool isblockingMode,
                                         cy_stc_smif_context_t *context);
+
+/*******************************************************************************
+* Function Cy_SMIF_HyperBus_MMIO_Write
+****************************************************************************//**
+*
+* This function writes data into hyper bus memory in MMIO mode.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param slave
+* Specifies slave of external device to be read. \ref cy_en_smif_slave_select_t
+*
+* \param burstType
+* Specifies wrapped or continuous burst. \ref en_hb_bust_type_t
+*
+* \param writeAddress
+* Specifies address of external device to be write.
+*
+* \param sizeInHalfWord
+* Specifies memory size to be read.
+* Note hyper bus memory have 16bit data per each address.
+*
+* \param buf
+* Pointer to buffer where read data to be stored
+*
+* \param hbDevType
+* Specifies hyper bus type. FLASH or SRAM. \ref cy_en_smif_hb_dev_type_t
+*
+* \param dummyCycles
+* Dummy Cycles based on Frequency of operation.
+*
+* \param isblockingMode
+* Blocking mode or not. if this is true, process waits for the read finished in this
+* function. unless, the process does not wait and exit function.
+*
+* \param context
+* Passes a configuration structure that contains the transfer parameters of the
+* SMIF block.
+*
+* \return \ref cy_en_smif_status_t
+*
+* \snippet smif/snippet/main.c snippet_Cy_SMIF_HyperBus
+*
+*******************************************************************************/
+cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Write(SMIF_Type *base,
+                                        cy_en_smif_slave_select_t slave,
+                                        cy_en_hb_burst_type_t burstType,
+                                        uint32_t writeAddress,
+                                        uint32_t sizeInHalfWord,
+                                        uint16_t buf[],
+                                        cy_en_smif_hb_dev_type_t hbDevType,
+                                        uint32_t dummyCycle,
+                                        bool isblockingMode,
+                                        cy_stc_smif_context_t *context);
+
 
 /*******************************************************************************
 * Function Name: CY_SMIF_HyperBus_ReadStatus
@@ -1416,7 +1474,8 @@ __STATIC_INLINE void XipRegInit(SMIF_DEVICE_Type volatile *dev, cy_stc_smif_mem_
 
             SMIF_DEVICE_WR_DUMMY_CTL(dev) = (0UL != prog->dummyCycles) ?
                                             (_VAL2FLD(SMIF_DEVICE_WR_DUMMY_CTL_SIZE5, (prog->dummyCycles - 1UL)) |
-                                            (_VAL2FLD(SMIF_DEVICE_WR_DUMMY_CTL_PRESENT2, prog->dummyCyclesPresence)))
+                                            (_VAL2FLD(SMIF_DEVICE_WR_DUMMY_CTL_PRESENT2, prog->dummyCyclesPresence)) |
+                                            (_VAL2FLD(SMIF_DEVICE_WR_DUMMY_CTL_RWDS_EN, (prog->dummyCyclesPresence == CY_SMIF_NOT_PRESENT) ? 0UL : 1UL)))
                                             : 0U;
 
             SMIF_DEVICE_WR_DATA_CTL(dev) = _VAL2FLD(SMIF_DEVICE_WR_DATA_CTL_WIDTH, (uint32_t)prog->dataWidth) |

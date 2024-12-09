@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_wdt.c
-* \version 1.60
+* \version 1.80
 *
 *  This file provides the source code to the API for the WDT driver.
 *
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS28SRSS)|| defined (CY_IP_MXS40SSRSS ) || defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3) || defined (CY_IP_MXS22SRSS )
+#if defined (CY_IP_MXS28SRSS)|| defined (CY_IP_MXS40SSRSS ) || defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2) || defined (CY_IP_MXS22SRSS )
 
 #include "cy_wdt.h"
 
@@ -154,8 +154,9 @@ void Cy_WDT_SetMatch(uint32_t match)
 * ignoring the bits setting. Call the Cy_WDT_Unlock() API to unlock the WDT.
 *
 * \param bitsNum
-* The number of the most significant bits. The valid range is [0-15].
-* The bitsNum over 12 are considered as 12.
+* The valid range is [0-15] for CAT1A devices, The bitsNum over 12 are considered as 12.
+* The valid range is [0-21] for CAT1B/CAT1D devices, The bitsNum over 18 are
+* considered as 18.
 *
 * \details The value of bitsNum controls the time-to-reset of the Watchdog timer
 * This happens after 3 successive matches.

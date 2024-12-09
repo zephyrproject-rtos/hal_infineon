@@ -151,12 +151,12 @@ static void _cyhal_adcmic_find_next_channel(cyhal_adc_t* obj, uint8_t* current_i
     } while(*current_idx != start_idx); /* While we haven't wrapped completely around */
 }
 
-static uint16_t _cyhal_adc_cnt_to_u16(int16_t raw_cnt)
+static uint16_t _cyhal_adc_cnt_to_u16(cyhal_adc_t *adc, int16_t raw_cnt)
 {
-    uint16_t raw_cnt_fixed = (uint16_t)(raw_cnt - CY_ADCMIC_DC_OFFSET);
+    uint16_t raw_cnt_fixed = (uint16_t)(raw_cnt - adc->pdl_context.offset);
     // Scaling 0 - CY_ADCMIC_DC_FS_CNT range to 0 - CY_ADCMIC_DC_FS (0xFFFF) range
     // CY_ADCMIC_DC_FS_CNT is multiplied by 10, so division needed
-    uint16_t scaled_cnt = (uint16_t)(raw_cnt_fixed * CY_ADCMIC_DC_FS / (CY_ADCMIC_DC_FS_CNT / 10U));
+    uint16_t scaled_cnt = (uint16_t)((raw_cnt_fixed * CY_ADCMIC_DC_FS) / (CY_ADCMIC_DC_FS_CNT / 10));
     return scaled_cnt;
 }
 
@@ -178,7 +178,7 @@ static void _cyhal_adcmic_irq_handler(void)
         }
         else
         {
-            *(obj->async_buff_next) = (int32_t)_cyhal_adc_cnt_to_u16(dc_data);
+            *(obj->async_buff_next) = (int32_t)_cyhal_adc_cnt_to_u16(obj, dc_data);
         }
         obj->async_buff_next++;
         uint8_t old_channel = obj->current_channel_index;
@@ -599,7 +599,7 @@ static int16_t _cyhal_adc_read_raw(const cyhal_adc_channel_t *obj)
 uint16_t cyhal_adc_read_u16(const cyhal_adc_channel_t *obj)
 {
     CY_ASSERT(NULL != obj);
-    return _cyhal_adc_cnt_to_u16(_cyhal_adc_read_raw(obj));
+    return _cyhal_adc_cnt_to_u16(obj->adc, _cyhal_adc_read_raw(obj));
 }
 
 int32_t cyhal_adc_read(const cyhal_adc_channel_t *obj)

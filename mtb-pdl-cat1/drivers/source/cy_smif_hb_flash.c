@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smif_hb_flash.c
-* \version 2.60
+* \version 2.100
 *
 * \brief
 *  This file provides the source code for the Hyper Bus APIs of the SMIF driver.
@@ -26,11 +26,10 @@
 *******************************************************************************/
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSMIF)
+#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION>=2) && (CY_IP_MXSMIF_VERSION <= 5)
 #ifdef __cplusplus
  extern "C" {
 #endif /* __cplusplus */
-#if (CY_IP_MXSMIF_VERSION>=2)
 #include "cy_smif_memslot.h"
 #include <string.h>
 
@@ -49,17 +48,6 @@ static void Cy_SMIF_HB_SetDummyCycles(volatile SMIF_DEVICE_Type *dev, cy_en_smif
 
 static uint32_t Cy_SMIF_Reverse4ByteEndian(uint32_t in);
 
-
-static cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Write(SMIF_Type *base,
-                                        cy_en_smif_slave_select_t slave,
-                                        cy_en_hb_burst_type_t burstType,
-                                        uint32_t writeAddress,
-                                        uint32_t sizeInHalfWord,
-                                        uint16_t buf[],
-                                        cy_en_smif_hb_dev_type_t hbDevType,
-                                        uint32_t dummyCycle,
-                                        bool isblockingMode,
-                                        cy_stc_smif_context_t *context);
 
 static cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Read(SMIF_Type *base,
                                         cy_en_smif_slave_select_t slave,
@@ -110,7 +98,14 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_InitDevice(SMIF_Type *base, const cy_stc_sm
 {
     cy_stc_smif_hbmem_device_config_t *config = memCfg->hbdeviceCfg;
     SMIF_DEVICE_Type volatile * dev = Cy_SMIF_GetDeviceBySlot(base, memCfg->slaveSelect);
-    
+
+#if (CY_IP_MXSMIF_VERSION>=4)
+    /* DDR_PIPELINE_POS_DAT should be SET for RX Capture mode xSPI */
+    if (_FLD2VAL(SMIF_CORE_CTL2_RX_CAPTURE_MODE, (SMIF_CTL2(base))) == (uint32_t)CY_SMIF_SEL_XSPI_HYPERBUS_WITH_DQS)
+    {
+        SMIF_DEVICE_RX_CAPTURE_CONFIG(dev) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_DDR_PIPELINE_POS_DAT, 1U);
+    }
+#endif
     /* Check if SMIF XIP is enabled */
     if ((_FLD2VAL(SMIF_CTL_XIP_MODE, SMIF_CTL(base)) != 1U) && (0U != (context->flags & CY_SMIF_FLAG_MEMORY_MAPPED)))
     {
@@ -163,11 +158,23 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_InitDevice(SMIF_Type *base, const cy_stc_sm
 
         SMIF_DEVICE_ADDR_CTL(dev) = (_VAL2FLD(SMIF_DEVICE_ADDR_CTL_SIZE3, CY_SMIF_XIP_ADDRESS_5_BYTE) |
                                     _VAL2FLD(SMIF_DEVICE_ADDR_CTL_DIV2, 0U));
-    }                           
+    }
+
+#if (CY_IP_MXSMIF_VERSION>=4)
+    if (_FLD2VAL(SMIF_CORE_CTL2_RX_CAPTURE_MODE, (SMIF_CTL2(base))) == (uint32_t)CY_SMIF_SEL_XSPI_HYPERBUS_WITH_DQS)
+    {
+        Cy_SMIF_HB_SetDummyCycles(dev, config->hbDevType, config->dummyCycles - 1U);
+    }
+    else
+    {
+        Cy_SMIF_HB_SetDummyCycles(dev, config->hbDevType, config->dummyCycles);
+    }
+#else
     /* Note: All read/write sequence settings depending on the dummy cycles are moved to the following function   */
     /*       because it may be necessary to update them during runtime when the latency settings in the connected */
     /*       memories have been changed. Cy_SMIF_HB_SetDummyCycles can then be used for that purpose.             */
-    Cy_SMIF_HB_SetDummyCycles(dev, config->hbDevType, config->dummyCycles);
+    Cy_SMIF_HB_SetDummyCycles(dev, config->hbDevType, config->dummyCycles -1U);
+#endif
     context->dummyCycles = config->dummyCycles;
     
     context->preXIPDataRate = CY_SMIF_DDR;
@@ -193,14 +200,14 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_InitDevice(SMIF_Type *base, const cy_stc_sm
 * updating the latency settings in the connected memory) ensure that SMIF is 
 * not busy and no access to XIP address space happens!
 *
-* device
+* dev
 * Holds the base address of the SMIF Device registers.
 *
 * hbDevType
 * Device type (HyperFlash or HyperRAM)
 *
-* lc_hb
-* Latency code that shall be applied
+* dummyCycle
+* The amount of dummy cycles to use
 *
 * return
 *     - \ref CY_SMIF_SUCCESS
@@ -211,11 +218,12 @@ static void Cy_SMIF_HB_SetDummyCycles(volatile SMIF_DEVICE_Type *dev, cy_en_smif
     /**********************************************/
     /*   Set dummy cycles for XIP Read Sequence  */
     /**********************************************/
+
     /*** Set dummy ***/
     {
         /* For Hyperbus, (RD DUMMY_CTL SIZE5 + 2) = initial latency */
-        SMIF_DEVICE_RD_DUMMY_CTL(dev) = (_VAL2FLD(SMIF_DEVICE_RD_DUMMY_CTL_SIZE5, (dummyCycle - 1UL)) |   
-                                         _VAL2FLD(SMIF_DEVICE_RD_DUMMY_CTL_PRESENT2, 2U));
+        SMIF_DEVICE_RD_DUMMY_CTL(dev) = (_VAL2FLD(SMIF_DEVICE_RD_DUMMY_CTL_SIZE5, (dummyCycle - 1UL)) |
+                                         _VAL2FLD(SMIF_DEVICE_RD_DUMMY_CTL_PRESENT2, 1U));
 
     }    
 
@@ -515,6 +523,8 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_Write(SMIF_Type *base,
     while( sizeInInt > 0)
     {        
 
+     if(hbDevType == CY_SMIF_HB_FLASH)
+     {
         writeBuf = (uint16_t)CY_SMIF_NOR_UNLOCK_DATA1;
         status = Cy_SMIF_HyperBus_MMIO_Write(base,
                              memConfig->slaveSelect,
@@ -553,8 +563,12 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_Write(SMIF_Type *base,
                              isblockingMode,
                              context
                              );
-
-        status = Cy_SMIF_HyperBus_MMIO_Write(base,
+        if (status != CY_SMIF_SUCCESS)
+        {
+            return status;
+        }
+     }
+     status = Cy_SMIF_HyperBus_MMIO_Write(base,
                              memConfig->slaveSelect,
                              burstType,
                              i_WriteAddr + writeAddress,
@@ -566,25 +580,28 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_Write(SMIF_Type *base,
                              context
                              );
 
-        uint16_t readStatus = 0x0000U;
-        uint16_t timeout = DEVICEREADY_CHECK_TIMEOUT;
-        do
-        {
-            status = CY_SMIF_HyperBus_ReadStatus(base, memConfig, &readStatus,context  );
-            timeout --;
-            Cy_SysLib_Delay(100U);
-        } while(((readStatus & (uint16_t)CY_SMIF_DEV_RDY_MASK) == 0U) && (timeout > 0U)); // wait for the device becoming ready
-        if(timeout == 0U)
-        {
-            return CY_SMIF_EXCEED_TIMEOUT;
-        }
-        sizeInInt -= (int)sizetowrite;
-        i_WriteAddr += sizetowrite;
-        
-        if(sizeInInt > 0 && sizeInInt < (int)sizetowrite)
-        {
-            sizetowrite = (uint32_t)sizeInInt;
-        }
+     if(hbDevType == CY_SMIF_HB_FLASH)
+     {
+         uint16_t readStatus = 0x0000U;
+         uint16_t timeout = DEVICEREADY_CHECK_TIMEOUT;
+         do
+         {
+             status = CY_SMIF_HyperBus_ReadStatus(base, memConfig, &readStatus,context  );
+             timeout --;
+             Cy_SysLib_Delay(100U);
+         } while(((readStatus & (uint16_t)CY_SMIF_DEV_RDY_MASK) == 0U) && (timeout > 0U)); // wait for the device becoming ready
+         if(timeout == 0U)
+         {
+             return CY_SMIF_EXCEED_TIMEOUT;
+         }
+     }
+     sizeInInt -= (int)sizetowrite;
+     i_WriteAddr += sizetowrite;
+
+     if(sizeInInt > 0 && sizeInInt < (int)sizetowrite)
+     {
+         sizetowrite = (uint32_t)sizeInInt;
+     }
     }
     return status;
 }
@@ -986,7 +1003,8 @@ static cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Read(SMIF_Type *base,
 
     if(dummyCycle > 0u)
     {
-        status = Cy_SMIF_SendDummyCycles_Ext(base, CY_SMIF_WIDTH_OCTAL, CY_SMIF_DDR, dummyCycle - 1u); // For Hyperbus, (RD DUMMY_CTL SIZE5 + 2) = initial latency
+        status = Cy_SMIF_SendDummyCycles_Ext(base, CY_SMIF_WIDTH_OCTAL, CY_SMIF_DDR, dummyCycle - 1U);
+
         if(status != CY_SMIF_SUCCESS)
         {
             return status;
@@ -1047,7 +1065,7 @@ static cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Read(SMIF_Type *base,
 * \return \ref cy_en_smif_status_t
 *
 *******************************************************************************/
-static cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Write(SMIF_Type *base,
+cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Write(SMIF_Type *base,
                                         cy_en_smif_slave_select_t slave,
                                         cy_en_hb_burst_type_t burstType,
                                         uint32_t writeAddress,
@@ -1100,7 +1118,11 @@ static cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Write(SMIF_Type *base,
     {
         if(dummyCycle > 0u)
         {
-            status = Cy_SMIF_SendDummyCycles_Ext(base, CY_SMIF_WIDTH_OCTAL, CY_SMIF_DDR, dummyCycle - 1u);     // For Hyperbus, (RD DUMMY_CTL SIZE5 + 2)==initial latency
+#if (CY_IP_MXSMIF_VERSION>=2)
+            status = Cy_SMIF_SendDummyCycles_With_RWDS(base, false, false, dummyCycle - 1U);
+#else
+            status = Cy_SMIF_SendDummyCycles_Ext(base, CY_SMIF_WIDTH_OCTAL, CY_SMIF_DDR, dummyCycle - 1U);
+#endif
 
             if(status != CY_SMIF_SUCCESS)
             {
@@ -1120,9 +1142,7 @@ static cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Write(SMIF_Type *base,
     return status;
 }
 
-#endif /* (CY_IP_MXSMIF_VERSION>=2) */
 #if defined(__cplusplus)
 }
 #endif
-
-#endif //CY_IP_MXSMIF
+#endif /* defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION>=2) && (CY_IP_MXSMIF_VERSION <= 5) */

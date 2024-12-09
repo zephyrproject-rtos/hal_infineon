@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_csd.h
-* \version 1.20.1
+* \version 1.20.2
 *
 * The header file of the CSD driver.
 *
@@ -321,6 +321,11 @@
 ********************************************************************************
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.20.2</td>
+*     <td>Minor documentation updates</td>
+*     <td>Correcting grammatical mistake</td>
+*   </tr>
 *   <tr>
 *     <td>1.20.1</td>
 *     <td>Documentation updates</td>

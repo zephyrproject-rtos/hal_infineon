@@ -322,7 +322,12 @@ SECTIONS
         *cy_syslib*.o(.text*)
         *ppu_v1.o(.text*)
         *cy_mpc.o(.text*)
-        *cy_pd_ppu.o(.text*)
+        *cy_syspm_ppu.o(.text*)
+
+        *memcpy*.o (.text*)   /* add memcpy from the NewLib library here*/
+        *memset*.o (.text*)        /* add memcpy from the NewLib library here*/
+        *memmove*.o (.text*)       /* add memcpy from the NewLib library here*/
+        *s_fabs.o (.text*)
 
         KEEP(*(.cy_l1func*))
 
@@ -354,10 +359,6 @@ SECTIONS
         *startup_cat1b_cm33.o(.data* .rodata .rodata.* .constdata .constdata.* .conststring .conststring.*)
         *system_cyw20829.o(.data* .rodata .rodata.* .constdata .constdata.* .conststring .conststring.*)
 
-        *libg_nano.a:lib_a-memcpy-stub.o (.text*)   /* add memcpy from the NewLib library here*/
-        *libg_nano.a:lib_a-memset.o (.text*)   /* add memcpy from the NewLib library here*/
-        *libg_nano.a:lib_a-memmove.o (.text*)   /* add memcpy from the NewLib library here*/
-        *libm.a:lib_a-s_fabs.o (.text*)
         /* drivers */
         *cy_device.o(.data* .rodata .rodata.* .constdata .constdata.* .conststring .conststring.*)
         *cy_btss.o(.data* .rodata .rodata.* .constdata .constdata.* .conststring .conststring.*)

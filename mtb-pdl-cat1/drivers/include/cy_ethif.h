@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ethif.h
-* \version 1.10.1
+* \version 1.20
 *
 * Provides an API declaration of the Ethernet Interface driver
 *
@@ -31,6 +31,9 @@
 * using MII/RMII/GMII or RGMII interface. Ethernet MAC also supports 10/100/1000
 * Transfer rates and IEEE 1588 time stamp feature. Infineon uses a third-party
 * Ethernet MAC IP from Cadence GEM_GXL, which is a Gigabit Ethernet MAC.
+*
+* \note Ethernet MAC does not support "Wake on Lan" feature. So when the system is
+* in deep sleep, it can't receive any Rx frames.
 *
 * Below block diagram shows the hardware and software partition inside the MCU.
 * Ethernet MAC IP hardware directly interface with external ethernet PHY via MII
@@ -77,6 +80,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.20</td>
+*     <td>updated documentation and pre-processor check for CM55.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.10.1</td>
 *     <td>Build warning fixes due to redefinitions.</td>
 *     <td>Bug fixes.</td>
@@ -121,7 +129,7 @@ extern "C" {
 #define CY_ETHIF_DRV_VERSION_MAJOR        1
 
 /** Driver minor version */
-#define CY_ETHIF_DRV_VERSION_MINOR        10
+#define CY_ETHIF_DRV_VERSION_MINOR        20
 
 /** Eth driver ID */
 #define CY_ETHIF_ID                     CY_PDL_DRV_ID(0x71U)

@@ -1549,7 +1549,7 @@ typedef enum
 #define CY_DEVICE_CFG                   (&cy_deviceIpBlockCfgPSoC6_01)
 
 /* Include IP definitions */
-#include "ip/cyip_sflash.h"
+#include "ip/cyip_sflash_psoc6_01.h"
 #include "ip/cyip_peri.h"
 #include "ip/cyip_crypto.h"
 #include "ip/cyip_cpuss.h"

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_trng.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides common constants and parameters
@@ -202,7 +202,6 @@ typedef struct
 ****************************************************************************//**
 *
 * Generates a True Random Number.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the cryptolite instance.
@@ -340,7 +339,6 @@ __STATIC_INLINE void Cy_Cryptolite_Trng_WaitForInit(CRYPTOLITE_Type *base);
 ****************************************************************************//**
 *
 * Initialize the TRNG hardware submodule
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -363,7 +361,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Trng_Init(CRYPTOLITE_Type *base, cy_stc_
 ****************************************************************************//**
 *
 * Starts a random number generation.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -382,7 +379,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Trng_Enable(CRYPTOLITE_Type *base);
 ****************************************************************************//**
 *
 * Stops the random number generation.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -401,7 +397,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Trng_Disable(CRYPTOLITE_Type *base);
 ****************************************************************************//**
 *
 * Reads in blocking mode a generated random number.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \note
 * Call this API only after Cy_Cryptolite_Trng_Enable() is successful.
@@ -427,7 +422,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Trng_ReadData(CRYPTOLITE_Type *base, uin
 ****************************************************************************//**
 *
 * Clears all TRNG registers by set to hardware default values.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -446,7 +440,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Trng_DeInit(CRYPTOLITE_Type *base);
 ****************************************************************************//**
 *
 * Checks if Trng is enabled.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -696,7 +689,6 @@ __STATIC_INLINE void  Cy_Cryptolite_Error_ClearInterrupt(CRYPTOLITE_Type *base, 
 ****************************************************************************//**
 *
 * Checks for TRNG hardware is initialized.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -715,7 +707,6 @@ __STATIC_INLINE bool Cy_Cryptolite_Trng_IsInitialized(CRYPTOLITE_Type *base)
 ****************************************************************************//**
 *
 * Waits for TRNG initialization is complete.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -737,7 +728,6 @@ __STATIC_INLINE void Cy_Cryptolite_Trng_WaitForInit(CRYPTOLITE_Type *base)
 ****************************************************************************//**
 *
 * Waits for TRNG random generation is complete.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.

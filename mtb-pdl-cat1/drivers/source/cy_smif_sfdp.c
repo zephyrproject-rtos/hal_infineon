@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smif_sfdp.c
-* \version 2.60
+* \version 2.100
 *
 * \brief
 *  This file provides the source code for SFDP enumeration in SMIF driver.
@@ -27,7 +27,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSMIF)
+#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION <= 5)
 
 #include "cy_smif_memslot.h"
 
@@ -285,86 +285,7 @@ static cy_en_smif_status_t SfdpPopulateRegionInfo(SMIF_Type *base, uint8_t const
                                     cy_en_smif_slave_select_t slaveSelect, const cy_stc_smif_context_t *context,
                                     cy_stc_smif_erase_type_t eraseType[]);
 static void SfdpSetWipStatusRegisterCommand(cy_stc_smif_mem_cmd_t* readStsRegWipCmd);
-#if (CY_IP_MXSMIF_VERSION>=2) && defined (SMIF_OCTAL_SFDP_SUPPORT)
-static cy_en_smif_status_t Cy_SMIF_MemCmdWriteRegister(SMIF_Type *base,
-                                    cy_en_smif_slave_select_t slaveSelect,
-                                    cy_stc_smif_mem_cmd_t *writeEnCmd,
-                                    cy_stc_smif_mem_cmd_t *writeCmd,
-                                    uint8_t const cmdParam[],
-                                    uint32_t paramSize,
-                                    cy_stc_smif_context_t const *context);
-#endif
-#if (CY_IP_MXSMIF_VERSION>=2) && defined (SMIF_OCTAL_SFDP_SUPPORT)
-/*******************************************************************************
-* Function Name: Cy_SMIF_MemCmdWriteRegister
-****************************************************************************//**
-*
-* This function writes the configuration register. This is a blocking function, it will
-* block the execution flow until the command transmission is completed.
-*
-* \note This function uses the low-level Cy_SMIF_TransmitCommand() API.
-* The Cy_SMIF_TransmitCommand() API works in a blocking mode. In the dual quad mode,
-* this API is called for each memory.
-*
-* \param base
-* Holds the base address of the SMIF block registers.
-*
-* \param slaveSelect
-* The device to which the command is sent.
-*
-* \param writeEnCmd
-* Write Enable command for issuing before actual write to configuration register.
-*
-* \param writeCmd
-* The command to write into the configuration register.
-*
-* \param cmdParam
-* command parameters include configuration register address and value to be written.
-*
-* \param paramSize
-* command parameter size.
-*
-* \param context
-* This is the pointer to the context structure \ref cy_stc_smif_context_t
-* allocated by the user. The structure is used during the SMIF
-* operation for internal configuration and data retention. The user must not
-* modify anything in this structure.
-*
-* \return A status of the command transmission.
-*       - \ref CY_SMIF_SUCCESS
-*       - \ref CY_SMIF_EXCEED_TIMEOUT
-*
-*******************************************************************************/
-static cy_en_smif_status_t Cy_SMIF_MemCmdWriteRegister(SMIF_Type *base,
-                                    cy_en_smif_slave_select_t slaveSelect,
-                                    cy_stc_smif_mem_cmd_t *writeEnCmd,
-                                    cy_stc_smif_mem_cmd_t *writeCmd,
-                                    uint8_t const cmdParam[],
-                                    uint32_t paramSize,
-                                    cy_stc_smif_context_t const *context)
-{
-    cy_en_smif_status_t result = CY_SMIF_CMD_NOT_FOUND;
 
-    /* The Write Enable */
-    result = Cy_SMIF_TransmitCommand( base, (uint8_t) writeEnCmd->command,
-                                        writeEnCmd->cmdWidth,
-                                        NULL,
-                                        CY_SMIF_CMD_WITHOUT_PARAM,
-                                        CY_SMIF_WIDTH_NA,
-                                        slaveSelect,
-                                        CY_SMIF_TX_LAST_BYTE,
-                                        context);
-
-    /* The Write value */
-    if (CY_SMIF_SUCCESS == result)
-    {
-        result = Cy_SMIF_TransmitCommand( base, (uint8_t) writeCmd->command, writeCmd->cmdWidth,
-                    cmdParam, paramSize, writeCmd->addrWidth,
-                    slaveSelect, CY_SMIF_TX_LAST_BYTE, context);
-    }
-    return(result);
-}
-#endif
 /*******************************************************************************
 * Function Name: SfdpReadBuffer
 ****************************************************************************//**
@@ -1234,18 +1155,23 @@ static void SfdpSetVariableLatencyCmd(SMIF_Type *base,
     if ((sccrMapAddr != NULL) && (cmdReadLatency != NULL) && (cmdWriteLatency != NULL))
     {
         /* SCCR Map 9th DWORD Variable Dummy Cycle Settings */
-
         uint8_t sccrMapDWord9Value[4];
         uint8_t sccrMapDW9_Address[4];
+        /* SCCR Map 3rd DWORD Volatile Register Read Dummy Cycle Settings */
+        uint8_t sccrMapDWord3Value[4];
+        uint8_t sccrMapDW3_Address[4];
 
         /* Initialize DWords */
         for (uint32_t i = 0U; i < 4U; i++)
         {
             sccrMapDWord9Value[i] = 0U;
             sccrMapDW9_Address[i] = 0U;
+            sccrMapDWord3Value[i] = 0U;
+            sccrMapDW3_Address[i] = 0U;
         }
 
         ValueToByteArray(ByteArrayToValue(sccrMapAddr, CY_SMIF_SFDP_ADDRESS_LENGTH) + 32U, sccrMapDW9_Address, 0U, CY_SMIF_SFDP_ADDRESS_LENGTH);
+        ValueToByteArray(ByteArrayToValue(sccrMapAddr, CY_SMIF_SFDP_ADDRESS_LENGTH) + 8U, sccrMapDW3_Address, 0U, CY_SMIF_SFDP_ADDRESS_LENGTH);
 
         /* Get the JEDEC SCCR Map Table content into sfdpBuffer[] */
         result = SfdpReadBuffer(base, device->readSfdpCmd, sccrMapDW9_Address, slaveSelect,
@@ -1278,6 +1204,17 @@ static void SfdpSetVariableLatencyCmd(SMIF_Type *base,
             cmdReadLatency->command = CY_SMIF_NO_COMMAND_OR_MODE;
             cmdWriteLatency->command = CY_SMIF_NO_COMMAND_OR_MODE;
         }
+
+        /* Get the JEDEC SCCR Map Table content into sfdpBuffer[] */
+        result = SfdpReadBuffer(base, device->readSfdpCmd, sccrMapDW3_Address, slaveSelect,
+                            4U, sccrMapDWord3Value, context);
+
+        if ((result == CY_SMIF_SUCCESS) && ((sccrMapDWord3Value[3] & 0x80U) == 0x80U))
+        {
+            /* Bits 6:9 => Byte 0 (MSB 3 bits) + Byte 1 (LSB 1 bit) */
+            device->readStsRegWipCmd->dummyCycles = (uint8_t) (((sccrMapDWord3Value[0] & 0xC0U) >> 6U) | ((sccrMapDWord3Value[1] & 0x1U) << 3U));
+        }
+
     }
     CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 }
@@ -1743,6 +1680,7 @@ static void SfdpGetProgramFourBytesCmd(uint8_t const sfdpBuffer[],
         case PROTOCOL_MODE_1S_4S_4S:
 #if (CY_IP_MXSMIF_VERSION>=2)
         case PROTOCOL_MODE_1S_4D_4D:
+        case PROTOCOL_MODE_8D_8D_8D:
 #endif /* CY_IP_MXSMIF_VERSION */
             if (_FLD2BOOL(SUPPORT_PP_1S_4S_4S_CMD, sfdpForBytesTableDword1))
             {
@@ -2208,7 +2146,7 @@ static cy_en_smif_status_t SfdpPopulateRegionInfo(SMIF_Type *base,
         uint8_t numOfRegions = sectorMapBuff[currTableIdx + CY_SMIF_SFDP_SECTOR_MAP_REGION_COUNT_OFFSET] + 1U;
         device->hybridRegionCount = (uint32_t) numOfRegions;
 
-        if(numOfRegions <= 1U)
+        if(numOfRegions < 1U)
         {
             result = CY_SMIF_NOT_HYBRID_MEM;
         }
@@ -2399,95 +2337,37 @@ static cy_en_smif_protocol_mode_t GetOctalDDRParams(SMIF_Type *base,
                 SfdpSetVariableLatencyCmd(base, device, slaveSelect, sccrMapAddr, context);
              }
 
-             if ((device->writeLatencyCmd->command != CY_SMIF_NO_COMMAND_OR_MODE))
-             {
-                uint8_t cfr_reg_address[5U];
-                uint8_t cfr_value = 0;
-
-                /* Initialize DWords */
-                for (uint8_t i = 0U; i < 5U; i++)
-                {
-                    cfr_reg_address[i] = 0U;
-                }
-
-                switch (device->freq_of_operation)
-                {
-                    case CY_SMIF_100MHZ_OPERATION:
-                        /* DWORD-5, Bits 11:7 should be > 0 to confirm if 100 MHz is supported or not */
-                        if ( ((xSPiProfile1AddrBuffer[16] & 0x80U) | ((xSPiProfile1AddrBuffer[17] & 0x0FU) << 1U)) > 0U)
-                        {
-                            cmdRead->dummyCycles = (uint32_t) ((xSPiProfile1AddrBuffer[16] & 0x80U) | ((xSPiProfile1AddrBuffer[17] & 0x0FU) << 1U));
-
-                            /* DWORD-5 Bits 6:2 */
-                            cfr_value = (xSPiProfile1AddrBuffer[16] & 0x7CU);
-                        }
-
-                        break;
-                    case CY_SMIF_133MHZ_OPERATION:
-                        /* DWORD-5, Bits 21:17 should be > 0 to confirm if 133 MHz is supported or not */
-                        if ((xSPiProfile1AddrBuffer[17] & 0x3EU) > 0U)
-                        {
-                             cmdRead->dummyCycles = (uint32_t) (xSPiProfile1AddrBuffer[17] & 0x3EU);
-
-                            /* DWORD-5, Bits 21:17 */
-                            cfr_value = ((xSPiProfile1AddrBuffer[17] & 0xF0U) << 1U) | (xSPiProfile1AddrBuffer[18] & 0x1U);
-                        }
-                        break;
-                    case CY_SMIF_166MHZ_OPERATION:
-                        /* DWORD-5, Bits 31:27 should be > 0 to confirm if 133 MHz is supported or not */
-                        if ((xSPiProfile1AddrBuffer[19] & 0xE0U) > 0U)
-                        {
-                               cmdRead->dummyCycles = (uint32_t) xSPiProfile1AddrBuffer[19] & 0xE0U;
-
-                            /* DWORD -5 Bits 26:22 */
-                            cfr_value = ((xSPiProfile1AddrBuffer[19] & 0x07U) << 2U) | (xSPiProfile1AddrBuffer[18] & 0xC0U);
-                        }
-                        break;
-                    case CY_SMIF_200MHZ_OPERATION:
-                        /* DWORD-4, Bits 11:7 should be > 0 to confirm if 133 MHz is supported or not */
-                        if ( ((xSPiProfile1AddrBuffer[12] & 0x80U) | ((xSPiProfile1AddrBuffer[13] & 0x0FU) << 1U)) > 0U)
-                        {
-                            cmdRead->dummyCycles = (uint32_t) ((xSPiProfile1AddrBuffer[12] & 0x80U) | ((xSPiProfile1AddrBuffer[13] & 0x0FU) << 1U));
-
-                            /* DWORD-4 Bits 6:2 */
-                            cfr_value = (xSPiProfile1AddrBuffer[12] & 0x7CU);
-                        }
-                        break;
-                    default:
-                        /* Do Nothing */
-                        break;
-                }
-
-                if (cfr_value > 0U)
-                {
-                    ValueToByteArray(device->latencyCyclesRegAddr, cfr_reg_address, 0, 4U);
-                    cfr_reg_address[4] = cfr_value;
-                         
-                    result = Cy_SMIF_MemCmdWriteRegister(base,
-                                         slaveSelect,
-                                         device->writeEnCmd,
-                                         device->writeLatencyCmd,
-                                         cfr_reg_address,
-                                         5U,
-                                         context);
-                }
-
-             }
-             else
-             {
-                 cmdRead->dummyCycles = 8U; /* Default value */
-             }
-
-             /* dummy cycles present - 2 byte transfer */
-             if(cmdRead->dummyCycles > 0UL)
-             {
-                 cmdRead->dummyCyclesPresence = CY_SMIF_PRESENT_2BYTE;
-             }
-
-             /* The data transfer width */
+             /* As per SFDP SPEC JEDEC standard 216D.01, to keep host controller
+              * enumeration simple, number of dummy cycles for fast read set to 20
+              */
+             cmdRead->dummyCycles = 20U;
+             cmdRead->dummyCyclesPresence = CY_SMIF_PRESENT_1BYTE;
              cmdRead->dataWidth = CY_SMIF_WIDTH_OCTAL;
 
              pMode = PROTOCOL_MODE_8D_8D_8D;
+
+             /* Update Write Enable command to use Octal DDR mode */
+             device->writeEnCmd->commandH = device->writeEnCmd->command;
+             device->writeEnCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
+             device->writeEnCmd->cmdRate = CY_SMIF_DDR;
+             device->writeEnCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
+
+             /* Update readStsRegWipCmd command to use Octal DDR mode */
+             device->readStsRegWipCmd->commandH = device->readStsRegWipCmd->command;
+             device->readStsRegWipCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
+             device->readStsRegWipCmd->cmdRate = CY_SMIF_DDR;
+             device->readStsRegWipCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
+             device->readStsRegWipCmd->dataWidth = CY_SMIF_WIDTH_OCTAL;
+             device->readStsRegWipCmd->dataRate = CY_SMIF_DDR;
+             device->readStsRegWipCmd->dummyCyclesPresence = CY_SMIF_PRESENT_1BYTE;
+             device->readStsRegWipCmd->addrWidth = CY_SMIF_WIDTH_OCTAL;
+             device->readStsRegWipCmd->addrRate = CY_SMIF_DDR;
+
+             /* Update Erase chip command to use Octal DDR mode */
+             device->chipEraseCmd->commandH = device->chipEraseCmd->command;
+             device->chipEraseCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
+             device->chipEraseCmd->cmdRate = CY_SMIF_DDR;
+             device->chipEraseCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
 
              /* Fill command sequence to switch to Octal DDR mode */
              uint8_t cmdSeqODDRAddrBuffer[CY_SMIF_SFDP_LENGTH];
@@ -2498,12 +2378,9 @@ static cy_en_smif_protocol_mode_t GetOctalDDRParams(SMIF_Type *base,
                 cmdSeqODDRAddrBuffer[i] = 0U;
             }
 
-            if (result == CY_SMIF_SUCCESS)
-            {
-                 /* Get the command sequence to change to Octal DDR mode content into cmdSeqODDRAddrBuffer[] */
-                 result = SfdpReadBuffer(base, cmdSfdp, cmdSeqODDRAddr, slaveSelect,
+            /* Get the command sequence to change to Octal DDR mode content into cmdSeqODDRAddrBuffer[] */
+            result = SfdpReadBuffer(base, cmdSfdp, cmdSeqODDRAddr, slaveSelect,
                                 cmdSeqODDRTableLength, cmdSeqODDRAddrBuffer, context);
-            }
 
             if (result == CY_SMIF_SUCCESS)
             {
@@ -2538,7 +2415,24 @@ static cy_en_smif_protocol_mode_t GetOctalDDRParams(SMIF_Type *base,
     return pMode;
 }
 #endif
-
+/*******************************************************************************
+* Function Name: Cy_SMIF_Reset_Memory
+****************************************************************************//**
+*
+* This function is the weak implementation for resetting the memory.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param slaveSelect
+* Denotes the number of the slave device to which reset has to be applied for.
+*
+*******************************************************************************/
+__WEAK void Cy_SMIF_Reset_Memory(SMIF_Type *base, cy_en_smif_slave_select_t slaveSelect)
+{
+    (void)base;
+    (void)slaveSelect;
+}
 /*******************************************************************************
 * Function Name: Cy_SMIF_MemInitSfdpMode
 ****************************************************************************//**
@@ -2623,6 +2517,9 @@ cy_en_smif_status_t Cy_SMIF_MemInitSfdpMode(SMIF_Type *base,
     }
     /* Slave slot initialization */
     Cy_SMIF_SetDataSelect(base, slaveSelect, dataSelect);
+
+    /* Reset Memory before starting SFDP enumeration */
+    Cy_SMIF_Reset_Memory(base, slaveSelect);
 
     if (NULL != cmdSfdp)
     {
@@ -2726,6 +2623,12 @@ cy_en_smif_status_t Cy_SMIF_MemInitSfdpMode(SMIF_Type *base,
                     /* The page size */
                     device->programSize = SfdpGetPageSize(sfdpBuffer);
 
+                    /* Workaround for S25FS128S SFDP Data mismatch used on PSE84 EVK */
+                    if (device->programSize > 256U)
+                    {
+                        device->programSize = 256U;
+                    }
+
                     /* Chip Erase Time */
                     device->chipEraseTime = SfdpGetChipEraseTime(sfdpBuffer);
 
@@ -2757,8 +2660,13 @@ cy_en_smif_status_t Cy_SMIF_MemInitSfdpMode(SMIF_Type *base,
                 uint32_t eraseTypeOffset = 1UL;
                 if (FOUR_BYTE_ADDRESS == device->numOfAddrBytes)
                 {
-                    /* Enter 4-byte addressing mode */
-                    result = SfdpEnterFourByteAddressing(base, sfdpBuffer[CY_SMIF_SFDP_BFPT_BYTE_3F], device, slaveSelect, context);
+                    /* Octal mode enumeration continue using 3 byte addressing */
+                    if (pMode != PROTOCOL_MODE_WRONG)
+                    {
+                        /* Enter 4-byte addressing mode */
+                        result = SfdpEnterFourByteAddressing(base, sfdpBuffer[CY_SMIF_SFDP_BFPT_BYTE_3F], device, slaveSelect, context);
+                    }
+
                     uint8_t fourByteAddressBuffer[CY_SMIF_SFDP_LENGTH];
 
                     /* Initialize SFDP Buffer */
@@ -2777,7 +2685,8 @@ cy_en_smif_status_t Cy_SMIF_MemInitSfdpMode(SMIF_Type *base,
                     /* Check if Octal mode related is supported first */
                     if ((device->readStsRegOeCmd != NULL) && (device->writeStsRegOeCmd != NULL))
                     {
-                        if ((CY_SMIF_SUCCESS == result) && (maxdataWidth == CY_SMIF_WIDTH_OCTAL))
+                        /* Octal SFDP mode support is added from JESD216C version 1.7 */
+                        if ((CY_SMIF_SUCCESS == result) && (maxdataWidth == CY_SMIF_WIDTH_OCTAL) && (sfdp_minor_revision >= 7U))
                         {
                             cy_en_smif_protocol_mode_t octalProtocolMode = PROTOCOL_MODE_WRONG;
 
@@ -2788,6 +2697,8 @@ cy_en_smif_status_t Cy_SMIF_MemInitSfdpMode(SMIF_Type *base,
                                                                       xSPiProfile1Addr, xSPIProfile1TableLength,
                                                                       sccrMapAddr, sccrMapTableLength,
                                                                       context);
+
+                                /* Initialize other params here */
                             }
 
                             if(octalProtocolMode != PROTOCOL_MODE_8D_8D_8D) /* Check for Octal SDR if Octal DDR was not supported */
@@ -2823,6 +2734,28 @@ cy_en_smif_status_t Cy_SMIF_MemInitSfdpMode(SMIF_Type *base,
 
                         /* Find the sector Erase command type with 4-byte addressing */
                         eraseTypeOffset = SfdpGetSectorEraseCommand(device, fourByteAddressBuffer, eraseType);
+
+#if (CY_IP_MXSMIF_VERSION>=2) && defined (SMIF_OCTAL_SFDP_SUPPORT)
+                        if(pMode == PROTOCOL_MODE_8D_8D_8D)
+                        {
+                             /* Update Erase command to use Octal DDR mode */
+                             device->eraseCmd->commandH = device->eraseCmd->command;
+                             device->eraseCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
+                             device->eraseCmd->cmdRate = CY_SMIF_DDR;
+                             device->eraseCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
+                             device->eraseCmd->addrWidth = CY_SMIF_WIDTH_OCTAL;
+                             device->eraseCmd->addrRate = CY_SMIF_DDR;
+
+                             device->programCmd->commandH = device->programCmd->command;
+                             device->programCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
+                             device->programCmd->cmdRate = CY_SMIF_DDR;
+                             device->programCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
+                             device->programCmd->addrWidth = CY_SMIF_WIDTH_OCTAL;
+                             device->programCmd->addrRate = CY_SMIF_DDR;
+                             device->programCmd->dataWidth = CY_SMIF_WIDTH_OCTAL;
+                             device->programCmd->dataRate = CY_SMIF_DDR;
+                        }
+#endif
                     }
                 }
                 else /* Four Byte addressing not supported by the part */

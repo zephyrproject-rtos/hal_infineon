@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_spi.c
-* \version 3.10
+* \version 3.20
 *
 * Provides SPI API implementation of the SCB driver.
 *
@@ -681,13 +681,16 @@ cy_en_scb_spi_status_t Cy_SCB_SPI_Transfer(CySCB_Type *base, void *txBuffer, voi
         /* Set up the context */
         context->status    = CY_SCB_SPI_TRANSFER_ACTIVE;
 
-        context->txBuf     = txBuffer;
-        context->txBufSize = size;
-        context->txBufIdx =  0UL;
+        context->txBuf            = txBuffer;
+        context->txBufSize        = size;
+        context->txBufIdx         = 0UL;
 
         context->rxBuf     = rxBuffer;
         context->rxBufSize = size;
         context->rxBufIdx  = 0UL;
+
+        context->WriteFillSize = 0UL;
+        context->writeFill     = CY_SCB_SPI_DEFAULT_TX;
 
         /* Set the TX interrupt when half of FIFO was transmitted */
         Cy_SCB_SetTxFifoLevel(base, fifoSize / 2UL);
@@ -727,6 +730,176 @@ cy_en_scb_spi_status_t Cy_SCB_SPI_Transfer(CySCB_Type *base, void *txBuffer, voi
     return (retStatus);
 }
 
+
+/*******************************************************************************
+* Function Name: Cy_SCB_SPI_Transfer_Buffer
+****************************************************************************//**
+*
+* This function starts an SPI transfer operation with different lengths of Tx and
+* Rx buffers.
+* It configures transmit and receive buffers for an SPI transfer.
+* If the data that will be received is not important, pass NULL as rxBuffer.
+* If the data that will be transmitted is not important, pass NULL as txBuffer
+* and then the \ref CY_SCB_SPI_DEFAULT_TX is sent out as each data element.
+* Note that passing NULL as rxBuffer and txBuffer are considered invalid cases.
+*
+* After the function configures TX and RX interrupt sources, it returns and
+* \ref Cy_SCB_SPI_Interrupt manages further data transfer.
+*
+* * In the master mode, the transfer operation starts after calling this
+*   function
+* * In the slave mode, the transfer registers and will start when
+*   the master request arrives.
+*
+* When the transfer operation is completed (requested number of data elements
+* sent and received), the \ref CY_SCB_SPI_TRANSFER_ACTIVE status is cleared
+* and the \ref CY_SCB_SPI_TRANSFER_CMPLT_EVENT event is generated.
+*
+* \param base
+* The pointer to the SPI SCB instance.
+*
+* \param txBuffer
+* The pointer of the buffer with data to transmit.
+* The element size is defined by the data type that depends on the configured
+* TX data width.
+*
+* \param rxBuffer
+* The pointer to the buffer to store received data.
+* The element size is defined by the data type that depends on the configured
+* RX data width.
+*
+* \param txSize
+* The number of data elements to transmit.
+*
+* \param rxSize
+* The number of data elements to receive.
+*
+* \param writeFill
+* When rxSize is greater than txSize, writeFill value provided will be padded
+* to the Tx. WriteFill value used will be as per TX FIFO byte mode configuration.
+*
+* \param context
+* The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
+* by the user. The structure is used during the SPI operation for internal
+* configuration and data retention. The user must not modify anything
+* in this structure.
+*
+* \return
+* \ref cy_en_scb_spi_status_t
+*
+* \note
+* * The buffers must not be modified and must stay allocated until the end of the
+*   transfer.
+* * This function overrides all RX and TX FIFO interrupt sources and changes
+*   the RX and TX FIFO level.
+*
+*******************************************************************************/
+cy_en_scb_spi_status_t Cy_SCB_SPI_Transfer_Buffer(CySCB_Type *base, void *txBuffer, void *rxBuffer,
+                                                               uint32_t txSize, uint32_t rxSize, uint32_t writeFill,
+                                                               cy_stc_scb_spi_context_t *context)
+{
+    if((txSize == 0UL) && (rxSize == 0UL))
+    {
+        return CY_SCB_SPI_SUCCESS;
+    }
+
+    CY_ASSERT_L1(NULL != context);
+    #if !defined(NDEBUG)
+    CY_ASSERT_L1(CY_SCB_SPI_INIT_KEY == context->initKey);
+    #endif
+    CY_ASSERT_L1(CY_SCB_SPI_IS_TX_RX_BUFFER_VALID(txBuffer, rxBuffer, txSize, rxSize));
+
+    cy_en_scb_spi_status_t retStatus = CY_SCB_SPI_TRANSFER_BUSY;
+
+    /* Check whether there are no active transfer requests */
+    if (0UL == (CY_SCB_SPI_TRANSFER_ACTIVE & context->status))
+    {
+        uint32_t fifoSize = Cy_SCB_GetFifoSize(base);
+
+        /* Set up the context */
+        context->status    = CY_SCB_SPI_TRANSFER_ACTIVE;
+
+        context->txBuf            = txBuffer;
+        context->txBufSize        = txSize;
+        context->txBufIdx         = 0UL;
+
+        context->rxBuf     = rxBuffer;
+        context->rxBufSize = rxSize;
+        context->rxBufIdx  = 0UL;
+
+        context->writeFill     = writeFill;
+
+        /* If number of data elements to receive are greater than to transmit, then fill end of tx array
+        with user specified value. */
+        if(context->rxBufSize > context->txBufSize)
+        {
+            context->WriteFillSize = context->rxBufSize - context->txBufSize;
+            context->DiscardRxSize = 0UL;
+            if(txSize == 0UL)
+            {
+                txSize                 = context->WriteFillSize;
+                context->txBufSize     = context->WriteFillSize;
+                context->WriteFillSize = 0UL;
+                context->txBuf         = NULL;
+            }
+        }
+        else if(context->txBufSize > context->rxBufSize)
+        {
+            /* If number of data elements to transmit are greater than to receive, then discard those extra
+               data elements. */
+            context->WriteFillSize = 0UL;
+            context->DiscardRxSize = context->txBufSize - context->rxBufSize;
+            if(rxSize == 0UL)
+            {
+                rxSize                 = context->DiscardRxSize;
+                context->rxBufSize     = context->DiscardRxSize;
+                context->DiscardRxSize = 0UL;
+                context->rxBuf         = NULL;
+            }
+        }
+        else
+        {
+            context->WriteFillSize = 0UL;
+            context->DiscardRxSize = 0UL;
+        }
+
+        /* Set the TX interrupt when half of FIFO was transmitted */
+        Cy_SCB_SetTxFifoLevel(base, ((txSize > fifoSize) ? ((fifoSize / 2UL) - 2UL) : ((txSize == 1UL) ? txSize : (txSize - 1UL))));
+
+        if (_FLD2BOOL(SCB_SPI_CTRL_MASTER_MODE, SCB_SPI_CTRL(base)))
+        {
+            /* Trigger an RX interrupt:
+            * - If the transfer size is equal to or less than FIFO, trigger at the end of the transfer.
+            * - If the transfer size is greater than FIFO, trigger 1 byte earlier than the TX interrupt.
+            */
+            Cy_SCB_SetRxFifoLevel(base, (rxSize > fifoSize) ? ((fifoSize / 2UL) - 2UL) : (rxSize - 1UL));
+
+            Cy_SCB_SetMasterInterruptMask(base, CY_SCB_CLEAR_ALL_INTR_SRC);
+
+            /* Enable interrupt sources to perform a transfer */
+            Cy_SCB_SetRxInterruptMask(base, CY_SCB_RX_INTR_LEVEL);
+            Cy_SCB_SetTxInterruptMask(base, CY_SCB_TX_INTR_LEVEL);
+        }
+        else
+        {
+            /* Trigger an RX interrupt:
+            * - If the transfer size is equal to or less than half of FIFO, trigger ??at the end of the transfer.
+            * - If the transfer size is greater than half of FIFO, trigger 1 byte earlier than a TX interrupt.
+            */
+            Cy_SCB_SetRxFifoLevel(base, (rxSize > (fifoSize / 2UL)) ? ((fifoSize / 2UL) - 2UL) : (rxSize - 1UL));
+
+            Cy_SCB_SetSlaveInterruptMask(base, CY_SCB_SLAVE_INTR_SPI_BUS_ERROR);
+
+            /* Enable interrupt sources to perform a transfer */
+            Cy_SCB_SetRxInterruptMask(base, CY_SCB_RX_INTR_LEVEL | CY_SCB_RX_INTR_OVERFLOW);
+            Cy_SCB_SetTxInterruptMask(base, CY_SCB_TX_INTR_LEVEL | CY_SCB_TX_INTR_UNDERFLOW);
+        }
+
+        retStatus = CY_SCB_SPI_SUCCESS;
+    }
+
+    return (retStatus);
+}
 
 /*******************************************************************************
 * Function Name: Cy_SCB_SPI_AbortTransfer
@@ -974,13 +1147,13 @@ static void HandleReceive(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
         numToCopy = context->rxBufSize;
     }
 
-    /* Move the buffer */
-    context->rxBufIdx  += numToCopy;
     context->rxBufSize -= numToCopy;
 
     /* Read data from RX FIFO */
     if (NULL != context->rxBuf)
     {
+        context->rxBufIdx  += numToCopy;
+
         uint8_t *buf = (uint8_t *) context->rxBuf;
 
         Cy_SCB_ReadArrayNoCheck(base, context->rxBuf, numToCopy);
@@ -1001,8 +1174,21 @@ static void HandleReceive(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
 
     if (0UL == context->rxBufSize)
     {
-        /* Disable the RX level interrupt */
-        Cy_SCB_SetRxInterruptMask(base, (Cy_SCB_GetRxInterruptMask(base) & (uint32_t) ~CY_SCB_RX_INTR_LEVEL));
+        if(0UL == context->DiscardRxSize)
+        {
+            /* Disable the RX level interrupt */
+            Cy_SCB_SetRxInterruptMask(base, (Cy_SCB_GetRxInterruptMask(base) & (uint32_t) ~CY_SCB_RX_INTR_LEVEL));
+        }
+        else
+        {
+            context->rxBuf         = NULL;
+            context->rxBufSize     = context->DiscardRxSize;
+            context->DiscardRxSize = 0UL;
+
+            uint32_t fifoSize = Cy_SCB_GetFifoSize(base);
+
+            Cy_SCB_SetRxFifoLevel(base, (context->rxBufSize > fifoSize) ? ((fifoSize / 2UL) - 2UL) : (context->rxBufSize - 1UL));
+        }
     }
     else
     {
@@ -1049,13 +1235,13 @@ static void HandleTransmit(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
         numToCopy = context->txBufSize;
     }
 
-    /* Move the buffer */
-    context->txBufIdx  += numToCopy;
     context->txBufSize -= numToCopy;
 
     /* Load TX FIFO with data */
     if (NULL != context->txBuf)
     {
+        context->txBufIdx  += numToCopy;
+
         uint8_t *buf = (uint8_t *) context->txBuf;
 
         Cy_SCB_WriteArrayNoCheck(base, context->txBuf, numToCopy);
@@ -1070,20 +1256,42 @@ static void HandleTransmit(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
     }
     else
     {
-        Cy_SCB_WriteDefaultArrayNoCheck(base, CY_SCB_SPI_DEFAULT_TX, numToCopy);
+        Cy_SCB_WriteDefaultArrayNoCheck(base, context->writeFill, numToCopy);
     }
 
     if (0UL == context->txBufSize)
     {
-        /* Data is transferred into TX FIFO */
-        context->status |= CY_SCB_SPI_TRANSFER_IN_FIFO;
-
-        /* Disable the TX level interrupt */
-        Cy_SCB_SetTxInterruptMask(base, (Cy_SCB_GetTxInterruptMask(base) & (uint32_t) ~CY_SCB_TX_INTR_LEVEL));
-
-        if (NULL != context->cbEvents)
+        if(0UL == context->WriteFillSize)
         {
-            context->cbEvents(CY_SCB_SPI_TRANSFER_IN_FIFO_EVENT);
+            /* Data is transferred into TX FIFO */
+            context->status |= CY_SCB_SPI_TRANSFER_IN_FIFO;
+
+            /* Disable the TX level interrupt */
+            Cy_SCB_SetTxInterruptMask(base, (Cy_SCB_GetTxInterruptMask(base) & (uint32_t) ~CY_SCB_TX_INTR_LEVEL));
+
+            if (NULL != context->cbEvents)
+            {
+                context->cbEvents(CY_SCB_SPI_TRANSFER_IN_FIFO_EVENT);
+            }
+        }
+        else
+        {
+            numToCopy = fifoSize - Cy_SCB_GetNumInTxFifo(base);
+
+            if (numToCopy > context->WriteFillSize)
+            {
+                numToCopy = context->WriteFillSize;
+            }
+
+            Cy_SCB_WriteDefaultArrayNoCheck(base, context->writeFill, numToCopy);
+
+            uint32_t txFifoLevel = Cy_SCB_GetNumInTxFifo(base)+numToCopy;
+
+            Cy_SCB_SetTxFifoLevel(base, ((txFifoLevel > fifoSize) ? ((fifoSize / 2UL) - 2UL) : ((txFifoLevel == 1UL) ? txFifoLevel : (txFifoLevel - 1UL))));
+
+            context->txBuf         = NULL;
+            context->txBufSize     = context->WriteFillSize - numToCopy;
+            context->WriteFillSize = 0UL;
         }
     }
 }

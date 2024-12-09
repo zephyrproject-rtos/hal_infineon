@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_lpcomp.h
-* \version 1.60
+* \version 1.70
 *
 *  This file provides constants and parameter values for the Low Power Comparator driver.
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -118,6 +118,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.70</td>
+*     <td>Added support for CAT1B and CAT1D devices.</td>
+*     <td>Support of new IP version.</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="2">1.60</td>
 *     <td>Fix in hibernate callback function.</td>
 *     <td>The low power comparator was unable to wake-up the system from hibernate state.</td>
@@ -212,7 +217,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXLPCOMP) || defined (CY_IP_MXS22LPCOMP)
+#if defined (CY_IP_MXLPCOMP) || defined (CY_IP_MXS22LPCOMP) || defined (CY_IP_MXS40LPCOMP)
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -233,7 +238,7 @@ extern "C"
 #define CY_LPCOMP_DRV_VERSION_MAJOR       1
 
 /** Driver minor version. */
-#define CY_LPCOMP_DRV_VERSION_MINOR       60
+#define CY_LPCOMP_DRV_VERSION_MINOR       70
 
 /******************************************************************************
 * API Constants
@@ -373,6 +378,7 @@ typedef enum
 {
     CY_LPCOMP_SUCCESS = 0x00u,                                            /**< Successful */
     CY_LPCOMP_BAD_PARAM = CY_LPCOMP_ID | CY_PDL_STATUS_ERROR | 0x01u,     /**< One or more invalid parameters */
+    CY_LPCOMP_TRIMM_ERR = CY_LPCOMP_ID | CY_PDL_STATUS_ERROR | 0x02u,     /**< Read trimmings fails */
 } cy_en_lpcomp_status_t;
 
 #if defined (CY_IP_MXS22LPCOMP)
@@ -485,8 +491,7 @@ typedef struct {
 #if defined (CY_IP_MXS22LPCOMP)
 #define CY_LPCOMP_IS_TRIM_VALID(trim)          (((((trim)->polarity) == CY_LPCOMP_TRIM_NEGATIVE) || \
                                                  (((trim)->polarity) == CY_LPCOMP_TRIM_POSITIVE)) && \
-                                                ((((trim)->magnitude) >= CY_LPCOMP_TRIM_0mV) && \
-                                                 (((trim)->magnitude) <= CY_LPCOMP_TRIM_15mV)))
+                                                 (((trim)->magnitude) <= CY_LPCOMP_TRIM_15mV))
 #endif
 /** \endcond */
 
@@ -838,7 +843,7 @@ __STATIC_INLINE void Cy_LPComp_ConnectULPReference(LPCOMP_Type *base, cy_en_lpco
 }
 #endif
 
-#endif /* CY_IP_MXLPCOMP and CY_IP_MXS22LPCOMP */
+#endif /* CY_IP_MXLPCOMP, CY_IP_MXS22LPCOMP, and CY_IP_MXS40LPCOMP */
 
 #endif /* CY_LPCOMP_PDL_H */
 

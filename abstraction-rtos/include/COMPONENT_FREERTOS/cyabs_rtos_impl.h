@@ -32,6 +32,9 @@
 #include <event_groups.h>
 #include <timers.h>
 #include "stdbool.h"
+#if !defined (COMPONENT_CAT5)
+#include <cmsis_compiler.h>
+#endif
 #if defined(CY_USING_HAL)
 #include "cyhal.h"
 #endif
@@ -47,7 +50,10 @@ extern "C" {
 #define CY_RTOS_ALIGNMENT           0x00000008UL   /**< Minimum alignment for RTOS objects */
 #define CY_RTOS_ALIGNMENT_MASK      0x00000007UL   /**< Mask for checking the alignment of
                                                         created RTOS objects */
-
+#if !defined(CY_RTOS_MAX_SUSPEND_NESTING)
+#define CY_RTOS_MAX_SUSPEND_NESTING 3              /**< Maximum nesting allowed for calls
+                                                        to scheduler suspend from ISR */
+#endif
 /******************************************************
 *                   Enumerations
 ******************************************************/
@@ -98,7 +104,16 @@ void cyabs_rtos_set_lptimer(cyhal_lptimer_t* timer);
  * @return Pointer to the lptimer handle
  */
 cyhal_lptimer_t* cyabs_rtos_get_lptimer(void);
+
+/** If the interrupt is in pending state and disabled need to remove it from NVIC.
+ * NOTE: this function if for internal use
+ */
+extern void _cyabs_rtos_clear_disabled_irq_in_pending(void);
+
 #endif //defined(CY_USING_HAL)
+
+
+cy_time_t convert_ms_to_ticks(cy_time_t timeout_ms);
 
 #ifdef __cplusplus
 } // extern "C"

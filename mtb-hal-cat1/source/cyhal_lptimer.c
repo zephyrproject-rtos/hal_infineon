@@ -31,9 +31,9 @@
 * \addtogroup group_hal_impl_lptimer LPTimer (Low-Power Timer)
 * \ingroup group_hal_impl
 * \{
-* The maximum number of ticks that can set to an LPTimer is 0xFFF0FFFF for non CAT1C devices.
+* The maximum number of ticks that can set to an LPTimer is 0xFFF0FFFF for non MCWDT-B devices.
 * It is not recommended to use 0xFFFFFFFF. This is to avoid overflowing both C0 and C1.
-* For CAT1C devices (XMC), the maximum number of ticks that can be set to an LPTimer is 0xFFFFFFFF
+* For MCWDT-B devices, the maximum number of ticks that can be set to an LPTimer is 0xFFFFFFFF
 * since C0 and C1 do not cascade.
 *
 * \section section_cat1c_lptimer_set_match LPTimer Set Match
@@ -57,7 +57,7 @@
 #if defined(CY_IP_MXS40SRSS) || defined(CY_IP_MXS40SSRSS) || defined(CY_IP_MXS28SRSS) || defined(CY_IP_MXS22SRSS)
 #include "cy_mcwdt.h"
 #define _CYHAL_LPTIMER_MCWDT
-#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)) || ((SRSS_NUM_MCWDT_B) > 0)
+#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)) || ((SRSS_NUM_MCWDT_B) > 0)
 #define _CYHAL_LPTIMER_MCWDT_B
 #if !defined(SRSS_NUM_MCWDT_B)
 #define SRSS_NUM_MCWDT_B (SRSS_NUM_MCWDT)
@@ -159,14 +159,18 @@ static const cy_stc_mcwdt_config_t default_cfg = {
                 .c0WarnAction = CY_MCWDT_WARN_ACTION_NONE,
                 .c0UpperAction = CY_MCWDT_ACTION_NONE,
                 .c0DebugRun = CY_MCWDT_ENABLE,
+                .c0SleepDeepPause = CY_MCWDT_DISABLE,
                 .c1UpperLimit = 0xFFFF,
                 .c1UpperAction = CY_MCWDT_ACTION_NONE,
                 .c1DebugRun = CY_MCWDT_ENABLE,
+                .c1SleepDeepPause = CY_MCWDT_DISABLE,
                 .c1WarnLimit =  0xFFFF,
                 .c1WarnAction = CY_MCWDT_WARN_ACTION_INT,
                 .c1AutoService = CY_MCWDT_ENABLE,
                 .c2ToggleBit = 0,
                 .c2Action = CY_MCWDT_CNT2_ACTION_INT,
+                .c2DebugRun = CY_MCWDT_ENABLE,
+                .c2SleepDeepPause = CY_MCWDT_DISABLE,
                 .coreSelect = CY_MCWDT_PAUSED_BY_NO_CORE,
         };
 #else

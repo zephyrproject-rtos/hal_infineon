@@ -26,7 +26,7 @@
 * \addtogroup group_pdm_pcm_v2
 * \{
 * \note IP Supported: PDM
-* \note Device Categories: CAT1B. Please refer <a href="usergroup1.html">Device Catalog</a>.
+* \note Device Categories: CAT1B and CAT1D. Please refer <a href="usergroup1.html">Device Catalog</a>.
 *
 * The pulse-density modulation to pulse-code modulation (PDM-PCM) driver provides an
 * API to manage PDM-PCM conversion. A PDM-PCM converter is used
@@ -70,12 +70,13 @@
 * To set up a PDM-PCM, provide the configuration parameters in the
 * \ref cy_stc_pdm_pcm_config_v2_t structure.
 *
-* For example, set dataStreamingEnable to true, configure rxFifoTriggerLevel,
-* dmaTriggerEnable (depending on whether DMA is going to be used),
-* provide clock settings (clkDiv, mclkDiv and ckoDiv), set sincDecRate
-* to the appropriate decimation rate, wordLen, and wordBitExtension.
-* No other parameters are necessary for this example.
-*
+* Input frequency from source clock and the sampling rate Fs, is expressed as follows:
+* <br>
+* <b> CLK_IF_SRSS_FREQ = (CLOCK_CTL.CLOCK_DIV + 1) * M * Fs </b>
+* <br>
+* where M is the oversampling rate at the PDM source
+* ![](pdm_pcm_sampling_rate.png)
+* 
 * To initialize the PDM-PCM channels, call \ref Cy_PDM_PCM_Channel_Init function, providing the 
 * filled \ref cy_stc_pdm_pcm_channel_config_t structure
 * To initialize the PDM-PCM block, call the \ref Cy_PDM_PCM_Init function, providing the

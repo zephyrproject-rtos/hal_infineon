@@ -249,6 +249,12 @@ static cy_rslt_t _cyhal_interconnect_check_connection(cyhal_source_t source, cyh
     uint8_t mux_group = cyhal_dest_to_mux[dest];
     if(mux_group & 0x80)
         mux_group = mux_group_1to1_offset + (mux_group & ~0x80);
+    // Ensure mux_group is within the range of cyhal_mux_to_sources to avoid
+    // out-of-bounds indexing
+    if (mux_group >= (sizeof(cyhal_mux_to_sources) / sizeof(cyhal_mux_to_sources[0])))
+    {
+        return CYHAL_INTERCONNECT_RSLT_INVALID_CONNECTION;
+    }
 
     uint8_t dest_idx = cyhal_mux_dest_index[dest];
 

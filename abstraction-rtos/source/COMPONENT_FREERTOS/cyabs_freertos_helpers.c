@@ -7,7 +7,7 @@
  *
  ***************************************************************************************************
  * \copyright
- * Copyright 2018-2021 Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -29,25 +29,24 @@
 #include "cyabs_rtos.h"
 #if defined(CY_USING_HAL)
 #include "cyhal.h"
+#include "cyhal_syspm.h"
 #endif
 
 // This is included to allow the user to control the idle task behavior via the configurator
 // System->Power->RTOS->System Idle Power Mode setting.
-#if defined(COMPONENT_BSP_DESIGN_MODUS) || defined(COMPONENT_CUSTOM_DESIGN_MODUS)
-#include "cycfg.h"
-#endif
+#include "cybsp.h"
 
 #define pdTICKS_TO_MS(xTicks)    ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
 
 #if defined(CY_USING_HAL)
-static cyhal_lptimer_t* _timer = NULL;
+static cyhal_lptimer_t* _lptimer = NULL;
 
 //--------------------------------------------------------------------------------------------------
 // cyabs_rtos_set_lptimer
 //--------------------------------------------------------------------------------------------------
 void cyabs_rtos_set_lptimer(cyhal_lptimer_t* timer)
 {
-    _timer = timer;
+    _lptimer = timer;
 }
 
 
@@ -56,11 +55,56 @@ void cyabs_rtos_set_lptimer(cyhal_lptimer_t* timer)
 //--------------------------------------------------------------------------------------------------
 cyhal_lptimer_t* cyabs_rtos_get_lptimer(void)
 {
-    return _timer;
+    return _lptimer;
 }
 
 
+#if (configUSE_TICKLESS_IDLE != 0)
+//--------------------------------------------------------------------------------------------------
+// cyabs_rtos_get_deepsleep_latency
+//--------------------------------------------------------------------------------------------------
+uint32_t cyabs_rtos_get_deepsleep_latency(void)
+{
+    uint32_t latency = 0;
+
+    #if defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
+    latency = CY_CFG_PWR_DEEPSLEEP_LATENCY;
+    #endif //defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
+
+    #if defined (CYHAL_API_AVAILABLE_SYSPM_GET_DEEPSLEEP_MODE)
+    cyhal_syspm_system_deep_sleep_mode_t deep_sleep_mode = cyhal_syspm_get_deepsleep_mode();
+
+    switch (deep_sleep_mode)
+    {
+        case CYHAL_SYSPM_SYSTEM_DEEPSLEEP:
+        case CYHAL_SYSPM_SYSTEM_DEEPSLEEP_OFF:
+        case CYHAL_SYSPM_SYSTEM_DEEPSLEEP_NONE:
+            #if defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
+            latency = CY_CFG_PWR_DEEPSLEEP_LATENCY;
+            #endif //defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
+            break;
+
+        case CYHAL_SYSPM_SYSTEM_DEEPSLEEP_RAM:
+            #if defined(CY_CFG_PWR_DEEPSLEEP_RAM_LATENCY)
+            latency = CY_CFG_PWR_DEEPSLEEP_RAM_LATENCY;
+            #endif //defined(CY_CFG_PWR_DEEPSLEEP_RAM_LATENCY)
+            break;
+
+        default:
+            #if defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
+            latency = CY_CFG_PWR_DEEPSLEEP_LATENCY;
+            #endif //defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
+            break;
+    }
+    #endif // if defined (CYHAL_API_AVAILABLE_SYSPM_GET_DEEPSLEEP_MODE)
+    return latency;
+}
+
+
+#endif //(configUSE_TICKLESS_IDLE != 0)
+
 #endif //defined(CY_USING_HAL)
+
 
 // The following implementations were sourced from https://www.freertos.org/a00110.html
 
@@ -145,15 +189,22 @@ __WEAK void vApplicationGetTimerTaskMemory(StaticTask_t** ppxTimerTaskTCBBuffer,
 //--------------------------------------------------------------------------------------------------
 __WEAK void vApplicationSleep(TickType_t xExpectedIdleTime)
 {
+    #if (defined(CY_CFG_PWR_MODE_DEEPSLEEP) && \
+    (CY_CFG_PWR_SYS_IDLE_MODE == CY_CFG_PWR_MODE_DEEPSLEEP)) || \
+    (defined(CY_CFG_PWR_MODE_DEEPSLEEP_RAM) && \
+    (CY_CFG_PWR_SYS_IDLE_MODE == CY_CFG_PWR_MODE_DEEPSLEEP_RAM))
+    #define DEEPSLEEP_ENABLE
+    #endif
     static cyhal_lptimer_t timer;
     uint32_t               actual_sleep_ms = 0;
+    cy_rslt_t result = CY_RSLT_SUCCESS;
 
-    if (NULL == _timer)
+    if (NULL == _lptimer)
     {
-        cy_rslt_t result = cyhal_lptimer_init(&timer);
+        result = cyhal_lptimer_init(&timer);
         if (result == CY_RSLT_SUCCESS)
         {
-            _timer = &timer;
+            _lptimer = &timer;
         }
         else
         {
@@ -161,7 +212,7 @@ __WEAK void vApplicationSleep(TickType_t xExpectedIdleTime)
         }
     }
 
-    if (NULL != _timer)
+    if (NULL != _lptimer)
     {
         /* Disable interrupts so that nothing can change the status of the RTOS while
          * we try to go to sleep or deep-sleep.
@@ -174,46 +225,80 @@ __WEAK void vApplicationSleep(TickType_t xExpectedIdleTime)
             // By default, the device will deep-sleep in the idle task unless if the device
             // configurator overrides the behaviour to sleep in the System->Power->RTOS->System
             // Idle Power Mode setting.
-            bool deep_sleep = true;
             #if defined (CY_CFG_PWR_SYS_IDLE_MODE)
+            uint32_t sleep_ms = pdTICKS_TO_MS(xExpectedIdleTime);
+            #if defined DEEPSLEEP_ENABLE
+            bool deep_sleep = true;
             // If the system needs to operate in active mode the tickless mode should not be used in
             // FreeRTOS
             CY_ASSERT(CY_CFG_PWR_SYS_IDLE_MODE != CY_CFG_PWR_MODE_ACTIVE);
             deep_sleep =
-                ((CY_CFG_PWR_SYS_IDLE_MODE & CY_CFG_PWR_MODE_DEEPSLEEP) ==
-                 CY_CFG_PWR_MODE_DEEPSLEEP);
-            #endif
-            uint32_t sleep_ms = pdTICKS_TO_MS(xExpectedIdleTime);
-            cy_rslt_t result;
+                #if defined(CY_CFG_PWR_MODE_DEEPSLEEP_RAM)
+                (CY_CFG_PWR_SYS_IDLE_MODE == CY_CFG_PWR_MODE_DEEPSLEEP_RAM) ||
+                #endif
+                (CY_CFG_PWR_SYS_IDLE_MODE == CY_CFG_PWR_MODE_DEEPSLEEP);
             if (deep_sleep)
             {
                 // Adjust the deep-sleep time by the sleep/wake latency if set.
-                #if defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
-                if (sleep_ms > CY_CFG_PWR_DEEPSLEEP_LATENCY)
+                #if defined(CY_CFG_PWR_DEEPSLEEP_LATENCY) || \
+                defined(CY_CFG_PWR_DEEPSLEEP_RAM_LATENCY)
+                uint32_t deep_sleep_latency = cyabs_rtos_get_deepsleep_latency();
+                if (sleep_ms > deep_sleep_latency)
                 {
-                    sleep_ms -= CY_CFG_PWR_DEEPSLEEP_LATENCY;
-                    result = cyhal_syspm_tickless_deepsleep(_timer, sleep_ms, &actual_sleep_ms);
+                    result = cyhal_syspm_tickless_deepsleep(_lptimer,
+                                                            (sleep_ms - deep_sleep_latency),
+                                                            &actual_sleep_ms);
                 }
                 else
                 {
                     result = CY_RTOS_TIMEOUT;
                 }
-                #else // defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
-                result = cyhal_syspm_tickless_deepsleep(_timer, sleep_ms, &actual_sleep_ms);
-                #endif // defined(CY_CFG_PWR_DEEPSLEEP_LATENCY)
+                #else \
+                // defined(CY_CFG_PWR_DEEPSLEEP_LATENCY) ||
+                // defined(CY_CFG_PWR_DEEPSLEEP_RAM_LATENCY)
+                result = cyhal_syspm_tickless_deepsleep(_lptimer, sleep_ms, &actual_sleep_ms);
+                #endif \
+                // defined(CY_CFG_PWR_DEEPSLEEP_LATENCY) ||
+                // defined(CY_CFG_PWR_DEEPSLEEP_RAM_LATENCY)
+                //maintain compatibility with older HAL versions that didn't define this error
+                #ifdef CYHAL_SYSPM_RSLT_DEEPSLEEP_LOCKED
+                //Deepsleep has been locked, continuing into normal sleep
+                if (result == CYHAL_SYSPM_RSLT_DEEPSLEEP_LOCKED)
+                {
+                    deep_sleep = false;
+                }
+                #endif
+            }
+            if (!deep_sleep)
+            {
+            #endif // if defined DEEPSLEEP_ENABLE
+            uint32_t sleep_latency =
+                #if defined (CY_CFG_PWR_SLEEP_LATENCY)
+                CY_CFG_PWR_SLEEP_LATENCY +
+                #endif
+                0;
+            if (sleep_ms > sleep_latency)
+            {
+                result = cyhal_syspm_tickless_sleep(_lptimer, (sleep_ms - sleep_latency),
+                                                    &actual_sleep_ms);
             }
             else
             {
-                result = cyhal_syspm_tickless_sleep(_timer, sleep_ms, &actual_sleep_ms);
+                result = CY_RTOS_TIMEOUT;
             }
-
+            #if defined DEEPSLEEP_ENABLE
+        }
+            #endif
+            #else // if defined (CY_CFG_PWR_SYS_IDLE_MODE)
+            CY_UNUSED_PARAMETER(xExpectedIdleTime);
+            #endif // if defined (CY_CFG_PWR_SYS_IDLE_MODE)
             if (result == CY_RSLT_SUCCESS)
             {
                 // If you hit this assert, the latency time (CY_CFG_PWR_DEEPSLEEP_LATENCY) should
                 // be increased. This can be set though the Device Configurator, or by manually
-                // defining the variable.
+                // defining the variable in cybsp.h for the TARGET platform.
                 CY_ASSERT(actual_sleep_ms <= pdTICKS_TO_MS(xExpectedIdleTime));
-                vTaskStepTick(pdMS_TO_TICKS(actual_sleep_ms));
+                vTaskStepTick(convert_ms_to_ticks(actual_sleep_ms));
             }
         }
 

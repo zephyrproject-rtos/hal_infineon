@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_hmac.h
-* \version 2.30
+* \version 2.50
 * \brief
 *  This file provides common constants and parameters
 *  for the Cryptolite hmac sha256 driver.
@@ -79,7 +79,7 @@ typedef struct
 /** \} group_cryptolite_data_structures */
 
 /**
-* \addtogroup group_cryptolite_lld_hmac_functions
+* \addtogroup group_cryptolite_lld_mac_functions
 * \{
 */
 /*******************************************************************************
@@ -87,7 +87,6 @@ typedef struct
 ****************************************************************************//**
 *
 * The function to initialize the HMAC operation.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the Cryptolite instance.
@@ -110,7 +109,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Init(CRYPTOLITE_Type *base,
 ****************************************************************************//**
 *
 * Initializes the initial Hash vector.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -145,13 +143,12 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Start(CRYPTOLITE_Type *base,
 ****************************************************************************//**
 *
 * Performs the HMAC update on message.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
 *
 * \param message
-* The SAHB mapped address pointer to the message whose Hash is being computed.
+* The address pointer to the message whose Hash is being computed.
 *
 * \param messageSize
 * The size of the message whose Hash is being computed.
@@ -180,13 +177,12 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Update(CRYPTOLITE_Type *base
 ****************************************************************************//**
 *
 * Completes the HMAC SHA256 calculation.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
 *
 * \param hmac
-* The SAHB mapped address pointer to the calculated Hmac.
+* The address pointer to the calculated Hmac.
 *
 * \param cfContext
 * The pointer to the  cy_stc_cryptolite_context_hmac_sha_t structure that stores all
@@ -207,7 +203,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Finish(CRYPTOLITE_Type *base
 ****************************************************************************//**
 *
 * Clears the used memory and context data.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -234,7 +229,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Free(CRYPTOLITE_Type *base,
 * to the context structure when making this function call.
 * It is independent of the previous Crypto state because it already contains
 * preparation, calculation, and finalization steps.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -246,13 +240,13 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Free(CRYPTOLITE_Type *base,
 * The length of the HMAC key.
 *
 * \param message
-* The SAHB mapped address pointer to a message whose hash value is being computed.
+* The address pointer to a message whose hash value is being computed.
 *
 * \param messageSize
 * The size of a message in bytes.
 *
 * \param hmac
-* The SAHB mapped address pointer to the hmac.
+* The address pointer to the hmac.
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_cryptolite_context_hmac_sha256_t structure that stores all
@@ -279,7 +273,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Run(CRYPTOLITE_Type *base,
 #endif /* #if defined(CY_CRYPTO_CFG_HMAC_C)*/
 #endif /* #if CRYPTOLITE_SHA_PRESENT */
 
-/** \} group_cryptolite_lld_hmac_functions */
+/** \} group_cryptolite_lld_mac_functions */
 #if defined(__cplusplus)
 }
 #endif

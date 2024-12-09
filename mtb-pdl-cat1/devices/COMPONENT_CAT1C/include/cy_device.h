@@ -85,11 +85,17 @@ extern const cy_stc_device_t* cy_device;
 #define CY_DEVICE_CAT1C            /* Device Category */
 #define CY_CRYPTO_V1                        (0U) /* CAT1C devices have only mxcrypto_v2 IP */
 
+/* Remapping the CBUS to SAHB address & Vice versa*/
+#define CY_REMAP_ADDRESS_CBUS_TO_SAHB(addr)               (addr)
+#define CY_REMAP_ADDRESS_SAHB_TO_CBUS(addr)               (addr)
+
 /*******************************************************************************
 *                System Level
 *******************************************************************************/
 #define ENABLE_CM7_INSTRUCTION_CACHE
-//#define ENABLE_CM7_DATA_CACHE
+#if !defined CY_DISABLE_XMC7000_DATA_CACHE
+#define ENABLE_CM7_DATA_CACHE
+#endif
 
 /*******************************************************************************
 *               Generic Macro Definitions
@@ -241,10 +247,22 @@ extern const cy_stc_device_t* cy_device;
 #define SRSS_CLK_PLL_STATUS                 (((SRSS_Type *) SRSS)->CLK_PLL_STATUS)
 
 #define SRSS_FLL_PATH_NUM         (0UL)
+
+#if defined (CY_DEVICE_TVIIC2D6M)
+#define SRSS_PLL_400M_0_PATH_NUM  (1UL)
+#define SRSS_PLL_400M_1_PATH_NUM  (2UL)
+#define SRSS_PLL_400M_2_PATH_NUM  (3UL)
+#define SRSS_PLL_400M_3_PATH_NUM  (4UL)
+#define SRSS_PLL_400M_4_PATH_NUM  (5UL)
+#define SRSS_PLL_200M_0_PATH_NUM  (6UL)
+#define SRSS_PLL_200M_1_PATH_NUM  (7UL)
+#define SRSS_PLL_200M_2_PATH_NUM  (8UL)
+#else
 #define SRSS_PLL_400M_0_PATH_NUM  (1UL)
 #define SRSS_PLL_400M_1_PATH_NUM  (2UL)
 #define SRSS_PLL_200M_0_PATH_NUM  (3UL)
 #define SRSS_PLL_200M_1_PATH_NUM  (4UL)
+#endif
 
 #define SRSS_PLL400M_FRAC_BIT_COUNT (24ULL)
 
@@ -298,6 +316,9 @@ extern const cy_stc_device_t* cy_device;
 #define BACKUP_INTR_MASK                    (((BACKUP_Type *) BACKUP)->INTR_MASK)
 #define BACKUP_INTR_MASKED                  (((BACKUP_Type *) BACKUP)->INTR_MASKED)
 #define BACKUP_RESET                        (((BACKUP_Type *) BACKUP)->RESET)
+#define BACKUP_LPECO_CTL                    (((BACKUP_Type *) BACKUP)->LPECO_CTL)
+#define BACKUP_LPECO_PRESCALE               (((BACKUP_Type *) BACKUP)->LPECO_PRESCALE)
+#define BACKUP_LPECO_STATUS                 (((BACKUP_Type *) BACKUP)->LPECO_STATUS)
 #define BACKUP_BREG                         (((BACKUP_Type *) BACKUP)->BREG)
 
 
@@ -932,6 +953,393 @@ we need to define this for version 2 only. */
 *                SMIF
 *******************************************************************************/
 
+#if defined (CY_IP_MXSMIF_VERSION) && (CY_IP_MXSMIF_VERSION >= 4)
+/* Feature Flags - Start
+ * Few products have very less memory available in BOOT ROM and they do not require
+ * SFDP enumeration of Octal parts. Hence, we introduce feature flags to enable
+ * specific features only where Octal SFDP enumeration and Hyperbus devices are supported
+ * using below feature flags
+ */
+#define SMIF_OCTAL_SFDP_SUPPORT
+#define SMIF_HYPERBUS_DEVICE_SUPPORT
+/* Feature Flags - End */
+
+/* Hidden parameter in SAS (SW=No), have to manually create here.  Remove once 
+   SAS issue is corrected and this is generated in the MPN. */
+#if defined (CY_DEVICE_TVIIC2D6M)
+/* 0: Bridge is not present. Only SMIF0 is present. SMIF_NR must be set to 1. 1:
+   Bridge is present. Both SMIF0 and SMIF1 are present. SMIF_NR must be set to
+   2. */
+#define SMIF_BRIDGE_PRESENT                          1
+/* Number of SMIFs present - must be set as described in BRIDGE_PRESENT. */
+#define SMIF_SMIF_NR                                 2u
+#endif
+
+#define SMIF_DEVICE_CTL_WR_EN_Pos                    SMIF_CORE_DEVICE_CTL_WR_EN_Pos
+#define SMIF_DEVICE_CTL_CRYPTO_EN_Pos                SMIF_CORE_DEVICE_CTL_CRYPTO_EN_Pos
+#define SMIF_DEVICE_CTL_MERGE_EN_Pos                 SMIF_CORE_DEVICE_CTL_MERGE_EN_Pos
+#define SMIF_DEVICE_CTL_MERGE_TIMEOUT_Pos            SMIF_CORE_DEVICE_CTL_MERGE_TIMEOUT_Pos
+#define SMIF_DEVICE_CTL_TOTAL_TIMEOUT_Pos            SMIF_CORE_DEVICE_CTL_TOTAL_TIMEOUT_Pos
+#define SMIF_DEVICE_CTL_TOTAL_TIMEOUT_EN_Pos         SMIF_CORE_DEVICE_CTL_TOTAL_TIMEOUT_EN_Pos
+#define SMIF_DEVICE_CTL_ENABLED_Pos                  SMIF_CORE_DEVICE_CTL_ENABLED_Pos
+#define SMIF_DEVICE_ADDR_ADDR_Pos                    SMIF_CORE_DEVICE_ADDR_ADDR_Pos
+#define SMIF_DEVICE_ADDR_CTL_SIZE3_Pos               SMIF_CORE_DEVICE_ADDR_CTL_SIZE3_Pos
+#define SMIF_DEVICE_ADDR_CTL_DIV2_Pos                SMIF_CORE_DEVICE_ADDR_CTL_DIV2_Pos
+#define SMIF_DEVICE_RD_CMD_CTL_CODE_Pos              SMIF_CORE_DEVICE_RD_CMD_CTL_CODE_Pos
+#define SMIF_DEVICE_RD_CMD_CTL_CODEH_Pos             SMIF_CORE_DEVICE_RD_CMD_CTL_CODEH_Pos
+#define SMIF_DEVICE_RD_CMD_CTL_DDR_MODE_Pos          SMIF_CORE_DEVICE_RD_CMD_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_RD_CMD_CTL_WIDTH_Pos             SMIF_CORE_DEVICE_RD_CMD_CTL_WIDTH_Pos
+#define SMIF_DEVICE_RD_CMD_CTL_PRESENT2_Pos          SMIF_CORE_DEVICE_RD_CMD_CTL_PRESENT2_Pos
+#define SMIF_DEVICE_RD_ADDR_CTL_WIDTH_Pos            SMIF_CORE_DEVICE_RD_ADDR_CTL_WIDTH_Pos
+#define SMIF_DEVICE_RD_ADDR_CTL_DDR_MODE_Pos         SMIF_CORE_DEVICE_RD_ADDR_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_RD_MODE_CTL_CODE_Pos             SMIF_CORE_DEVICE_RD_MODE_CTL_CODE_Pos
+#define SMIF_DEVICE_RD_MODE_CTL_CODEH_Pos            SMIF_CORE_DEVICE_RD_MODE_CTL_CODEH_Pos
+#define SMIF_DEVICE_RD_MODE_CTL_WIDTH_Pos            SMIF_CORE_DEVICE_RD_MODE_CTL_WIDTH_Pos
+#define SMIF_DEVICE_RD_MODE_CTL_DDR_MODE_Pos         SMIF_CORE_DEVICE_RD_MODE_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_RD_MODE_CTL_PRESENT2_Pos         SMIF_CORE_DEVICE_RD_MODE_CTL_PRESENT2_Pos
+#define SMIF_DEVICE_RD_DUMMY_CTL_SIZE5_Pos           SMIF_CORE_DEVICE_RD_DUMMY_CTL_SIZE5_Pos
+#define SMIF_DEVICE_RD_DUMMY_CTL_PRESENT2_Pos        SMIF_CORE_DEVICE_RD_DUMMY_CTL_PRESENT2_Pos
+#define SMIF_DEVICE_RD_DATA_CTL_WIDTH_Pos            SMIF_CORE_DEVICE_RD_DATA_CTL_WIDTH_Pos
+#define SMIF_DEVICE_RD_DATA_CTL_DDR_MODE_Pos         SMIF_CORE_DEVICE_RD_DATA_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_WR_CMD_CTL_CODE_Pos              SMIF_CORE_DEVICE_WR_CMD_CTL_CODE_Pos
+#define SMIF_DEVICE_WR_CMD_CTL_CODEH_Pos             SMIF_CORE_DEVICE_WR_CMD_CTL_CODEH_Pos
+#define SMIF_DEVICE_WR_CMD_CTL_DDR_MODE_Pos          SMIF_CORE_DEVICE_WR_CMD_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_WR_CMD_CTL_WIDTH_Pos             SMIF_CORE_DEVICE_WR_CMD_CTL_WIDTH_Pos
+#define SMIF_DEVICE_WR_CMD_CTL_PRESENT2_Pos          SMIF_CORE_DEVICE_WR_CMD_CTL_PRESENT2_Pos
+#define SMIF_DEVICE_WR_ADDR_CTL_WIDTH_Pos            SMIF_CORE_DEVICE_WR_ADDR_CTL_WIDTH_Pos
+#define SMIF_DEVICE_WR_ADDR_CTL_DDR_MODE_Pos         SMIF_CORE_DEVICE_WR_ADDR_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_WR_MODE_CTL_CODE_Pos             SMIF_CORE_DEVICE_WR_MODE_CTL_CODE_Pos
+#define SMIF_DEVICE_WR_MODE_CTL_CODEH_Pos            SMIF_CORE_DEVICE_WR_MODE_CTL_CODEH_Pos
+#define SMIF_DEVICE_WR_MODE_CTL_WIDTH_Pos            SMIF_CORE_DEVICE_WR_MODE_CTL_WIDTH_Pos
+#define SMIF_DEVICE_WR_MODE_CTL_DDR_MODE_Pos         SMIF_CORE_DEVICE_WR_MODE_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_WR_MODE_CTL_PRESENT2_Pos         SMIF_CORE_DEVICE_WR_MODE_CTL_PRESENT2_Pos
+#define SMIF_DEVICE_WR_DUMMY_CTL_SIZE5_Pos           SMIF_CORE_DEVICE_WR_DUMMY_CTL_SIZE5_Pos
+#define SMIF_DEVICE_WR_DUMMY_CTL_PRESENT2_Pos        SMIF_CORE_DEVICE_WR_DUMMY_CTL_PRESENT2_Pos
+#define SMIF_DEVICE_WR_DUMMY_CTL_RWDS_EN_Pos         SMIF_CORE_DEVICE_WR_DUMMY_CTL_RWDS_EN_Pos
+#define SMIF_DEVICE_WR_DATA_CTL_WIDTH_Pos            SMIF_CORE_DEVICE_WR_DATA_CTL_WIDTH_Pos
+#define SMIF_DEVICE_WR_DATA_CTL_DDR_MODE_Pos         SMIF_CORE_DEVICE_WR_DATA_CTL_DDR_MODE_Pos
+#define SMIF_DEVICE_RD_BOUND_CTL_SIZE5_Pos           SMIF_CORE_DEVICE_RD_BOUND_CTL_SIZE5_Pos
+#define SMIF_DEVICE_RD_BOUND_CTL_SUB_PAGE_SIZE_Pos   SMIF_CORE_DEVICE_RD_BOUND_CTL_SUB_PAGE_SIZE_Pos
+#define SMIF_DEVICE_RD_BOUND_CTL_SUB_PAGE_NR_Pos     SMIF_CORE_DEVICE_RD_BOUND_CTL_SUB_PAGE_NR_Pos
+#define SMIF_DEVICE_RD_BOUND_CTL_SUBSEQ_BOUND_EN_Pos SMIF_CORE_DEVICE_RD_BOUND_CTL_SUBSEQ_BOUND_EN_Pos
+#define SMIF_DEVICE_RD_BOUND_CTL_PRESENT_Pos         SMIF_CORE_DEVICE_RD_BOUND_CTL_PRESENT_Pos
+
+#define SMIF_DEVICE_CTL_WR_EN_Msk                  SMIF_CORE_DEVICE_CTL_WR_EN_Msk
+#define SMIF_DEVICE_CTL_CRYPTO_EN_Msk              SMIF_CORE_DEVICE_CTL_CRYPTO_EN_Msk
+#define SMIF_DEVICE_CTL_MERGE_EN_Msk               SMIF_CORE_DEVICE_CTL_MERGE_EN_Msk
+#define SMIF_DEVICE_CTL_MERGE_TIMEOUT_Msk          SMIF_CORE_DEVICE_CTL_MERGE_TIMEOUT_Msk
+#define SMIF_DEVICE_CTL_TOTAL_TIMEOUT_Msk          SMIF_CORE_DEVICE_CTL_TOTAL_TIMEOUT_Msk
+#define SMIF_DEVICE_CTL_TOTAL_TIMEOUT_EN_Msk       SMIF_CORE_DEVICE_CTL_TOTAL_TIMEOUT_EN_Msk
+#define SMIF_DEVICE_CTL_ENABLED_Msk                SMIF_CORE_DEVICE_CTL_ENABLED_Msk
+#define SMIF_DEVICE_ADDR_ADDR_Msk                  SMIF_CORE_DEVICE_ADDR_ADDR_Msk
+#define SMIF_DEVICE_ADDR_CTL_SIZE3_Msk             SMIF_CORE_DEVICE_ADDR_CTL_SIZE3_Msk
+#define SMIF_DEVICE_ADDR_CTL_DIV2_Msk              SMIF_CORE_DEVICE_ADDR_CTL_DIV2_Msk
+#define SMIF_DEVICE_RD_CMD_CTL_CODE_Msk            SMIF_CORE_DEVICE_RD_CMD_CTL_CODE_Msk
+#define SMIF_DEVICE_RD_CMD_CTL_CODEH_Msk           SMIF_CORE_DEVICE_RD_CMD_CTL_CODEH_Msk
+#define SMIF_DEVICE_RD_CMD_CTL_DDR_MODE_Msk        SMIF_CORE_DEVICE_RD_CMD_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_RD_CMD_CTL_WIDTH_Msk           SMIF_CORE_DEVICE_RD_CMD_CTL_WIDTH_Msk
+#define SMIF_DEVICE_RD_CMD_CTL_PRESENT2_Msk        SMIF_CORE_DEVICE_RD_CMD_CTL_PRESENT2_Msk
+#define SMIF_DEVICE_RD_ADDR_CTL_WIDTH_Msk          SMIF_CORE_DEVICE_RD_ADDR_CTL_WIDTH_Msk
+#define SMIF_DEVICE_RD_ADDR_CTL_DDR_MODE_Msk       SMIF_CORE_DEVICE_RD_ADDR_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_RD_MODE_CTL_CODE_Msk           SMIF_CORE_DEVICE_RD_MODE_CTL_CODE_Msk
+#define SMIF_DEVICE_RD_MODE_CTL_CODEH_Msk          SMIF_CORE_DEVICE_RD_MODE_CTL_CODEH_Msk
+#define SMIF_DEVICE_RD_MODE_CTL_WIDTH_Msk          SMIF_CORE_DEVICE_RD_MODE_CTL_WIDTH_Msk
+#define SMIF_DEVICE_RD_MODE_CTL_DDR_MODE_Msk       SMIF_CORE_DEVICE_RD_MODE_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_RD_MODE_CTL_PRESENT2_Msk       SMIF_CORE_DEVICE_RD_MODE_CTL_PRESENT2_Msk
+#define SMIF_DEVICE_RD_DUMMY_CTL_SIZE5_Msk         SMIF_CORE_DEVICE_RD_DUMMY_CTL_SIZE5_Msk
+#define SMIF_DEVICE_RD_DUMMY_CTL_PRESENT2_Msk      SMIF_CORE_DEVICE_RD_DUMMY_CTL_PRESENT2_Msk
+#define SMIF_DEVICE_RD_DATA_CTL_WIDTH_Msk          SMIF_CORE_DEVICE_RD_DATA_CTL_WIDTH_Msk
+#define SMIF_DEVICE_RD_DATA_CTL_DDR_MODE_Msk       SMIF_CORE_DEVICE_RD_DATA_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_WR_CMD_CTL_CODE_Msk            SMIF_CORE_DEVICE_WR_CMD_CTL_CODE_Msk
+#define SMIF_DEVICE_WR_CMD_CTL_CODEH_Msk           SMIF_CORE_DEVICE_WR_CMD_CTL_CODEH_Msk
+#define SMIF_DEVICE_WR_CMD_CTL_DDR_MODE_Msk        SMIF_CORE_DEVICE_WR_CMD_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_WR_CMD_CTL_WIDTH_Msk           SMIF_CORE_DEVICE_WR_CMD_CTL_WIDTH_Msk
+#define SMIF_DEVICE_WR_CMD_CTL_PRESENT2_Msk        SMIF_CORE_DEVICE_WR_CMD_CTL_PRESENT2_Msk
+#define SMIF_DEVICE_WR_ADDR_CTL_WIDTH_Msk          SMIF_CORE_DEVICE_WR_ADDR_CTL_WIDTH_Msk
+#define SMIF_DEVICE_WR_ADDR_CTL_DDR_MODE_Msk       SMIF_CORE_DEVICE_WR_ADDR_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_WR_MODE_CTL_CODE_Msk           SMIF_CORE_DEVICE_WR_MODE_CTL_CODE_Msk
+#define SMIF_DEVICE_WR_MODE_CTL_CODEH_Msk          SMIF_CORE_DEVICE_WR_MODE_CTL_CODEH_Msk
+#define SMIF_DEVICE_WR_MODE_CTL_WIDTH_Msk          SMIF_CORE_DEVICE_WR_MODE_CTL_WIDTH_Msk
+#define SMIF_DEVICE_WR_MODE_CTL_DDR_MODE_Msk       SMIF_CORE_DEVICE_WR_MODE_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_WR_MODE_CTL_PRESENT2_Msk       SMIF_CORE_DEVICE_WR_MODE_CTL_PRESENT2_Msk
+#define SMIF_DEVICE_WR_DUMMY_CTL_SIZE5_Msk         SMIF_CORE_DEVICE_WR_DUMMY_CTL_SIZE5_Msk
+#define SMIF_DEVICE_WR_DUMMY_CTL_PRESENT2_Msk      SMIF_CORE_DEVICE_WR_DUMMY_CTL_PRESENT2_Msk
+#define SMIF_DEVICE_WR_DUMMY_CTL_RWDS_EN_Msk       SMIF_CORE_DEVICE_WR_DUMMY_CTL_RWDS_EN_Msk
+#define SMIF_DEVICE_WR_DATA_CTL_WIDTH_Msk          SMIF_CORE_DEVICE_WR_DATA_CTL_WIDTH_Msk
+#define SMIF_DEVICE_WR_DATA_CTL_DDR_MODE_Msk       SMIF_CORE_DEVICE_WR_DATA_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_MASK_MASK_Msk                  SMIF_CORE_DEVICE_MASK_MASK_Msk
+
+#define SMIF_DEVICE_RD_BOUND_CTL_SIZE5_Msk           SMIF_CORE_DEVICE_RD_BOUND_CTL_SIZE5_Msk
+#define SMIF_DEVICE_RD_BOUND_CTL_SUB_PAGE_SIZE_Msk   SMIF_CORE_DEVICE_RD_BOUND_CTL_SUB_PAGE_SIZE_Msk
+#define SMIF_DEVICE_RD_BOUND_CTL_SUB_PAGE_NR_Msk     SMIF_CORE_DEVICE_RD_BOUND_CTL_SUB_PAGE_NR_Msk
+#define SMIF_DEVICE_RD_BOUND_CTL_SUBSEQ_BOUND_EN_Msk SMIF_CORE_DEVICE_RD_BOUND_CTL_SUBSEQ_BOUND_EN_Msk
+#define SMIF_DEVICE_RD_BOUND_CTL_PRESENT_Msk         SMIF_CORE_DEVICE_RD_BOUND_CTL_PRESENT_Msk
+
+#define SMIF_RX_DATA_FIFO_CTL                      SMIF_RX_DATA_MMIO_FIFO_CTL
+#define SMIF_RX_DATA_FIFO_RD4                      SMIF_RX_DATA_MMIO_FIFO_RD4
+#define SMIF_RX_DATA_FIFO_RD1                      SMIF_RX_DATA_MMIO_FIFO_RD1
+#define SMIF_RX_DATA_FIFO_RD2                      SMIF_RX_DATA_MMIO_FIFO_RD2
+
+#define SMIF_TX_DATA_FIFO_CTL                      SMIF_TX_DATA_MMIO_FIFO_CTL
+#define SMIF_TX_DATA_FIFO_WR4                      SMIF_TX_DATA_MMIO_FIFO_WR4
+#define SMIF_TX_DATA_FIFO_WR1                      SMIF_TX_DATA_MMIO_FIFO_WR1
+#define SMIF_TX_DATA_FIFO_WR2                      SMIF_TX_DATA_MMIO_FIFO_WR2
+
+#define SMIF_TX_CMD_MMIO_FIFO_STATUS_USED4_Msk     SMIF_CORE_TX_CMD_MMIO_FIFO_STATUS_USED4_Msk
+#define SMIF_TX_CMD_MMIO_FIFO_STATUS_USED4_Pos     SMIF_CORE_TX_CMD_MMIO_FIFO_STATUS_USED4_Pos
+
+#define SMIF_TX_DATA_MMIO_FIFO_STATUS_USED4_Msk    SMIF_CORE_TX_DATA_MMIO_FIFO_STATUS_USED4_Msk
+#define SMIF_TX_DATA_MMIO_FIFO_STATUS_USED4_Pos    SMIF_CORE_TX_DATA_MMIO_FIFO_STATUS_USED4_Pos
+
+#define SMIF_RX_DATA_MMIO_FIFO_STATUS_USED4_Msk    SMIF_CORE_RX_DATA_MMIO_FIFO_STATUS_USED4_Msk
+#define SMIF_RX_DATA_MMIO_FIFO_STATUS_USED4_Pos    SMIF_CORE_RX_DATA_MMIO_FIFO_STATUS_USED4_Pos
+
+#define SMIF_STATUS_BUSY_Msk                       SMIF_CORE_STATUS_BUSY_Msk
+#define SMIF_STATUS_BUSY_Pos                       SMIF_CORE_STATUS_BUSY_Pos
+#define SMIF_DEVICE_Type                           SMIF_CORE_DEVICE_Type
+#define SMIF_Base_Type                             SMIF_STRUCT_Type
+#define SMIF_Type                                  SMIF_CORE_Type
+#define CY_SMIF_CORE_COUNT                         (2U)
+#define CY_SMIF_BRIDGE_REMAP_REGION_COUNT          (8U)
+
+#if defined (SMIF_FAST_CACHE_PRESENT)
+#define SMIF_FAST_CA_CMD_INV_Msk                   SMIF_CORE_FAST_CA_CMD_INV_Msk
+#define SMIF_FAST_CA_CTL_PREF_EN_Msk               SMIF_CORE_FAST_CA_CTL_PREF_EN_Msk
+#define SMIF_FAST_CA_CTL_ENABLED_Msk               SMIF_CORE_FAST_CA_CTL_ENABLED_Msk
+#endif
+
+#if defined (SMIF_SLOW_CACHE_PRESENT)
+#define SMIF_SLOW_CA_CMD_INV_Msk                   SMIF_CORE_SLOW_CA_CMD_INV_Msk
+#define SMIF_SLOW_CA_CTL_ENABLED_Msk               SMIF_CORE_SLOW_CA_CTL_ENABLED_Msk
+#define SMIF_SLOW_CA_CTL_PREF_EN_Msk               SMIF_CORE_SLOW_CA_CTL_PREF_EN_Msk
+#endif
+
+#define SMIF_SMIF_CRYPTO_CRYPTO_CMD_START_Pos      SMIF_CORE_SMIF_CRYPTO_CRYPTO_CMD_START_Pos
+#define SMIF_SMIF_CRYPTO_CRYPTO_CMD_START_Msk      SMIF_CORE_SMIF_CRYPTO_CRYPTO_CMD_START_Msk
+
+#define SMIF_DEVICE_CTL_CRYPTO_EN_Msk              SMIF_CORE_DEVICE_CTL_CRYPTO_EN_Msk
+#define SMIF_INTR_TR_TX_REQ_Msk                    SMIF_CORE_INTR_TR_TX_REQ_Msk
+#define SMIF_INTR_TR_RX_REQ_Msk                    SMIF_CORE_INTR_TR_RX_REQ_Msk
+#define SMIF_INTR_XIP_ALIGNMENT_ERROR_Msk          SMIF_CORE_INTR_XIP_ALIGNMENT_ERROR_Msk
+#define SMIF_INTR_TX_CMD_FIFO_OVERFLOW_Msk         SMIF_CORE_INTR_TX_CMD_FIFO_OVERFLOW_Msk
+#define SMIF_INTR_TX_DATA_FIFO_OVERFLOW_Msk        SMIF_CORE_INTR_TX_DATA_FIFO_OVERFLOW_Msk
+#define SMIF_INTR_TR_RX_REQ_Msk                    SMIF_CORE_INTR_TR_RX_REQ_Msk
+#define SMIF_INTR_RX_DATA_FIFO_UNDERFLOW_Msk       SMIF_CORE_INTR_RX_DATA_MMIO_FIFO_UNDERFLOW_Msk
+#define SMIF_STATUS_BUSY_Msk                       SMIF_CORE_STATUS_BUSY_Msk
+#define SMIF_RX_DATA_MMIO_FIFO_STATUS_USED4_Msk    SMIF_CORE_RX_DATA_MMIO_FIFO_STATUS_USED4_Msk
+#define SMIF_TX_DATA_MMIO_FIFO_STATUS_USED4_Msk    SMIF_CORE_TX_DATA_MMIO_FIFO_STATUS_USED4_Msk
+#define SMIF_TX_CMD_MMIO_FIFO_STATUS_USED4_Msk     SMIF_CORE_TX_CMD_MMIO_FIFO_STATUS_USED4_Msk
+#define SMIF_CTL_DESELECT_DELAY_Msk                SMIF_CORE_CTL_DESELECT_DELAY_Msk
+#define SMIF_CTL_DESELECT_DELAY_Pos                SMIF_CORE_CTL_DESELECT_DELAY_Pos
+#define SMIF_DEVICE_RD_DATA_CTL_DDR_MODE_Msk       SMIF_CORE_DEVICE_RD_DATA_CTL_DDR_MODE_Msk
+#define SMIF_DEVICE_CTL_DATA_SEL_Msk               SMIF_CORE_DEVICE_CTL_DATA_SEL_Msk
+#define SMIF_CTL_ENABLED_Msk                       SMIF_CORE_CTL_ENABLED_Msk
+#define SMIF_CTL_ENABLED_Pos                       SMIF_CORE_CTL_ENABLED_Pos
+#define SMIF_DEVICE_CTL_DATA_SEL_Msk               SMIF_CORE_DEVICE_CTL_DATA_SEL_Msk
+#define SMIF_CTL_XIP_MODE_Pos                      SMIF_CORE_CTL_XIP_MODE_Pos
+#define SMIF_CTL_XIP_MODE_Msk                      SMIF_CORE_CTL_XIP_MODE_Msk
+#define SMIF_CTL_BLOCK_Pos                         SMIF_CORE_CTL_BLOCK_Pos
+#define SMIF_CTL_BLOCK_Msk                         SMIF_CORE_CTL_BLOCK_Msk
+#define SMIF_CTL_CLOCK_IF_SEL_Pos                  SMIF_CORE_CTL_CLOCK_IF_SEL_Pos
+#define SMIF_CTL_CLOCK_IF_SEL_Msk                  SMIF_CORE_CTL_CLOCK_IF_SEL_Msk
+
+#define SMIF_DEVICE_CTL_DATA_SEL_Pos               SMIF_CORE_DEVICE_CTL_DATA_SEL_Pos
+#define SMIF_CRYPTO_CMD_START_Pos                  SMIF_CORE_SMIF_CRYPTO_CRYPTO_CMD_START_Pos
+#define SMIF_CRYPTO_CMD_START_Msk                  SMIF_CORE_SMIF_CRYPTO_CRYPTO_CMD_START_Msk
+
+#define SMIF_CRYPTO_CMD(base)            (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_CMD)
+#define SMIF_CRYPTO_ADDR(base)           (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_ADDR)
+#define SMIF_CRYPTO_MASK(base)           (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_MASK)
+#define SMIF_CRYPTO_SUBREGION(base)      (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_SUBREGION)
+#define SMIF_CRYPTO_INPUT0(base)         (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_INPUT0)
+#define SMIF_CRYPTO_INPUT1(base)         (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_INPUT1)
+#define SMIF_CRYPTO_INPUT2(base)         (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_INPUT2)
+#define SMIF_CRYPTO_INPUT3(base)         (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_INPUT3)
+#define SMIF_CRYPTO_KEY0(base)           (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_KEY0)
+#define SMIF_CRYPTO_KEY1(base)           (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_KEY1)
+#define SMIF_CRYPTO_KEY2(base)           (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_KEY2)
+#define SMIF_CRYPTO_KEY3(base)           (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_KEY3)
+#define SMIF_CRYPTO_OUTPUT0(base)        (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_OUTPUT0)
+#define SMIF_CRYPTO_OUTPUT1(base)        (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_OUTPUT1)
+#define SMIF_CRYPTO_OUTPUT2(base)        (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_OUTPUT2)
+#define SMIF_CRYPTO_OUTPUT3(base)        (((SMIF_CORE_Type*) base)->SMIF_CRYPTO_BLOCK[0].CRYPTO_OUTPUT3)
+
+#define SMIF_CRYPTO_IDX(base, deviceIndex)                 (((SMIF_CORE_Type *)(base))->SMIF_CRYPTO_BLOCK[deviceIndex])
+
+#define SMIF_CRYPTO_IDX_CMD(base, deviceIndex)             (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_CMD)
+#define SMIF_CRYPTO_IDX_ADDR(base, deviceIndex)            (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_ADDR)
+#define SMIF_CRYPTO_IDX_MASK(base, deviceIndex)            (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_MASK)
+#define SMIF_CRYPTO_IDX_SUBREGION(base, deviceIndex)       (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_SUBREGION)
+#define SMIF_CRYPTO_IDX_INPUT0(base, deviceIndex)          (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_INPUT0)
+#define SMIF_CRYPTO_IDX_INPUT1(base, deviceIndex)          (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_INPUT1)
+#define SMIF_CRYPTO_IDX_INPUT2(base, deviceIndex)          (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_INPUT2)
+#define SMIF_CRYPTO_IDX_INPUT3(base, deviceIndex)          (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_INPUT3)
+#define SMIF_CRYPTO_IDX_KEY0(base, deviceIndex)            (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_KEY0)
+#define SMIF_CRYPTO_IDX_KEY1(base, deviceIndex)            (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_KEY1)
+#define SMIF_CRYPTO_IDX_KEY2(base, deviceIndex)            (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_KEY2)
+#define SMIF_CRYPTO_IDX_KEY3(base, deviceIndex)            (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_KEY3)
+#define SMIF_CRYPTO_IDX_OUTPUT0(base, deviceIndex)         (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_OUTPUT0)
+#define SMIF_CRYPTO_IDX_OUTPUT1(base, deviceIndex)         (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_OUTPUT1)
+#define SMIF_CRYPTO_IDX_OUTPUT2(base, deviceIndex)         (SMIF_CRYPTO_IDX(base, deviceIndex).CRYPTO_OUTPUT2)
+
+#define SMIF_BRIDGE_CTL(base)                              ((((SMIF_Base_Type *)base)->SMIF_BRIDGE).CTL)
+#define SMIF_REMAPREGION_CTL(base, index)                  (((((SMIF_Base_Type *)base)->SMIF_BRIDGE).SMIF_REMAP_REGION[index]).CTL)
+#define SMIF_REMAPREGION_ADDR(base, index)                 (((((SMIF_Base_Type *)base)->SMIF_BRIDGE).SMIF_REMAP_REGION[index]).ADDR)
+#define SMIF_REMAPREGION_MASK(base, index)                 (((((SMIF_Base_Type *)base)->SMIF_BRIDGE).SMIF_REMAP_REGION[index]).MASK)
+#define SMIF_REMAPREGION_SMIF0_REMAP(base, index)          (((((SMIF_Base_Type *)base)->SMIF_BRIDGE).SMIF_REMAP_REGION[index]).SMIF0_REMAP)
+#define SMIF_REMAPREGION_SMIF1_REMAP(base, index)          (((((SMIF_Base_Type *)base)->SMIF_BRIDGE).SMIF_REMAP_REGION[index]).SMIF1_REMAP)
+
+#define SMIF_DEVICE_CTL(base)               (((SMIF_CORE_DEVICE_Type *)(base))->CTL)
+#define SMIF_DEVICE_ADDR(base)              (((SMIF_CORE_DEVICE_Type *)(base))->ADDR)
+#define SMIF_DEVICE_ADDR_CTL(base)          (((SMIF_CORE_DEVICE_Type *)(base))->ADDR_CTL)
+#define SMIF_DEVICE_MASK(base)              (((SMIF_CORE_DEVICE_Type *)(base))->MASK)
+#define SMIF_DEVICE_RD_CMD_CTL(base)        (((SMIF_CORE_DEVICE_Type *)(base))->RD_CMD_CTL)
+#define SMIF_DEVICE_RD_ADDR_CTL(base)       (((SMIF_CORE_DEVICE_Type *)(base))->RD_ADDR_CTL)
+#define SMIF_DEVICE_RD_MODE_CTL(base)       (((SMIF_CORE_DEVICE_Type *)(base))->RD_MODE_CTL)
+#define SMIF_DEVICE_RD_DUMMY_CTL(base)      (((SMIF_CORE_DEVICE_Type *)(base))->RD_DUMMY_CTL)
+#define SMIF_DEVICE_RD_DATA_CTL(base)       (((SMIF_CORE_DEVICE_Type *)(base))->RD_DATA_CTL)
+#define SMIF_DEVICE_RD_BOUND_CTL(base)      (((SMIF_DEVICE_Type *)(base))->RD_BOUND_CTL)
+#define SMIF_DEVICE_WR_CMD_CTL(base)        (((SMIF_CORE_DEVICE_Type *)(base))->WR_CMD_CTL)
+#define SMIF_DEVICE_WR_ADDR_CTL(base)       (((SMIF_CORE_DEVICE_Type *)(base))->WR_ADDR_CTL)
+#define SMIF_DEVICE_WR_MODE_CTL(base)       (((SMIF_CORE_DEVICE_Type *)(base))->WR_MODE_CTL)
+#define SMIF_DEVICE_WR_DUMMY_CTL(base)      (((SMIF_CORE_DEVICE_Type *)(base))->WR_DUMMY_CTL)
+#define SMIF_DEVICE_WR_DATA_CTL(base)       (((SMIF_CORE_DEVICE_Type *)(base))->WR_DATA_CTL)
+#define SMIF_DEVICE_RX_CAPTURE_CONFIG(base) (((SMIF_CORE_DEVICE_Type *)(base))->RX_CAPTURE_CONFIG)
+#define SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(base) (((SMIF_CORE_DEVICE_Type *)(base))->HB_FW_DEL_TAP_SEL_0)
+#define SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(base) (((SMIF_CORE_DEVICE_Type *)(base))->HB_FW_DEL_TAP_SEL_1)
+
+
+#define SMIF_DEVICE_IDX(base, deviceIndex)                 (((SMIF_CORE_Type *)(base))->DEVICE[deviceIndex])
+
+#define SMIF_DEVICE_IDX_CTL(base, deviceIndex)             (SMIF_DEVICE_IDX(base, deviceIndex).CTL)
+#define SMIF_DEVICE_IDX_ADDR(base, deviceIndex)            (SMIF_DEVICE_IDX(base, deviceIndex).ADDR)
+#define SMIF_DEVICE_IDX_ADDR_CTL(base, deviceIndex)        (SMIF_DEVICE_IDX(base, deviceIndex).ADDR_CTL)
+#define SMIF_DEVICE_IDX_MASK(base, deviceIndex)            (SMIF_DEVICE_IDX(base, deviceIndex).MASK)
+#define SMIF_DEVICE_IDX_RD_CMD_CTL(base, deviceIndex)      (SMIF_DEVICE_IDX(base, deviceIndex).RD_CMD_CTL)
+#define SMIF_DEVICE_IDX_RD_ADDR_CTL(base, deviceIndex)     (SMIF_DEVICE_IDX(base, deviceIndex).RD_ADDR_CTL)
+#define SMIF_DEVICE_IDX_RD_MODE_CTL(base, deviceIndex)     (SMIF_DEVICE_IDX(base, deviceIndex).RD_MODE_CTL)
+#define SMIF_DEVICE_IDX_RD_DUMMY_CTL(base, deviceIndex)    (SMIF_DEVICE_IDX(base, deviceIndex).RD_DUMMY_CTL)
+#define SMIF_DEVICE_IDX_RD_DATA_CTL(base, deviceIndex)     (SMIF_DEVICE_IDX(base, deviceIndex).RD_DATA_CTL)
+#define SMIF_DEVICE_IDX_WR_CMD_CTL(base, deviceIndex)      (SMIF_DEVICE_IDX(base, deviceIndex).WR_CMD_CTL)
+#define SMIF_DEVICE_IDX_WR_ADDR_CTL(base, deviceIndex)     (SMIF_DEVICE_IDX(base, deviceIndex).WR_ADDR_CTL)
+#define SMIF_DEVICE_IDX_WR_MODE_CTL(base, deviceIndex)     (SMIF_DEVICE_IDX(base, deviceIndex).WR_MODE_CTL)
+#define SMIF_DEVICE_IDX_WR_DUMMY_CTL(base, deviceIndex)    (SMIF_DEVICE_IDX(base, deviceIndex).WR_DUMMY_CTL)
+#define SMIF_DEVICE_IDX_WR_DATA_CTL(base, deviceIndex)     (SMIF_DEVICE_IDX(base, deviceIndex).WR_DATA_CTL)
+#define SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, deviceIndex)     (SMIF_DEVICE_IDX(base, deviceIndex).RX_CAPTURE_CONFIG)
+
+#define SMIF_CORE_IDX(base, coreIndex)                     (((SMIF_Type *)(base))->CORE[coreIndex])
+
+#define SMIF_CTL(base)                            (((SMIF_CORE_Type *)(base))->CTL)
+#define SMIF_CTL2(base)                           (((SMIF_CORE_Type *)(base))->CTL2)
+#define SMIF_STATUS(base)                         (((SMIF_CORE_Type *)(base))->STATUS)
+#if defined (CY_MXSMIF) && (CY_MXSMIF_VERSION <= 2)
+#define SMIF_INT_CLOCK_DELAY_TAP_SEL0(base)       (((SMIF_CORE_Type *)(base))->INT_CLOCK_DELAY_TAP_SEL0)
+#define SMIF_INT_CLOCK_DELAY_TAP_SEL1(base)       (((SMIF_CORE_Type *)(base))->INT_CLOCK_DELAY_TAP_SEL1)
+#endif
+#if defined (SMIF_DLP_PRESENT) && (SMIF_DLP_PRESENT > 0)
+#define SMIF_DLP_DELAY_TAP_SEL0(base)             (((SMIF_CORE_Type *)(base))->DLP_DELAY_TAP_SEL0)
+#define SMIF_DLP_DELAY_TAP_SEL1(base)             (((SMIF_CORE_Type *)(base))->DLP_DELAY_TAP_SEL1)
+#define SMIF_DLP_CTL(base)                        (((SMIF_CORE_Type *)(base))->DLP_CTL)
+#define SMIF_DL_STATUS0(base)                     (((SMIF_CORE_Type *)(base))->DL_STATUS0)
+#define SMIF_DL_STATUS1(base)                     (((SMIF_CORE_Type *)(base))->DL_STATUS1)
+#endif
+#define SMIF_TX_CMD_FIFO_STATUS(base)             (((SMIF_CORE_Type *)(base))->TX_CMD_FIFO_STATUS)
+#define SMIF_TX_CMD_MMIO_FIFO_STATUS(base)        (((SMIF_CORE_Type *)(base))->TX_CMD_MMIO_FIFO_STATUS)
+#define SMIF_TX_CMD_MMIO_FIFO_WR(base)            (((SMIF_CORE_Type *)(base))->TX_CMD_MMIO_FIFO_WR)
+#define SMIF_TX_DATA_MMIO_FIFO_CTL(base)          (((SMIF_CORE_Type *)(base))->TX_DATA_MMIO_FIFO_CTL)
+#define SMIF_TX_DATA_FIFO_STATUS(base)            (((SMIF_CORE_Type *)(base))->TX_DATA_FIFO_STATUS)
+#define SMIF_TX_DATA_MMIO_FIFO_STATUS(base)       (((SMIF_CORE_Type *)(base))->TX_DATA_MMIO_FIFO_STATUS)
+#define SMIF_TX_DATA_MMIO_FIFO_WR1(base)          (((SMIF_CORE_Type *)(base))->TX_DATA_MMIO_FIFO_WR1)
+#define SMIF_TX_DATA_MMIO_FIFO_WR2(base)          (((SMIF_CORE_Type *)(base))->TX_DATA_MMIO_FIFO_WR2)
+#define SMIF_TX_DATA_MMIO_FIFO_WR4(base)          (((SMIF_CORE_Type *)(base))->TX_DATA_MMIO_FIFO_WR4)
+#define SMIF_TX_DATA_MMIO_FIFO_WR1ODD(base)       (((SMIF_CORE_Type *)(base))->TX_DATA_MMIO_FIFO_WR1ODD)
+#define SMIF_RX_DATA_MMIO_FIFO_CTL(base)          (((SMIF_CORE_Type *)(base))->RX_DATA_MMIO_FIFO_CTL)
+#define SMIF_RX_DATA_MMIO_FIFO_STATUS(base)       (((SMIF_CORE_Type *)(base))->RX_DATA_MMIO_FIFO_STATUS)
+#define SMIF_RX_DATA_FIFO_STATUS(base)            (((SMIF_CORE_Type *)(base))->RX_DATA_FIFO_STATUS)
+#define SMIF_RX_DATA_MMIO_FIFO_RD1(base)          (((SMIF_CORE_Type *)(base))->RX_DATA_MMIO_FIFO_RD1)
+#define SMIF_RX_DATA_MMIO_FIFO_RD2(base)          (((SMIF_CORE_Type *)(base))->RX_DATA_MMIO_FIFO_RD2)
+#define SMIF_RX_DATA_MMIO_FIFO_RD4(base)          (((SMIF_CORE_Type *)(base))->RX_DATA_MMIO_FIFO_RD4)
+#define SMIF_RX_DATA_MMIO_FIFO_RD1_SILENT(base)   (((SMIF_CORE_Type *)(base))->RX_DATA_MMIO_FIFO_RD1_SILENT)
+#if defined (SMIF_SLOW_CACHE_PRESENT)
+#define SMIF_SLOW_CA_CTL(base)                    (((SMIF_CORE_Type *)(base))->SLOW_CA_CTL)
+#define SMIF_SLOW_CA_CMD(base)                    (((SMIF_CORE_Type *)(base))->SLOW_CA_CMD)
+#endif
+#if defined (SMIF_FAST_CACHE_PRESENT)
+#define SMIF_FAST_CA_CTL(base)                    (((SMIF_CORE_Type *)(base))->FAST_CA_CTL)
+#define SMIF_FAST_CA_CMD(base)                    (((SMIF_CORE_Type *)(base))->FAST_CA_CMD)
+#endif
+#if defined (SMIF_BUS_CRC_PRESENT)
+#define SMIF_CRC_CMD(base)                        (((SMIF_CORE_Type *)(base))->CRC_CMD)
+#define SMIF_CRC_INPUT0(base)                     (((SMIF_CORE_Type *)(base))->CRC_INPUT0)
+#define SMIF_CRC_INPUT1(base)                     (((SMIF_CORE_Type *)(base))->CRC_INPUT1)
+#define SMIF_CRC_OUTPUT(base)                     (((SMIF_CORE_Type *)(base))->CRC_OUTPUT)
+#endif
+#define SMIF_INTR(base)                           (((SMIF_CORE_Type *)(base))->INTR)
+#define SMIF_INTR_SET(base)                       (((SMIF_CORE_Type *)(base))->INTR_SET)
+#define SMIF_INTR_MASK(base)                      (((SMIF_CORE_Type *)(base))->INTR_MASK)
+#define SMIF_INTR_MASKED(base)                    (((SMIF_CORE_Type *)(base))->INTR_MASKED)
+#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION >= 5)
+#define SMIF_CLK_HSIOM(base)                      (((SMIF_CORE_Type *)(base))->SMIF_HSIOM.SMIF_PRT[1].PORT_SEL0)
+#define SMIF_RWDS_HSIOM(base)                     (((SMIF_CORE_Type *)(base))->SMIF_HSIOM.SMIF_PRT[2].PORT_SEL0)
+#define SMIF_CLK_DRIVEMODE(base)                  (((SMIF_CORE_Type *)(base))->SMIF_GPIO.SMIF_PRT[1].CFG)
+#define SMIF_RWDS_DRIVEMODE(base)                 (((SMIF_CORE_Type *)(base))->SMIF_GPIO.SMIF_PRT[2].CFG)
+#define SMIF_CLK_DRIVE_STRENGTH(base)             (((SMIF_CORE_Type *)(base))->SMIF_GPIO.SMIF_PRT[1].CFG_DRIVE_EXT0)
+#define SMIF_RWDS_DRIVE_STRENGTH(base)            (((SMIF_CORE_Type *)(base))->SMIF_GPIO.SMIF_PRT[2].CFG_DRIVE_EXT0)
+#define SMIF_IDAC(base)                           (((SMIF_CORE_Type *)(base))->DLL_IDAC)
+#endif
+
+/* Backward Compatibility - Default SMIF instance pointing to CORE0 */
+#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION >= 4)
+#define SMIF_HW SMIF0_CORE0
+#define SMIF_config SMIF_0_CORE_0_config
+#endif
+
+#if !defined (SMIF_DELAY_TAPS_NR)
+#define SMIF_DELAY_TAPS_NR 32u
+
+#define SMIF_CORE0_SS0_PORT           (GPIO_PRT5)
+#define SMIF_CORE0_SS0_PIN            (0U)
+#define SMIF_CORE0_SS1_PORT           (GPIO_PRT2)
+#define SMIF_CORE0_SS1_PIN            (0U)
+#define SMIF_CORE0_SS2_PORT           (GPIO_PRT6)
+#define SMIF_CORE0_SS2_PIN            (7U)
+#define SMIF_CORE0_SS3_PORT           (GPIO_PRT7)
+#define SMIF_CORE0_SS3_PIN            (0U)
+
+#define SMIF_CORE1_SS0_PORT           (GPIO_PRT21)
+#define SMIF_CORE1_SS0_PIN            (0U)
+#define SMIF_CORE1_SS1_PORT           (GPIO_PRT0)
+#define SMIF_CORE1_SS1_PIN            (0U)
+#define SMIF_CORE1_SS2_PORT           (GPIO_PRT0)
+#define SMIF_CORE1_SS2_PIN            (1U)
+#define SMIF_CORE1_SS3_PORT           (GPIO_PRT12)
+#define SMIF_CORE1_SS3_PIN            (3U)
+
+#define SMIF_CORE0_SS_PORT(slaveSelectId)       ((slaveSelectId == CY_SMIF_SLAVE_SELECT_0) ? SMIF_CORE0_SS0_PORT : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_1) ? SMIF_CORE0_SS1_PORT : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_2) ? SMIF_CORE0_SS2_PORT : SMIF_CORE0_SS3_PORT)))
+#define SMIF_CORE1_SS_PORT(slaveSelectId)       ((slaveSelectId == CY_SMIF_SLAVE_SELECT_0) ? SMIF_CORE1_SS0_PORT : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_1) ? SMIF_CORE1_SS1_PORT : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_2) ? SMIF_CORE1_SS2_PORT : SMIF_CORE1_SS3_PORT)))
+
+#define SMIF_CORE0_SS_PIN(slaveSelectId)        ((slaveSelectId == CY_SMIF_SLAVE_SELECT_0) ? SMIF_CORE0_SS0_PIN : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_1) ? SMIF_CORE0_SS1_PIN : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_2) ? SMIF_CORE0_SS2_PIN : SMIF_CORE0_SS2_PIN)))
+#define SMIF_CORE1_SS_PIN(slaveSelectId)        ((slaveSelectId == CY_SMIF_SLAVE_SELECT_0) ? SMIF_CORE1_SS0_PIN : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_1) ? SMIF_CORE1_SS1_PIN : \
+                                                ((slaveSelectId == CY_SMIF_SLAVE_SELECT_2) ? SMIF_CORE1_SS2_PIN : SMIF_CORE1_SS3_PIN)))
+
+#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION == 5)
+#define SMIF_SS_PORT(base, salveIndex)  (((base) == SMIF0_CORE0) ? (SMIF_CORE0_SS_PORT((salveIndex))) : (SMIF_CORE1_SS_PORT((salveIndex))))
+#define SMIF_SS_PIN(base, salveIndex)   (((base) == SMIF0_CORE0) ? (SMIF_CORE0_SS_PIN((salveIndex))) : (SMIF_CORE1_SS_PIN((salveIndex))))
+#define SMIF_DQ0_PORT(base)             (((base) == SMIF0_CORE0) ? ((void *)SMIF0_CORE0_SMIF_GPIO_SMIF_PRT0) : ((void *)SMIF0_CORE1_SMIF_GPIO_SMIF_PRT0))
+#endif
+
+#endif /* !defined (SMIF_DELAY_TAPS_NR) */
+
+#else
+/* For other cat1c devices with MXSMIF_VERSION == 2 */
+
 /* Feature Flags - Start
  * Few products have very less memory available in BOOT ROM and they do not require
  * SFDP enumeration of Octal parts. Hence, we introduce feature flags to enable
@@ -1015,6 +1423,15 @@ we need to define this for version 2 only. */
 #define SMIF_SLOW_CA_CMD(base)              (((SMIF_Type *)(base))->SLOW_CA_CMD)
 #define SMIF_FAST_CA_CMD(base)              (((SMIF_Type *)(base))->FAST_CA_CMD)
 
+#endif /* MXSMIF_VERSION */
+
+/* CY_XIP_BASE remaps the native XIP Base address definitions below 
+   in order to match the API of other devices. */
+#if defined(CY_IP_MXSMIF_VERSION) && (CY_IP_MXSMIF_VERSION >= 4)
+#define CY_XIP_BASE    CY_SMIF_PORT0_BASE
+#else
+#define CY_XIP_BASE    CY_SMIF_XIP_BASE
+#endif
 
 /*******************************************************************************
 *                DW
@@ -1058,6 +1475,7 @@ we need to define this for version 2 only. */
 #define DW_CH_INTR_SET(base, chan)          (DW_CH((base), (chan))->INTR_SET)
 #define DW_CH_INTR_MASK(base, chan)         (DW_CH((base), (chan))->INTR_MASK)
 #define DW_CH_INTR_MASKED(base, chan)       (DW_CH((base), (chan))->INTR_MASKED)
+#define DW_CH_TR_CMD(base, chan)            (DW_CH((base), (chan))->TR_CMD)
 
 #define DW_V2_CRC_CTL_DATA_REVERSE_Msk DW_CRC_CTL_DATA_REVERSE_Msk
 #define DW_V2_CRC_CTL_REM_REVERSE_Msk DW_CRC_CTL_REM_REVERSE_Msk
@@ -1154,6 +1572,27 @@ we need to define this for version 2 only. */
 #define DMAC_CH_V2_DESCR_X_SIZE_X_COUNT_Msk DMAC_CH_DESCR_X_SIZE_X_COUNT_Msk
 #define DMAC_CH_V2_DESCR_X_SIZE_X_COUNT_Pos DMAC_CH_DESCR_X_SIZE_X_COUNT_Pos
 
+/*******************************************************************************
+*                AXIDMAC
+*******************************************************************************/
+#if defined (CY_IP_MXAXIDMAC)
+#define CY_AXIDMAC_CH_NR                    (AXI_DMAC_CH_NR)
+#define AXIDMAC_CTL(base)                   (((AXI_DMAC_Type*)(base))->CTL)
+#define AXIDMAC_STATUS(base)                (((AXI_DMAC_Type*)(base))->STATUS)
+#define AXIDMAC_ACTIVE_SEC(base)            (((AXI_DMAC_Type const*)(base))->ACTIVE_SEC)
+#define AXIDMAC_ACTIVE_NONSEC(base)         (((AXI_DMAC_Type const*)(base))->ACTIVE_NONSEC)
+#define AXIDMAC_CH(base, chan)              (&(((AXI_DMAC_Type*)(base))->CH[(chan)]))
+#define AXIDMAC_CH_CTL(base, chan)          (AXIDMAC_CH(base, chan)->CTL)
+#define AXIDMAC_CH_IDX(base, chan)          (AXIDMAC_CH(base, chan)->IDX)
+#define AXIDMAC_CH_CURR(base, chan)         (AXIDMAC_CH(base, chan)->CURR)
+#define AXIDMAC_CH_DESCR_SRC(base, chan)    (AXIDMAC_CH(base, chan)->DESCR_SRC)
+#define AXIDMAC_CH_DESCR_DST(base, chan)    (AXIDMAC_CH(base, chan)->DESCR_DST)
+#define AXIDMAC_CH_INTR(base, chan)         (AXIDMAC_CH(base, chan)->INTR)
+#define AXIDMAC_CH_INTR_SET(base, chan)     (AXIDMAC_CH(base, chan)->INTR_SET)
+#define AXIDMAC_CH_INTR_MASK(base, chan)    (AXIDMAC_CH(base, chan)->INTR_MASK)
+#define AXIDMAC_CH_INTR_MASKED(base, chan)  (AXIDMAC_CH(base, chan)->INTR_MASKED)
+#define AXIDMAC_CH_TR_CMD(base, chan)       (AXIDMAC_CH(base, chan)->TR_CMD)
+#endif /* CY_IP_MXAXIDMAC */
 
 /*******************************************************************************
 *                PERI
@@ -1280,7 +1719,7 @@ we need to define this for version 2 only. */
 #define PERI_CLOCK_CTL(instNum, grNum, periNum)                  ((PERI_PCLK_GR_Type*) &PERI_PCLK_REG_BASE(instNum)->GR[grNum])->CLOCK_CTL[periNum]
 #define PERI_DIV_CMD(instNum, grNum)                             ((PERI_PCLK_GR_Type*) &PERI_PCLK_REG_BASE(instNum)->GR[grNum])->DIV_CMD
 
-#define PERI_DIV_8_NR(instNum, grNum)           (((instNum) == 0U) ? \
+#define PERI_PCLK_GR_DIV_8_NR(instNum, grNum)     (((instNum) == 0U) ? \
                                                   (((grNum) <= 3U) ? \
                                                   ((uint32_t)(((((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR0_GR_DIV_8_VECT) |      \
                                                   (((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR1_GR_DIV_8_VECT) << 8U)         |    \
@@ -1303,7 +1742,7 @@ we need to define this for version 2 only. */
                                                   (((uint32_t)PERI1_PERI_PCLK_PCLK_GROUP_NR6_GR_DIV_8_VECT) << 16U)   |    \
                                                   (((uint32_t)PERI1_PERI_PCLK_PCLK_GROUP_NR7_GR_DIV_8_VECT) << 24U)) >> (((uint32_t)(grNum) - 4UL) * 8UL)) & 0xFFUL))))
 
-#define PERI_DIV_16_NR(instNum, grNum)           (((instNum) == 0U) ? \
+#define PERI_PCLK_GR_DIV_16_NR(instNum, grNum)    (((instNum) == 0U) ? \
                                                   (((grNum) <= 3U) ? \
                                                   ((uint32_t)(((((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR0_GR_DIV_16_VECT) |      \
                                                   (((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR1_GR_DIV_16_VECT) << 8U)         |    \
@@ -1326,7 +1765,7 @@ we need to define this for version 2 only. */
                                                   (((uint32_t)PERI1_PERI_PCLK_PCLK_GROUP_NR6_GR_DIV_16_VECT) << 16U)   |    \
                                                   (((uint32_t)PERI1_PERI_PCLK_PCLK_GROUP_NR7_GR_DIV_16_VECT) << 24U)) >> (((uint32_t)(grNum) - 4UL) * 8UL)) & 0xFFUL))))
 
-#define PERI_DIV_16_5_NR(instNum, grNum)         (((instNum) == 0U) ? \
+#define PERI_PCLK_GR_DIV_16_5_NR(instNum, grNum)  (((instNum) == 0U) ? \
                                                   (((grNum) <= 3U) ? \
                                                   ((uint32_t)(((((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR0_GR_DIV_16_5_VECT) |          \
                                                   (((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR1_GR_DIV_16_5_VECT) << 8U)    |    \
@@ -1349,7 +1788,7 @@ we need to define this for version 2 only. */
                                                   (((uint32_t)PERI1_PERI_PCLK_PCLK_GROUP_NR6_GR_DIV_16_5_VECT) << 16U)   |    \
                                                   (((uint32_t)PERI1_PERI_PCLK_PCLK_GROUP_NR7_GR_DIV_16_5_VECT) << 24U)) >> (((uint32_t)(grNum) - 4UL) * 8UL)) & 0xFFUL))))
 
-#define PERI_DIV_24_5_NR(instNum, grNum)         (((instNum) == 0U) ? \
+#define PERI_PCLK_GR_DIV_24_5_NR(instNum, grNum)  (((instNum) == 0U) ? \
                                                   (((grNum) <= 3U) ? \
                                                   ((uint32_t)(((((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR0_GR_DIV_24_5_VECT) |      \
                                                   (((uint32_t)PERI0_PERI_PCLK_PCLK_GROUP_NR1_GR_DIV_24_5_VECT) << 8U)         |    \
@@ -2122,8 +2561,8 @@ extern const uint32_t IPC_BASE_PTR[CY_IPC_INSTANCES];
 /** Channel WORK register access macro. */
 #define SAR2_CH_WORK(base, channel) (((PASS_SAR_Type *)base)->CH[channel].WORK)
 
-/** Channel WORK register access macro. */
-#define SAR2_CH_RESULT(base, channel) (((PASS_SAR_Type *)base)->CH[channel].WORK)
+/** Channel RESULT register access macro. */
+#define SAR2_CH_RESULT(base, channel) (((PASS_SAR_Type *)base)->CH[channel].RESULT)
 
 /** Channel GRP_STAT register access macro. */
 #define SAR2_CH_GRP_STAT(base, channel) (((PASS_SAR_Type *)base)->CH[channel].GRP_STAT)

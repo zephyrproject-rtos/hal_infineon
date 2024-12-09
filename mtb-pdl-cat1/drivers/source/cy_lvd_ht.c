@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_lvd_ht.c
-* \version 1.0
+* \version 1.10
 *
 * The source code file for the LVD HT driver.
 *
@@ -24,7 +24,7 @@
 
 #include "cy_device.h"
 
-#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)) || defined(CY_DOXYGEN)
+#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)) || defined(CY_DOXYGEN)
 
 #include "cy_lvd_ht.h"
 
@@ -80,5 +80,5 @@ cy_en_syspm_status_t Cy_LVD_HT_DeepSleepCallback(cy_stc_syspm_callback_params_t 
 }
 #endif
 
-#endif
+#endif  // (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2))
 /* [] END OF FILE */

@@ -3,7 +3,7 @@
 ; to pass a scatter file through a C preprocessor.
 
 /***************************************************************************//**
-* \file cyw20829_ns_flash_cbus.sct
+* \file cyw20829_ns_flash_sahb.sct
 * \version 1.1.0
 *
 * Linker file for the ARMCC compiler.
@@ -90,7 +90,7 @@ LR_1 bootstrapText_vma BOOTSTRAP_SIZE
         *memcpy*.o (+RO)
         *memmov*.o (+RO)
         *memset*.o (+RO)
-        
+        rt_mem*.o (+RO)
         *(.cy_l1func*)
     }
 
@@ -112,6 +112,7 @@ LR_1 bootstrapText_vma BOOTSTRAP_SIZE
         ppu_v1.o (+RW, +ZI)
         cy_mpc.o (+RW, +ZI)
         cy_syspm_ppu.o (+RW, +ZI)
+        *(.cy_l1data*)
     }
 
     bootstrap_vector bootstrapRamVect_vma UNINIT
@@ -120,7 +121,7 @@ LR_1 bootstrapText_vma BOOTSTRAP_SIZE
     }
 }
 
-#define appTextRam_vma AlignExpr(ImageLimit( bootstrap_vector), 8)
+#define appTextRam_vma AlignExpr(ImageLimit( bootstrap_vector), 16)
 
 LR_2 appText_vma
 {
@@ -132,14 +133,15 @@ LR_2 appText_vma
     appTextRam appTextRam_vma
     {
         * (.cy_ramfunc)
+        * (.text.cy_os_common)
+        * (.text.cy_btstack_common)
+        * (.text.cy_btstack_gatt)
+        * (.text.cy_ipc)
+        * (.text.cy_btstack_porting)
         cy_smif.o (+RO)
         cy_smif_memslot.o (+RO)
-        cy_os_common*.o (+RO)
-        cy_btstack_common*.o (+RO)
-        cy_btstack_gatt*.o (+RO)
-        cy_ipc*.o (+RO)
-        cy_btstack_porting*.o (+RO)
-    }
+        cy_smif_sfdp.o (+RO)
+     }
 
 #define appData_vma AlignExpr(ImageLimit(appTextRam), 8)
 

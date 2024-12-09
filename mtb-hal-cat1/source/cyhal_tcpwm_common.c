@@ -203,8 +203,13 @@ const _cyhal_tcpwm_data_t _CYHAL_TCPWM_DATA[] =
 // number of trigmux tcpwm inputs (but not the total number of tcpwm trigger
 // inputs) per tcpwm block is also defined here.
 #if (CY_IP_MXTCPWM_VERSION == 1U)
+    #if (CY_IP_MXTCPWM_INSTANCES == 1)
     const uint16_t _CYHAL_TCPWM_TRIGGER_INPUTS_IDX_OFFSET[1] = {2};
     const uint16_t _CYHAL_TCPWM_TRIGGER_INPUTS_PER_BLOCK[1] = {(16 - 2)}; // = {(16 - _CYHAL_TCPWM_TRIGGER_INPUTS_IDX_OFFSET[0])};
+    #elif (CY_IP_MXTCPWM_INSTANCES == 2)
+    const uint16_t _CYHAL_TCPWM_TRIGGER_INPUTS_IDX_OFFSET[2] = {2, 2};
+    const uint16_t _CYHAL_TCPWM_TRIGGER_INPUTS_PER_BLOCK[2] = {(16 - 2), (16 - 2)}; // = {(16 - _CYHAL_TCPWM_TRIGGER_INPUTS_IDX_OFFSET[0])};
+    #endif
 #elif (CY_IP_MXTCPWM_VERSION == 2U)
     // Note: These devices also have support for up to 256 trigger lines total,
     // but only 28 input triggers (on top of the 2 + TCPWM_TR_ONE_CNT_NR) are

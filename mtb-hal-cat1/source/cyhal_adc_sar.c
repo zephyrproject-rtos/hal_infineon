@@ -1389,81 +1389,89 @@ cy_rslt_t _cyhal_adc_populate_acquisition_timers(cyhal_adc_t* obj)
 
 cy_rslt_t _cyhal_adc_apply_channel_configs(cyhal_adc_t* obj, cy_stc_sar2_channel_config_t* channel_configs)
 {
+    cy_rslt_t result = CY_RSLT_SUCCESS;
     uint32_t clock_frequency_hz = cyhal_clock_get_frequency(&(obj->clock));
     uint32_t clock_period_ns = (clock_frequency_hz > 0u)
         ? (_CYHAL_UTILS_NS_PER_SECOND / clock_frequency_hz)
         : 0u;
-    CY_ASSERT(0u != clock_period_ns);
-
-    bool found_enabled = false;
-    uint8_t last_enabled = 0u;
-    for(size_t i = 0; i < CY_SAR_MAX_NUM_CHANNELS; ++i)
+    
+    if (0u == clock_period_ns)
     {
-        Cy_SAR2_Channel_DeInit(obj->base, i);
-        if (channel_configs[i].channelHwEnable)
+        CY_ASSERT(false);
+        result = CYHAL_ADC_RSLT_BAD_ARGUMENT;
+    }
+    else
+    {
+        bool found_enabled = false;
+        uint8_t last_enabled = 0u;
+        for(size_t i = 0; i < CY_SAR_MAX_NUM_CHANNELS; ++i)
         {
-            last_enabled = i;
-            if(false == found_enabled) /* Set trigger on the start of the group */
+            Cy_SAR2_Channel_DeInit(obj->base, i);
+            if (channel_configs[i].channelHwEnable)
             {
-                found_enabled = true;
-                channel_configs[i].triggerSelection = obj->continuous_scanning ?
-                    CY_SAR2_TRIGGER_CONTINUOUS : CY_SAR2_TRIGGER_GENERIC0;
-            }
-
-            if(obj->channel_config[i]->avg_enabled)
-            {
-                /* Value stored is 1 less than the desired count, but decrement is done by Cy_SAR2_Channel_Init */
-                channel_configs[i].averageCount = obj->average_count;
-                /* postProcessingMode=AVG triggers the repeated acquisition of samples.
-                 * The difference between accumulate and average is whether we do a right shift afterwards
-                 */
-                uint8_t rightShift;
-                channel_configs[i].postProcessingMode = CY_SAR2_POST_PROCESSING_MODE_AVG;
-                if(obj->average_is_accumulate)
+                last_enabled = i;
+                if(false == found_enabled) /* Set trigger on the start of the group */
                 {
-                    rightShift = 0u;
+                    found_enabled = true;
+                    channel_configs[i].triggerSelection = obj->continuous_scanning ?
+                        CY_SAR2_TRIGGER_CONTINUOUS : CY_SAR2_TRIGGER_GENERIC0;
+                }
+
+                if(obj->channel_config[i]->avg_enabled)
+                {
+                    /* Value stored is 1 less than the desired count, but decrement is done by Cy_SAR2_Channel_Init */
+                    channel_configs[i].averageCount = obj->average_count;
+                    /* postProcessingMode=AVG triggers the repeated acquisition of samples.
+                    * The difference between accumulate and average is whether we do a right shift afterwards
+                    */
+                    uint8_t rightShift;
+                    channel_configs[i].postProcessingMode = CY_SAR2_POST_PROCESSING_MODE_AVG;
+                    if(obj->average_is_accumulate)
+                    {
+                        rightShift = 0u;
+                    }
+                    else
+                    {
+                        for(rightShift = 31u; (0u == (obj->average_count & 1u << rightShift)); --rightShift) { }
+                    }
+                    channel_configs[i].rightShift = rightShift;
                 }
                 else
                 {
-                    for(rightShift = 31u; (0u == (obj->average_count & 1u << rightShift)); --rightShift) { }
+                    channel_configs[i].averageCount = 0u;
+                    channel_configs[i].postProcessingMode = CY_SAR2_POST_PROCESSING_MODE_NONE;
+                    channel_configs[i].rightShift = 0u;
                 }
-                channel_configs[i].rightShift = rightShift;
-            }
-            else
-            {
-                channel_configs[i].averageCount = 0u;
-                channel_configs[i].postProcessingMode = CY_SAR2_POST_PROCESSING_MODE_NONE;
-                channel_configs[i].rightShift = 0u;
-            }
 
-            uint16_t sample_clock_cycles =
-                (uint16_t)((obj->channel_config[i]->minimum_acquisition_ns + (clock_period_ns - 1)) / clock_period_ns);
-            channel_configs[i].sampleTime = sample_clock_cycles;
+                uint16_t sample_clock_cycles =
+                    (uint16_t)((obj->channel_config[i]->minimum_acquisition_ns + (clock_period_ns - 1)) / clock_period_ns);
+                channel_configs[i].sampleTime = sample_clock_cycles;
+            }
+            channel_configs[i].isGroupEnd = false;
+            channel_configs[i].interruptMask = 0u;
         }
-        channel_configs[i].isGroupEnd = false;
-        channel_configs[i].interruptMask = 0u;
-    }
 
-    channel_configs[last_enabled].isGroupEnd = true;
-    channel_configs[last_enabled].interruptMask = CY_SAR2_INT_GRP_DONE;
+        channel_configs[last_enabled].isGroupEnd = true;
+        channel_configs[last_enabled].interruptMask = CY_SAR2_INT_GRP_DONE;
 
-    /* We need to do a 2 pass because we don't know what channel is at the end until
-     * we've gone past it */
-    cy_rslt_t result = CY_RSLT_SUCCESS;
-    for(size_t i = 0; i < CY_SAR_MAX_NUM_CHANNELS; ++i)
-    {
-        cy_rslt_t result2 = Cy_SAR2_Channel_Init(obj->base, i, &channel_configs[i]);
+        /* We need to do a 2 pass because we don't know what channel is at the end until
+        * we've gone past it */
+        for(size_t i = 0; i < CY_SAR_MAX_NUM_CHANNELS; ++i)
+        {
+            cy_rslt_t result2 = Cy_SAR2_Channel_Init(obj->base, i, &channel_configs[i]);
+            if(CY_RSLT_SUCCESS == result)
+            {
+                result = result2;
+            }
+        }
+
         if(CY_RSLT_SUCCESS == result)
         {
-            result = result2;
+            /* We only support one trigger output per ADC instance, so by convention we always drive trigger 0 */
+            result = Cy_SAR2_SetGenericTriggerOutput(PASS0_EPASS_MMIO, obj->resource.block_num, 0u, last_enabled);
         }
     }
 
-    if(CY_RSLT_SUCCESS == result)
-    {
-        /* We only support one trigger output per ADC instance, so by convention we always drive trigger 0 */
-        result = Cy_SAR2_SetGenericTriggerOutput(PASS0_EPASS_MMIO, obj->resource.block_num, 0u, last_enabled);
-    }
     return result;
 }
 
@@ -2329,7 +2337,7 @@ int32_t cyhal_adc_read(const cyhal_adc_channel_t *obj)
     bool isInterleaved = false;
 #endif
 #if defined(CY_IP_MXS40EPASS_ESAR)
-    cy_stc_sar2_channel_config_t channel_configs[CY_SAR_MAX_NUM_CHANNELS];
+    cy_stc_sar2_channel_config_t channel_configs[CY_SAR_MAX_NUM_CHANNELS] = {{0}};
 #endif
     if(!obj->adc->continuous_scanning)
     {

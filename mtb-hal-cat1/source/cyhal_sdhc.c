@@ -2726,15 +2726,15 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
     cyhal_gpio_t data[4];
     memcpy(data, cfg->gpios.data, sizeof(cfg->gpios.data));
 
-    if (NC != sdxx->pin_cmd)
+    if (NC != cfg->gpios.cmd)
     {
-    		result = _cyhal_sdxx_setup_pin(sdxx, cmd, cyhal_pin_map_sdhc_card_cmd,
-			CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_CMD,
-			_CYHAL_SDHC_ELEM_COUNT(cyhal_pin_map_sdhc_card_cmd), &(sdxx->pin_cmd), _CYHAL_SDHC_NOT_WEAK_FUNC,
-			!sdxx->dc_configured);
+        result = _cyhal_sdxx_setup_pin(sdxx, cmd, cyhal_pin_map_sdhc_card_cmd,
+            CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_CMD,
+            _CYHAL_SDHC_ELEM_COUNT(cyhal_pin_map_sdhc_card_cmd), &(sdxx->pin_cmd), _CYHAL_SDHC_NOT_WEAK_FUNC,
+            !sdxx->dc_configured);
     }
-    
-    if ((NC != sdxx->pin_clk) && (result == CY_RSLT_SUCCESS))
+
+    if ( (NC != cfg->gpios.clk) && (CY_RSLT_SUCCESS == result) )
     {
         result = _cyhal_sdxx_setup_pin(sdxx, clk, cyhal_pin_map_sdhc_clk_card,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CLK_CARD,
@@ -2742,7 +2742,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if ((NC != obj->pin_data0) && (result == CY_RSLT_SUCCESS))
+    if ( (NC != data[0]) && (CY_RSLT_SUCCESS == result) )
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[0], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
@@ -2750,7 +2750,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if ((NC != obj->pin_data1) && (result == CY_RSLT_SUCCESS))
+    if ( (NC != data[1]) && (CY_RSLT_SUCCESS == result) )
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[1], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
@@ -2758,7 +2758,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if ((NC != obj->pin_data2) && (result == CY_RSLT_SUCCESS))
+    if ( (NC != data[2]) && (CY_RSLT_SUCCESS == result) )
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[2], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
@@ -2766,7 +2766,7 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
             !sdxx->dc_configured);
     }
 
-    if ((NC != obj->pin_data3) && (result == CY_RSLT_SUCCESS))
+    if ( (NC != data[3]) && (CY_RSLT_SUCCESS == result) )
     {
         result = _cyhal_sdxx_setup_pin(sdxx, data[3], cyhal_pin_map_sdhc_card_dat_3to0,
             CYHAL_PIN_MAP_DRIVE_MODE_SDHC_CARD_DAT_3TO0,
@@ -2776,57 +2776,56 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
 
     if (result == CY_RSLT_SUCCESS)
     {
-        const cyhal_resource_pin_mapping_t *cmd_map = _CYHAL_UTILS_GET_RESOURCE(cmd, cyhal_pin_map_sdhc_card_cmd);
-        cyhal_resource_inst_t sdhc = { CYHAL_RSC_SDHC, cmd_map->block_num, cmd_map->channel_num };
-
-        if (cfg->clock == NULL)
+        if (sdxx->dc_configured)
         {
-            result = _cyhal_utils_allocate_clock(&(sdxx->clock), &sdhc, CYHAL_CLOCK_BLOCK_PERIPHERAL_16BIT, true);
-            if (CY_RSLT_SUCCESS == result)
-            {
-                sdxx->clock_owned = true;
-                result = _cyhal_utils_set_clock_frequency2(&(sdxx->clock), MAX_FREQUENCY, &CYHAL_CLOCK_TOLERANCE_5_P);
-            }
-            if (CY_RSLT_SUCCESS == result && !cyhal_clock_is_enabled(&(sdxx->clock)))
-            {
-                result = cyhal_clock_set_enabled(&(sdxx->clock), true, true);
-            }
+            sdxx->resource = *(cfg->resource);
         }
         else
         {
-            if (cfg->clock->block == CYHAL_CLOCK_BLOCK_HF)
-            {
-                sdxx->clock = *cfg->clock;
-                obj->frequencyhal_hz = cyhal_clock_get_frequency(&(sdxx->clock));
-            }
-
-            if ((cfg->clock->block != CYHAL_CLOCK_BLOCK_HF) || (obj->frequencyhal_hz == 0))
-            {
-                result = CYHAL_SDIO_RSLT_ERR_CLOCK;
-            }
+            const cyhal_resource_pin_mapping_t *cmd_map = _CYHAL_UTILS_GET_RESOURCE(cmd, cyhal_pin_map_sdhc_card_cmd);
+            cyhal_resource_inst_t sdhc = { CYHAL_RSC_SDHC, cmd_map->block_num, cmd_map->channel_num };
+            sdxx->resource = sdhc;
+            result = cyhal_hwmgr_reserve(&sdhc);
         }
 
-        if (CY_RSLT_SUCCESS == result)
+        if (result == CY_RSLT_SUCCESS)
         {
-            if (sdxx->dc_configured)
+            if (cfg->clock == NULL)
             {
-                sdxx->resource = *(cfg->resource);
+                result = _cyhal_utils_allocate_clock(&(sdxx->clock), &(sdxx->resource), CYHAL_CLOCK_BLOCK_PERIPHERAL_16BIT, true);
+                if (CY_RSLT_SUCCESS == result)
+                {
+                    sdxx->clock_owned = true;
+                    result = _cyhal_utils_set_clock_frequency2(&(sdxx->clock), MAX_FREQUENCY, &CYHAL_CLOCK_TOLERANCE_5_P);
+                }
+                if (CY_RSLT_SUCCESS == result && !cyhal_clock_is_enabled(&(sdxx->clock)))
+                {
+                    result = cyhal_clock_set_enabled(&(sdxx->clock), true, true);
+                }
             }
             else
             {
-                sdxx->resource = sdhc;
-                result = cyhal_hwmgr_reserve(&sdhc);
+                if (cfg->clock->block == CYHAL_CLOCK_BLOCK_HF)
+                {
+                    sdxx->clock = *cfg->clock;
+                    obj->frequencyhal_hz = cyhal_clock_get_frequency(&(sdxx->clock));
+                }
+
+                if ((cfg->clock->block != CYHAL_CLOCK_BLOCK_HF) || (obj->frequencyhal_hz == 0))
+                {
+                    result = CYHAL_SDIO_RSLT_ERR_CLOCK;
+                }
             }
         }
     }
 
-        if (result == CY_RSLT_SUCCESS)
-        {
-            sdxx->base = _CYHAL_SDHC_BASE_ADDRESSES[sdxx->resource.block_num];
-            sdxx->data_transfer_status = _CYHAL_SDXX_NOT_RUNNING;
+    if (result == CY_RSLT_SUCCESS)
+    {
+        sdxx->base = _CYHAL_SDHC_BASE_ADDRESSES[sdxx->resource.block_num];
+        sdxx->data_transfer_status = _CYHAL_SDXX_NOT_RUNNING;
 
-            /* Enable the SDHC block */
-            Cy_SD_Host_Enable(sdxx->base);
+        /* Enable the SDHC block */
+        Cy_SD_Host_Enable(sdxx->base);
 
         /* Configure SD Host to operate */
         result = (cy_rslt_t)Cy_SD_Host_Init(sdxx->base, cfg->host_config, &sdxx->context);
@@ -2901,6 +2900,16 @@ static cy_rslt_t _cyhal_sdio_init_common(cyhal_sdio_t *obj, const cyhal_sdio_con
 cy_rslt_t cyhal_sdio_init(cyhal_sdio_t *obj, cyhal_gpio_t cmd, cyhal_gpio_t clk, cyhal_gpio_t data0, cyhal_gpio_t data1,
         cyhal_gpio_t data2, cyhal_gpio_t data3)
 {
+    if ((cmd == NC) || 
+        (clk == NC) ||
+        (data0 == NC) ||
+        (data1 == NC) ||
+        (data2 == NC) ||
+        (data3 == NC))
+    {
+        return CYHAL_SDIO_RSLT_ERR_BAD_PARAM;
+    }
+
     cy_en_sd_host_card_capacity_t card_capacity = CY_SD_HOST_SDSC;
     cy_en_sd_host_card_type_t card_type = CY_SD_HOST_NOT_EMMC;
     uint32_t rca = 0u;
@@ -3182,6 +3191,15 @@ cy_rslt_t cyhal_sdio_host_transfer_async(cyhal_sdio_t *obj, cyhal_sdio_host_tran
     dat.enReliableWrite     = false;
     dat.enableDma           = true;
 
+    // Before we perform any operations with the DMA, flush the D-cache, if enabled.
+    // Casting away const is safe to do, because it will be a no-op
+    // if data has no dirty entries in the cache, and a const variable
+    // that is stored in flash will never have dirty entries in the cache
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    if (direction == CYHAL_SDIO_XFER_TYPE_WRITE)
+        SCB_CleanDCache_by_Addr((void *) data, length);
+#endif
+
     do
     {
         /* Add SDIO Error Handling
@@ -3248,6 +3266,10 @@ cy_rslt_t cyhal_sdio_host_transfer_async(cyhal_sdio_t *obj, cyhal_sdio_host_tran
 
         ret = _cyhal_sdxx_prepare_for_transfer(sdxx);
 
+        #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+        SCB_CleanDCache_by_Addr((void *) sdxx->adma_descriptor_tbl, sizeof(sdxx->adma_descriptor_tbl));
+        #endif
+
         if (CY_RSLT_SUCCESS == ret)
         {
             ret = (cy_rslt_t)Cy_SD_Host_InitDataTransfer(sdxx->base, &dat);
@@ -3272,6 +3294,12 @@ cy_rslt_t cyhal_sdio_host_transfer_async(cyhal_sdio_t *obj, cyhal_sdio_host_tran
         /* Transfer failed */
         sdxx->data_transfer_status = _CYHAL_SDXX_NOT_RUNNING;
     }
+
+    // Invalidate dcache if enabled to update dcache's contents after DMA transfer
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    if (direction == CYHAL_SDIO_XFER_TYPE_READ)
+        SCB_InvalidateDCache_by_Addr((void *) data, length);
+    #endif
 
     return ret;
 }

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_systick.c
-* \version 1.70.1
+* \version 1.80
 *
 * Provides the API definitions of the SisTick driver.
 *
@@ -74,6 +74,7 @@ uint32_t Cy_SysTick_GetCountFlag(void)
 void Cy_SysTick_Init(cy_en_systick_clock_source_t clockSource, uint32_t interval)
 {
     CY_ASSERT_L1(CY_SYSTICK_IS_RELOAD_VALID(interval));
+    CY_ASSERT_L1(CY_SYSTICK_IS_CLK_SRC_VALID(clockSource));
 
     uint32_t i;
 
@@ -131,6 +132,8 @@ void Cy_NsSysTick_Disable(void)
 
 void Cy_SysTick_SetClockSource(cy_en_systick_clock_source_t clockSource)
 {
+    CY_ASSERT_L1(CY_SYSTICK_IS_CLK_SRC_VALID(clockSource));
+
     if (clockSource == CY_SYSTICK_CLOCK_SOURCE_CLK_CPU)
     {
         SYSTICK_CTRL |= SysTick_CTRL_CLKSOURCE_Msk;

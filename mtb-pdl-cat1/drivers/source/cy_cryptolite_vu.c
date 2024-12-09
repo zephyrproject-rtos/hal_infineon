@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_vu.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides provides constant and parameters

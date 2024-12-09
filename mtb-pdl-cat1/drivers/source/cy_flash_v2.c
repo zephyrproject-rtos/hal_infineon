@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash_v2.c
-* \version 1.0
+* \version 3.110
 *
 * \brief
 * Provides the public functions for the API for the Flash Driver.
@@ -31,6 +31,9 @@
 #define ADDRESS_LENGTH_256_BIT (32U)
 #define DATA_LENGTH_32_BIT (1U)
 #define DATA_LENGTH_256_BIT (8U)
+#define CY_FLASH_CODE_ECC_INJECT_POS          (0x03UL)       /** CODE ECC injection position shift */
+#define CY_FLASH_WORK_ECC_INJECT_POS          (0x02UL)       /** WORK ECC injection position shift */
+#define CY_FLASH_CACHE_ECC_INJECT_POS         (0x02UL)       /** CACHE ECC injection position shift */
 
 static cy_en_flashdrv_status_t Cy_Flash_GetRowDetails(uint32_t rowAddr, uint8_t *rowID, cy_en_flash_checksum_bank_t *bank, cy_en_flash_checksum_region_t *region);
 static cy_en_flashdrv_status_t Cy_Flash_CalculateHash_Ext(const cy_stc_flash_computehash_config_t *config,  uint32_t* hashPtr);
@@ -858,7 +861,7 @@ cy_en_flashdrv_status_t Cy_Flashc_InjectECC(cy_en_region_t region, uint32_t addr
                 return CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
         }
         FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_FLASH_CTL_MAIN_ECC_INJ_EN, 1U);
-        FLASHC_ECC_CTL = (_VAL2FLD(FLASHC_ECC_CTL_WORD_ADDR, address) |
+        FLASHC_ECC_CTL = (_VAL2FLD(FLASHC_ECC_CTL_WORD_ADDR, (address >> CY_FLASH_CODE_ECC_INJECT_POS)) |
                          _VAL2FLD(FLASHC_ECC_CTL_PARITY, parity ));
         break;
     case CY_FLASH_WORK_REGION:
@@ -867,7 +870,7 @@ cy_en_flashdrv_status_t Cy_Flashc_InjectECC(cy_en_region_t region, uint32_t addr
             return CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
         }
         FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_FLASH_CTL_WORK_ECC_INJ_EN, 1U);
-        FLASHC_ECC_CTL = (_VAL2FLD(FLASHC_ECC_CTL_WORD_ADDR, address) |
+        FLASHC_ECC_CTL = (_VAL2FLD(FLASHC_ECC_CTL_WORD_ADDR, (address >> CY_FLASH_WORK_ECC_INJECT_POS)) |
                          _VAL2FLD(FLASHC_ECC_CTL_PARITY, parity ));
         break;
     case CY_FLASH_CA_CM0P_REGION:
@@ -876,7 +879,7 @@ cy_en_flashdrv_status_t Cy_Flashc_InjectECC(cy_en_region_t region, uint32_t addr
                 return CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
         }
         FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_CM0_CA_CTL0_RAM_ECC_INJ_EN, 1U);
-        FLASHC_ECC_CTL = (_VAL2FLD(FLASHC_ECC_CTL_WORD_ADDR, address) |
+        FLASHC_ECC_CTL = (_VAL2FLD(FLASHC_ECC_CTL_WORD_ADDR, (address >> CY_FLASH_CACHE_ECC_INJECT_POS)) |
                          _VAL2FLD(FLASHC_ECC_CTL_PARITY, parity ));
         break;
     default:
@@ -885,6 +888,34 @@ cy_en_flashdrv_status_t Cy_Flashc_InjectECC(cy_en_region_t region, uint32_t addr
     }
 
     return result;
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_InjectECC_Disable
+****************************************************************************//**
+*
+* This function disables ECC injection for the region specified.
+*
+* \note This function is applicable for CAT1C devices.
+*
+*******************************************************************************/
+void Cy_Flashc_InjectECC_Disable(cy_en_region_t region)
+{
+    switch(region)
+    {
+    case CY_FLASH_MAIN_REGION:
+        FLASHC_FLASH_CTL &= ~FLASHC_FLASH_CTL_MAIN_ECC_INJ_EN_Msk;
+        break;
+    case CY_FLASH_WORK_REGION:
+        FLASHC_FLASH_CTL &= ~FLASHC_FLASH_CTL_WORK_ECC_INJ_EN_Msk;
+        break;
+    case CY_FLASH_CA_CM0P_REGION:
+        FLASHC_FLASH_CTL &= ~FLASHC_CM0_CA_CTL0_RAM_ECC_INJ_EN_Msk;
+        break;
+    default:
+        // Default case. Nothing to do.
+        break;
+    }
 }
 
 /*******************************************************************************
@@ -1530,6 +1561,38 @@ cy_en_bankmode_t Cy_Flashc_GetMainBankMode(void)
     {
         return CY_FLASH_DUAL_BANK_MODE;
     }
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetMain_Flash_Mapping
+****************************************************************************//**
+*
+* \brief Sets mapping for main flash region. Applicable only in Dual Bank mode of Main flash region
+*
+* \param mapping mapping to be set
+*
+* \return none
+*******************************************************************************/
+void Cy_Flashc_SetMain_Flash_Mapping(cy_en_maptype_t  mapping)
+{
+    FLASHC_FLASH_CTL &= ~FLASHC_FLASH_CTL_MAIN_MAP_Msk;
+    FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_FLASH_CTL_MAIN_MAP, mapping);
+}
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetWork_Flash_Mapping
+****************************************************************************//**
+*
+* \brief Sets mapping for work flash region. Applicable only in Dual Bank mode of Work flash region
+*
+* \param mapping mapping to be set
+*
+* \return none
+*******************************************************************************/
+void Cy_Flashc_SetWork_Flash_Mapping(cy_en_maptype_t mapping)
+{
+    FLASHC_FLASH_CTL &= ~FLASHC_FLASH_CTL_WORK_MAP_Msk;
+    FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_FLASH_CTL_WORK_MAP, mapping);
 }
 
 

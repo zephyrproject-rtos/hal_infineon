@@ -65,7 +65,7 @@ static void _cyhal_keyscan_cb_wrapper(void);
 static bool _cyhal_keyscan_pm_callback(cyhal_syspm_callback_state_t state, cyhal_syspm_callback_mode_t mode, void* callback_arg);
 static cy_rslt_t _cyhal_keyscan_init_resources(cyhal_keyscan_t *obj, uint8_t num_columns, const cyhal_gpio_t *columns,
                                                uint8_t num_rows, const cyhal_gpio_t *rows, const cyhal_clock_t *clock);
-static cy_rslt_t _cyhal_keyscan_init_hw(cyhal_keyscan_t *obj, cy_stc_ks_config_t *cfg);
+static cy_rslt_t _cyhal_keyscan_init_hw(cyhal_keyscan_t *obj, const cy_stc_ks_config_t *cfg);
 
 /* Default KeyScan configuration */
 static const cy_stc_ks_config_t _cyhal_keyscan_default_config = {
@@ -296,7 +296,7 @@ static cy_rslt_t _cyhal_keyscan_init_resources(cyhal_keyscan_t *obj, uint8_t num
     return result;
 }
 
-static cy_rslt_t _cyhal_keyscan_init_hw(cyhal_keyscan_t *obj, cy_stc_ks_config_t *cfg)
+static cy_rslt_t _cyhal_keyscan_init_hw(cyhal_keyscan_t *obj, const cy_stc_ks_config_t *cfg)
 {
     obj->base = _cyhal_keyscan_base[obj->resource.block_num];
 

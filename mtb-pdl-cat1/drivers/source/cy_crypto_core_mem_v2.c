@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_mem_v2.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the source code to the API for the PRNG
@@ -50,7 +50,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 2, \
 * Function MemCpy uses Crypto HW.
 * Memory structures should not overlap!
 *
-* For CAT1C devices when D-Cache is enabled parameters dst and src must align and end in 32 byte boundary.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters dst and src must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -67,6 +67,9 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 2, \
 *******************************************************************************/
 void Cy_Crypto_Core_V2_MemCpy(CRYPTO_Type *base, void* dst, void const *src, uint16_t size)
 {
+    void *dstRemap;
+    void *srcRemap;
+
     if (size != 0U)
     {
     
@@ -88,8 +91,11 @@ void Cy_Crypto_Core_V2_MemCpy(CRYPTO_Type *base, void* dst, void const *src, uin
 
 #endif
 
-        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, (const uint8_t*)src, (uint32_t)size);
-        Cy_Crypto_Core_V2_FFStart   (base, CY_CRYPTO_V2_RB_FF_STORE, (const uint8_t*)dst, (uint32_t)size);
+        dstRemap = CY_REMAP_ADDRESS_FOR_CRYPTO(dst);
+        srcRemap = (void *)CY_REMAP_ADDRESS_FOR_CRYPTO(src);
+
+        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, (const uint8_t*)srcRemap, (uint32_t)size);
+        Cy_Crypto_Core_V2_FFStart   (base, CY_CRYPTO_V2_RB_FF_STORE, (const uint8_t*)dstRemap, (uint32_t)size);
 
         while (size >= CY_CRYPTO_V2_DATA_FIFODEPTH)
         {
@@ -113,7 +119,7 @@ void Cy_Crypto_Core_V2_MemCpy(CRYPTO_Type *base, void* dst, void const *src, uin
 *
 * Function MemSet uses Crypto HW.
 *
-* For CAT1C devices when D-Cache is enabled parameter dst must align and end in 32 byte boundary.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameter dst must align and end in 32 byte boundary.
 *
 *
 * \param base
@@ -131,9 +137,13 @@ void Cy_Crypto_Core_V2_MemCpy(CRYPTO_Type *base, void* dst, void const *src, uin
 *******************************************************************************/
 void Cy_Crypto_Core_V2_MemSet(CRYPTO_Type *base, void* dst, uint8_t data, uint16_t size)
 {
+    void *dstRemap;
     if (size != 0U)
     {
-    #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+
+        dstRemap = CY_REMAP_ADDRESS_FOR_CRYPTO(dst);
+
+        #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
         if(((uint32_t)dst & 0x1FU) == 0u)
         {
 
@@ -143,7 +153,7 @@ void Cy_Crypto_Core_V2_MemSet(CRYPTO_Type *base, void* dst, uint8_t data, uint16
 
     #endif
 
-        Cy_Crypto_Core_V2_FFStart(base, CY_CRYPTO_V2_RB_FF_STORE, dst, (uint32_t)size);
+        Cy_Crypto_Core_V2_FFStart(base, CY_CRYPTO_V2_RB_FF_STORE, dstRemap, (uint32_t)size);
 
         while (size >= CY_CRYPTO_V2_DATA_FIFODEPTH)
         {
@@ -170,7 +180,7 @@ void Cy_Crypto_Core_V2_MemSet(CRYPTO_Type *base, void* dst, uint8_t data, uint16
 * Function MemCmp uses Crypto HW.
 *
 *
-* For CAT1C devices when D-Cache is enabled parameters src0 and src1 must align and end in 32 byte boundary.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src0 and src1 must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -191,6 +201,8 @@ void Cy_Crypto_Core_V2_MemSet(CRYPTO_Type *base, void* dst, uint8_t data, uint16
 uint32_t Cy_Crypto_Core_V2_MemCmp(CRYPTO_Type *base, void const *src0, void const *src1, uint16_t size)
 {
     uint32_t memResult = 1U;
+    void *src0Remap;
+    void *src1Remap;
 
     if (size != 0U)
     {
@@ -213,10 +225,13 @@ uint32_t Cy_Crypto_Core_V2_MemCmp(CRYPTO_Type *base, void const *src0, void cons
 
 #endif
 
+        src0Remap = (void *)CY_REMAP_ADDRESS_FOR_CRYPTO(src0);
+        src1Remap = (void *)CY_REMAP_ADDRESS_FOR_CRYPTO(src1);
+
         REG_CRYPTO_RESULT(base) = 0UL;
 
-        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, (const uint8_t*)src0, (uint32_t)size);
-        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD1, (const uint8_t*)src1, (uint32_t)size);
+        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, (const uint8_t*)src0Remap, (uint32_t)size);
+        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD1, (const uint8_t*)src1Remap, (uint32_t)size);
 
         while (size >= CY_CRYPTO_V2_DATA_FIFODEPTH)
         {
@@ -247,7 +262,7 @@ uint32_t Cy_Crypto_Core_V2_MemCmp(CRYPTO_Type *base, void const *src0, void cons
 * Function MemXor uses Crypto HW.
 * Memory structures should not overlap!
 *
-* For CAT1C devices when D-Cache is enabled parameters dst, src0 and src1 must align and end in 32 byte boundary.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters dst, src0 and src1 must align and end in 32 byte boundary.
 *
 *
 * \param base
@@ -269,6 +284,10 @@ uint32_t Cy_Crypto_Core_V2_MemCmp(CRYPTO_Type *base, void const *src0, void cons
 void Cy_Crypto_Core_V2_MemXor(CRYPTO_Type *base,
                                void* dst, void const *src0, void const *src1, uint16_t size)
 {
+    void *src0Remap;
+    void *src1Remap;
+    void *dstRemap;
+
     if (size != 0U)
     {
     
@@ -292,9 +311,13 @@ void Cy_Crypto_Core_V2_MemXor(CRYPTO_Type *base,
 
     #endif
 
-        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, (const uint8_t*)src0, (uint32_t)size);
-        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD1, (const uint8_t*)src1, (uint32_t)size);
-        Cy_Crypto_Core_V2_FFStart   (base, CY_CRYPTO_V2_RB_FF_STORE, dst, (uint32_t)size);
+        dstRemap = CY_REMAP_ADDRESS_FOR_CRYPTO(dst);
+        src0Remap = (void *)CY_REMAP_ADDRESS_FOR_CRYPTO(src0);
+        src1Remap = (void *)CY_REMAP_ADDRESS_FOR_CRYPTO(src1);
+
+        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, (const uint8_t*)src0Remap, (uint32_t)size);
+        Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD1, (const uint8_t*)src1Remap, (uint32_t)size);
+        Cy_Crypto_Core_V2_FFStart   (base, CY_CRYPTO_V2_RB_FF_STORE, dstRemap, (uint32_t)size);
 
         while (size >= CY_CRYPTO_V2_DATA_FIFODEPTH)
         {

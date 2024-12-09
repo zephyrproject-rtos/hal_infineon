@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_nist_p.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides constant and parameters
@@ -41,22 +41,28 @@ extern "C" {
 #if (CRYPTOLITE_VU_PRESENT == 1)
 #if defined(CY_CRYPTOLITE_CFG_ECP_C)
 
-void Cryptolite_EC_NistP_PointMul(CRYPTOLITE_Type *base, cy_stc_cryptolite_context_ecdsa_t *cfContext, uint8_t *p_x, uint8_t *p_y,
+void Cy_Cryptolite_EC_Bar_MulRed ( CRYPTOLITE_Type *base,
+                                cy_stc_cryptolite_context_ecdsa_t *cfContext,
+                                uint8_t* p_z,
+                                uint8_t* p_x,
+                                uint32_t bit_size );
+                                
+void Cy_Cryptolite_EC_NistP_PointMul(CRYPTOLITE_Type *base, cy_stc_cryptolite_context_ecdsa_t *cfContext, uint8_t *p_x, uint8_t *p_y,
                                 uint8_t *p_d, uint8_t *p_order, int bitsize);
 
-void Cryptolite_EC_DivMod( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_DivMod( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t * z,
                             uint8_t * a,
                             uint8_t * b,
                             int size );
 
-void Cryptolite_EC_SquareMod( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_SquareMod( CRYPTOLITE_Type *base,
                         cy_stc_cryptolite_context_ecdsa_t *cfContext,
                         uint8_t * z,
                         uint8_t * a,
                         int size );
-void Cryptolite_EC_MulMod ( CRYPTOLITE_Type *base,
+void Cy_Cryptolite_EC_MulMod ( CRYPTOLITE_Type *base,
                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                             uint8_t * z,
                             uint8_t * a,
@@ -76,7 +82,7 @@ void Cryptolite_EC_MulMod ( CRYPTOLITE_Type *base,
 /// @param[in] a Register index for augend a value.
 /// @param[in] b Register index for addend b value.
 /// @param[in] mod Register index for modulo value.
-__STATIC_INLINE void Cryptolite_EC_AddMod (CRYPTOLITE_Type *base,
+__STATIC_INLINE void Cy_Cryptolite_EC_AddMod (CRYPTOLITE_Type *base,
                                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                                             uint8_t *z, uint8_t *a, uint8_t *b)
 {
@@ -102,7 +108,7 @@ __STATIC_INLINE void Cryptolite_EC_AddMod (CRYPTOLITE_Type *base,
 /// @param[in] b Register index for subtrahend b value.
 /// @param[in] mod Register index for modulo value.
 
-__STATIC_INLINE void Cryptolite_EC_SubMod (CRYPTOLITE_Type *base,
+__STATIC_INLINE void Cy_Cryptolite_EC_SubMod (CRYPTOLITE_Type *base,
                                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                                             uint8_t * z, uint8_t * a, uint8_t * b)
 {
@@ -135,7 +141,7 @@ __STATIC_INLINE void Cryptolite_EC_SubMod (CRYPTOLITE_Type *base,
 /// @param[in] z Register index for result value.
 /// @param[in] a Register index for value to be halved.
 /// @param[in] mod Register index for modulo value.
-__STATIC_INLINE void Cryptolite_EC_HalfMod (CRYPTOLITE_Type *base,
+__STATIC_INLINE void Cy_Cryptolite_EC_HalfMod (CRYPTOLITE_Type *base,
                                             cy_stc_cryptolite_context_ecdsa_t *cfContext,
                                             uint8_t * z, uint8_t * a)
 {

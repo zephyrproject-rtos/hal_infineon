@@ -176,10 +176,14 @@
 #define PERI_DIV_NR  (PERI0_DIV_NR + PERI1_DIV_NR)
 #endif
 
-#if defined(COMPONENT_CAT1A)
+#if (defined(COMPONENT_CAT1A) && !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)))
 // 12 dedicated = IMO, EXT, ILO, FLL, LF, Pump, BAK, Timer, AltSysTick, Slow, Fast, Peri
 //  7 optional =  ECO, ALTHF, ALTLF, PILO, WCO, MFO, MF
 #define CY_CHANNEL_COUNT_CLOCK      (12 + 7 + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + PERI_DIV_NR)
+#elif (defined(COMPONENT_CAT1A) && defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
+// 13 dedicated = IMO, EXT, ILO0, ILO1, FLL, LF, Pump, BAK, Timer, AltSysTick, Slow, Fast, Peri
+//  6 optional =  ECO, ALTHF, ALTLF, WCO, MFO, MF
+#define CY_CHANNEL_COUNT_CLOCK      (13 + 6 + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + PERI_DIV_NR)
 #elif defined(COMPONENT_CAT1B)
 // 10 dedicated = IHO, IMO, EXT, ILO, FLL, LF, Pump, BAK, AltSysTick, Peri
 //  7 optional =  ECO, ALTHF, ALTLF, PILO, WCO, MFO, MF
@@ -625,6 +629,18 @@
 #if ((PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 18) >= 256)
 #error "Too many clocks to use uint8_t as offset type"
 #endif
+
+#if (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
+#define _SRSS_NUM_PILO  0U
+#if !defined(SRSS_NUM_PLL400M)
+#define SRSS_NUM_PLL400M (0)
+#endif
+#define _SRSS_NUM_PLL   (SRSS_NUM_PLL + SRSS_NUM_PLL400M)
+#else  /* (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)) */
+#define _SRSS_NUM_PILO  1U
+#define _SRSS_NUM_PLL   (SRSS_NUM_PLL)
+#endif /* (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)) */
+
 /* The order of items here must match the order in cyhal_clock_impl.h
  *
  * Each entry in the array below is the prior entry plus the number of clocks that exist
@@ -645,27 +661,34 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[26] =
     PERI_DIV_NR + 3,                                                      // ALTHF
     PERI_DIV_NR + 4,                                                      // ALTLF
     PERI_DIV_NR + 5,                                                      // ILO
-    PERI_DIV_NR + 6,                                                      // PILO
-    PERI_DIV_NR + 7,                                                      // WCO
-    PERI_DIV_NR + 8,                                                      // MFO
+#if (!(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)))
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + 5,                                // PILO
+#endif /* (!(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))) */
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + 5,               // WCO
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + 6,               // MFO
 
-    PERI_DIV_NR + 9,                                                      // PathMux
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + 7,               // PathMux
 
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + 9,                                   // FLL
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + 10,                                  // PLL
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + 7,  // FLL
+#if (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + 8,                  // PLL200
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + 8 + SRSS_NUM_PLL,   // PLL400
+#else
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + 8,  // PLL
+#endif
 
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + 10,                   // LF
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + 11,                   // MF
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + 12,                   // HF
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + 8,  // LF
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + 9,  // MF
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + 10, // HF
 
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 12, // PUMP
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 13, // BAK
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 14, // TIMER
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 15, // AltSysTick
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + SRSS_NUM_HFROOT + 10, // PUMP
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + SRSS_NUM_HFROOT + 11, // BAK
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + SRSS_NUM_HFROOT + 12, // TIMER
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + SRSS_NUM_HFROOT + 13, // AltSysTick
 
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 16, // Fast
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 17, // Peri
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL + SRSS_NUM_HFROOT + 18, // Slow
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + SRSS_NUM_HFROOT + 14, // Fast
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + SRSS_NUM_HFROOT + 15, // Peri
+    PERI_DIV_NR + _CYHAL_SRSS_NUM_ILO + _SRSS_NUM_PILO + SRSS_NUM_CLKPATH + _SRSS_NUM_PLL + SRSS_NUM_HFROOT + 16, // Slow
 };
 
 #elif defined(COMPONENT_CAT1B)
@@ -1206,6 +1229,9 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_gpio[] =
     /* Most devices don't have more than 16 ports, so save the flash in most cases */
     128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224,
     232, 240, 248, 256, 264, 272, 280
+    #elif (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
+    /* Covers TVIIBE parts */
+    128, 136, 144, 152, 160, 168, 176, 184
     #endif
 };
 

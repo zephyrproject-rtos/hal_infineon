@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ephy.c
-* \version 1.10
+* \version 1.20
 *
 * Provides an API implementation of the Ethernet PHY driver
 *
@@ -51,7 +51,7 @@ extern "C" {
 * \return CY_EPHY_SUCCESS for successfully initializes the internal data structures.
 *
 *******************************************************************************/
-cy_en_ephy_status_t Cy_EPHY_Init( cy_stc_ephy_t *phy, phy_read_handle fnRead, phy_write_handle fnWrite )
+cy_en_ephy_status_t Cy_EPHY_Init( cy_stc_ephy_t *phy, cy_ephy_read_handle fnRead, cy_ephy_write_handle fnWrite )
 {
     CY_ASSERT_L2(phy != NULL);
     CY_ASSERT_L2(fnRead != NULL);

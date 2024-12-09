@@ -79,7 +79,7 @@ void _cyhal_system_irq_clear_disabled_in_pending(void);
 cy_rslt_t _cyhal_irq_register(_cyhal_system_irq_t system_intr, uint8_t intr_priority, cy_israddress irq_handler);
 
 // TODO: Remove this once DRIVERS-7707 is fixed
-#if defined(CY_IP_M4CPUSS) && (CY_CPU_CORTEX_M0P) && !(_CYHAL_IRQ_LEGACY_M0)
+#if (defined(CY_IP_M4CPUSS) && (CPUSS_SYSTEM_IRQ_PRESENT == 0u)) && (CY_CPU_CORTEX_M0P) && !(_CYHAL_IRQ_LEGACY_M0)
 static void Cy_SysInt_EnableSystemInt(cy_en_intr_t sysIntSrc)
 {
     #if defined(CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk)
@@ -175,7 +175,7 @@ static inline void _cyhal_irq_disable(_cyhal_system_irq_t system_irq)
 #endif
 }
 
-#if (_CYHAL_IRQ_MUXING) && defined (COMPONENT_CAT1A) && (!_CYHAL_IRQ_LEGACY_M0)
+#if (_CYHAL_IRQ_MUXING) && defined(COMPONENT_CAT1A) && (!_CYHAL_IRQ_LEGACY_M0) && !defined(CY_DEVICE_TVIIBE)
 extern uint8_t _cpu_irq_tracker; // TODO: This is a temporary workaround to assign 1:1 CPU to system mapping.
 #endif
 
@@ -191,12 +191,12 @@ static inline void _cyhal_irq_free(_cyhal_system_irq_t system_irq)
     /* DisconnectInterruptSource on M4CPUSS and DisableSystemInt on M7CPUSS are functionally equivalent */
     IRQn_Type irqn = Cy_SysInt_GetNvicConnection(system_irq);
     // TODO: This is a temporary workaround to assign 1:1 CPU to system mapping.
-    #if defined (COMPONENT_CAT1A)
+    #if defined(COMPONENT_CAT1A) && !defined(CY_DEVICE_TVIIBE)
     _cpu_irq_tracker &= ~(1 << irqn);
     #endif
-    #if defined(CY_IP_M4CPUSS)
+    #if (defined(CY_IP_M4CPUSS) && (CY_CPU_CORTEX_M0P))
     Cy_SysInt_DisconnectInterruptSource(irqn, system_irq);
-    #elif defined(CY_IP_M7CPUSS)
+    #elif defined(CY_IP_M7CPUSS) || (defined(CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u))
     Cy_SysInt_DisableSystemInt(system_irq);
     #endif
 
@@ -225,6 +225,11 @@ static inline bool _cyhal_irq_is_enabled(_cyhal_system_irq_t system_irq)
             return (0u != (CPUSS_CM0_SYSTEM_INT_CTL[system_irq] & CPUSS_CM0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk));
             #endif
         }
+#if (defined(CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u) && (CPUSS_SYSTEM_IRQ_PRESENT))
+        else if (CY_CPU_CORTEX_M4) {
+            return (0u != (CPUSS_CM4_SYSTEM_INT_CTL[system_irq] & CPUSS_CM4_SYSTEM_INT_CTL_CPU_INT_VALID_Msk));
+        }
+#endif /* (defined(CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u) && (CPUSS_SYSTEM_IRQ_PRESENT)) */
 #if defined(CY_IP_M7CPUSS)
         else if (CY_IS_CM7_CORE_0)
         {

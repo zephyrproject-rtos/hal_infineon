@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm_btss.c
-* \version 5.94
+* \version 5.150
 *
 * Provides implementation of the BTSS PDL driver.
 *
@@ -56,6 +56,8 @@ cy_en_btss_status_t Cy_BTSS_PowerDep(bool enable)
         {
             (void)cy_pd_pdcm_set_dependency(CY_PD_PDCM_BTSS, CY_PD_PDCM_CPUSS); /* Suppress a compiler warning about unused return value */
         }
+        cy_btss_lock_count++;
+
         Cy_SysLib_ExitCriticalSection(interruptState);
 
         for(;(Cy_SysClk_PeriGroupGetSlaveCtl(CY_PERI_BLESS_GROUP_NR,CY_SYSCLK_PERI_GROUP_SL_CTL3) == 0UL) &&
@@ -66,19 +68,16 @@ cy_en_btss_status_t Cy_BTSS_PowerDep(bool enable)
         }
         if(0UL == timeoutus)
         {
+            interruptState = Cy_SysLib_EnterCriticalSection();
+            cy_btss_lock_count--;
+            Cy_SysLib_ExitCriticalSection(interruptState);
+
             retVal = CY_BTSS_TIMEOUT;
         }
         else
         {
             retVal = CY_BTSS_SUCCESS;
         }
-
-        interruptState = Cy_SysLib_EnterCriticalSection();
-        if(retVal == CY_BTSS_SUCCESS)
-        {
-            cy_btss_lock_count++;
-        }
-        Cy_SysLib_ExitCriticalSection(interruptState);
     }
     else
     {
@@ -101,6 +100,16 @@ cy_en_btss_status_t Cy_BTSS_PowerDep(bool enable)
 
     return retVal;
 }
+
+void Cy_BTSS_PowerDepResetCount(void)
+{
+    uint32_t interruptState;
+
+    interruptState = Cy_SysLib_EnterCriticalSection();
+    cy_btss_lock_count = 0UL;
+    Cy_SysLib_ExitCriticalSection(interruptState);
+}
+
 
 cy_en_btss_status_t Cy_BTSS_CPUSSPowerDep(bool enable)
 {

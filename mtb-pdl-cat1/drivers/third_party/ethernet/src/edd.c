@@ -12,7 +12,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  ******************************************************************************
  * edd.c
  * Ethernet DMA MAC Driver,
@@ -45,7 +45,7 @@
     extern "C" {
 #endif
 
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if ((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || (CY_CPU_CORTEX_M55)
 __STATIC_FORCEINLINE void SCB_InvalidateDCache_by_Addr (volatile void *addr, int32_t dsize);
 __STATIC_FORCEINLINE void SCB_CleanDCache_by_Addr (volatile void *addr, int32_t dsize);
 #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
@@ -55,7 +55,7 @@ __STATIC_FORCEINLINE void SCB_CleanDCache_by_Addr (volatile void *addr, int32_t 
 
 uint32_t CPS_UncachedRead32(volatile uint32_t* address) {
     /** Invalidate cache **/
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if ((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || (CY_CPU_CORTEX_M55)
     SCB_InvalidateDCache_by_Addr(address, (int32_t)4);
 #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
     return (*((volatile uint32_t *)(address)));
@@ -64,7 +64,7 @@ uint32_t CPS_UncachedRead32(volatile uint32_t* address) {
 void CPS_UncachedWrite32(volatile uint32_t* address, uint32_t value) {
     (*((volatile uint32_t *)(address)) = (value));
     /** Clean cache **/
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if ((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || (CY_CPU_CORTEX_M55)
     SCB_CleanDCache_by_Addr(address, (int32_t)4);
 #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
     return;

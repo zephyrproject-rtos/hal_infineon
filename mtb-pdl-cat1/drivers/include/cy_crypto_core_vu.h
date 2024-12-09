@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_vu.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the headers to the API for the utils
@@ -56,7 +56,7 @@ extern "C" {
 *
 * Sets the value in the Crypto memory allocated by the destination VU register.
 *
-* For CAT1C devices when D-Cache is enabled, the user is expected to maintain the cache coherency of data..
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled, the user is expected to maintain the cache coherency of data..
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -79,7 +79,7 @@ void Cy_Crypto_Core_Vu_SetMemValue(CRYPTO_Type *base, uint32_t dstReg, uint8_t c
 *
 * Gets the value located in the crypto memory and pointed by source VU register.
 *
-* For CAT1C devices when D-Cache is enabled, the user is expected to maintain the cache coherency of data..
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled, the user is expected to maintain the cache coherency of data..
 *
 * \param base
 * The pointer to the CRYPTO instance.

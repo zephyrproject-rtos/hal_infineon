@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_tcpwm.h
-* \version 1.60
+* \version 1.70
 *
 * The header file of the TCPWM driver.
 *
@@ -108,7 +108,35 @@
 *
 * \section group_tcpwm_version_information TCPWM Versions
 *
-* There are two versions of TCPWM driver
+* There are three versions of TCPWM driver
+*
+* \b TCPWM \b Version \b 3
+*
+* - The mxtcpwm.3.0 consists of up to 2048, 16-bit or 32-bit counters
+* - Counter groups up to 8*256
+* - Counter compare, period, line_sel and dead time registers are double buffered.
+* - Parallel data path support for CC0/CC1 register through dedicated data interface (only applicable to mxtcpwm 3.1, PSoC C3 (CAT1B) do not support this)
+* - Glitch Filter with configurable depth supported on General-purpose triggers used by all counters and specific one-to-one triggers for each counter
+* - Shadow registers available for duty, period, dead time, signal and polarity
+* - Enhanced shadow update mechanism
+* - Independent control of clock pre-scalar and dead time
+* - Configurable PWM dithering on period as well as duty cycle
+* - Configurable option to continue / pause with the ability to enter passive state through kill polarity in debug mode
+* - Output state control for PWM signal during stop or kill operation synchronous to period match
+* - Independent line polarity setting for PWM signal during kill operation
+* - Support up to 4 Motion Interface (MOTIF)
+*     - Support interrupt output for each MOTIF
+*     - Hall interface for direct connection to Hall sensors
+*     - HW look-up table for advance motor control feedback loop operation
+*     - Synchronous modulation support for multiple counters
+* - Support HRPWM (High resolution PWM generation) feature in both 16-bit and 32-bit TCPWM counters (Only applicable to mxtcpwm 3.1, PSoC C3 (CAT1B) only has 4 HRPWM blocks on the 32 bit PWMs.)
+*     - HRPWM enhancements are limited to PWM and PWM_DT mode only
+*     - HRPWM consists of an analog interpolator (also referred as delay element) 
+*     - Analog interpolator consists of delay elements which uses the input clock to generate a set of delayed phases. These delayed phases are then used to delay the edges of the incoming PWM from tcpwm.
+*     - Analog interpolator is used to shift the edges of line_out and line_compl_out coming as output from the TCPWM to the analog interpolator.
+*     - The LSBs are used for fractional or micro ticks for delaying the line_out and line_compl_out outputs for  PERIOD/PERIOD_BUFF, CC0/CC0_BUFF, and CC1/CC1_BUFF and DT/DT_BUFF.
+*     - Number of LSB bits used for fractional control is control by the design time parameter, GRP_HRPWM_WIDTH.
+*     - The remaining bits given by [GRP_CNT_WIDTH-1:GRP_HRPWM_WIDTH] are used by the mxtcpwm counter.
 *
 * \b TCPWM \b Version \b 2
 *
@@ -199,6 +227,30 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="2">1.70</td>
+*     <td> Newly added enum \ref cy_en_copy_swap_config_t.
+*        - Newly added API \ref Cy_TCPWM_Counter_SetDirection_Change_Mode and updated API \ref Cy_TCPWM_Block_EnableSwap.
+*   </td>
+*     <td> Supported Glitch filter with configurable depth, HW look-up table for advance motor control, bug fixes and enhancement in reload and swap functionality.</td>
+*   </tr>
+*   <tr>
+*     <td>Newly added APIs :
+*          - \ref Cy_TCPWM_PWM_SetDT, \ref Cy_TCPWM_PWM_Configure_LineSelect, \ref Cy_TCPWM_PWM_Configure_LineSelectBuff, 
+*          - \ref Cy_TCPWM_PWM_EnableLineSelectSwap, \ref Cy_TCPWM_PWM_Set_KillLinePolarity, \ref Cy_TCPWM_PWM_PWMDeadTimeBuff
+*          - \ref Cy_TCPWM_PWM_PWMDeadTimeBuffN, \ref Cy_TCPWM_PWM_SetDTBuff. </td>
+*
+*         Updated the following APIs:
+*          - \ref Cy_TCPWM_PWM_Init 
+*          - \ref Cy_TCPWM_PWM_Configure_Dithering
+*        
+*         Newly added and updated enums:
+*          - \ref cy_en_hrpwm_operating_frequency_t
+*          - \ref cy_en_kill_line_polarity_t
+*          - \ref cy_en_line_select_config_t
+*          - \ref cy_stc_tcpwm_pwm_config_t
+*     <td>Support for line select, HRPWM enhancements, enhancement in DT BUFF and SWAP ENABLE handling. </td>
+*   </tr>
+*   <tr>
 *     <td>1.60</td>
 *     <td>Newly Added \ref Cy_TCPWM_OutputTriggerSetup API and code enhancement. </td>
 *     <td>Glitch filter support added for TCPWM version 3 and above.</td>
@@ -207,7 +259,7 @@
 *     <td>1.50</td>
 *     <td>
 *         <ul>
-*         <li>Newly Added \ref cy_en_gf_depth_support_value_t, \ref cy_en_counter_direction_t , \ref cy_en_group_dithering_t and \ref cy_en_dithering_limiter_t enums.<br>
+*         <li>Newly Added \ref cy_en_gf_depth_value_t, \ref cy_en_counter_direction_t , \ref cy_en_tcpwm_dithering_t and \ref cy_en_dithering_limiter_t enums.<br>
 *         <li> Newly Added \ref Cy_TCPWM_Block_EnableSwap , \ref Cy_TCPWM_InputTriggerSetupWithGF , \ref Cy_TCPWM_Counter_EnableSwap , \ref Cy_TCPWM_QuadDec_EnableSwap and \ref Cy_TCPWM_Shiftreg_EnableSwap APIs.<br>
 *         </ul>
 *     <td>
@@ -322,7 +374,7 @@ extern "C" {
 #define CY_TCPWM_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_TCPWM_DRV_VERSION_MINOR       60
+#define CY_TCPWM_DRV_VERSION_MINOR       70
 
 
 /******************************************************************************
@@ -400,10 +452,10 @@ extern "C" {
 #define CY_TCPWM_CNT_TRIGGER_ON_CC1_MATCH   (4U)
 /** Output trigger generates the same signal as line_out */
 #define CY_TCPWM_CNT_TRIGGER_ON_LINE_OUT    (5U)
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 /** Output trigger generates signal on compare/capture 0 or  event */
 #define CY_TCPWM_CNT_TRIGGER_ON_CC0_OR_CC1_MATCH   (6U)
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 /** Output trigger disabled */
 #define CY_TCPWM_CNT_TRIGGER_ON_DISABLED    (7U)
 /** \} group_tcpwm_output_trigger_modes */
@@ -498,9 +550,9 @@ typedef enum
     CY_TCPWM_OUTPUT_TR_CC0_MATCH      = 0x03U,  /**< Compare Match 0 Event */
     CY_TCPWM_OUTPUT_TR_CC1_MATCH      = 0x04U,  /**< Compare Match 1 Event */
     CY_TCPWM_OUTPUT_TR_LINE_OUT       = 0x05U,  /**< PWM Output Signal Line Out */
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
     CY_TCPWM_OUTPUT_TR_CC0ORCC1_MATCH = 0x06U,  /**< Compare Match 0 Event or Compare Match 1 Event  */
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
     CY_TCPWM_OUTPUT_TR_DISABLED       = 0x07U   /**< Trigger Out Disabled */
 } cy_en_tcpwm_output_trigselect_t;
 
@@ -512,7 +564,7 @@ typedef enum
     CY_TCPWM_UNSUPPORTED_FEATURE = CY_TCPWM_ID | CY_PDL_STATUS_ERROR | 0x02U,  /**< Feature Unsupported */
 } cy_en_tcpwm_status_t;
 
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 
 /** Glitch filter depth support values */
 typedef enum
@@ -528,9 +580,21 @@ typedef enum
     CY_GLITCH_FILTER_DEPTH_SUPPORT_VALUE_128         = 8UL,   /**< GLitch filter depth value 128 */
     CY_GLITCH_FILTER_DEPTH_SUPPORT_VALUE_256         = 9UL,   /**< GLitch filter depth value 256 */
     CY_GLITCH_FILTER_DEPTH_SUPPORT_VALUE_512         = 10UL,  /**< GLitch filter depth value 512 */
-} cy_en_gf_depth_support_value_t;
+} cy_en_gf_depth_value_t;
 
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+/** Copy or Swap values for CC0, CC1, Period and DT
+* when both reload and swap are enabled then CC0/CC1/PERIOD/DT values are swapped with CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values respectively
+* When only reload is enabled then CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values are copied to CC0/CC1/PERIOD/DT respectively.
+* There is no action when reload is disabled.
+* Reload is enabled/disabled with the API's Cy_TCPWM_Block_EnableCompare0Swap, Cy_TCPWM_Block_EnableCompare1Swap, Cy_TCPWM_PWM_EnablePeriodSwap */
+typedef enum
+{
+    CY_TCPWM_DISBALE_COPY_OR_SWAP               = 0UL,   /**< Reload is disabled. There is no copy or swap enabled.  */
+    CY_TCPWM_COPY_CAPTUREBUFFER_VALUE_TO_CAPTURE      = 1UL,   /**< Copies the capture buffer value to the capture.  */
+    CY_TCPWM_SWAP_CAPTUREBUFFER_AND_CAPTURE_VALUE     = 2UL,   /**< Values of capture buffer and capture are exchanged. */
+} cy_en_copy_swap_config_t;
+
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 /** \} group_tcpwm_enums */
 
 /*******************************************************************************
@@ -587,10 +651,10 @@ __STATIC_INLINE uint32_t Cy_TCPWM_Block_GetCC1BufVal(TCPWM_Type const  *base, ui
 __STATIC_INLINE void Cy_TCPWM_Block_SetCC1BufVal(TCPWM_Type *base, uint32_t cntNum,  uint32_t compareBuf1);
 __STATIC_INLINE void Cy_TCPWM_Block_SetCC1Val(TCPWM_Type *base, uint32_t cntNum,  uint32_t compare1);
 #endif
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 __STATIC_INLINE void Cy_TCPWM_Block_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable);
-__STATIC_INLINE void Cy_TCPWM_InputTriggerSetupWithGF (TCPWM_Type *base, uint32 cntNum, cy_en_tcpwm_trigselect_t triggerSelect, uint32_t edgeSelect, uint32_t triggerSignal, cy_en_gf_depth_support_value_t dsvalue);
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+__STATIC_INLINE void Cy_TCPWM_InputTriggerSetupWithGF (TCPWM_Type *base, uint32 cntNum, cy_en_tcpwm_trigselect_t triggerSelect, uint32_t edgeSelect, uint32_t triggerSignal, cy_en_gf_depth_value_t dsvalue);
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 
 /** \endcond */
 
@@ -1272,6 +1336,9 @@ __STATIC_INLINE void Cy_TCPWM_TriggerCaptureOrSwap_Single(TCPWM_Type *base, uint
 * \param cntNum
 * The Counter instance number in the selected TCPWM.
 *
+* \note For TCPWM version 3 and above in compare mode, when external direction control is enabled and Capture0 input is disabled,
+*       user can use software capture0 trigger. While using this, User has to make sure that the
+*       external direction control is set to CY_TCPWM_COUNTER_DIRECTION_RISING
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_TriggerCapture0(TCPWM_Type *base, uint32_t cntNum)
 {
@@ -1529,7 +1596,7 @@ __STATIC_INLINE cy_en_tcpwm_status_t Cy_TCPWM_SetDebugFreeze (TCPWM_Type *base, 
 }
 #endif
 
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_TCPWM_Block_EnableSwap
 ****************************************************************************//**
@@ -1546,25 +1613,28 @@ __STATIC_INLINE cy_en_tcpwm_status_t Cy_TCPWM_SetDebugFreeze (TCPWM_Type *base, 
 * true: Swapping mechanism is enabled
 * false: Swapping mechanism is disabled
 *
+* \note This feature is coupled with the reload feature.
+* when both reload and swap are enabled then CC0/CC1/PERIOD/DT values are swapped with CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values respectively
+* When only reload is enabled then CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values are copied to CC0/CC1/PERIOD/DT respectively.
+* There is no action when reload is disabled.
+* Reload is enabled/disabled with the API's Cy_TCPWM_Block_EnableCompare0Swap, Cy_TCPWM_Block_EnableCompare1Swap, Cy_TCPWM_PWM_EnablePeriodSwap
+*
+* \note Applicable for devices with TCPWM version 3 and above and for MXTCPWM version 1 and above.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_Block_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
 {
-    if (TCPWM_GRP_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum)))
+    if (enable)
     {
-        if (enable)
-        {
-            TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) |=
-                                    TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED_Msk;
-        }
-        else
-        {
-            TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) &=
-                                    ~TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED_Msk;
-        }
+        TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) |=
+                                TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED_Msk;
+    }
+    else
+    {
+        TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) &=
+                                ~TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED_Msk;
     }
 }
-
 
 /*******************************************************************************
 * Function Name: Cy_TCPWM_InputTriggerSetupWithGF
@@ -1591,12 +1661,13 @@ __STATIC_INLINE void Cy_TCPWM_Block_EnableSwap(TCPWM_Type *base, uint32_t cntNum
 * Selects what trigger signal is connected to the selected input trigger.
 *
 * \param dsvalue
-* Glitch filter depth. \ref cy_en_gf_depth_support_value_t
+* Glitch filter depth. \ref cy_en_gf_depth_value_t
 *
+* \note GF depth set for one to one triggers will be applied to specific trigger and GF depth set for general purpose trigger will be applicable for all general purpose triggers.
 *
 *******************************************************************************/
 
-__STATIC_INLINE void Cy_TCPWM_InputTriggerSetupWithGF (TCPWM_Type *base, uint32 cntNum, cy_en_tcpwm_trigselect_t triggerSelect, uint32_t edgeSelect, uint32_t triggerSignal, cy_en_gf_depth_support_value_t dsvalue)
+__STATIC_INLINE void Cy_TCPWM_InputTriggerSetupWithGF (TCPWM_Type *base, uint32 cntNum, cy_en_tcpwm_trigselect_t triggerSelect, uint32_t edgeSelect, uint32_t triggerSignal, cy_en_gf_depth_value_t dsvalue)
 {
     uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
     uint32_t prescalar = 0U;
@@ -1640,7 +1711,7 @@ __STATIC_INLINE void Cy_TCPWM_InputTriggerSetupWithGF (TCPWM_Type *base, uint32 
 
 }
 
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 
 /** \} group_tcpwm_functions_common */
 

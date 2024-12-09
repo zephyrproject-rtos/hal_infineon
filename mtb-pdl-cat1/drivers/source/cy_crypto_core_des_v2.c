@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_des_v2.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the source code fro the API for the DES method
@@ -85,7 +85,7 @@ static uint8_t const cy_desWeakKeys[CY_CRYPTO_DES_WEAK_KEY_COUNT][CY_CRYPTO_DES_
 * Ciphertext (dst) may overlap with plaintext (src)
 * This function is independent from the previous Crypto state.
 *
-* For CAT1C devices when D-Cache is enabled parameters key, dst and src must align and end in 32 byte boundary.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters key, dst and src must align and end in 32 byte boundary.
 * For CAT1A and CAT1C devices with DCache disabled, all addresses must be 4-Byte aligned.
 *
 * \param base
@@ -116,16 +116,23 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Des(CRYPTO_Type *base,
 {
     uint32_t i;
     cy_en_crypto_status_t status = CY_CRYPTO_SUCCESS;
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
     /* Flush the cache */
     SCB_CleanDCache_by_Addr((volatile void *)key,(int32_t)CY_CRYPTO_DES_KEY_BYTE_LENGTH);
     SCB_CleanDCache_by_Addr((volatile void *)src,(int32_t)CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 #endif
+    uint8_t *keyRemap;
+    uint8_t *dstRemap;
+    uint8_t *srcRemap;
+
+    keyRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key);
+    dstRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(dst);
+    srcRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(src);
 
     /* Check weak keys */
     for (i = 0U; i < CY_CRYPTO_DES_WEAK_KEY_COUNT; i++)
     {
-        if (Cy_Crypto_Core_V2_MemCmp(base, key, (uint8_t const *)cy_desWeakKeys[i], CY_CRYPTO_DES_KEY_BYTE_LENGTH) == 0U)
+        if (Cy_Crypto_Core_V2_MemCmp(base, keyRemap, (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(cy_desWeakKeys[i]), CY_CRYPTO_DES_KEY_BYTE_LENGTH) == 0U)
         {
             status = CY_CRYPTO_DES_WEAK_KEY;
             break;
@@ -133,17 +140,17 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Des(CRYPTO_Type *base,
     }
 
     /* Load key */
-    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, key, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
+    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, keyRemap, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
     Cy_Crypto_Core_V2_BlockMov(base, CY_CRYPTO_V2_RB_KEY0, CY_CRYPTO_V2_RB_FF_LOAD0, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 
-    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, src, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
-    Cy_Crypto_Core_V2_FFStart(base,    CY_CRYPTO_V2_RB_FF_STORE, dst, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
+    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, srcRemap, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
+    Cy_Crypto_Core_V2_FFStart(base,    CY_CRYPTO_V2_RB_FF_STORE, dstRemap, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 
     Cy_Crypto_Core_V2_BlockMov(base, CY_CRYPTO_V2_RB_BLOCK0, CY_CRYPTO_V2_RB_FF_LOAD0, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
     Cy_Crypto_Core_V2_Run(base, (uint32_t)((dirMode == CY_CRYPTO_ENCRYPT) ? (CY_CRYPTO_V2_DES_OPC) : (CY_CRYPTO_V2_DES_INV_OPC)));
     Cy_Crypto_Core_V2_BlockMov(base, CY_CRYPTO_V2_RB_FF_STORE, CY_CRYPTO_V2_RB_BLOCK1, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
     SCB_InvalidateDCache_by_Addr(dst, (int32_t)CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 #endif
 
@@ -158,7 +165,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Des(CRYPTO_Type *base,
 * Ciphertext (dstBlock) may overlap with plaintext (srcBlock)
 * This function is independent from the previous Crypto state.
 *
-* For CAT1C devices when D-Cache is enabled parameters key, dst and src must align and end in 32 byte boundary.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters key, dst and src must align and end in 32 byte boundary.
 * For CAT1A and CAT1C devices with DCache disabled, all addresses must be 4-Byte aligned.
 *
 * \param base
@@ -189,19 +196,26 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Tdes(CRYPTO_Type *base,
 {
     uint32_t i;
     cy_en_crypto_status_t status = CY_CRYPTO_SUCCESS;
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
         /* Flush the cache */
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
         SCB_CleanDCache_by_Addr((volatile void *)key,(int32_t)(CY_CRYPTO_DES_KEY_BYTE_LENGTH * 3U));
         SCB_CleanDCache_by_Addr((volatile void *)src,(int32_t)CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 #endif
+    uint8_t *keyRemap;
+    uint8_t *dstRemap;
+    uint8_t *srcRemap;
+
+    keyRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key);
+    dstRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(dst);
+    srcRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(src);
 
     /* Check weak keys */
     for (i = 0U; i < CY_CRYPTO_DES_WEAK_KEY_COUNT; i++)
     {
         for (uint32_t keynum=0U; keynum < (CY_CRYPTO_TDES_KEY_SIZE / CY_CRYPTO_DES_KEY_SIZE); keynum++)
         {
-            if (Cy_Crypto_Core_V2_MemCmp(base, &(key[keynum * CY_CRYPTO_DES_KEY_BYTE_LENGTH]), (uint8_t const *)cy_desWeakKeys[i], CY_CRYPTO_DES_KEY_BYTE_LENGTH) == 0U)
+            if (Cy_Crypto_Core_V2_MemCmp(base, &(keyRemap[keynum * CY_CRYPTO_DES_KEY_BYTE_LENGTH]), (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(cy_desWeakKeys[i]), CY_CRYPTO_DES_KEY_BYTE_LENGTH) == 0U)
             {
                 status = CY_CRYPTO_DES_WEAK_KEY;
                 break;
@@ -214,18 +228,18 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Tdes(CRYPTO_Type *base,
     }
 
     /* Load keys */
-    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, key, CY_CRYPTO_DES_KEY_BYTE_LENGTH * 3U);
+    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, keyRemap, CY_CRYPTO_DES_KEY_BYTE_LENGTH * 3U);
     Cy_Crypto_Core_V2_BlockMov  (base, CY_CRYPTO_V2_RB_KEY0, CY_CRYPTO_V2_RB_FF_LOAD0, CY_CRYPTO_DES_KEY_BYTE_LENGTH * 2U);
     Cy_Crypto_Core_V2_BlockMov  (base, CY_CRYPTO_V2_RB_KEY1, CY_CRYPTO_V2_RB_FF_LOAD0, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 
-    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, src, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
-    Cy_Crypto_Core_V2_FFStart   (base, CY_CRYPTO_V2_RB_FF_STORE, dst, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
+    Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, srcRemap, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
+    Cy_Crypto_Core_V2_FFStart   (base, CY_CRYPTO_V2_RB_FF_STORE, dstRemap, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 
     Cy_Crypto_Core_V2_BlockMov(base, CY_CRYPTO_V2_RB_BLOCK0, CY_CRYPTO_V2_RB_FF_LOAD0, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
     Cy_Crypto_Core_V2_Run(base, (uint32_t)((dirMode == CY_CRYPTO_ENCRYPT) ? (CY_CRYPTO_V2_TDES_OPC) : (CY_CRYPTO_V2_TDES_INV_OPC)));
     Cy_Crypto_Core_V2_BlockMov(base, CY_CRYPTO_V2_RB_FF_STORE, CY_CRYPTO_V2_RB_BLOCK1, CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
     SCB_InvalidateDCache_by_Addr(dst, (int32_t)CY_CRYPTO_DES_KEY_BYTE_LENGTH);
 #endif
 

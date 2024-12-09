@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ethif.c
-* \version 1.10.1
+* \version 1.20
 *
 * Provides an API implementation of the ETHIF driver
 *
@@ -491,7 +491,7 @@ cy_en_ethif_status_t Cy_ETHIF_TransmitFrame(ETH_Type *base, uint8_t * pu8TxBuffe
     tmpBuffAdd.pAddr = (uintptr_t)pu8TxBuffer;
     tmpBuffAdd.vAddr = tmpBuffAdd.pAddr;
 
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if ((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || (CY_CPU_CORTEX_M55)
     SCB_CleanDCache_by_Addr((void*) (tmpBuffAdd.pAddr), (int32_t)u16Length);
 #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
 
@@ -787,7 +787,7 @@ uint32_t Cy_ETHIF_PhyRegRead(ETH_Type *base, uint8_t u8RegNo, uint8_t u8PHYAddr)
 * \param u16Data data to write
 * \param u8PHYAddr u8PHYAddr
 *
-* \return CY_ETHIF_SUCCESS Filter is set
+* \return CY_ETHIF_SUCCESS PHY write is successful
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
 *
 * \note
@@ -829,7 +829,7 @@ cy_en_ethif_status_t Cy_ETHIF_PhyRegWrite(ETH_Type *base, uint8_t u8RegNo, uint1
 * \param base Pointer to register area of Ethernet MAC
 * \param stcRetTmrValue [out] pointer to data structure to return the values
 *
-* \return CY_ETHIF_SUCCESS Filter is set
+* \return CY_ETHIF_SUCCESS Timer value is successfully retrieved
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
 *
 *******************************************************************************/
@@ -865,7 +865,7 @@ cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_158
 * \param base Pointer to register area of Ethernet MAC
 * \param pstcTmrValue pointer to data structure to configure register with
 *
-* \return CY_ETHIF_SUCCESS Filter is set
+* \return CY_ETHIF_SUCCESS Timer value is set
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
 *
 *******************************************************************************/
@@ -1251,7 +1251,7 @@ static void Cy_ETHIF_PrepareConfiguration(uint8_t u8EthIfInstance, cy_stc_ethif_
 * \param u8EthIfInstance Ethernet Instance
 * \param pstcInterruptList pointer to structure list
 *
-* \return CY_ETHIF_SUCCESS Filter is set
+* \return CY_ETHIF_SUCCESS Configuration is done
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
 *
 *******************************************************************************/
@@ -1437,7 +1437,7 @@ static cy_en_ethif_status_t Cy_ETHIF_DisableQueues (ETH_Type *base, cy_stc_ethif
 *
 * \param pstcTSUConfig Pointer to TSU parameters
 *
-* \return CY_ETHIF_SUCCESS Filter is set
+* \return CY_ETHIF_SUCCESS TSU initialization is done
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
 *
 *******************************************************************************/

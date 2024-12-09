@@ -38,7 +38,7 @@ See the [PDL API Reference Manual Getting Started section](https://infineon.gith
 * [AN210781 Getting Started with PSoC 6 MCU with Bluetooth Low Energy (BLE) Connectivity](https://www.infineon.com/dgdl/Infineon-AN210781_Getting_Started_with_PSoC_6_MCU_with_Bluetooth_Low_Energy_(BLE)_Connectivity_on_PSoC_Creator-ApplicationNotes-v05_00-EN.pdf?fileId=8ac78c8c7cdc391c017d0d311f536528)
 * [PSoC 6](https://www.infineon.com/cms/en/product/microcontroller/32-bit-psoc-arm-cortex-microcontroller/psoc-6-32-bit-arm-cortex-m4-mcu/)
 * [CYW20829](https://www.infineon.com/cms/en/product/promopages/airoc20829)
-* [TV-II-BH8/BH4](https://www.infineon.com/cms/en/product/microcontroller/32-bit-traveo-t2g-arm-cortex-microcontroller/)
+* [TV-II-BH8/BH4/BE](https://www.infineon.com/cms/en/product/microcontroller/32-bit-traveo-t2g-arm-cortex-microcontroller/)
 * [XMC7000](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/)
 * [Infineon](http://www.infineon.com)
 
@@ -47,4 +47,4 @@ See the [PDL API Reference Manual Getting Started section](https://infineon.gith
 New versions of PDL from 2.0 onwards are now be available in [mtb-pdl-cat1](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/index.html) repo and [psoc6pdl](https://infineon.github.io/psoc6pdl/pdl_api_reference_manual/html/index.html) repo will no longer be updated in future.
 
 ---
-© Cypress Semiconductor Corporation (an Infineon company), 2022.
+© Cypress Semiconductor Corporation (an Infineon company), 2023.

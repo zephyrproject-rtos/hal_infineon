@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ble_clk.h
-* \version 3.60
+* \version 3.70
 *
 * The header file of the BLE ECO clock driver.
 *
@@ -49,6 +49,12 @@
 * \section group_ble_clk_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason of Change</th></tr>
+*   <tr>
+*     <td>3.70</td>
+*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
+*       Functionality added to address devices without buck controllers.</td>
+*     <td>Code enhancement and support for new devices.</td>
+*   </tr> 
 *   <tr>
 *     <td>3.60</td>
 *     <td>MISRA</td>
@@ -134,7 +140,7 @@ extern "C" {
 #define CY_BLE_CLK_DRV_VERSION_MAJOR    (3)
 
 /** Driver minor version */
-#define CY_BLE_CLK_DRV_VERSION_MINOR    (60)
+#define CY_BLE_CLK_DRV_VERSION_MINOR    (70)
 
 /** Driver ID */
 #define CY_BLE_CLK_ID                   (0x05UL << 18U)

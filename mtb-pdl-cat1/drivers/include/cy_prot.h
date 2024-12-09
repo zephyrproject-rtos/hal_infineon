@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_prot.h
-* \version 1.80
+* \version 1.100
 *
 * \brief
 * Provides an API declaration of the Protection Unit driver
@@ -371,6 +371,23 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.100</td>
+*     <td>Updating implementation of internal function that configures attributes.</td>
+*     <td>Defect fix.</td>
+*   </tr>
+*   <tr>
+*     <td>1.90</td>
+*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
+*          Updated conditions in pre-processor check for if the device has a CM4 to also check for for MXPERI ver. 1.<br>
+*          Cleaned up redundant code.<br>
+*          Bug fix: Updates some API availability based on the PERI version. Some devices may have a reduced set of functions
+*          available.  If code called APIs not appropriate for the version of PERI, that code will not build without updating
+*          to reflect new API availability.  Please note, however, that if code was calling those APIs and the functions are
+*          no longer available, there will be no functional difference as the calls were available before but did nothing if
+*          the device hardware didn't support the function.  This change makes the API accurately reflect hardware capability.</td>
+*     <td>Code enhancement and support for new devices.</td>
+*   </tr>
+*   <tr>
 *     <td>1.80</td>
 *     <td>\ref Cy_Prot_ConfigPpuProgSlaveAddr(), \ref Cy_Prot_EnablePpuProgSlaveRegion() \ref Cy_Prot_DisablePpuProgSlaveRegion()
 *         APIs are only available for PSoC6 devices</td>
@@ -518,7 +535,7 @@ extern "C" {
 #define CY_PROT_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_PROT_DRV_VERSION_MINOR       70
+#define CY_PROT_DRV_VERSION_MINOR       100
 
 /** Prot driver ID */
 #define CY_PROT_ID                      (CY_PDL_DRV_ID(0x30U))
@@ -723,25 +740,6 @@ typedef enum
 
 /* Define to check maximum mask of PC */
 #define PROT_PC_MASK_MAX                          (0x7FFFUL)
-
-#if defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U)
-    typedef PERI_MS_PPU_PR_V2_Type PERI_MS_PPU_PR_Type;
-    typedef PERI_MS_PPU_FX_V2_Type PERI_MS_PPU_FX_Type;
-#endif /* defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U) */
-
-#if defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION > 1U)
-    #if defined (CY_IP_M4CPUSS)
-        typedef PERI_PPU_PR_V1_Type PERI_PPU_PR_Type;
-        typedef PERI_PPU_GR_V1_Type PERI_PPU_GR_Type;
-        typedef PERI_GR_PPU_SL_V1_Type PERI_GR_PPU_SL_Type;
-        typedef PERI_GR_PPU_RG_V1_Type PERI_GR_PPU_RG_Type;
-    #else
-        #define PERI_MS_PPU_PR_V2_MS_ATT0_PC0_NS_Msk PERI_MS_PPU_PR_MS_ATT0_PC0_NS_Msk
-        #define PERI_MS_PPU_PR_V2_MS_ATT0_PC1_UR_Pos PERI_MS_PPU_PR_MS_ATT0_PC1_UR_Pos
-
-    #endif
-#endif /* defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION > 1U) */
-
 
 /* General Masks and shifts */
 #define CY_PROT_MSX_CTL_SHIFT                   (0x02UL) /**< Shift for MSx_CTL register */
@@ -1064,20 +1062,16 @@ cy_en_prot_status_t Cy_Prot_DisableSmpuSlaveStruct(PROT_SMPU_SMPU_STRUCT_Type* b
 /** \} group_prot_functions_smpu */
 
 
-
+#if (defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION > 1U)) || defined (CY_DOXYGEN)
 /**
 * \addtogroup group_prot_functions_ppu_prog_v2
 * \{
 */
-
 cy_en_prot_status_t Cy_Prot_ConfigPpuProgMasterAtt(PERI_MS_PPU_PR_Type* base, uint16_t pcMask, cy_en_prot_perm_t userPermission, cy_en_prot_perm_t privPermission, bool secure);
 cy_en_prot_status_t Cy_Prot_ConfigPpuProgSlaveAtt(PERI_MS_PPU_PR_Type* base, uint16_t pcMask, cy_en_prot_perm_t userPermission, cy_en_prot_perm_t privPermission, bool secure);
-#if defined (CY_IP_M4CPUSS)
 cy_en_prot_status_t Cy_Prot_ConfigPpuProgSlaveAddr(PERI_MS_PPU_PR_Type* base, uint32_t address, cy_en_prot_size_t regionSize);
 cy_en_prot_status_t Cy_Prot_EnablePpuProgSlaveRegion(PERI_MS_PPU_PR_Type* base);
 cy_en_prot_status_t Cy_Prot_DisablePpuProgSlaveRegion(PERI_MS_PPU_PR_Type* base);
-#endif
-
 /** \} group_prot_functions_ppu_prog_v2 */
 
 /**
@@ -1087,9 +1081,10 @@ cy_en_prot_status_t Cy_Prot_DisablePpuProgSlaveRegion(PERI_MS_PPU_PR_Type* base)
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedMasterAtt(PERI_MS_PPU_FX_Type* base, uint16_t pcMask, cy_en_prot_perm_t userPermission, cy_en_prot_perm_t privPermission, bool secure);
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedSlaveAtt(PERI_MS_PPU_FX_Type* base, uint16_t pcMask, cy_en_prot_perm_t userPermission, cy_en_prot_perm_t privPermission, bool secure);
 /** \} group_prot_functions_ppu_fixed_v2 */
+#endif
 
 
-#if defined (CY_IP_M4CPUSS)
+#if (defined (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U)) || defined (CY_DOXYGEN)
 /**
 * \addtogroup group_prot_functions_ppu_prog
 * \{
@@ -1143,7 +1138,7 @@ cy_en_prot_status_t Cy_Prot_EnablePpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* bas
 cy_en_prot_status_t Cy_Prot_DisablePpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* base);
 /** \} group_prot_functions_ppu_rg */
 
-#endif /* (CY_IP_M4CPUSS) */
+#endif /* (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U) */
 
 /** \} group_prot_functions */
 
@@ -1195,7 +1190,7 @@ __STATIC_INLINE cy_en_prot_status_t Cy_Prot_DisableSmpuStruct(PROT_SMPU_SMPU_STR
 /** \} group_prot_functions_smpu */
 
 
-#if defined (CY_IP_M4CPUSS)
+#if (defined (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U)) || defined (CY_DOXYGEN)
 /**
 * \addtogroup group_prot_functions_ppu_prog
 * \{
@@ -1230,6 +1225,7 @@ __STATIC_INLINE cy_en_prot_status_t Cy_Prot_DisablePpuProgStruct(PERI_PPU_PR_Typ
 {
     cy_en_prot_status_t status = CY_PROT_INVALID_STATE;
 
+    #if (CY_IP_MXPERI_VERSION <= 1u)
     if (CY_PERI_V1 != 0U)
     {
         status = Cy_Prot_DisablePpuProgMasterStruct(base);
@@ -1239,11 +1235,14 @@ __STATIC_INLINE cy_en_prot_status_t Cy_Prot_DisablePpuProgStruct(PERI_PPU_PR_Typ
             status = Cy_Prot_DisablePpuProgSlaveStruct(base);
         }
     }
+    #else
+    CY_UNUSED_PARAMETER(base);
+    #endif
 
     return status;
 }
 /** \} group_prot_functions_ppu_prog */
-#endif /* (CY_IP_M4CPUSS) */
+#endif /* (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U) */
 /** \} group_prot_functions */
 /** \} group_prot */
 

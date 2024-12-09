@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_vu.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides provides constant and parameters
@@ -163,8 +163,9 @@ __STATIC_INLINE void Cy_Cryptolite_Vu_wait_hw (CRYPTOLITE_Type *base)
 ****************************************************************************//**
 *
 * Performs long integer multiplication operation.
+* 
 * \note  The pointers p_a, p_b & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -215,7 +216,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_mul_hw (CRYPTOLITE_Ty
 *
 * Performs carry less long integer multiplication operation. 
 * \note  The pointers p_a, p_b & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -268,7 +269,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_xmul_hw (CRYPTOLITE_T
 *
 * Performs long integer addition operation. 
 * \note  The pointers p_a, p_b & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -321,7 +322,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_add_hw (CRYPTOLITE_Ty
 *
 * Performs long integer subtraction operation.
 * \note  The pointers p_a, p_b & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -374,7 +375,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_sub_hw (CRYPTOLITE_Ty
 *
 * Performs long integer move operation.
 * \note  The pointers p_a & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -419,7 +420,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_mov_hw (CRYPTOLITE_Ty
 *
 * Performs left shifting of long integer by one bit.
 * \note  The pointers p_a & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -467,7 +468,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_lsl1_hw (CRYPTOLITE_T
 *
 * Performs right shifting of long integer by one bit.
 * \note  The pointers p_a & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -510,7 +511,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_lsr1_hw (CRYPTOLITE_T
 *
 * Performs right shifting of long integer by shift bits.
 * \note  The pointers p_a & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -557,7 +558,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_lsr_hw (CRYPTOLITE_Ty
 *
 * Performs long integer exclusive-or operation.
 * \note  The pointers p_a, p_b & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -610,7 +611,7 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_xor_hw (CRYPTOLITE_Ty
 *
 * Performs long integer conditional subtraction operation.
 * \note  The pointers p_a, p_b & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
+* \note  User should use the function CY_REMAP_ADDRESS_CRYPTOLITE() to get the remapped address and use it for all the VU operations.
 *
 * \param base
 * The pointer to a Cryptolite instance.
@@ -664,7 +665,6 @@ __STATIC_INLINE cy_en_cryptolite_status_t Cy_Cryptolite_Vu_cond_sub_hw (CRYPTOLI
 *
 * Performs right shifting of long integer by shift bits with carry.
 * \note  The pointers p_a & p_z must be 4 byte aligned and end in 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to a Cryptolite instance.

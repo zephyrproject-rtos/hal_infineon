@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sar2.h
-* \version 1.0
+* \version 1.1
 *
 * Provides an API declaration of the SAR2 driver
 *
@@ -101,6 +101,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.1</td>
+*     <td>Adding support for devices with up to 3 SAR slices.</td>
+*     <td></td>
+*   </tr>
+*   <tr>
 *     <td>1.0</td>
 *     <td>Initial version</td>
 *     <td></td>
@@ -182,7 +187,7 @@ extern "C" {
 #define CY_SAR2_DRV_VERSION_MAJOR  1
 
 /** Driver minor version */
-#define CY_SAR2_DRV_VERSION_MINOR  0
+#define CY_SAR2_DRV_VERSION_MINOR  1
 
 /** Sar2 driver ID */
 #define CY_SAR2_ID                 CY_PDL_DRV_ID(0x4BUL)
@@ -288,10 +293,17 @@ extern "C" {
 
 /** \cond INTERNAL */
 /** Macro that returns the channel number for a specified SAR instance. */
+#if defined (PASS_SAR_SLICE_NR) && (PASS_SAR_SLICE_NR == 3)
 #define CY_SAR2_CHAN_NUM(base)               ((PASS0_SAR0 == (base)) ? PASS_SAR_SLICE_NR0_SAR_SAR_MUX_IN :\
                                               (PASS0_SAR1 == (base)) ? PASS_SAR_SLICE_NR1_SAR_SAR_MUX_IN :\
                                                                        PASS_SAR_SLICE_NR2_SAR_SAR_MUX_IN)
-                                                                       
+#elif defined (PASS_SAR_SLICE_NR) && (PASS_SAR_SLICE_NR == 2)
+#define CY_SAR2_CHAN_NUM(base)               ((PASS0_SAR0 == (base)) ? PASS_SAR_SLICE_NR0_SAR_SAR_MUX_IN :\
+                                                                       PASS_SAR_SLICE_NR1_SAR_SAR_MUX_IN)
+#else
+#error Number of slices determined in PASS_SAR_SLICE_NR are not supported, or PASS_SAR_SLICE_NR is not defined.
+#endif
+
 #define CY_SAR2_CHAN_NUM_VALID(base, channel) (CY_SAR2_CHAN_NUM(base) > (channel))
 
 /** \endcond */
