@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_rsa.c
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides provides constant and parameters
@@ -57,7 +57,7 @@ extern "C" {
 /** The maximal Hash size for the SHA modes (in bytes). */
 #define CY_CRYPTOLITE_SHA_MAX_DIGEST_SIZE       (CY_CRYPTOLITE_SHA512_DIGEST_SIZE)
 
-static void cryptolite_rsa_mont_inv_transform (
+static void Cy_Cryptolite_Rsa_Mont_Inv_Transform (
                 CRYPTOLITE_Type *base,
                 cy_stc_cryptolite_context_rsa_t *cfContext,
                 uint8_t* p_a,             // bit_size
@@ -86,7 +86,7 @@ static void cryptolite_rsa_mont_inv_transform (
    return;
 }
 
-static void cryptolite_rsa_mont_transform (
+static void Cy_Cryptolite_Rsa_Mont_Transform (
             CRYPTOLITE_Type *base,
             cy_stc_cryptolite_context_rsa_t *cfContext,
             uint8_t* p_a,             // bit_size
@@ -114,7 +114,7 @@ static void cryptolite_rsa_mont_transform (
    return;
 }
 
-static void cryptolite_rsa_mont_mul (
+static void Cy_Cryptolite_Rsa_Mont_Mul (
                 CRYPTOLITE_Type *base,
                 cy_stc_cryptolite_context_rsa_t *cfContext,
                 uint8_t* p_z,             //   bit_size
@@ -143,9 +143,9 @@ static void cryptolite_rsa_mont_mul (
    return;
 }
 
-static uint32_t Cy_Cryptolite_Vu_Get_msb_bit(cy_stc_cryptolite_context_rsa_t *cfContext, uint8_t* p_z, uint32_t  exp_bit_size);
+static uint32_t Cy_Cryptolite_Vu_Get_Msb_Bit(cy_stc_cryptolite_context_rsa_t *cfContext, uint8_t* p_z, uint32_t  exp_bit_size);
 /*******************************************************************************
-* Function Name: Cy_Cryptolite_Vu_Get_msb_bit
+* Function Name: Cy_Cryptolite_Vu_Get_Msb_Bit
 ****************************************************************************//**
 *
 * Function to calculate the position of the most significant bit set.
@@ -163,7 +163,7 @@ static uint32_t Cy_Cryptolite_Vu_Get_msb_bit(cy_stc_cryptolite_context_rsa_t *cf
 *  The position of the most significant bit set.
 *
 *******************************************************************************/
- static uint32_t Cy_Cryptolite_Vu_Get_msb_bit(cy_stc_cryptolite_context_rsa_t *cfContext, uint8_t* p_z, uint32_t  exp_bit_size)
+ static uint32_t Cy_Cryptolite_Vu_Get_Msb_Bit(cy_stc_cryptolite_context_rsa_t *cfContext, uint8_t* p_z, uint32_t  exp_bit_size)
 {
 
    uint32_t i=0u;
@@ -178,7 +178,7 @@ static uint32_t Cy_Cryptolite_Vu_Get_msb_bit(cy_stc_cryptolite_context_rsa_t *cf
    uint32_t * exp_ptr = (uint32_t *)cfContext->p_buffer;
 
    Cy_Cryptolite_Vu_clr ((uint8_t*) exp_ptr, VU_BYTES_TO_WORDS(CY_CRYPTOLITE_RSA_BUFFER_SIZE));
-   Crypto_SetNumber((uint8_t *)exp_ptr, p_z, exp_byte_align_size);
+   Cy_Cryptolite_Setnumber((uint8_t *)exp_ptr, p_z, exp_byte_align_size);
    exp_ptr += exp_word_align_size;
 
    for(i=0u; i<exp_word_align_size; i++)
@@ -199,7 +199,7 @@ static uint32_t Cy_Cryptolite_Vu_Get_msb_bit(cy_stc_cryptolite_context_rsa_t *cf
     return 0u;
 }
 
-static void cryptolite_rsa_exp (
+static void Cy_Cryptolite_Rsa_Exp (
                 CRYPTOLITE_Type *base,
                 cy_stc_cryptolite_context_rsa_t *cfContext,
                 uint8_t* p_z,             //   bit_size
@@ -225,21 +225,21 @@ static void cryptolite_rsa_exp (
    cy_stc_cryptolite_descr_t *vu_struct0 = &cfContext->vu_desptr[0U];
    cy_stc_cryptolite_descr_t *vu_struct1 = &cfContext->vu_desptr[1U];
 
-   exp_bit_size = Cy_Cryptolite_Vu_Get_msb_bit(cfContext, p_exp, exp_bit_size);
+   exp_bit_size = Cy_Cryptolite_Vu_Get_Msb_Bit(cfContext, p_exp, exp_bit_size);
 
    (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct0, p_msg, bitsize, (uint8_t*)p_a, bitsize);
 
-   cryptolite_rsa_mont_transform (base, cfContext, p_msg, p_barrett_u, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
+   Cy_Cryptolite_Rsa_Mont_Transform (base, cfContext, p_msg, p_barrett_u, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
 
    (void)Cy_Cryptolite_Vu_mov_hw (base, vu_struct0, p_z, bitsize, p_msg, bitsize);
 
 
    if (exp_bit_size != 1U) {
       for (i = ((int)exp_bit_size-2); i >= 0; i--) {
-         cryptolite_rsa_mont_mul (base, cfContext, p_t3_n, p_z, p_z, p_mont_mod_der, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
+         Cy_Cryptolite_Rsa_Mont_Mul (base, cfContext, p_t3_n, p_z, p_z, p_mont_mod_der, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
 
          if ((bool)Cy_Cryptolite_Vu_get_bit (p_exp, (uint32_t)i)){
-            cryptolite_rsa_mont_mul (base, cfContext, p_z, p_t3_n, p_msg, p_mont_mod_der, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
+            Cy_Cryptolite_Rsa_Mont_Mul (base, cfContext, p_z, p_t3_n, p_msg, p_mont_mod_der, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
          }else {
             p = p_t3_n; p_t3_n = p_z; p_z = p;                  // swap
          }
@@ -250,10 +250,10 @@ static void cryptolite_rsa_exp (
       }
    }
 
-   cryptolite_rsa_mont_inv_transform (base, cfContext, p_local_z, p_barrett_u, p_mont_r_inv, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
+   Cy_Cryptolite_Rsa_Mont_Inv_Transform (base, cfContext, p_local_z, p_barrett_u, p_mont_r_inv, p_mod, p_t1_2n1, p_t2_2n1, bit_size);
 }
 
-static void cryptolite_rsa_coeff (
+static void Cy_Cryptolite_Rsa_Coeff (
                 CRYPTOLITE_Type *base,
                 cy_stc_cryptolite_context_rsa_t *cfContext,
                 uint8_t* p_barrett_u,     // bit_size + 1
@@ -447,13 +447,27 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Proc(CRYPTOLITE_Type *base,
     cy_en_cryptolite_status_t status = CY_CRYPTOLITE_SUCCESS;
     (void)messageSize;
 
+    uint8_t *barretCoefPtrRemap;
+    uint8_t *inverseModuloPtrRemap;
+    uint8_t *rBarPtrRemap;
+    uint8_t *moduloPtrRemap;
+    uint8_t *pubExpPtrRemap;
+    uint8_t *messagePtrRemap;
+
+    barretCoefPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->barretCoefPtr);
+    inverseModuloPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->inverseModuloPtr);
+    rBarPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->rBarPtr);
+    moduloPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->moduloPtr);
+    pubExpPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->pubExpPtr);
+    messagePtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(message);
+
     if(key->preCalculatedCoeff == false)
-    {
-        cryptolite_rsa_coeff(base, cfContext, key->barretCoefPtr, key->inverseModuloPtr, key->rBarPtr, key->moduloPtr, cfContext->p_buffer, key->moduloLength);
+    {      
+        Cy_Cryptolite_Rsa_Coeff(base, cfContext, barretCoefPtrRemap, inverseModuloPtrRemap, rBarPtrRemap, moduloPtrRemap, cfContext->p_buffer, key->moduloLength);
         key->preCalculatedCoeff = true;
     }
 
-    cryptolite_rsa_exp(base, cfContext, processedMessage, message, key->pubExpPtr, key->barretCoefPtr, key->inverseModuloPtr, key->rBarPtr, key->moduloPtr, cfContext->p_buffer, key->moduloLength, key->pubExpLength);
+    Cy_Cryptolite_Rsa_Exp(base, cfContext, processedMessage, messagePtrRemap, pubExpPtrRemap, barretCoefPtrRemap, inverseModuloPtrRemap, rBarPtrRemap, moduloPtrRemap, cfContext->p_buffer, key->moduloLength, key->pubExpLength);
 
     return status;
 }
@@ -488,12 +502,23 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Coef(CRYPTOLITE_Type *base,
 {
     cy_en_cryptolite_status_t status = CY_CRYPTOLITE_SUCCESS;
 
+    uint8_t *barretCoefPtrRemap;
+    uint8_t *inverseModuloPtrRemap;
+    uint8_t *rBarPtrRemap;
+    uint8_t *moduloPtrRemap;
+
     if((NULL == key->barretCoefPtr) || (NULL == key->inverseModuloPtr) || (NULL == key->rBarPtr) || (NULL == key->moduloPtr) || (NULL == cfContext))
     {
        return  CY_CRYPTOLITE_BAD_PARAMS;
     }
 
-    cryptolite_rsa_coeff(base, cfContext, key->barretCoefPtr, key->inverseModuloPtr, key->rBarPtr, key->moduloPtr, cfContext->p_buffer, key->moduloLength);
+
+    barretCoefPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->barretCoefPtr);
+    inverseModuloPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->inverseModuloPtr);
+    rBarPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->rBarPtr);
+    moduloPtrRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(key->moduloPtr);
+
+    Cy_Cryptolite_Rsa_Coeff(base, cfContext, barretCoefPtrRemap, inverseModuloPtrRemap, rBarPtrRemap, moduloPtrRemap, cfContext->p_buffer, key->moduloLength);
 
     key->preCalculatedCoeff = true;
 
@@ -556,6 +581,12 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Verify(CRYPTOLITE_Type *base,
     cy_en_cryptolite_status_t tmpResult = CY_CRYPTOLITE_SUCCESS;
     (void)base;
     (void)cfContext;
+
+    uint8_t *digestRemap;
+    uint8_t *decryptedSignatureRemap;
+
+    digestRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(digest);
+    decryptedSignatureRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(decryptedSignature);
 
     /* Encodings for hash functions */
 
@@ -697,9 +728,9 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Verify(CRYPTOLITE_Type *base,
 
     /* Check whether the begin of message is 0x00, 0x01 and after PS string (before T string) is 0x00 byte.*/
     if ( (0u != cmpRes) ||
-         (0x00u != *(decryptedSignature)) ||
-         (0x01u != *(decryptedSignature + 1u)) ||
-         (0x00u != *(decryptedSignature + psLength + 2u)) )
+         (0x00u != *(decryptedSignatureRemap)) ||
+         (0x01u != *(decryptedSignatureRemap + 1u)) ||
+         (0x00u != *(decryptedSignatureRemap + psLength + 2u)) )
     {
         cmpRes = 1u;  /* Further checking is not needed */
     }
@@ -709,7 +740,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Verify(CRYPTOLITE_Type *base,
     {
         for (i = 0u; i < psLength; i++)
         {
-            if (0xFFu != *(decryptedSignature + 2u + i))
+            if (0xFFu != *(decryptedSignatureRemap + 2u + i))
             {
                 cmpRes = 1u;  /* Further checking is not needed */
                 break;
@@ -723,7 +754,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Verify(CRYPTOLITE_Type *base,
         if (0u == cmpRes)
         {
             cmpRes = Cy_Cryptolite_Vu_memcmp(encodingArr,
-                            (decryptedSignature + psLength + 3u),
+                            (decryptedSignatureRemap + psLength + 3u),
                             (uint16_t)encodingArrSize);
         }
     }
@@ -731,8 +762,8 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Verify(CRYPTOLITE_Type *base,
     /* Check the digest */
     if (0u == cmpRes)
     {
-        cmpRes = Cy_Cryptolite_Vu_memcmp(digest,
-                        (decryptedSignature + (decryptedSignatureLength - locDigestSize)),
+        cmpRes = Cy_Cryptolite_Vu_memcmp(digestRemap,
+                        (decryptedSignatureRemap + (decryptedSignatureLength - locDigestSize)),
                         (uint16_t)locDigestSize);
     }
 

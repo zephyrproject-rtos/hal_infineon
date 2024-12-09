@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_vu.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the source code to the API for the Vector Unit helpers
@@ -53,6 +53,9 @@ void Cy_Crypto_Core_Vu_SetMemValue(CRYPTO_Type *base, uint32_t dstReg, uint8_t c
 {
     uint32_t reg0_data = 0uL;
     uint32_t reg1_data = 0uL;
+    uint8_t *srcRemap;
+
+    srcRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(src);
 
     Cy_Crypto_Core_Vu_WaitForComplete(base);
 
@@ -70,7 +73,7 @@ void Cy_Crypto_Core_Vu_SetMemValue(CRYPTO_Type *base, uint32_t dstReg, uint8_t c
     CY_ASSERT_L1( ((destAddr + byteSize) - 1u) < ((uint32_t)Cy_Crypto_Core_GetVuMemoryAddress(base) + Cy_Crypto_Core_GetVuMemorySize(base)));
 
     Cy_Crypto_Core_MemSet(base, (void*)destAddr, 0u, (uint16_t)CY_CRYPTO_WORD_SIZE_OF_BITS(size) * 4u);
-    Cy_Crypto_Core_MemCpy(base, (void*)destAddr, (const void*)src, byteSize);
+    Cy_Crypto_Core_MemCpy(base, (void*)destAddr, (const void*)srcRemap, byteSize);
 
     if (CY_CRYPTO_V1)
     {
@@ -83,6 +86,8 @@ void Cy_Crypto_Core_Vu_GetMemValue(CRYPTO_Type *base, uint8_t *dst, uint32_t src
 {
     uint32_t reg0_data = 0uL;
     uint32_t reg1_data = 0uL;
+    uint8_t *dstRemap;
+    dstRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(dst);
 
     Cy_Crypto_Core_Vu_WaitForComplete(base);
 
@@ -99,7 +104,7 @@ void Cy_Crypto_Core_Vu_GetMemValue(CRYPTO_Type *base, uint8_t *dst, uint32_t src
     CY_ASSERT_L1(size <= Cy_Crypto_Core_Vu_RegBitSizeRead(base, srcReg));
     CY_ASSERT_L1( ((dataAddr + byteSize) - 1u) < ((uint32_t)Cy_Crypto_Core_GetVuMemoryAddress(base) + Cy_Crypto_Core_GetVuMemorySize(base)));
 
-    Cy_Crypto_Core_MemCpy(base, (void*)dst, (void*)dataAddr, byteSize);
+    Cy_Crypto_Core_MemCpy(base, (void*)dstRemap, (void*)dataAddr, byteSize);
 
     if (CY_CRYPTO_V1)
     {

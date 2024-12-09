@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_mcwdt.c
-* \version 1.70
+* \version 1.80
 *
 *  Description:
 *   Provides a system API for the MCWDT driver.
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3) || defined (CY_IP_MXS22SRSS)
+#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) || defined (CY_IP_MXS22SRSS)
 
 #include "cy_mcwdt.h"
 

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_aes_v1.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constant and parameters for the API for the AES method

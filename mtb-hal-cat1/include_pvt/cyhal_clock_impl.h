@@ -45,11 +45,14 @@ extern "C"
 
 #endif /* !defined(SRSS_NUM_PLL) */
 
-#if defined(COMPONENT_CAT1C)
+#if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
+#if !defined(SRSS_NUM_PLL400M)
+#define SRSS_NUM_PLL400M (0)
+#endif
 #define _CYHAL_SRSS_NUM_PLL (SRSS_NUM_PLL + SRSS_NUM_PLL400M)
 #else
 #define _CYHAL_SRSS_NUM_PLL SRSS_NUM_PLL
-#endif /* defined(COMPONENT_CAT1C) or other */
+#endif /* defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0) */
 
 #if defined(CY_SRSS_ILO_PRESENT)
     #define _CYHAL_SRSS_ILO_PRESENT      (CY_SRSS_ILO_PRESENT)
@@ -130,17 +133,10 @@ extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_MEM;
 #endif
 
 #if (_CYHAL_SRSS_ILO_PRESENT)
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
-/** Internal Low Speed Oscillator: This is a low accuracy fixed-frequency clock in the kilohertz range that is available in sleep, deep sleep and hibernate power modes. */
-extern const cyhal_clock_t CYHAL_CLOCK_ILO;
-/** Internal Low Speed Oscillator: This is a low accuracy fixed-frequency clock in the kilohertz range that is available in sleep, deep sleep and hibernate power modes. */
-extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ILO;
-#elif defined(COMPONENT_CAT1C)
 /** Internal Low Speed Oscillator: This is a low accuracy fixed-frequency clock in the kilohertz range that is available in sleep, deep sleep and hibernate power modes. */
 extern const cyhal_clock_t CYHAL_CLOCK_ILO[_CYHAL_SRSS_NUM_ILO];
 /** Internal Low Speed Oscillator: This is a low accuracy fixed-frequency clock in the kilohertz range that is available in sleep, deep sleep and hibernate power modes. */
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ILO[_CYHAL_SRSS_NUM_ILO];
-#endif
 #endif /* (_CYHAL_SRSS_ILO_PRESENT) */
 
 #if SRSS_ECO_PRESENT
@@ -199,13 +195,14 @@ extern const cyhal_clock_t CYHAL_CLOCK_LF;
 /** Low Frequency Clock: This clock is the source for the multi-counter watchdog timers (MCWDT), and can also be a source for the RTC. */
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_LF;
 
-/* PUMP clock is only available on CAT1A and CAT1B devices */
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
+/* PUMP clock is only available on CAT1A (SRSS_VERSION 1) and CAT1B devices */
+#if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) || defined(COMPONENT_CAT1B)
+#define PUMP_PRESENT (1UL)
 /** Analog Pump Clock: This clock ensures precision analog performance in low voltage applications. */
 extern const cyhal_clock_t CYHAL_CLOCK_PUMP;
 /** Analog Pump Clock: This clock ensures precision analog performance in low voltage applications. */
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PUMP;
-#endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) */
+#endif /* (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) || defined(COMPONENT_CAT1B) */
 
 /** Backup Clock: This clock is available to the backup domain. Typically useful if an external WCO is not available. */
 extern const cyhal_clock_t CYHAL_CLOCK_BAK;
@@ -244,7 +241,7 @@ extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_FAST[_CYHAL_SRSS_NUM_FAST];
 
 #endif
 
-#if defined(COMPONENT_CAT1A)
+#if defined(COMPONENT_CAT1A) && !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
 /** Timer Clock: This clock is intended as a source for high-frequency timers, such as the Energy Profiler and CPU SysTick clock. This clock is stopped in the hibernate power mode. */
 extern const cyhal_clock_t CYHAL_CLOCK_TIMER;
 /** Timer Clock: This clock is intended as a source for high-frequency timers, such as the Energy Profiler and CPU SysTick clock. This clock is stopped in the hibernate power mode. */
@@ -278,32 +275,32 @@ extern const cyhal_clock_t CYHAL_CLOCK_FLL;
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_FLL;
 #endif
 
-#if (_CYHAL_SRSS_NUM_PLL > 0) && defined(COMPONENT_CAT1A)
+#if (_CYHAL_SRSS_NUM_PLL > 0) && defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)
 /** Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_clock_t CYHAL_CLOCK_PLL[_CYHAL_SRSS_NUM_PLL];
 /** Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PLL[_CYHAL_SRSS_NUM_PLL];
 #endif
-#if (SRSS_NUM_PLL > 0) && defined(COMPONENT_CAT1C)
+#if (SRSS_NUM_PLL > 0) && defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
 /** 200MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_clock_t CYHAL_CLOCK_PLL200[SRSS_NUM_PLL200M];
 /** 200MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PLL200M[SRSS_NUM_PLL200M];
 #endif
-#if (SRSS_NUM_PLL400M > 0) && defined(COMPONENT_CAT1C)
+#if defined(SRSS_NUM_PLL400M) && (SRSS_NUM_PLL400M > 0) && defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
 /** 400MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_clock_t CYHAL_CLOCK_PLL400[SRSS_NUM_PLL400M];
 /** 400MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PLL400M[SRSS_NUM_PLL400M];
 #endif
 
-#if (SRSS_NUM_PLL200M > 0) && defined(COMPONENT_CAT1B)
+#if defined(COMPONENT_CAT1B) && (defined(SRSS_NUM_PLL200M) && (SRSS_NUM_PLL200M > 0))
 /** 200MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_clock_t CYHAL_CLOCK_PLL[SRSS_NUM_PLL200M];
 /** 200MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PLL[SRSS_NUM_PLL200M];
 #endif
-#if (SRSS_NUM_PLL400M > 0) && defined(COMPONENT_CAT1B)
+#if defined(COMPONENT_CAT1B) && (defined(SRSS_NUM_PLL400M) && (SRSS_NUM_PLL400M > 0))
 /** 400MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
 extern const cyhal_clock_t CYHAL_CLOCK_PLL[SRSS_NUM_PLL400M];
 /** 400MHz Phase-Locked Loop: A high-frequency clock able to generate a wide range of clock frequencies making it suitable for most on-chip purposes. This clock is stopped in the deep sleep and hibernate power modes. */
@@ -347,15 +344,19 @@ static inline const void* _cyhal_clock_get_funcs(cyhal_clock_block_t block)
         case CYHAL_CLOCK_BLOCK_PATHMUX:
             return _cyhal_clock_get_funcs_pathmux();
 #if (_CYHAL_SRSS_NUM_PLL > 0)
-        #if defined(COMPONENT_CAT1C)
-        case CYHAL_CLOCK_BLOCK_PLL200:
-        case CYHAL_CLOCK_BLOCK_PLL400:
-        #elif defined(COMPONENT_CAT1D)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
+        #if defined(SRSS_NUM_PLL200M) && (SRSS_NUM_PLL200M > 0)
+            case CYHAL_CLOCK_BLOCK_PLL200:
+        #endif
+        #if defined(SRSS_NUM_PLL400M) && (SRSS_NUM_PLL400M > 0)
+            case CYHAL_CLOCK_BLOCK_PLL400:
+        #endif
+    #elif defined(COMPONENT_CAT1D)
         case CYHAL_CLOCK_BLOCK_DPLL250:
         case CYHAL_CLOCK_BLOCK_DPLL500:
-        #else
+    #else
         case CYHAL_CLOCK_BLOCK_PLL:
-        #endif
+    #endif
             return _cyhal_clock_get_funcs_pll();
 #endif
         case CYHAL_CLOCK_BLOCK_HF:

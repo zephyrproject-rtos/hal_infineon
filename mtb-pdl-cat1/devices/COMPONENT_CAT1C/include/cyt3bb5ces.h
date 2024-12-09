@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -632,84 +632,104 @@ typedef enum {
 #define CY_SRAM_BASE                    0x28000000UL
 #define CY_SRAM_SIZE                    0x000C0000UL
 
-#include "system_cat1c.h"                       /*!< Category 1C System */
 
 /* IP List */
 #define CY_IP_MXAUDIOSS                 1u
 #define CY_IP_MXAUDIOSS_INSTANCES       3u
 #define CY_IP_MXAUDIOSS_VERSION         2u
+#define CY_IP_MXAUDIOSS_VERSION_MINOR   0u
 #define CY_IP_MXTTCANFD                 1u
 #define CY_IP_MXTTCANFD_INSTANCES       2u
 #define CY_IP_MXTTCANFD_VERSION         1u
+#define CY_IP_MXTTCANFD_VERSION_MINOR   0u
 #define CY_IP_M7CPUSS                   1u
 #define CY_IP_M7CPUSS_INSTANCES         1u
 #define CY_IP_M7CPUSS_VERSION           1u
+#define CY_IP_M7CPUSS_VERSION_MINOR     0u
 #define CY_IP_MXS40FAULT                1u
 #define CY_IP_MXS40FAULT_INSTANCES      1u
 #define CY_IP_MXS40FAULT_VERSION        1u
+#define CY_IP_MXS40FAULT_VERSION_MINOR  0u
 #define CY_IP_M7CPUSS_DMAC              1u
 #define CY_IP_M7CPUSS_DMAC_INSTANCES    1u
 #define CY_IP_M7CPUSS_DMAC_VERSION      1u
+#define CY_IP_M7CPUSS_DMAC_VERSION_MINOR 0u
 #define CY_IP_M7CPUSS_DMA               1u
 #define CY_IP_M7CPUSS_DMA_INSTANCES     2u
 #define CY_IP_M7CPUSS_DMA_VERSION       1u
+#define CY_IP_M7CPUSS_DMA_VERSION_MINOR 0u
 #define CY_IP_MXCRYPTO                  1u
 #define CY_IP_MXCRYPTO_INSTANCES        1u
 #define CY_IP_MXCRYPTO_VERSION          2u
+#define CY_IP_MXCRYPTO_VERSION_MINOR    0u
 #define CY_IP_MXDFT                     1u
 #define CY_IP_MXDFT_INSTANCES           1u
 #define CY_IP_MXDFT_VERSION             1u
+#define CY_IP_MXDFT_VERSION_MINOR       0u
 #define CY_IP_MXEFUSE                   1u
 #define CY_IP_MXEFUSE_INSTANCES         1u
 #define CY_IP_MXEFUSE_VERSION           2u
+#define CY_IP_MXEFUSE_VERSION_MINOR     0u
 #define CY_IP_MXETH                     1u
 #define CY_IP_MXETH_INSTANCES           1u
 #define CY_IP_MXETH_VERSION             2u
+#define CY_IP_MXETH_VERSION_MINOR       0u
 #define CY_IP_MXEVTGEN                  1u
 #define CY_IP_MXEVTGEN_INSTANCES        1u
 #define CY_IP_MXEVTGEN_VERSION          1u
+#define CY_IP_MXEVTGEN_VERSION_MINOR    0u
 #define CY_IP_MXS40IOSS                 1u
 #define CY_IP_MXS40IOSS_INSTANCES       1u
 #define CY_IP_MXS40IOSS_VERSION         3u
+#define CY_IP_MXS40IOSS_VERSION_MINOR   0u
 #define CY_IP_MXLIN                     1u
 #define CY_IP_MXLIN_INSTANCES           1u
 #define CY_IP_MXLIN_VERSION             1u
+#define CY_IP_MXLIN_VERSION_MINOR       0u
 #define CY_IP_MXS40EPASS                1u
 #define CY_IP_MXS40EPASS_INSTANCES      1u
 #define CY_IP_MXS40EPASS_VERSION        1u
+#define CY_IP_MXS40EPASS_VERSION_MINOR  0u
 #define CY_IP_MXS40EPASS_ESAR           1u
 #define CY_IP_MXS40EPASS_ESAR_INSTANCES 3u
 #define CY_IP_MXS40EPASS_ESAR_VERSION   1u
+#define CY_IP_MXS40EPASS_ESAR_VERSION_MINOR 0u
 #define CY_IP_MXPERI                    1u
 #define CY_IP_MXPERI_INSTANCES          1u
 #define CY_IP_MXPERI_VERSION            3u
+#define CY_IP_MXPERI_VERSION_MINOR      0u
 #define CY_IP_MXPERI_TR                 1u
 #define CY_IP_MXPERI_TR_INSTANCES       1u
 #define CY_IP_MXPERI_TR_VERSION         3u
+#define CY_IP_MXPERI_TR_VERSION_MINOR   0u
 #define CY_IP_MXSCB                     1u
 #define CY_IP_MXSCB_INSTANCES           9u
 #define CY_IP_MXSCB_VERSION             2u
+#define CY_IP_MXSCB_VERSION_MINOR       0u
 #define CY_IP_MXSDHC                    1u
 #define CY_IP_MXSDHC_INSTANCES          1u
 #define CY_IP_MXSDHC_VERSION            1u
+#define CY_IP_MXSDHC_VERSION_MINOR      0u
 #define CY_IP_MXSMIF                    1u
 #define CY_IP_MXSMIF_INSTANCES          1u
 #define CY_IP_MXSMIF_VERSION            2u
+#define CY_IP_MXSMIF_VERSION_MINOR      0u
 #define CY_IP_MXS40SRSS                 1u
 #define CY_IP_MXS40SRSS_INSTANCES       1u
 #define CY_IP_MXS40SRSS_VERSION         3u
+#define CY_IP_MXS40SRSS_VERSION_MINOR   2u
 #define CY_IP_MXS40SRSS_RTC             1u
 #define CY_IP_MXS40SRSS_RTC_INSTANCES   1u
 #define CY_IP_MXS40SRSS_RTC_VERSION     3u
+#define CY_IP_MXS40SRSS_RTC_VERSION_MINOR 2u
 #define CY_IP_MXS40SRSS_MCWDT           1u
 #define CY_IP_MXS40SRSS_MCWDT_INSTANCES 3u
 #define CY_IP_MXS40SRSS_MCWDT_VERSION   3u
+#define CY_IP_MXS40SRSS_MCWDT_VERSION_MINOR 2u
 #define CY_IP_MXTCPWM                   1u
 #define CY_IP_MXTCPWM_INSTANCES         1u
 #define CY_IP_MXTCPWM_VERSION           2u
-
-#include "xmc7100_config.h"
-#include "gpio_xmc7100_100_teqfp.h"
+#define CY_IP_MXTCPWM_VERSION_MINOR     0u
 
 #define CY_DEVICE_TVIIBH4M
 #define CY_DEVICE_SERIES_CYT3BB
@@ -717,6 +737,11 @@ typedef enum {
 #define CY_HF_CLK_MAX_FREQ              250000000UL
 
 #define CPUSS_FLASHC_PA_SIZE_LOG2       0x7UL
+
+#include "system_cat1c.h"                       /*!< Category 1C System */
+
+#include "xmc7100_config.h"
+#include "gpio_xmc7100_100_teqfp.h"
 
 /*******************************************************************************
 *                                    SFLASH
@@ -1877,17 +1902,10 @@ typedef enum {
 #define LIN0_CH2                                ((LIN_CH_Type*) &LIN0->CH[2])                                     /* 0x40508200 */
 #define LIN0_CH3                                ((LIN_CH_Type*) &LIN0->CH[3])                                     /* 0x40508300 */
 #define LIN0_CH4                                ((LIN_CH_Type*) &LIN0->CH[4])                                     /* 0x40508400 */
-#define LIN0_CH5                                ((LIN_CH_Type*) &LIN0->CH[5])                                     /* 0x40508500 */
 #define LIN0_CH6                                ((LIN_CH_Type*) &LIN0->CH[6])                                     /* 0x40508600 */
 #define LIN0_CH7                                ((LIN_CH_Type*) &LIN0->CH[7])                                     /* 0x40508700 */
 #define LIN0_CH8                                ((LIN_CH_Type*) &LIN0->CH[8])                                     /* 0x40508800 */
 #define LIN0_CH9                                ((LIN_CH_Type*) &LIN0->CH[9])                                     /* 0x40508900 */
-#define LIN0_CH10                               ((LIN_CH_Type*) &LIN0->CH[10])                                    /* 0x40508A00 */
-#define LIN0_CH11                               ((LIN_CH_Type*) &LIN0->CH[11])                                    /* 0x40508B00 */
-#define LIN0_CH12                               ((LIN_CH_Type*) &LIN0->CH[12])                                    /* 0x40508C00 */
-#define LIN0_CH13                               ((LIN_CH_Type*) &LIN0->CH[13])                                    /* 0x40508D00 */
-#define LIN0_CH14                               ((LIN_CH_Type*) &LIN0->CH[14])                                    /* 0x40508E00 */
-#define LIN0_CH15                               ((LIN_CH_Type*) &LIN0->CH[15])                                    /* 0x40508F00 */
 
 /*******************************************************************************
 *                                    CANFD
@@ -2036,10 +2054,8 @@ typedef enum {
 
 #define I2S0_BASE                               0x40800000UL
 #define I2S1_BASE                               0x40801000UL
-#define I2S2_BASE                               0x40802000UL
 #define I2S0                                    ((I2S_Type*) I2S0_BASE)                                           /* 0x40800000 */
 #define I2S1                                    ((I2S_Type*) I2S1_BASE)                                           /* 0x40801000 */
-#define I2S2                                    ((I2S_Type*) I2S2_BASE)                                           /* 0x40802000 */
 
 /*******************************************************************************
 *                                     PASS

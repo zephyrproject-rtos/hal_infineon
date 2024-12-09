@@ -54,7 +54,7 @@ extern "C"
 #define _CYHAL_CLOCK_GET_PCLK_GR_NUM(block) ((en_clk_dst_t)0) /* Value is not used for devices that don't have PCLK groups. */
 #endif
 
-/* We can't use the PDL-defined _CYHAL_SRSS_PILO_PRESENT because on CAT1A devices it performs a struct lookup
+/* We can't use the PDL-defined CY_SRSS_PILO_PRESENT because on CAT1A devices it performs a struct lookup
  * which won't work in preprocessor expressions */
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
     #define _CYHAL_SRSS_PILO_PRESENT (SRSS_PILO_PRESENT)
@@ -74,11 +74,8 @@ const cyhal_resource_inst_t CYHAL_CLOCK_RSC_IMO = { CYHAL_RSC_CLOCK, (uint8_t)CY
 #endif
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_EXT = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_EXT, 0 };
 #if (_CYHAL_SRSS_ILO_PRESENT)
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
-const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ILO = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_ILO, 0 };
-#elif defined(COMPONENT_CAT1C)
-const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ILO[_CYHAL_SRSS_NUM_ILO] =
-{
+#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
+const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ILO[_CYHAL_SRSS_NUM_ILO] = {
     { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_ILO, 0 },
     #if (SRSS_HT_VARIANT > 0)
     { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_ILO, 1 },
@@ -87,10 +84,10 @@ const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ILO[_CYHAL_SRSS_NUM_ILO] =
 #endif
 #endif
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_LF = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_LF, 0 };
-/* PUMP clock is only available on CAT1A and CAT1B devices */
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
+/* PUMP clock is only available on CAT1A (SRSS V1) and CAT1B devices */
+#if PUMP_PRESENT
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PUMP = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PUMP, 0 };
-#endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) */
+#endif /* PUMP_PRESENT */
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_BAK = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_BAK, 0 };
 #if !defined(COMPONENT_CAT1D)
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ALT_SYS_TICK = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_ALT_SYS_TICK, 0 };
@@ -239,71 +236,13 @@ const cyhal_resource_inst_t CYHAL_CLOCK_RSC_FAST[_CYHAL_SRSS_NUM_FAST] =
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_SLOW = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_SLOW, 0 };
 #endif
 
-#if defined(COMPONENT_CAT1A)
+
+#if defined(CY_IP_MXPERI) && (CY_IP_MXPERI_VERSION < 3)
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PERI = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PERI, 0 };
-const cyhal_resource_inst_t CYHAL_CLOCK_RSC_TIMER = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_TIMER, 0 };
-#if (_CYHAL_SRSS_NUM_PLL > 0)
-const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PLL[_CYHAL_SRSS_NUM_PLL] =
-{
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 0 },
-#if (_CYHAL_SRSS_NUM_PLL > 1)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 1 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 2)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 2 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 3)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 3 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 4)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 4 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 5)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 5 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 6)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 6 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 7)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 7 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 8)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 8 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 9)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 9 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 10)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 10 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 11)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 11 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 12)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 12 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 13)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 13 },
-#endif
-#if (_CYHAL_SRSS_NUM_PLL > 14)
-   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 14 },
-#endif
-};
-#endif
 #endif
 
-#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
-#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
-const cyhal_resource_inst_t CYHAL_CLOCK_RSC_IHO = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_IHO, 0 };
-#if SRSS_ECO_PRESENT
-const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ECO_PRESCALER = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_ECO_PRESCALER, 0 };
-#endif
-#if SRSS_BACKUP_S40E_LPECO_PRESENT
-const cyhal_resource_inst_t CYHAL_CLOCK_RSC_LPECO_PRESCALER = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_LPECO_PRESCALER, 0 };
-#endif
-#endif
-
-/* COMPONENT_CAT1C uses a hybrid approach from what was done on CAT1A and CAT1B. Facelift CAT1C supports ClkPeri as well
+#if (defined(CY_IP_MXPERI) && (CY_IP_MXPERI_VERSION >= 3)) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
+/* COMPONENT_CAT1C uses a hybrid approach from what was done on CAT1A and CAT1B. CAT1C devices support ClkPeri as well
 as Peripheral Clock Groups. For CAT1C, ClkPeri is used to source everything in Peripheral Clock Group 0 (HF0) and other
 Peripheral Clock Groups derive from one of the HFClks and have their own group divider. Thus we declare RSC_PERI Peri array for CAT1C */
 
@@ -356,6 +295,71 @@ const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PERI[CY_PERI_GROUP_NR] =
     { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PERI, 15 },
 #endif
 };
+#endif
+
+
+#if defined(COMPONENT_CAT1A) && !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
+const cyhal_resource_inst_t CYHAL_CLOCK_RSC_TIMER = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_TIMER, 0 };
+#if (_CYHAL_SRSS_NUM_PLL > 0)
+const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PLL[_CYHAL_SRSS_NUM_PLL] =
+{
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 0 },
+#if (_CYHAL_SRSS_NUM_PLL > 1)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 1 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 2)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 2 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 3)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 3 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 4)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 4 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 5)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 5 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 6)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 6 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 7)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 7 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 8)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 8 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 9)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 9 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 10)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 10 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 11)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 11 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 12)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 12 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 13)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 13 },
+#endif
+#if (_CYHAL_SRSS_NUM_PLL > 14)
+   { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_PLL, 14 },
+#endif
+};
+#endif
+#endif
+
+#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
+#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
+const cyhal_resource_inst_t CYHAL_CLOCK_RSC_IHO = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_IHO, 0 };
+#if SRSS_ECO_PRESENT
+const cyhal_resource_inst_t CYHAL_CLOCK_RSC_ECO_PRESCALER = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_ECO_PRESCALER, 0 };
+#endif
+#if SRSS_BACKUP_S40E_LPECO_PRESENT
+const cyhal_resource_inst_t CYHAL_CLOCK_RSC_LPECO_PRESCALER = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_LPECO_PRESCALER, 0 };
+#endif
+#endif
 
 #if (SRSS_NUM_PLL200M > 0)
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_PLL200M[SRSS_NUM_PLL200M] =
@@ -560,6 +564,12 @@ const cyhal_resource_inst_t CYHAL_CLOCK_RSC_DPLL500M[SRSS_NUM_DPLL500M] =
 #endif
 #endif
 
+/* HFCLK index that drives the current CPU core */
+#if (CY_CPU_CORTEX_M7)
+#define _CYHAL_CLOCK_CPU_HFCLK_IDX (1u)
+#else
+#define _CYHAL_CLOCK_CPU_HFCLK_IDX (0u)
+#endif
 
 
 /******************************************************************************
@@ -588,7 +598,7 @@ static uint32_t _cyhal_clock_get_lf_frequency(void)
     switch (source)
     {
         case CY_SYSCLK_CLKLF_IN_ILO:
-#if defined(COMPONENT_CAT1C)
+#if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
         case CY_SYSCLK_CLKLF_IN_ILO1:
 #endif
             return CY_SYSCLK_ILO_FREQ;
@@ -630,7 +640,11 @@ static void _cyhal_clock_update_system_state(bool before_change, uint32_t old_sy
         (!before_change == (new_sysclk_freq_hz < old_sysclk_freq_hz)))
     {
 #if defined(COMPONENT_CAT1A)
+        #if ((defined(SRSS_ULP_VARIANT)) && (SRSS_ULP_VARIANT == 0u))
+        bool is_ulp = false;
+        #else /* ((defined(SRSS_ULP_VARIANT)) && (SRSS_ULP_VARIANT == 0u)) */
         bool is_ulp = Cy_SysPm_IsSystemUlp();
+        #endif /* ((defined(SRSS_ULP_VARIANT)) && (SRSS_ULP_VARIANT == 0u)) */
 #elif defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
         bool is_ulp = true;
 #elif defined(COMPONENT_CAT1C)
@@ -694,7 +708,7 @@ static const cyhal_resource_inst_t *_CYHAL_CLOCK_SOURCE_HF[] =
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C) || (SRSS_FLL_PRESENT)
     &CYHAL_CLOCK_RSC_FLL,
 #endif
-#if defined(COMPONENT_CAT1A)
+#if defined(COMPONENT_CAT1A) && !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
 #if (_CYHAL_SRSS_NUM_PLL > 0)
     &CYHAL_CLOCK_RSC_PLL[0],
 #endif
@@ -737,7 +751,7 @@ static const cyhal_resource_inst_t *_CYHAL_CLOCK_SOURCE_HF[] =
 #if (_CYHAL_SRSS_NUM_PLL > 13)
     &CYHAL_CLOCK_RSC_PLL[13],
 #endif
-#elif defined(COMPONENT_CAT1C)
+#elif (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
 #if (SRSS_NUM_PLL200M > 0)
     &CYHAL_CLOCK_RSC_PLL200M[0],
 #endif
@@ -980,7 +994,7 @@ static const cyhal_resource_inst_t *_CYHAL_CLOCK_SOURCE_HF[] =
 #endif
 };
 
-#if defined (COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
+#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
 static cy_rslt_t _cyhal_clock_get_sources_peri_peripheral(uint8_t idx, const cyhal_resource_inst_t **sources[], uint32_t *count)
 {
     static const cyhal_resource_inst_t *_CYHAL_CLOCK_SOURCE_PERI[SRSS_NUM_HFROOT] =
@@ -1174,7 +1188,7 @@ static uint32_t _cyhal_clock_get_frequency_iho(const cyhal_clock_t *clock)
 static bool _cyhal_clock_is_enabled_ilo(const cyhal_clock_t *clock)
 {
     CY_UNUSED_PARAMETER(clock);
-    #if defined(COMPONENT_CAT1C)
+    #if defined(COMPONENT_CAT1C) || (defined(COMPONENT_CAT1A) && defined(CY_SRSS_ILO_COUNT) && (CY_SRSS_ILO_COUNT > 1))
     return Cy_SysClk_IloSrcIsEnabled(clock->channel);
     #else
     return Cy_SysClk_IloIsEnabled();
@@ -1184,7 +1198,7 @@ static cy_rslt_t _cyhal_clock_set_enabled_ilo(cyhal_clock_t *clock, bool enabled
 {
     CY_UNUSED_PARAMETER(clock);
     CY_UNUSED_PARAMETER(wait_for_lock);
-    #if defined(COMPONENT_CAT1C)
+    #if (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
     if (enabled)
     {
         Cy_SysPm_BgRefCtrl(true);
@@ -1246,7 +1260,7 @@ static bool _cyhal_clock_is_enabled_wco(const cyhal_clock_t *clock)
     CY_UNUSED_PARAMETER(clock);
 #if defined(CY_IP_MXS28SRSS)
     return 0u != (BACKUP_CTL & BACKUP_WCO_CTL_WCO_EN_Msk);
-#elif defined (CY_IP_MXS22SRSS)
+#elif defined(CY_IP_MXS22SRSS)
     return 0u != (BACKUP_CTL & SRSS_CLK_WCO_CONFIG_WCO_EN_Msk);
 #else
     return 0u != (BACKUP_CTL & BACKUP_CTL_WCO_EN_Msk);
@@ -1339,13 +1353,11 @@ static cy_rslt_t _cyhal_clock_get_sources_pathmux(const cyhal_clock_t *clock, co
         &CYHAL_CLOCK_RSC_ALTHF,
     #endif
     #if (_CYHAL_SRSS_ILO_PRESENT)
-    #if defined(COMPONENT_CAT1C)
+    #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
         &CYHAL_CLOCK_RSC_ILO[0],
         #if (SRSS_HT_VARIANT > 0)
         &CYHAL_CLOCK_RSC_ILO[1],
         #endif
-    #elif !defined(COMPONENT_CAT1D)
-        &CYHAL_CLOCK_RSC_ILO,
     #endif
     #endif
     #if _CYHAL_SRSS_PILO_PRESENT
@@ -1400,7 +1412,7 @@ static cy_rslt_t _cyhal_clock_set_source_pathmux(cyhal_clock_t *clock, const cyh
 #endif
 #if !defined(COMPONENT_CAT1D)
         case CYHAL_CLOCK_BLOCK_ILO:
-        #if defined(COMPONENT_CAT1C)
+        #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
             if (1 == source->channel)
             {
                 clkpath_src = CY_SYSCLK_CLKPATH_IN_ILO1;
@@ -1437,9 +1449,9 @@ static cy_rslt_t _cyhal_clock_set_source_pathmux(cyhal_clock_t *clock, const cyh
             return CYHAL_CLOCK_RSLT_ERR_SOURCE;
     }
 
-    uint32_t old_hf_freq = Cy_SysClk_ClkHfGetFrequency(0);
-    uint32_t new_hf_freq = new_freq >> ((uint8_t)Cy_SysClk_ClkHfGetDivider(0));
-    bool is_sysclk_path = (clock->channel == (uint32_t)Cy_SysClk_ClkHfGetSource(0));
+    uint32_t old_hf_freq = Cy_SysClk_ClkHfGetFrequency(_CYHAL_CLOCK_CPU_HFCLK_IDX);
+    uint32_t new_hf_freq = new_freq >> ((uint8_t)Cy_SysClk_ClkHfGetDivider(_CYHAL_CLOCK_CPU_HFCLK_IDX));
+    bool is_sysclk_path = (clock->channel == (uint32_t)Cy_SysClk_ClkHfGetSource(_CYHAL_CLOCK_CPU_HFCLK_IDX));
 
     if (is_sysclk_path)
         _cyhal_clock_update_system_state(true, old_hf_freq, new_hf_freq);
@@ -1487,15 +1499,15 @@ static cy_rslt_t _cyhal_clock_set_enabled_fll(cyhal_clock_t *clock, bool enabled
         old_freq = fll_freq >> div;
     }
 
-    bool fll_sources_hf0 = (0 == (uint32_t)Cy_SysClk_ClkHfGetSource(0));
-    if (fll_sources_hf0)
+    bool fll_sources_cpu = (0 == (uint32_t)Cy_SysClk_ClkHfGetSource(_CYHAL_CLOCK_CPU_HFCLK_IDX));
+    if (fll_sources_cpu)
         _cyhal_clock_update_system_state(true, old_freq, new_freq);
 
     cy_rslt_t rslt = (enabled)
         ? Cy_SysClk_FllEnable(wait_for_lock ? _CYHAL_CLOCK_FLL_LOCK_TIME : 0UL)
         : Cy_SysClk_FllDisable();
 
-    if (fll_sources_hf0)
+    if (fll_sources_cpu)
     {
         if (CY_RSLT_SUCCESS == rslt)
             _cyhal_clock_update_system_state(false, old_freq, new_freq);
@@ -1529,8 +1541,8 @@ static cy_rslt_t _cyhal_clock_set_frequency_fll(cyhal_clock_t *clock, uint32_t h
         uint32_t old_hf_freq = old_freq >> div;
         uint32_t new_hf_freq = hz /*new_freq*/ >> div;
 
-        bool fll_sources_hf0 = (0 == (uint32_t)Cy_SysClk_ClkHfGetSource(0));
-        if (fll_sources_hf0)
+        bool fll_sources_cpu = (0 == (uint32_t)Cy_SysClk_ClkHfGetSource(_CYHAL_CLOCK_CPU_HFCLK_IDX));
+        if (fll_sources_cpu)
             _cyhal_clock_update_system_state(true, old_hf_freq, new_hf_freq);
 
         bool enabled = Cy_SysClk_FllIsEnabled();
@@ -1548,7 +1560,7 @@ static cy_rslt_t _cyhal_clock_set_frequency_fll(cyhal_clock_t *clock, uint32_t h
             }
         }
 
-        if (fll_sources_hf0)
+        if (fll_sources_cpu)
         {
             if (CY_RSLT_SUCCESS == rslt)
                 _cyhal_clock_update_system_state(false, old_hf_freq, new_hf_freq);
@@ -1572,7 +1584,7 @@ static cy_rslt_t _cyhal_clock_get_sources_fll(const cyhal_clock_t *clock, const 
 #if (_CYHAL_SRSS_NUM_PLL > 0)
 static bool _cyhal_clock_is_enabled_pll(const cyhal_clock_t *clock)
 {
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     if (clock->block == CYHAL_CLOCK_BLOCK_PLL200)
     {
         return Cy_SysClk_PllIsEnabled(clock->channel + 1 + SRSS_NUM_PLL400M);
@@ -1589,12 +1601,12 @@ static bool _cyhal_clock_is_enabled_pll(const cyhal_clock_t *clock)
 static void _cyhal_clock_extract_pll_params(cyhal_clock_t *clock, cy_stc_pll_manual_config_t *cfg, uint64_t *feedbackDiv,
         uint32_t *referenceDiv, uint32_t *outputDiv)
 {
-    #if defined (CY_IP_MXS40SRSS)
+    #if defined(CY_IP_MXS40SRSS)
     *feedbackDiv = cfg->feedbackDiv;
     *referenceDiv = cfg->referenceDiv;
     *outputDiv = cfg->outputDiv;
     CY_UNUSED_PARAMETER(clock);
-    #elif defined (CY_IP_MXS22SRSS)
+    #elif defined(CY_IP_MXS22SRSS)
     if (clock->block == CYHAL_CLOCK_BLOCK_DPLL250)
     {
         *feedbackDiv = cfg->lpPllCfg->feedbackDiv;
@@ -1610,7 +1622,7 @@ static void _cyhal_clock_extract_pll_params(cyhal_clock_t *clock, cy_stc_pll_man
     }
     #else
         #error "Unhandled SRSS block type"
-    #endif /* defined (CY_IP_MXS40SRSS) or defined (CY_IP_MXS22SRSS) or other (error) */
+    #endif /* defined(CY_IP_MXS40SRSS) or defined(CY_IP_MXS22SRSS) or other (error) */
 }
 
 static cy_rslt_t _cyhal_clock_set_enabled_pll(cyhal_clock_t *clock, bool enabled, bool wait_for_lock)
@@ -1620,7 +1632,7 @@ static cy_rslt_t _cyhal_clock_set_enabled_pll(cyhal_clock_t *clock, bool enabled
 
     //pll_idx is the path mux index (eg PLL number + 1) as used by PDL APIs
     uint32_t pll_idx = clock->channel + 1;
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     if (clock->block == CYHAL_CLOCK_BLOCK_PLL200)
     {
         pll_idx = pll_idx + SRSS_NUM_PLL400M;
@@ -1657,15 +1669,15 @@ static cy_rslt_t _cyhal_clock_set_enabled_pll(cyhal_clock_t *clock, bool enabled
             old_freq = pll_freq >> div;
         }
 
-        bool pll_sources_hf0 = (pll_idx == (uint32_t)Cy_SysClk_ClkHfGetSource(0));
-        if (pll_sources_hf0)
+        bool pll_sources_cpu = (pll_idx == (uint32_t)Cy_SysClk_ClkHfGetSource(_CYHAL_CLOCK_CPU_HFCLK_IDX));
+        if (pll_sources_cpu)
             _cyhal_clock_update_system_state(true, old_freq, new_freq);
 
         rslt = (enabled)
             ? Cy_SysClk_PllEnable(pll_idx, wait_for_lock ? _CYHAL_CLOCK_PLL_LOCK_TIME : 0UL)
             : Cy_SysClk_PllDisable(pll_idx);
 
-        if (pll_sources_hf0)
+        if (pll_sources_cpu)
         {
             if (CY_RSLT_SUCCESS == rslt)
                 _cyhal_clock_update_system_state(false, old_freq, new_freq);
@@ -1678,7 +1690,7 @@ static cy_rslt_t _cyhal_clock_set_enabled_pll(cyhal_clock_t *clock, bool enabled
 }
 static uint32_t _cyhal_clock_get_frequency_pll(const cyhal_clock_t *clock)
 {
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     if (clock->block == CYHAL_CLOCK_BLOCK_PLL200)
     {
         return Cy_SysClk_ClkPathGetFrequency(clock->channel + 1 + SRSS_NUM_PLL400M);
@@ -1697,7 +1709,7 @@ static cy_rslt_t _cyhal_clock_set_frequency_pll(cyhal_clock_t *clock, uint32_t h
 
     cy_stc_pll_manual_config_t cfg;
     uint8_t pll_idx = clock->channel + 1;
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     if (clock->block == CYHAL_CLOCK_BLOCK_PLL200)
     {
         pll_idx = pll_idx + SRSS_NUM_PLL400M;
@@ -1729,8 +1741,8 @@ static cy_rslt_t _cyhal_clock_set_frequency_pll(cyhal_clock_t *clock, uint32_t h
             uint32_t old_hf_freq = old_freq >> div;
             uint32_t new_hf_freq = hz/*new_freq*/ >> div;
 
-            bool pll_sources_hf0 = (pll_idx == (uint32_t)Cy_SysClk_ClkHfGetSource(0));
-            if (pll_sources_hf0)
+            bool pll_sources_cpu = (pll_idx == (uint32_t)Cy_SysClk_ClkHfGetSource(_CYHAL_CLOCK_CPU_HFCLK_IDX));
+            if (pll_sources_cpu)
                 _cyhal_clock_update_system_state(true, old_hf_freq, new_hf_freq);
 
             uint32_t input_hz = Cy_SysClk_ClkPathMuxGetFrequency(pll_idx);
@@ -1750,7 +1762,7 @@ static cy_rslt_t _cyhal_clock_set_frequency_pll(cyhal_clock_t *clock, uint32_t h
                     rslt = rslt2;
             }
 
-            if (pll_sources_hf0)
+            if (pll_sources_cpu)
             {
                 if (CY_RSLT_SUCCESS == rslt)
                     _cyhal_clock_update_system_state(false, old_hf_freq, new_hf_freq);
@@ -1766,15 +1778,16 @@ static cy_rslt_t _cyhal_clock_get_sources_pll(const cyhal_clock_t *clock, const 
 {
     // _CYHAL_CLOCK_SOURCE_HF has entries for FLL, PLL[n], PathMux[m]
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C) || (SRSS_FLL_PRESENT)
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     uint8_t channel = clock->channel;
     if (clock->block == CYHAL_CLOCK_BLOCK_PLL200)
     {
         channel = channel + SRSS_NUM_PLL400M;
     }
     *sources = &(_CYHAL_CLOCK_SOURCE_HF[2 + _CYHAL_SRSS_NUM_PLL + channel]);
-    #endif
+    #else
     *sources = &(_CYHAL_CLOCK_SOURCE_HF[2 + _CYHAL_SRSS_NUM_PLL + clock->channel]); /* PATHMUX[n] entry is after the FLL (+1), PLLs (+num) and FLL path mux (+1) */
+    #endif
 #elif defined(COMPONENT_CAT1D)
     uint8_t channel = clock->channel;
     if (clock->block == CYHAL_CLOCK_BLOCK_DPLL500)
@@ -1880,7 +1893,7 @@ static cy_rslt_t _cyhal_clock_get_sources_mf(const cyhal_clock_t *clock, const c
         &CYHAL_CLOCK_RSC_MFO,
     #endif
     #if _CYHAL_SRSS_ILO_PRESENT
-        &CYHAL_CLOCK_RSC_ILO,
+        &CYHAL_CLOCK_RSC_ILO[0],
     #endif
     #if SRSS_BACKUP_PRESENT || SRSS_WCO_PRESENT
         &CYHAL_CLOCK_RSC_WCO,
@@ -1975,7 +1988,7 @@ static uint32_t _cyhal_clock_get_frequency_hf(const cyhal_clock_t *clock)
 static cy_rslt_t _cyhal_clock_set_divider_hf(cyhal_clock_t *clock, uint32_t divider)
 {
     cy_en_clkhf_dividers_t new_div;
-    #if defined (CY_IP_MXS22SRSS)
+    #if defined(CY_IP_MXS22SRSS)
     switch (divider)
     {
         case 1:
@@ -2087,16 +2100,16 @@ static cy_rslt_t _cyhal_clock_set_source_hf(cyhal_clock_t *clock, const cyhal_cl
 #endif
     )
         new_src = source->channel;
-#if defined(COMPONENT_CAT1A)
+#if defined(COMPONENT_CAT1A) && !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
     else if (source->block == CYHAL_CLOCK_BLOCK_PLL)
-#elif defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
+#elif defined(COMPONENT_CAT1B) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
     else if ((source->block == CYHAL_CLOCK_BLOCK_PLL200) || (source->block == CYHAL_CLOCK_BLOCK_PLL400))
 #elif defined(COMPONENT_CAT1D)
     else if ((source->block == CYHAL_CLOCK_BLOCK_DPLL250) || (source->block == CYHAL_CLOCK_BLOCK_DPLL500))
 #endif
     {
         new_src = source->channel + 1;
-#if defined(SRSS_NUM_PLL400M) && (defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C))
+#if defined(SRSS_NUM_PLL400M) && (defined(COMPONENT_CAT1B) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)))
         if (source->block == CYHAL_CLOCK_BLOCK_PLL200)
         {
             /* As PLL200 and PLL400 has their own channels and PLL400 sits on lower PATH_MUX numbers
@@ -2109,22 +2122,22 @@ static cy_rslt_t _cyhal_clock_set_source_hf(cyhal_clock_t *clock, const cyhal_cl
         return CYHAL_CLOCK_RSLT_ERR_SOURCE;
 
     /* Only used if updating HFClk 0 */
-    uint32_t div_hf0 = (uint32_t)Cy_SysClk_ClkHfGetDivider(0);
-    uint32_t old_src_hf0 = (uint32_t)Cy_SysClk_ClkHfGetSource(0);
-    uint32_t old_freq_hf0 = Cy_SysClk_ClkPathGetFrequency(old_src_hf0) >> div_hf0;
-    uint32_t new_freq_hf0 = Cy_SysClk_ClkPathGetFrequency(new_src) >> div_hf0;
+    uint32_t div_cpu = (uint32_t)Cy_SysClk_ClkHfGetDivider(_CYHAL_CLOCK_CPU_HFCLK_IDX);
+    uint32_t old_src_cpu = (uint32_t)Cy_SysClk_ClkHfGetSource(_CYHAL_CLOCK_CPU_HFCLK_IDX);
+    uint32_t old_freq_cpu = Cy_SysClk_ClkPathGetFrequency(old_src_cpu) >> div_cpu;
+    uint32_t new_freq_cpu = Cy_SysClk_ClkPathGetFrequency(new_src) >> div_cpu;
 
-    if (0 == clock->channel)
-        _cyhal_clock_update_system_state(true, old_freq_hf0, new_freq_hf0);
+    if (_CYHAL_CLOCK_CPU_HFCLK_IDX == clock->channel)
+        _cyhal_clock_update_system_state(true, old_freq_cpu, new_freq_cpu);
 
     cy_rslt_t rslt = Cy_SysClk_ClkHfSetSource(clock->channel, (cy_en_clkhf_in_sources_t)new_src);
 
-    if (0 == clock->channel)
+    if (_CYHAL_CLOCK_CPU_HFCLK_IDX == clock->channel)
     {
         if (CY_RSLT_SUCCESS == rslt)
-            _cyhal_clock_update_system_state(false, old_freq_hf0, new_freq_hf0);
+            _cyhal_clock_update_system_state(false, old_freq_cpu, new_freq_cpu);
         else // revert the change if there was one
-            _cyhal_clock_update_system_state(false, new_freq_hf0, old_freq_hf0);
+            _cyhal_clock_update_system_state(false, new_freq_cpu, old_freq_cpu);
     }
 
     return rslt;
@@ -2142,13 +2155,13 @@ static cy_rslt_t _cyhal_clock_get_sources_lf(const cyhal_clock_t *clock, const c
     static const cyhal_resource_inst_t *_CYHAL_CLOCK_SOURCE_LF[] =
     {
 #if _CYHAL_SRSS_ILO_PRESENT
-    #if defined(COMPONENT_CAT1C)
+    #if (defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1A))
         &CYHAL_CLOCK_RSC_ILO[0],
         #if (SRSS_HT_VARIANT > 0)
         &CYHAL_CLOCK_RSC_ILO[1],
         #endif
     #else
-        &CYHAL_CLOCK_RSC_ILO,
+        &CYHAL_CLOCK_RSC_ILO[0],
     #endif
 #endif
     #if _CYHAL_SRSS_PILO_PRESENT
@@ -2178,14 +2191,14 @@ static cy_rslt_t _cyhal_clock_set_source_lf(cyhal_clock_t *clock, const cyhal_cl
 {
     CY_UNUSED_PARAMETER(clock);
     cy_rslt_t result = CY_RSLT_SUCCESS;
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     Cy_WDT_Unlock();
     #endif
     switch (source->block)
     {
 #if _CYHAL_SRSS_ILO_PRESENT
         case CYHAL_CLOCK_BLOCK_ILO:
-        #if defined(COMPONENT_CAT1C)
+        #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
             if(1 == source->channel)
             {
                 Cy_SysClk_ClkLfSetSource(CY_SYSCLK_CLKLF_IN_ILO1);
@@ -2228,7 +2241,7 @@ static cy_rslt_t _cyhal_clock_set_source_lf(cyhal_clock_t *clock, const cyhal_cl
             CY_ASSERT(false); //Unhandled clock
             result = CYHAL_CLOCK_RSLT_ERR_SOURCE;
     }
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
     Cy_WDT_Lock();
     #endif
     return result;
@@ -2319,7 +2332,11 @@ static cy_rslt_t _cyhal_clock_set_frequency_slow(cyhal_clock_t *clock, uint32_t 
     CY_UNUSED_PARAMETER(clock);
 
     uint32_t div;
+#if defined(CY_IP_M7CPUSS)
+    uint32_t input_hz = Cy_SysClk_ClkMemGetFrequency();
+#else
     uint32_t input_hz = Cy_SysClk_ClkPeriGetFrequency();
+#endif
     cy_rslt_t rslt = _cyhal_clock_compute_div((uint64_t)input_hz, hz, 8, tolerance, &div);
 
     if (CY_RSLT_SUCCESS == rslt)
@@ -2412,7 +2429,7 @@ static cy_rslt_t _cyhal_clock_get_sources_lpeco_prescaler(const cyhal_clock_t *c
 #endif
 
 // MEM
-#if defined(COMPONENT_CAT1C)
+#if defined(CY_IP_M7CPUSS)
 static cy_rslt_t _cyhal_clock_set_divider_mem(cyhal_clock_t *clock, uint32_t divider)
 {
     CY_UNUSED_PARAMETER(clock);
@@ -2486,24 +2503,22 @@ static cy_rslt_t _cyhal_clock_set_frequency_peri(cyhal_clock_t *clock, uint32_t 
     CY_UNUSED_PARAMETER(clock);
 
     uint32_t div;
-    cy_rslt_t rslt;
+    cy_rslt_t result = CYHAL_CLOCK_RSLT_ERR_RESOURCE;
 #if defined(COMPONENT_CAT1C)
     if(clock->channel == 0)
 #endif
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C)
     {
         uint32_t input_hz = Cy_SysClk_ClkHfGetFrequency(0);
-        rslt = _cyhal_clock_compute_div((uint64_t)input_hz, hz, 8, tolerance, &div);
+        result = _cyhal_clock_compute_div((uint64_t)input_hz, hz, 8, tolerance, &div);
 
-        if (CY_RSLT_SUCCESS == rslt)
+        if (CY_RSLT_SUCCESS == result)
         {
             Cy_SysClk_ClkPeriSetDivider((uint8_t)(div - 1));
             SystemCoreClockUpdate();
         }
-        return rslt;
     }
-#endif
-#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
+#elif defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
     #if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
     uint32_t input_hz = Cy_SysClk_ClkHfGetFrequency(clock->channel == 1 ? 1 : 0);
     #elif defined(COMPONENT_CAT1D)
@@ -2511,10 +2526,10 @@ static cy_rslt_t _cyhal_clock_set_frequency_peri(cyhal_clock_t *clock, uint32_t 
     uint8_t group = _CYHAL_PERIPHERAL_CLOCK_GET_GROUP(clock->block);
     uint32_t input_hz = Cy_SysClk_ClkHfGetFrequency(_cyhal_utils_get_hfclk_for_peri_group(_CYHAL_UTILS_PACK_INSTANCE_GROUP(instance, group)));
     #endif /* defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) or defined(COMPONENT_CAT1D) */
-    rslt = _cyhal_clock_compute_div((uint64_t)input_hz, hz, 8, tolerance, &div);
+    result = _cyhal_clock_compute_div((uint64_t)input_hz, hz, 8, tolerance, &div);
 
 
-    if (CY_RSLT_SUCCESS == rslt)
+    if (CY_RSLT_SUCCESS == result)
     {
         uint32_t group_num = clock->channel;
         #if defined(COMPONENT_CAT1D)
@@ -2523,8 +2538,8 @@ static cy_rslt_t _cyhal_clock_set_frequency_peri(cyhal_clock_t *clock, uint32_t 
         #endif /* defined(COMPONENT_CAT1D) or other */
         Cy_SysClk_PeriGroupSetDivider(group_num, (uint8_t)(div - 1));
     }
-    return rslt;
 #endif /* defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) */
+    return result;
 }
 static cy_rslt_t _cyhal_clock_set_divider_peri(cyhal_clock_t *clock, uint32_t divider)
 {
@@ -2552,6 +2567,7 @@ static cy_rslt_t _cyhal_clock_set_divider_peri(cyhal_clock_t *clock, uint32_t di
 }
 static cy_rslt_t _cyhal_clock_get_sources_peri(const cyhal_clock_t *clock, const cyhal_resource_inst_t **sources[], uint32_t *count)
 {
+    cy_rslt_t result = CYHAL_CLOCK_RSLT_ERR_RESOURCE;
 #if defined(COMPONENT_CAT1A)
     CY_UNUSED_PARAMETER(clock);
 #endif
@@ -2567,24 +2583,31 @@ static cy_rslt_t _cyhal_clock_get_sources_peri(const cyhal_clock_t *clock, const
 
         *sources = _CYHAL_CLOCK_SOURCE_PERI;
         *count = 1;
-        return CY_RSLT_SUCCESS;
+        result = CY_RSLT_SUCCESS;
     }
 #endif
 
-#if defined (COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
-#if !defined(COMPONENT_CAT1D)
-    uint8_t hfclk = _cyhal_utils_get_hfclk_for_peri_group(clock->channel);
-#else /* defined(COMPONENT_CAT1D) */
-    uint8_t instance = _CYHAL_PERIPHERAL_CLOCK_GET_INSTANCE(clock->block);
-    uint8_t group = _CYHAL_PERIPHERAL_CLOCK_GET_GROUP(clock->block);
-    uint8_t hfclk = _cyhal_utils_get_hfclk_for_peri_group(_CYHAL_UTILS_PACK_INSTANCE_GROUP(instance, group));
-#endif /* !defined(COMPONENT_CAT1D) or other */
-    return _cyhal_clock_get_sources_peri_peripheral(hfclk, sources, count);
+#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
+    #if defined(COMPONENT_CAT1C)
+    else
+    #endif
+    { 
+    #if !defined(COMPONENT_CAT1D)
+        uint8_t hfclk = _cyhal_utils_get_hfclk_for_peri_group(clock->channel);
+    #else /* defined(COMPONENT_CAT1D) */
+        uint8_t instance = _CYHAL_PERIPHERAL_CLOCK_GET_INSTANCE(clock->block);
+        uint8_t group = _CYHAL_PERIPHERAL_CLOCK_GET_GROUP(clock->block);
+        uint8_t hfclk = _cyhal_utils_get_hfclk_for_peri_group(_CYHAL_UTILS_PACK_INSTANCE_GROUP(instance, group));
+    #endif /* !defined(COMPONENT_CAT1D) or other */
+        result = _cyhal_clock_get_sources_peri_peripheral(hfclk, sources, count);
+    }
 #endif
+
+    return result;
 }
 
-// PUMP (only available on CAT1A and CAT1B devices)
-#if defined (COMPONENT_CAT1A) || defined (COMPONENT_CAT1B)
+/* PUMP clock is only available on CAT1A (SRSS V1) and CAT1B devices */
+#if PUMP_PRESENT
 static bool _cyhal_clock_is_enabled_pump(const cyhal_clock_t *clock)
 {
     CY_UNUSED_PARAMETER(clock);
@@ -2656,11 +2679,11 @@ static cy_rslt_t _cyhal_clock_set_source_pump(cyhal_clock_t *clock, const cyhal_
     else
         return CYHAL_CLOCK_RSLT_ERR_SOURCE;
 }
-#endif /* defined (COMPONENT_CAT1A) || defined (COMPONENT_CAT1B) */
+#endif /* (defined(COMPONENT_CAT1A) && !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))) || defined(COMPONENT_CAT1B) */
 
 // TIMER
 // TODO: Need to enable timer functionality for CAT1C once PDL team updates clk_timer API's
-#if defined(COMPONENT_CAT1A)
+#if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)
 static bool _cyhal_clock_is_enabled_timer(const cyhal_clock_t *clock)
 {
     CY_UNUSED_PARAMETER(clock);
@@ -2723,7 +2746,7 @@ static cy_rslt_t _cyhal_clock_set_source_timer(cyhal_clock_t *clock, const cyhal
     }
     return CYHAL_CLOCK_RSLT_ERR_SOURCE;
 }
-#endif
+#endif /* (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2) */
 
 // BAK
 static uint32_t _cyhal_clock_get_frequency_bak(const cyhal_clock_t *clock)
@@ -2748,10 +2771,10 @@ static cy_rslt_t _cyhal_clock_get_sources_bak(const cyhal_clock_t *clock, const 
         &CYHAL_CLOCK_RSC_WCO,
     #endif
     #if (_CYHAL_SRSS_ILO_PRESENT)
-    #if defined(COMPONENT_CAT1C)
+    #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
         &CYHAL_CLOCK_RSC_ILO[0],
     #elif defined(COMPONENT_CAT1B)
-        &CYHAL_CLOCK_RSC_ILO,
+        &CYHAL_CLOCK_RSC_ILO[0],
     #endif
     #endif
     #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
@@ -2782,7 +2805,7 @@ static cy_rslt_t _cyhal_clock_set_source_bak(cyhal_clock_t *clock, const cyhal_c
         case CYHAL_CLOCK_BLOCK_LF:
             Cy_SysClk_ClkBakSetSource(CY_SYSCLK_BAK_IN_CLKLF);
             return CY_RSLT_SUCCESS;
-#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
+#if defined(COMPONENT_CAT1B) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
         case CYHAL_CLOCK_BLOCK_ILO:
             if(1 == source->channel)
             {
@@ -2829,7 +2852,7 @@ static cy_rslt_t _cyhal_clock_get_sources_alt_sys_tick(const cyhal_clock_t *cloc
         &CYHAL_CLOCK_RSC_ECO,
     #endif
         &CYHAL_CLOCK_RSC_LF,
-#if defined(COMPONENT_CAT1A)
+#if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2))
         &CYHAL_CLOCK_RSC_TIMER, /* Technically present on CAT1B and CAT1C, but deprecated */
 #endif
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C)
@@ -2869,7 +2892,7 @@ static cy_rslt_t _cyhal_clock_set_source_alt_sys_tick(cyhal_clock_t *clock, cons
             return CY_RSLT_SUCCESS;
 #endif
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C)
-#if defined(COMPONENT_CAT1A)
+#if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2))
         case CYHAL_CLOCK_BLOCK_TIMER:
             Cy_SysTick_SetClockSource(CY_SYSTICK_CLOCK_SOURCE_CLK_TIMER);
             return CY_RSLT_SUCCESS;
@@ -2959,7 +2982,7 @@ static cy_rslt_t _cyhal_clock_set_frequency_peripheral(cyhal_clock_t *clock, uin
     // blocks 0b00 & 0b01 are integer, 0b10 & 0b11 are fractional
     uint32_t div;
 
-#if defined(COMPONENT_CAT1A)
+#if defined(CY_IP_MXPERI) && (CY_IP_MXPERI_VERSION <= 2) // CAT1A peri
     uint32_t input_hz = Cy_SysClk_ClkPeriGetFrequency();
 #elif defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
     #if defined(COMPONENT_CAT1D)
@@ -2970,7 +2993,20 @@ static cy_rslt_t _cyhal_clock_set_frequency_peripheral(cyhal_clock_t *clock, uin
     uint8_t group = _CYHAL_PERIPHERAL_GROUP_GET_GROUP(clock->block);
     uint8_t hfclk = _cyhal_utils_get_hfclk_for_peri_group(group);
     #endif /* defined(COMPONENT_CAT1D) or other */
+    #if defined(COMPONENT_CAT1C)
+    /* Peri group 0 has clk_hf0 -> clk_peri, while group 1 just has clk_hf2 */
+    uint32_t input_hz;
+    if (group == 0)
+    {
+        input_hz = Cy_SysClk_ClkHfGetFrequency(hfclk) / (1 + (uint32_t)Cy_SysClk_ClkPeriGetDivider());
+    }
+    else
+    {
+        input_hz = Cy_SysClk_ClkHfGetFrequency(hfclk);
+    }
+    #else /* !defined(COMPONENT_CAT1C) */
     uint32_t input_hz = Cy_SysClk_ClkHfGetFrequency(hfclk);
+    #endif /* defined(COMPONENT_CAT1C) */
 #endif
 
     if ((clock->block & 0x02) == 0) // Integer (8 or 16)
@@ -3017,8 +3053,9 @@ static cy_rslt_t _cyhal_clock_set_divider_peripheral(cyhal_clock_t *clock, uint3
 }
 static cy_rslt_t _cyhal_clock_get_sources_peripheral(const cyhal_clock_t *clock, const cyhal_resource_inst_t **sources[], uint32_t *count)
 {
-#if defined(COMPONENT_CAT1A)
-    return _cyhal_clock_get_sources_slow(clock, sources, count);
+    cy_rslt_t result = CYHAL_CLOCK_RSLT_ERR_RESOURCE;
+#if defined(CY_IP_MXPERI) && (CY_IP_MXPERI_VERSION <= 2) // CAT1A peri
+    result = _cyhal_clock_get_sources_slow(clock, sources, count);
 #elif defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
     #if defined(COMPONENT_CAT1D)
     uint8_t instance = _CYHAL_PERIPHERAL_CLOCK_GET_INSTANCE(clock->block);
@@ -3028,8 +3065,9 @@ static cy_rslt_t _cyhal_clock_get_sources_peripheral(const cyhal_clock_t *clock,
     uint8_t group = _CYHAL_PERIPHERAL_GROUP_GET_GROUP(clock->block);
     uint8_t hfclk = _cyhal_utils_get_hfclk_for_peri_group(group);
     #endif /* defined(COMPONENT_CAT1D) or other */
-    return _cyhal_clock_get_sources_peri_peripheral(hfclk, sources, count);
+    result = _cyhal_clock_get_sources_peri_peripheral(hfclk, sources, count);
 #endif
+    return result;
 }
 
 
@@ -3252,7 +3290,7 @@ static const cyhal_clock_funcs_t FUNCS_PLL =
 };
 #endif
 
-#if defined(COMPONENT_CAT1C)
+#if defined(COMPONENT_CAT1B) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
 #if (SRSS_NUM_PLL > 0)
 #define FUNCS_PLL200 FUNCS_PLL
 #endif
@@ -3285,7 +3323,7 @@ static const cyhal_clock_funcs_t FUNCS_LF =
 #if defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)
 static const cyhal_clock_funcs_t FUNCS_MF =
 {
-#if defined(COMPONENT_CAT1A) /* CAT1A only supports driving clk_mf from the MFO */
+#if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) /* CAT1A/SRSSv1 only supports driving clk_mf from the MFO */
     .features = (cyhal_clock_feature_t)(CYHAL_CLOCK_FEATURE_ENABLE | CYHAL_CLOCK_FEATURE_DIVIDER | CYHAL_CLOCK_FEATURE_FREQUENCY),
 #else
     .features = (cyhal_clock_feature_t)(CYHAL_CLOCK_FEATURE_ENABLE | CYHAL_CLOCK_FEATURE_DIVIDER | CYHAL_CLOCK_FEATURE_FREQUENCY | CYHAL_CLOCK_FEATURE_SOURCE),
@@ -3316,7 +3354,7 @@ static const cyhal_clock_funcs_t FUNCS_HF =
 };
 
 // PUMP clock is only available on CAT1A and CAT1B devices
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
+#if (PUMP_PRESENT)
 static const cyhal_clock_funcs_t FUNCS_PUMP =
 {
     .features = (cyhal_clock_feature_t)(CYHAL_CLOCK_FEATURE_ENABLE | CYHAL_CLOCK_FEATURE_SOURCE | CYHAL_CLOCK_FEATURE_DIVIDER),
@@ -3328,9 +3366,9 @@ static const cyhal_clock_funcs_t FUNCS_PUMP =
     .get_sources = _cyhal_clock_get_sources_pump,
     .set_source = _cyhal_clock_set_source_pump,
 };
-#endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) */
+#endif /* (PUMP_PRESENT) */
 
-#if defined(COMPONENT_CAT1A)
+#if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2))
 static const cyhal_clock_funcs_t FUNCS_TIMER =
 {
     .features = (cyhal_clock_feature_t)(CYHAL_CLOCK_FEATURE_ENABLE | CYHAL_CLOCK_FEATURE_SOURCE | CYHAL_CLOCK_FEATURE_DIVIDER),
@@ -3342,7 +3380,7 @@ static const cyhal_clock_funcs_t FUNCS_TIMER =
     .get_sources = _cyhal_clock_get_sources_timer,
     .set_source = _cyhal_clock_set_source_timer,
 };
-#endif
+#endif /* #if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) */
 
 static const cyhal_clock_funcs_t FUNCS_BAK =
 {
@@ -3525,10 +3563,10 @@ static const cyhal_clock_funcs_t* _cyhal_clock_get_funcs_all(cyhal_clock_block_t
         case CYHAL_CLOCK_BLOCK_HF:
             return &FUNCS_HF;
 // PUMP clock is only available on CAT1A and CAT1B devices
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
+#if (PUMP_PRESENT)
         case CYHAL_CLOCK_BLOCK_PUMP:
             return &FUNCS_PUMP;
-#endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) */
+#endif /* (PUMP_PRESENT) */
         case CYHAL_CLOCK_BLOCK_BAK:
             return &FUNCS_BAK;
 #if !defined(COMPONENT_CAT1D)
@@ -3537,41 +3575,43 @@ static const cyhal_clock_funcs_t* _cyhal_clock_get_funcs_all(cyhal_clock_block_t
 #endif
         case CYHAL_CLOCK_BLOCK_PERI:
             return &FUNCS_PERI;
-#if defined(COMPONENT_CAT1A)
-#if (_CYHAL_SRSS_NUM_PLL > 0)
+#if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) // CAT1A
+    #if (_CYHAL_SRSS_NUM_PLL > 0)
         case CYHAL_CLOCK_BLOCK_PLL:
             return &FUNCS_PLL;
-#endif
+    #endif
 #endif
 #if defined(COMPONENT_CAT1C)
         case CYHAL_CLOCK_BLOCK_MEM:
             return &FUNCS_MEM;
 #endif
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C)
-#if defined(COMPONENT_CAT1A)
+    #if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2))
         case CYHAL_CLOCK_BLOCK_TIMER:
             return &FUNCS_TIMER;
-#endif
+    #endif /* defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2) */
         case CYHAL_CLOCK_BLOCK_FAST:
             return &FUNCS_FAST;
         case CYHAL_CLOCK_BLOCK_SLOW:
             return &FUNCS_SLOW;
 #endif
-#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
-#if (_CYHAL_SRSS_NUM_PLL > 0)
+#if defined(COMPONENT_CAT1B) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
+    #if (SRSS_NUM_PLL > 0)
         case CYHAL_CLOCK_BLOCK_PLL200:
             return &FUNCS_PLL200;
+    #endif
+    #if (SRSS_NUM_PLL400M > 0)
         case CYHAL_CLOCK_BLOCK_PLL400:
             return &FUNCS_PLL400;
-#endif
+    #endif /* (_CYHAL_SRSS_NUM_PLL > 0) */
 #endif
 #if defined(COMPONENT_CAT1D)
-#if (_CYHAL_SRSS_NUM_PLL > 0)
+    #if (_CYHAL_SRSS_NUM_PLL > 0)
         case CYHAL_CLOCK_BLOCK_DPLL250:
             return &FUNCS_DPLL250;
         case CYHAL_CLOCK_BLOCK_DPLL500:
             return &FUNCS_DPLL500;
-#endif
+    #endif
 #endif
 #if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
         case CYHAL_CLOCK_BLOCK_IHO:
@@ -3597,7 +3637,6 @@ const cyhal_clock_t CYHAL_CLOCK_IMO = _CYHAL_CLOCK_CREATE(IMO, 0);
 #endif
 const cyhal_clock_t CYHAL_CLOCK_EXT = _CYHAL_CLOCK_CREATE(EXT, 0);
 #if _CYHAL_SRSS_ILO_PRESENT
-#if defined(COMPONENT_CAT1C)
 const cyhal_clock_t CYHAL_CLOCK_ILO[_CYHAL_SRSS_NUM_ILO] =
 {
     _CYHAL_CLOCK_CREATE(ILO, 0),
@@ -3605,17 +3644,14 @@ const cyhal_clock_t CYHAL_CLOCK_ILO[_CYHAL_SRSS_NUM_ILO] =
     _CYHAL_CLOCK_CREATE(ILO, 1),
     #endif
 };
-#else
-const cyhal_clock_t CYHAL_CLOCK_ILO = _CYHAL_CLOCK_CREATE(ILO, 0);
-#endif
 #endif
 const cyhal_clock_t CYHAL_CLOCK_LF = _CYHAL_CLOCK_CREATE(LF, 0);
 // PUMP clock is only available on CAT1A and CAT1B devices
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B)
+#if (PUMP_PRESENT)
 const cyhal_clock_t CYHAL_CLOCK_PUMP = _CYHAL_CLOCK_CREATE(PUMP, 0);
-#endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) */
+#endif /* (PUMP_PRESENT) */
 const cyhal_clock_t CYHAL_CLOCK_BAK = _CYHAL_CLOCK_CREATE(BAK, 0);
-#if !defined (COMPONENT_CAT1D)
+#if !defined(COMPONENT_CAT1D)
 const cyhal_clock_t CYHAL_CLOCK_ALT_SYS_TICK = _CYHAL_CLOCK_CREATE(ALT_SYS_TICK, 0);
 #endif
 
@@ -3757,12 +3793,16 @@ const cyhal_clock_t CYHAL_CLOCK_FAST[2] =
 const cyhal_clock_t CYHAL_CLOCK_FAST = _CYHAL_CLOCK_CREATE(FAST, 0);
 #endif
 const cyhal_clock_t CYHAL_CLOCK_SLOW = _CYHAL_CLOCK_CREATE(SLOW, 0);
+// Enable the peri clock for all CAT1A devices.
 #if defined(COMPONENT_CAT1A)
-const cyhal_clock_t CYHAL_CLOCK_PERI = _CYHAL_CLOCK_CREATE(PERI, 0);
-const cyhal_clock_t CYHAL_CLOCK_TIMER = _CYHAL_CLOCK_CREATE(TIMER, 0);
-#endif
+    const cyhal_clock_t CYHAL_CLOCK_PERI = _CYHAL_CLOCK_CREATE(PERI, 0);
+    // Enable the timer clock for all CAT1A devices other than TVBIIE
+    #if defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)
+        const cyhal_clock_t CYHAL_CLOCK_TIMER = _CYHAL_CLOCK_CREATE(TIMER, 0);
+    #endif /* defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2) */
+#endif /*defined(COMPONENT_CAT1A) */
 
-#if (_CYHAL_SRSS_NUM_PLL > 0) && defined(COMPONENT_CAT1A)
+#if (_CYHAL_SRSS_NUM_PLL > 0) && defined(COMPONENT_CAT1A) && !(defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
 const cyhal_clock_t CYHAL_CLOCK_PLL[_CYHAL_SRSS_NUM_PLL] =
 {
     _CYHAL_CLOCK_CREATE(PLL, 0),
@@ -3812,7 +3852,7 @@ const cyhal_clock_t CYHAL_CLOCK_PLL[_CYHAL_SRSS_NUM_PLL] =
 #endif
 #endif
 
-#if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
+#if defined(COMPONENT_CAT1B) || defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
 #if defined(COMPONENT_CAT1B)
 const cyhal_clock_t CYHAL_CLOCK_IHO = _CYHAL_CLOCK_CREATE(IHO, 0);
 #if SRSS_ECO_PRESENT
@@ -3823,55 +3863,57 @@ const cyhal_clock_t CYHAL_CLOCK_LPECO_PRESCALER = _CYHAL_CLOCK_CREATE(LPECO_PRES
 #endif
 #endif
 
-const cyhal_clock_t CYHAL_CLOCK_PERI[CY_PERI_GROUP_NR] =
-{
-    _CYHAL_CLOCK_CREATE(PERI, 0),
-#if (CY_PERI_GROUP_NR > 1)
-    _CYHAL_CLOCK_CREATE(PERI, 1),
-#endif
-#if (CY_PERI_GROUP_NR > 2)
-    _CYHAL_CLOCK_CREATE(PERI, 2),
-#endif
-#if (CY_PERI_GROUP_NR > 3)
-    _CYHAL_CLOCK_CREATE(PERI, 3),
-#endif
-#if (CY_PERI_GROUP_NR > 4)
-    _CYHAL_CLOCK_CREATE(PERI, 4),
-#endif
-#if (CY_PERI_GROUP_NR > 5)
-    _CYHAL_CLOCK_CREATE(PERI, 5),
-#endif
-#if (CY_PERI_GROUP_NR > 6)
-    _CYHAL_CLOCK_CREATE(PERI, 6),
-#endif
-#if (CY_PERI_GROUP_NR > 7)
-    _CYHAL_CLOCK_CREATE(PERI, 7),
-#endif
-#if (CY_PERI_GROUP_NR > 8)
-    _CYHAL_CLOCK_CREATE(PERI, 8),
-#endif
-#if (CY_PERI_GROUP_NR > 9)
-    _CYHAL_CLOCK_CREATE(PERI, 9),
-#endif
-#if (CY_PERI_GROUP_NR > 10)
-    _CYHAL_CLOCK_CREATE(PERI, 10),
-#endif
-#if (CY_PERI_GROUP_NR > 11)
-    _CYHAL_CLOCK_CREATE(PERI, 11),
-#endif
-#if (CY_PERI_GROUP_NR > 12)
-    _CYHAL_CLOCK_CREATE(PERI, 12),
-#endif
-#if (CY_PERI_GROUP_NR > 13)
-    _CYHAL_CLOCK_CREATE(PERI, 13),
-#endif
-#if (CY_PERI_GROUP_NR > 14)
-    _CYHAL_CLOCK_CREATE(PERI, 14),
-#endif
-#if (CY_PERI_GROUP_NR > 15)
-    _CYHAL_CLOCK_CREATE(PERI, 15),
-#endif
-};
+#if !defined(CY_DEVICE_TVIIBE)
+    const cyhal_clock_t CYHAL_CLOCK_PERI[CY_PERI_GROUP_NR] =
+    {
+        _CYHAL_CLOCK_CREATE(PERI, 0),
+    #if (CY_PERI_GROUP_NR > 1)
+        _CYHAL_CLOCK_CREATE(PERI, 1),
+    #endif
+    #if (CY_PERI_GROUP_NR > 2)
+        _CYHAL_CLOCK_CREATE(PERI, 2),
+    #endif
+    #if (CY_PERI_GROUP_NR > 3)
+        _CYHAL_CLOCK_CREATE(PERI, 3),
+    #endif
+    #if (CY_PERI_GROUP_NR > 4)
+        _CYHAL_CLOCK_CREATE(PERI, 4),
+    #endif
+    #if (CY_PERI_GROUP_NR > 5)
+        _CYHAL_CLOCK_CREATE(PERI, 5),
+    #endif
+    #if (CY_PERI_GROUP_NR > 6)
+        _CYHAL_CLOCK_CREATE(PERI, 6),
+    #endif
+    #if (CY_PERI_GROUP_NR > 7)
+        _CYHAL_CLOCK_CREATE(PERI, 7),
+    #endif
+    #if (CY_PERI_GROUP_NR > 8)
+        _CYHAL_CLOCK_CREATE(PERI, 8),
+    #endif
+    #if (CY_PERI_GROUP_NR > 9)
+        _CYHAL_CLOCK_CREATE(PERI, 9),
+    #endif
+    #if (CY_PERI_GROUP_NR > 10)
+        _CYHAL_CLOCK_CREATE(PERI, 10),
+    #endif
+    #if (CY_PERI_GROUP_NR > 11)
+        _CYHAL_CLOCK_CREATE(PERI, 11),
+    #endif
+    #if (CY_PERI_GROUP_NR > 12)
+        _CYHAL_CLOCK_CREATE(PERI, 12),
+    #endif
+    #if (CY_PERI_GROUP_NR > 13)
+        _CYHAL_CLOCK_CREATE(PERI, 13),
+    #endif
+    #if (CY_PERI_GROUP_NR > 14)
+        _CYHAL_CLOCK_CREATE(PERI, 14),
+    #endif
+    #if (CY_PERI_GROUP_NR > 15)
+        _CYHAL_CLOCK_CREATE(PERI, 15),
+    #endif
+    };
+#endif /* !defined(CY_DEVICE_TVIIBE) */
 
 #if (SRSS_NUM_PLL200M > 0)
 #if defined(COMPONENT_CAT1B)

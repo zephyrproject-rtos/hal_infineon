@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_sd_host.c
-* \version 2.1
+* \version 2.20
 *
 * \brief
 *  This file provides the driver code to the API for the SD Host Controller
@@ -419,6 +419,14 @@ __STATIC_INLINE cy_en_sd_host_status_t Cy_SD_Host_PollCmdLineFree(SDHC_Type cons
 __STATIC_INLINE cy_en_sd_host_status_t Cy_SD_Host_PollDataLineNotInhibit(SDHC_Type const *base);
 __STATIC_INLINE cy_en_sd_host_status_t Cy_SD_Host_PollDataLineFree(SDHC_Type const *base);
 
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
+static uint16_t clk_ctl_r;
+static uint32_t normal_mask;
+static uint32_t error_mask;
+static uint8_t ctrl1;
+static uint16_t ctrl2;
+static uint32_t gp_out;
+#endif /* (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) */
 /* High-level section */
 
 /*******************************************************************************
@@ -2954,10 +2962,10 @@ cy_en_sd_host_status_t Cy_SD_Host_Init(SDHC_Type *base,
         SDHC_CORE_HOST_CTRL2_R(base) = (uint16_t)_CLR_SET_FLD16U(SDHC_CORE_HOST_CTRL2_R(base),
                                       SDHC_CORE_HOST_CTRL2_R_HOST_VER4_ENABLE,
                                       1U);
-
+#if !(defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
         /* Wait for the Host stable voltage. */
         Cy_SysLib_Delay(CY_SD_HOST_SUPPLY_RAMP_UP_TIME_MS);
-
+#endif
         /* Reset normal events. */
         Cy_SD_Host_NormalReset(base);
     }
@@ -4981,124 +4989,137 @@ cy_en_sd_host_status_t  Cy_SD_Host_GetResponse(SDHC_Type const *base,
 cy_en_sd_host_status_t Cy_SD_Host_InitDataTransfer(SDHC_Type *base,
                                                    cy_stc_sd_host_data_config_t const *dataConfig)
 {
-    cy_en_sd_host_status_t ret = CY_SD_HOST_SUCCESS;
+    cy_en_sd_host_status_t ret = CY_SD_HOST_ERROR_TIMEOUT;
+    uint32_t               retry = CY_SD_HOST_RETRY_TIME;
     uint32_t               dmaMode;
     uint32_t               transferMode;
 
     if ((NULL != base) && (NULL != dataConfig) && (NULL != dataConfig->data))
     {
-        CY_ASSERT_L3(CY_SD_HOST_IS_AUTO_CMD_VALID(dataConfig->autoCommand));
-        CY_ASSERT_L2(CY_SD_HOST_IS_TIMEOUT_VALID(dataConfig->dataTimeout));
-        CY_ASSERT_L2(CY_SD_HOST_IS_BLK_SIZE_VALID(dataConfig->blockSize, _FLD2VAL(SDHC_CORE_HOST_CTRL2_R_UHS_MODE_SEL, SDHC_CORE_HOST_CTRL2_R(base))));
-
-        dmaMode = _FLD2VAL(SDHC_CORE_HOST_CTRL1_R_DMA_SEL, SDHC_CORE_HOST_CTRL1_R(base));
-
-        SDHC_CORE_BLOCKSIZE_R(base) = 0U;
-        SDHC_CORE_XFER_MODE_R(base) = 0U;
-
-        if (((uint32_t)CY_SD_HOST_DMA_ADMA2_ADMA3 == dmaMode) && (dataConfig->enableDma))
+        while (retry > 0UL)
         {
-            /* ADMA3 Integrated Descriptor Address. */
-            SDHC_CORE_ADMA_ID_LOW_R(base) = (uint32_t)dataConfig->data;
-        }
-        else
-        {
-            if (dataConfig->enableDma)
+            if((!_FLD2BOOL(SDHC_CORE_PSTATE_REG_DAT_LINE_ACTIVE, SDHC_CORE_PSTATE_REG(base))) && \
+                (!_FLD2BOOL(SDHC_CORE_PSTATE_REG_CMD_INHIBIT, SDHC_CORE_PSTATE_REG(base))) && \
+                (!_FLD2BOOL(SDHC_CORE_PSTATE_REG_CMD_INHIBIT_DAT, SDHC_CORE_PSTATE_REG(base))))
             {
-                /* Set the ADMA descriptor table. */
-                if ((uint32_t)CY_SD_HOST_DMA_SDMA == dmaMode)
+                CY_ASSERT_L3(CY_SD_HOST_IS_AUTO_CMD_VALID(dataConfig->autoCommand));
+                CY_ASSERT_L2(CY_SD_HOST_IS_TIMEOUT_VALID(dataConfig->dataTimeout));
+                CY_ASSERT_L2(CY_SD_HOST_IS_BLK_SIZE_VALID(dataConfig->blockSize, _FLD2VAL(SDHC_CORE_HOST_CTRL2_R_UHS_MODE_SEL, SDHC_CORE_HOST_CTRL2_R(base))));
+
+                ret = CY_SD_HOST_SUCCESS;
+                dmaMode = _FLD2VAL(SDHC_CORE_HOST_CTRL1_R_DMA_SEL, SDHC_CORE_HOST_CTRL1_R(base));
+
+                SDHC_CORE_BLOCKSIZE_R(base) = 0U;
+                SDHC_CORE_XFER_MODE_R(base) = 0U;
+
+                if (((uint32_t)CY_SD_HOST_DMA_ADMA2_ADMA3 == dmaMode) && (dataConfig->enableDma))
                 {
-                    /* Set 512K bytes SDMA Buffer Boundary. */
-                    SDHC_CORE_BLOCKSIZE_R(base) = _CLR_SET_FLD16U(SDHC_CORE_BLOCKSIZE_R(base),
-                                                  SDHC_CORE_BLOCKSIZE_R_SDMA_BUF_BDARY,
-                                                  CY_SD_HOST_SDMA_BUF_BYTES_512K);
-
-                    if (true == _FLD2BOOL(SDHC_CORE_HOST_CTRL2_R_HOST_VER4_ENABLE, SDHC_CORE_HOST_CTRL2_R(base)))
-                    {
-                        /* The data address. */
-                        SDHC_CORE_ADMA_SA_LOW_R(base) = (uint32_t)dataConfig->data;
-
-                        /* Set the block count. */
-                        SDHC_CORE_SDMASA_R(base) = dataConfig->numberOfBlock;
-                    }
-                    else
-                    {
-                        /* The data address. */
-                        SDHC_CORE_SDMASA_R(base) = (uint32_t)dataConfig->data;
-                    }
+                    /* ADMA3 Integrated Descriptor Address. */
+                    SDHC_CORE_ADMA_ID_LOW_R(base) = (uint32_t)dataConfig->data;
                 }
                 else
                 {
-                    /* The data address. */
-                    SDHC_CORE_ADMA_SA_LOW_R(base) = (uint32_t)dataConfig->data;
+                    if (dataConfig->enableDma)
+                    {
+                        /* Set the ADMA descriptor table. */
+                        if ((uint32_t)CY_SD_HOST_DMA_SDMA == dmaMode)
+                        {
+                            /* Set 512K bytes SDMA Buffer Boundary. */
+                            SDHC_CORE_BLOCKSIZE_R(base) = _CLR_SET_FLD16U(SDHC_CORE_BLOCKSIZE_R(base),
+                                                          SDHC_CORE_BLOCKSIZE_R_SDMA_BUF_BDARY,
+                                                          CY_SD_HOST_SDMA_BUF_BYTES_512K);
+
+                            if (true == _FLD2BOOL(SDHC_CORE_HOST_CTRL2_R_HOST_VER4_ENABLE, SDHC_CORE_HOST_CTRL2_R(base)))
+                            {
+                                /* The data address. */
+                                SDHC_CORE_ADMA_SA_LOW_R(base) = (uint32_t)dataConfig->data;
+
+                                /* Set the block count. */
+                                SDHC_CORE_SDMASA_R(base) = dataConfig->numberOfBlock;
+                            }
+                            else
+                            {
+                                /* The data address. */
+                                SDHC_CORE_SDMASA_R(base) = (uint32_t)dataConfig->data;
+                            }
+                        }
+                        else
+                        {
+                            /* The data address. */
+                            SDHC_CORE_ADMA_SA_LOW_R(base) = (uint32_t)dataConfig->data;
+                        }
+                    }
+                    else
+                    {
+                        /* Set the block count. */
+                        SDHC_CORE_SDMASA_R(base) = dataConfig->numberOfBlock;
+                    }
+
+                    /* Set the block size. */
+                    SDHC_CORE_BLOCKSIZE_R(base) = _CLR_SET_FLD16U(SDHC_CORE_BLOCKSIZE_R(base),
+                                                  SDHC_CORE_BLOCKSIZE_R_XFER_BLOCK_SIZE,
+                                                  dataConfig->blockSize);
+
+                    /* Set the block count. */
+                    SDHC_CORE_BLOCKCOUNT_R(base) = (uint16_t)dataConfig->numberOfBlock;
+
+
+                    /* Set a multi- or single-block transfer.*/
+                    transferMode = _BOOL2FLD(SDHC_CORE_XFER_MODE_R_MULTI_BLK_SEL, (1U < dataConfig->numberOfBlock));
+
+                    /* Set the data transfer direction. */
+                    transferMode |= _BOOL2FLD(SDHC_CORE_XFER_MODE_R_DATA_XFER_DIR, dataConfig->read);
+
+                    /* Set the block count enable. */
+                    transferMode |= SDHC_CORE_XFER_MODE_R_BLOCK_COUNT_ENABLE_Msk;
+
+                    /* Enable the DMA or not. */
+                    transferMode |= _BOOL2FLD(SDHC_CORE_XFER_MODE_R_DMA_ENABLE, dataConfig->enableDma);
+
+                    /* Set an interrupt at the block gap. */
+                    SDHC_CORE_BGAP_CTRL_R(base) = (uint8_t)_CLR_SET_FLD8U(SDHC_CORE_BGAP_CTRL_R(base),
+                                                  SDHC_CORE_BGAP_CTRL_R_INT_AT_BGAP,
+                                                  ((dataConfig->enableIntAtBlockGap) ? 1UL : 0UL));
+
+                    /* Set the data timeout (Base clock*2^27). */
+                    SDHC_CORE_TOUT_CTRL_R(base) = _CLR_SET_FLD8U(SDHC_CORE_TOUT_CTRL_R(base),
+                                                            SDHC_CORE_TOUT_CTRL_R_TOUT_CNT,
+                                                            dataConfig->dataTimeout);
+
+                    /* The reliable write setting. */
+                    if (dataConfig->enReliableWrite)
+                    {
+                        ret = Cy_SD_Host_OpsSetBlockCount(base,
+                                                          dataConfig->enReliableWrite,
+                                                          dataConfig->numberOfBlock);
+                    }
+
+                    /* The auto-command setting. */
+                    switch (dataConfig->autoCommand)
+                    {
+                        case CY_SD_HOST_AUTO_CMD_NONE:
+                            transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 0UL);
+                            break;
+                        case CY_SD_HOST_AUTO_CMD_12:
+                            transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 1UL);
+                            break;
+                        case CY_SD_HOST_AUTO_CMD_23:
+                            transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 2UL);
+                            break;
+                        case CY_SD_HOST_AUTO_CMD_AUTO:
+                            transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 3UL);
+                            break;
+                        default:
+                            ret = CY_SD_HOST_ERROR_INVALID_PARAMETER;
+                            break;
+                    }
+
+                    SDHC_CORE_XFER_MODE_R(base) = (uint16_t)transferMode;
                 }
+
+                break;
             }
-            else
-            {
-                /* Set the block count. */
-                SDHC_CORE_SDMASA_R(base) = dataConfig->numberOfBlock;
-            }
-
-            /* Set the block size. */
-            SDHC_CORE_BLOCKSIZE_R(base) = _CLR_SET_FLD16U(SDHC_CORE_BLOCKSIZE_R(base),
-                                          SDHC_CORE_BLOCKSIZE_R_XFER_BLOCK_SIZE,
-                                          dataConfig->blockSize);
-
-            /* Set the block count. */
-            SDHC_CORE_BLOCKCOUNT_R(base) = (uint16_t)dataConfig->numberOfBlock;
-
-
-            /* Set a multi- or single-block transfer.*/
-            transferMode = _BOOL2FLD(SDHC_CORE_XFER_MODE_R_MULTI_BLK_SEL, (1U < dataConfig->numberOfBlock));
-
-            /* Set the data transfer direction. */
-            transferMode |= _BOOL2FLD(SDHC_CORE_XFER_MODE_R_DATA_XFER_DIR, dataConfig->read);
-
-            /* Set the block count enable. */
-            transferMode |= SDHC_CORE_XFER_MODE_R_BLOCK_COUNT_ENABLE_Msk;
-
-            /* Enable the DMA or not. */
-            transferMode |= _BOOL2FLD(SDHC_CORE_XFER_MODE_R_DMA_ENABLE, dataConfig->enableDma);
-
-            /* Set an interrupt at the block gap. */
-            SDHC_CORE_BGAP_CTRL_R(base) = (uint8_t)_CLR_SET_FLD8U(SDHC_CORE_BGAP_CTRL_R(base),
-                                          SDHC_CORE_BGAP_CTRL_R_INT_AT_BGAP,
-                                          ((dataConfig->enableIntAtBlockGap) ? 1UL : 0UL));
-
-            /* Set the data timeout (Base clock*2^27). */
-            SDHC_CORE_TOUT_CTRL_R(base) = _CLR_SET_FLD8U(SDHC_CORE_TOUT_CTRL_R(base),
-                                                    SDHC_CORE_TOUT_CTRL_R_TOUT_CNT,
-                                                    dataConfig->dataTimeout);
-
-            /* The reliable write setting. */
-            if (dataConfig->enReliableWrite)
-            {
-                ret = Cy_SD_Host_OpsSetBlockCount(base,
-                                                  dataConfig->enReliableWrite,
-                                                  dataConfig->numberOfBlock);
-            }
-
-            /* The auto-command setting. */
-            switch (dataConfig->autoCommand)
-            {
-                case CY_SD_HOST_AUTO_CMD_NONE:
-                    transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 0UL);
-                    break;
-                case CY_SD_HOST_AUTO_CMD_12:
-                    transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 1UL);
-                    break;
-                case CY_SD_HOST_AUTO_CMD_23:
-                    transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 2UL);
-                    break;
-                case CY_SD_HOST_AUTO_CMD_AUTO:
-                    transferMode |= _VAL2FLD(SDHC_CORE_XFER_MODE_R_AUTO_CMD_ENABLE, 3UL);
-                    break;
-                default:
-                    ret = CY_SD_HOST_ERROR_INVALID_PARAMETER;
-                    break;
-            }
-
-            SDHC_CORE_XFER_MODE_R(base) = (uint16_t)transferMode;
+            retry--;
         }
     }
 
@@ -5306,7 +5327,9 @@ cy_en_syspm_status_t Cy_SD_Host_DeepSleepCallback(cy_stc_syspm_callback_params_t
 {
     cy_en_syspm_status_t ret = CY_SYSPM_FAIL;
     SDHC_Type *locBase = (SDHC_Type *) (callbackParams->base);
-
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
+    cy_stc_sd_host_context_t *locContext = (cy_stc_sd_host_context_t *) callbackParams->context;
+#endif /* (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) */
     switch(mode)
     {
         case CY_SYSPM_CHECK_READY:
@@ -5330,6 +5353,15 @@ cy_en_syspm_status_t Cy_SD_Host_DeepSleepCallback(cy_stc_syspm_callback_params_t
         case CY_SYSPM_BEFORE_TRANSITION:
         {
             /* Disable SD CLK before going to Deep Sleep mode */
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
+            clk_ctl_r = SDHC_CORE_CLK_CTRL_R(locBase);
+            normal_mask = Cy_SD_Host_GetNormalInterruptMask(locBase);
+            error_mask = Cy_SD_Host_GetErrorInterruptMask(locBase);
+            ctrl1 = SDHC_CORE_HOST_CTRL1_R(locBase);
+            ctrl2 = SDHC_CORE_HOST_CTRL2_R(locBase);
+            gp_out = SDHC_CORE_GP_OUT_R(locBase);
+
+#endif
             Cy_SD_Host_DisableSdClk(locBase);
 
             ret = CY_SYSPM_SUCCESS;
@@ -5343,8 +5375,31 @@ cy_en_syspm_status_t Cy_SD_Host_DeepSleepCallback(cy_stc_syspm_callback_params_t
 
             /* Wait for the stable CLK */
             Cy_SysLib_DelayUs(CY_SD_HOST_CLK_RAMP_UP_TIME_US_WAKEUP);
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
 
+            /* Enable the SDHC block */
+            Cy_SD_Host_Enable(locBase);
+            cy_stc_sd_host_init_config_t local_config;
+            local_config.emmc             = false;
+            local_config.dmaType          = locContext->dmaType;
+            local_config.enableLedControl = false;
+
+            cy_en_sd_host_status_t result = Cy_SD_Host_Init(locBase, &local_config, locContext);
+            if(result == CY_SD_HOST_SUCCESS)
+            {
+                ret = CY_SYSPM_SUCCESS;
+            }
+
+            SDHC_CORE_CLK_CTRL_R(locBase) = clk_ctl_r;
+
+            Cy_SD_Host_SetNormalInterruptMask(locBase, normal_mask);
+            Cy_SD_Host_SetErrorInterruptMask(locBase, error_mask);
+            SDHC_CORE_HOST_CTRL1_R(locBase) = ctrl1;
+            SDHC_CORE_HOST_CTRL2_R(locBase) = ctrl2;
+            SDHC_CORE_GP_OUT_R(locBase) = gp_out;
+#else
             ret = CY_SYSPM_SUCCESS;
+#endif /* (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) */
         }
         break;
 

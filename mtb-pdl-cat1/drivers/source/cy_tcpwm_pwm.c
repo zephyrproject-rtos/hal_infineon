@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_tcpwm_pwm.c
-* \version 1.60
+* \version 1.70
 *
 * \brief
 *  The source file of the tcpwm driver.
@@ -133,7 +133,7 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
 #else
             uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
             bool enabled_bit = _FLD2BOOL(TCPWM_GRP_CNT_V2_CTRL_ENABLED, TCPWM_GRP_CNT_CTRL(base, grp, cntNum));
-#if (CY_IP_MXTCPWM_VERSION >= 3U)
+#if defined (CY_IP_MXS40TCPWM)
             bool dithering_present = ((bool)TCPWM_GRP_DITHERING_PRESENT(grp));
 #endif
 
@@ -147,10 +147,12 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                     _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_PWM_SYNC_KILL, config->killMode) |
                     _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_PWM_DISABLE_MODE, config->pwmOnDisable) |
                     (config->immediateKill ? TCPWM_GRP_CNT_V2_CTRL_PWM_IMM_KILL_Msk : 0UL) |
-#if (CY_IP_MXTCPWM_VERSION >= 3U)
+                    (config->reloadLineSelect ? TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_LINE_SEL_Msk : 0UL) |
+#if defined (CY_IP_MXS40TCPWM)
                     _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED, config->buffer_swap_enable) |
                     _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_DITHEREN,(dithering_present ? ((uint32_t)config->dithering_mode) : 0UL)) |
-#endif
+                    _VAL2FLD(TCPWM_GRP_CNT_CTRL_KILL_LINE_POLARITY, config->kill_line_polarity) |
+#endif /* defined (CY_IP_MXS40TCPWM) */
                     (enabled_bit ? TCPWM_GRP_CNT_V2_CTRL_ENABLED_Msk : 0UL));
 
             if (CY_TCPWM_PWM_MODE_DEADTIME == config->pwmMode)
@@ -158,13 +160,20 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                 TCPWM_GRP_CNT_DT(base, grp, cntNum) =
                         (_VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_OUT_L, (uint8_t)(config->deadTimeClocks)) |
                         _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_OUT_H, (uint8_t)(config->deadTimeClocks >> 8)) |
-                        _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_COMPL_OUT, config->deadTimeClocks));
+                        _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_COMPL_OUT, config->deadTimeClocks_linecompl_out));
+#if defined (CY_IP_MXS40TCPWM)
+                TCPWM_GRP_CNT_DT_BUFF(base, grp, cntNum) =
+                        (_VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_OUT_L, (uint8_t)(config->deadTimeClocksBuff)) |
+                        _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_OUT_H, (uint8_t)(config->deadTimeClocksBuff >> 8)) |
+                        _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_COMPL_OUT, config->deadTimeClocksBuff_linecompl_out));
+#endif /* defined (CY_IP_MXS40TCPWM) */
             }
+#if !defined (CY_IP_MXS40TCPWM)
             else
             {
                  TCPWM_GRP_CNT_DT(base, grp, cntNum) = _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_OUT_L, (uint8_t)config->clockPrescaler);
             }
-
+#endif /* !defined (CY_IP_MXS40TCPWM) */
             if (CY_TCPWM_PWM_MODE_PSEUDORANDOM == config->pwmMode)
             {
                 TCPWM_GRP_CNT_COUNTER(base, grp, cntNum) = CY_TCPWM_CNT_UP_DOWN_INIT_VAL;
@@ -237,7 +246,7 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
             {
                 TCPWM_GRP_CNT_PERIOD_BUFF(base, grp, cntNum) = config->period1;
             }
-
+#if !defined (CY_IP_MXS40TCPWM)
             TCPWM_GRP_CNT_TR_IN_SEL0(base, grp, cntNum) =
                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL0_CAPTURE0_SEL, config->swapInput) |
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL0_RELOAD_SEL, config->reloadInput) |
@@ -252,7 +261,13 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_START_EDGE, config->startInputMode) |
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_STOP_EDGE, config->killInputMode) |
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_COUNT_EDGE, config->countInputMode));
-
+#else
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_START, config->startInputMode, config->startInput, config->gf_depth);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_RELOAD_OR_INDEX, config->reloadInputMode, config->reloadInput, config->gf_depth);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_STOP_OR_KILL, config->killInputMode, config->killInput, config->gf_depth);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_COUNT, config->countInputMode, config->countInput, config->gf_depth);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE0, config->swapInputMode, config->swapInput, config->gf_depth);
+#endif
             TCPWM_GRP_CNT_TR_OUT_SEL(base, grp, cntNum) =
                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_OUT_SEL_OUT0, config->trigger0Event) |
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_OUT_SEL_OUT1, config->trigger1Event));
@@ -266,10 +281,13 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
 
                 TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |=
                     (config->enableCompare1Swap ? TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_CC1_Msk : 0UL);
-
+#if !defined (CY_IP_MXS40TCPWM)
                 TCPWM_GRP_CNT_TR_IN_SEL1(base, grp, cntNum) |= _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL1_CAPTURE1_SEL, config->kill1Input);
                 TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) |=
                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_CAPTURE1_EDGE, config->kill1InputMode));
+#else
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE1, config->kill1InputMode, config->kill1Input, config->gf_depth);
+#endif
             }
 
             if(TCPWM_GRP_AMC(base, grp))
@@ -287,7 +305,29 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                     TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= CY_TCPWM_PWM_MODE_CNTR_ASYMM_CC0_CC1_MATCH;
                 }
             }
-#endif
+            TCPWM_GRP_CNT_LINE_SEL(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_OUT_SEL, config->line_out_sel) |
+                                                         _VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_COMPL_OUT_SEL, config->linecompl_out_sel));
+            TCPWM_GRP_CNT_LINE_SEL_BUFF(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_OUT_SEL, config->line_out_sel_buff) |
+                                                         _VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_COMPL_OUT_SEL, config->linecompl_out_sel_buff));
+#if defined (CY_IP_MXS40TCPWM)
+            bool hrpwm_present = ((bool)TCPWM_GRP_HRPWM_PRESENT(grp)); 
+            if(hrpwm_present)
+            {
+                if (config->hrpwm_enable)
+                {
+                    TCPWM_GRP_CNT_HRPWM_CTRL(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_HRPWM_CTRL_HRPWM_EN, 1UL) |
+                     _VAL2FLD(TCPWM_GRP_CNT_HRPWM_CTRL_FREQ_SEL, config->hrpwm_input_freq));
+                }
+            }
+            if(config->dithering_mode != CY_TCPWM_DITHERING_DISABLE)
+            {
+                TCPWM_GRP_CNT_LFSR(base, grp, cntNum)  = (_VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_PLFSR, config->period_dithering_value) |
+                                                  _VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_DLFSR, config->duty_dithering_value) |
+                                                  _VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_LIMITER, config->limiter));
+            }
+            TCPWM_GRP_CNT_PS(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_PS_PS_DIV, config->clockPrescaler));
+#endif /*defined (CY_IP_MXS40TCPWM)*/
+#endif /* (CY_IP_MXTCPWM_VERSION == 1U) */
     }
     else
     {
@@ -359,12 +399,12 @@ void Cy_TCPWM_PWM_DeInit(TCPWM_Type *base, uint32_t cntNum, cy_stc_tcpwm_pwm_con
 #endif
 }
 
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 /*******************************************************************************
-* Function Name: Cy_TCPWM_Configure_Dithering_Values_and_Mode
+* Function Name: Cy_TCPWM_PWM_Configure_Dithering
 ****************************************************************************//**
 *
-* configures group dithering. applicable only when GRP_DITHERING_PRESENT and in PWM and PWM_DT mode
+* configures dithering. applicable only when GRP_DITHERING_PRESENT and in PWM and PWM_DT mode
 *
 * \param base
 * The pointer to a TCPWM instance.
@@ -373,38 +413,47 @@ void Cy_TCPWM_PWM_DeInit(TCPWM_Type *base, uint32_t cntNum, cy_stc_tcpwm_pwm_con
 * The Counter instance number in the selected TCPWM.
 *
 * \param mode
-* Group Dithering See \ref cy_en_group_dithering_t.
+* Dithering mode See \ref cy_en_tcpwm_dithering_t .
 *
 * \param period
-* pseudo-random value for period. Magnitude of random ness to be added to period. Should be non zero value.
+* initial value for period LFSR. Should be non zero value.
 *
 * \param duty
-* pseudo-random value for CC0/CC1.  Magnitude of random ness to be added to CC0/CC1. Should be non zero value.
+* Initial value for duty LFSR. Should be non zero value.
 *
 * \param limiter
-* Group dithering limiter values \ref cy_en_dithering_limiter_t
+* Dithering limiter values. It defines the magnitude of the pseudo-random value to be added to period/CC0/CC1 \ref cy_en_dithering_limiter_t
 *
 * \return
 * Error / Status code. See cy_en_tcpwm_status_t.
+*
+*  \note When PWM alignment mode set to "asymmetric CC0 and CC1",
+*  The duty width remains the same, because the same value is added to CC0 and CC1. As LFSR is updated at tc event and both CC0 match and CC1 match happen before tc event.
 *******************************************************************************/
-cy_en_tcpwm_status_t Cy_TCPWM_Configure_Dithering_Values_and_Mode(TCPWM_Type *base, uint32_t cntNum, cy_en_group_dithering_t mode, uint8_t period, uint8_t duty, cy_en_dithering_limiter_t limiter)
+cy_en_tcpwm_status_t Cy_TCPWM_PWM_Configure_Dithering(TCPWM_Type *base, uint32_t cntNum, cy_en_tcpwm_dithering_t  mode, uint8_t period, uint8_t duty, cy_en_dithering_limiter_t limiter)
 {
+    cy_en_tcpwm_status_t status = CY_TCPWM_SUCCESS;
     uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
     bool dithering_present = ((bool)TCPWM_GRP_DITHERING_PRESENT(grp));
     if(dithering_present)
     {
         if((period == 0U) || (duty == 0U))
         {
-            return CY_TCPWM_BAD_PARAM;
+            status = CY_TCPWM_BAD_PARAM;
         }
         TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_DITHEREN, mode);
         TCPWM_GRP_CNT_LFSR(base, grp, cntNum)  = (_VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_PLFSR, period) |
                                                   _VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_DLFSR, duty) |
                                                   _VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_LIMITER, limiter));
     }
-    return CY_TCPWM_SUCCESS;
+    else
+    {
+        status = CY_TCPWM_BAD_PARAM;
+    }
+    return status;
 }
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) */
+
+#endif /* defined (CY_IP_MXS40TCPWM) */
 #if defined(__cplusplus)
 }
 #endif

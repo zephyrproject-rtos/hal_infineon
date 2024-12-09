@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ephy.h
-* \version 1.10
+* \version 1.20
 *
 * Provides an API declaration of the Ethernet Generic PHY driver
 *
@@ -55,6 +55,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.20</td>
+*     <td>Changed naming conventions as per standard.</td>
+*     <td>Code Enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.10</td>
 *     <td>Updated \ref Cy_EPHY_Configure() function and Added new macros for BMSR register.</td>
 *     <td>Bug fixes and support enhancement for 1Gbps configuration.</td>
@@ -94,7 +99,7 @@ extern "C" {
 #define CY_EPHY_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_EPHY_DRV_VERSION_MINOR       10
+#define CY_EPHY_DRV_VERSION_MINOR       20
 
 /** EPHY driver ID */
 #define CY_EPHY_ID CY_PDL_DRV_ID(0x70U)
@@ -275,16 +280,16 @@ typedef enum
 */
 
 /** PHY read handle to application */
-typedef void (*phy_read_handle)(uint32_t phyAddr, uint32_t regAddress, uint32_t *value);
+typedef void (*cy_ephy_read_handle)(uint32_t phyAddr, uint32_t regAddress, uint32_t *value);
 
 /** PHY write handle to application */
-typedef void (*phy_write_handle)(uint32_t phyAddr, uint32_t regAddress, uint32_t value);
+typedef void (*cy_ephy_write_handle)(uint32_t phyAddr, uint32_t regAddress, uint32_t value);
 
 /** This is the private data structure of EPHY. This has be instantiated by application */
 typedef struct cy_stc_ephy
 {
-    phy_read_handle fnPhyRead; /**< read handle */
-    phy_write_handle fnPhyWrite; /**< write handle */
+    cy_ephy_read_handle fnPhyRead; /**< read handle */
+    cy_ephy_write_handle fnPhyWrite; /**< write handle */
     uint32_t phyId; /**< phy ID */
     cy_en_ephy_state_t state; /**< PHY state */
     uint32_t bmcr; /**< store the BMCR value while PHY configuration */
@@ -311,7 +316,7 @@ typedef struct cy_stc_ephy_config
 */
 
 
-cy_en_ephy_status_t Cy_EPHY_Init(cy_stc_ephy_t *phy, phy_read_handle fnRead, phy_write_handle fnWrite);
+cy_en_ephy_status_t Cy_EPHY_Init(cy_stc_ephy_t *phy, cy_ephy_read_handle fnRead, cy_ephy_write_handle fnWrite);
 
 cy_en_ephy_status_t Cy_EPHY_Discover(cy_stc_ephy_t *phy);
 

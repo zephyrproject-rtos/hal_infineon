@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_aes.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides common constants and parameters
@@ -68,6 +68,9 @@ typedef struct
     /** \cond INTERNAL */
     CY_ALIGN(4) uint32_t key[CY_CRYPTOLITE_AES_MAX_KEY_SIZE_U32];
     
+    CY_ALIGN(4) uint32_t src[CY_CRYPTOLITE_AES_MAX_KEY_SIZE_U32];
+    CY_ALIGN(4) uint32_t dst[CY_CRYPTOLITE_AES_MAX_KEY_SIZE_U32];
+
     #if defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC) || defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CFB) || defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CTR)
     CY_ALIGN(4) uint32_t block0[CY_CRYPTOLITE_AES_MAX_KEY_SIZE_U32];
     #endif
@@ -81,11 +84,33 @@ typedef struct
     CY_ALIGN(4) uint32_t block3[CY_CRYPTOLITE_AES_MAX_KEY_SIZE_U32];
     #endif
 
+    CY_ALIGN(4) uint8_t unProcessedData[CY_CRYPTOLITE_AES_BLOCK_SIZE];
+    CY_ALIGN(4) uint8_t iv[CY_CRYPTOLITE_AES_BLOCK_SIZE];
+
+    #if defined (CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC)
+    CY_ALIGN(4) uint8_t temp[CY_CRYPTOLITE_AES_BLOCK_SIZE];
+    #endif
+
     /*Assigned dummy byte for the 4 byte alignment*/
     CY_ALIGN(4) uint32_t dummy[1u]; 
     /** \endcond */
 } cy_stc_cryptolite_aes_buffers_t;
 
+
+
+
+/* The structure to define used memory buffers */
+typedef struct
+{
+    /** \cond INTERNAL */
+    cy_stc_cryptolite_aes_buffers_t aesCbcMac_buffer;
+    cy_stc_cryptolite_aes_buffers_t aesCtr_buffer;
+    CY_ALIGN(4) uint8_t temp_buffer[CY_CRYPTOLITE_AES_BLOCK_SIZE];
+    CY_ALIGN(4) uint8_t ctr[CY_CRYPTOLITE_AES_BLOCK_SIZE];
+    CY_ALIGN(4) uint8_t y[CY_CRYPTOLITE_AES_BLOCK_SIZE];
+
+    /** \endcond */
+} cy_stc_cryptolite_aes_ccm_buffers_t;
 
 /** \cond INTERNAL */
 /** The cryptolite AES128 IP descriptor structure.
@@ -115,8 +140,50 @@ typedef struct
     cy_stc_cryptolite_aes_buffers_t *buffers;
     /** Operation data descriptors */
     cy_stc_cryptolite_aes_descr_t message_encrypt_struct;
+    /** AES unprocessed message block*/
+    uint32_t unProcessedBytes;
+    /** AES ivSize*/
+    uint16_t ivSize;
+    /** Is MAC*/
+    bool isMac;
+    /** AES mode*/
+    cy_en_cryptolite_dir_mode_t dirMode;
     /** \endcond */
 } cy_stc_cryptolite_aes_state_t;
+
+typedef struct
+{
+    /** \cond INTERNAL */
+    /** AES state data */
+    cy_en_cryptolite_dir_mode_t dirMode;
+    /** Pointer to AES work buffers */
+    cy_stc_cryptolite_aes_state_t aesCbcMacState;
+    /** Operation data descriptors */
+    cy_stc_cryptolite_aes_state_t aesCtrState;
+    /** pointer to temp buffer */
+    uint8_t *temp;
+    /** pointer to ctr buffer */
+    uint8_t *ctr;
+    /** pointer to y buffer */
+    uint8_t *y;        
+    /** Length field Size*/
+    uint32_t L;
+    /** Total text size*/
+    uint32_t textLength;
+    /** Total AAD size*/
+    uint32_t aadLength;
+    /** Total tag size*/
+    uint8_t tagLength;
+    /** AAD size processed*/
+    uint32_t aadLengthProcessed;
+    /** AAD processed flag*/
+    bool isAadProcessed;
+    /** IV set flag*/
+    bool isIvSet;
+    /** Length Set flag*/
+    bool isLengthSet;
+    /** \endcond */
+} cy_stc_cryptolite_aes_ccm_state_t;
 
 /** \} group_cryptolite_data_structures */
 
@@ -131,7 +198,6 @@ typedef struct
 ****************************************************************************//**
 *
 * Performs the AES block cipher.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -161,7 +227,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_ProcessBlock(CRYPTOLITE_Type *base,
 ****************************************************************************//**
 *
 * Sets AES key and the buffers.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -192,7 +257,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Init(CRYPTOLITE_Type *base,
 ****************************************************************************//**
 *
 * Clears AES operation context.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -214,7 +278,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Free(CRYPTOLITE_Type *base, cy_stc_c
 ****************************************************************************//**
 *
 * Performs an AES operation on one block.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -242,13 +305,91 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ecb(CRYPTOLITE_Type *base,
                                             cy_stc_cryptolite_aes_state_t *aesState);
 
 
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Ecb_Setup
+****************************************************************************//**
+*
+* Performs an AES ECB setup operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+******************************************************************************/
+
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ecb_Setup(CRYPTOLITE_Type *base,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Ecb_Update
+****************************************************************************//**
+*
+* Performs an AES ECB Multistage update operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param dstLength
+* The size of the calculated cipher block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ecb_Update(CRYPTOLITE_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t *dst,
+                                            uint8_t const *src,
+                                            uint32_t *dstLength,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Ecb_Finish
+****************************************************************************//**
+*
+* Performs an AES ECB finish operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ecb_Finish(CRYPTOLITE_Type *base, cy_stc_cryptolite_aes_state_t *aesState);
+
+
 #if defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC)
 /*******************************************************************************
 * Function Name: Cy_Cryptolite_Aes_Cbc
 ****************************************************************************//**
 *
 * Performs AES operation on a plain text with Cipher Block Chaining (CBC).
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -283,6 +424,183 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cbc(CRYPTOLITE_Type *base,
                                             cy_stc_cryptolite_aes_state_t *aesState);
 
 
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cbc_Setup
+****************************************************************************//**
+*
+* Performs an AES CBC setup operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cbc_Setup(CRYPTOLITE_Type *base,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cbc_Set_IV
+****************************************************************************//**
+*
+* Function to set AES CBC IV.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param iv
+* The pointer to the IV.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                            
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cbc_Set_IV(CRYPTOLITE_Type *base,
+                                            uint8_t const * iv,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cbc_Update
+****************************************************************************//**
+*
+* Performs an AES CBC Multistage update operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param dstLength
+* The size of the calculated dst block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cbc_Update(CRYPTOLITE_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t *dst,
+                                            uint8_t const *src,
+                                            uint32_t *dstLength,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cbc_Finish
+****************************************************************************//**
+*
+* Performs an AES CBC finish operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                            
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cbc_Finish(CRYPTOLITE_Type *base, cy_stc_cryptolite_aes_state_t *aesState);
+
+
+
+#if defined(CY_CRYPTOLITE_CFG_CBC_MAC_C)
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_CbcMac_Setup
+****************************************************************************//**
+*
+* Performs an AES CBC MAC setup operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_CbcMac_Setup(CRYPTOLITE_Type *base,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_CbcMac_Update
+****************************************************************************//**
+*
+* Performs an AES CBC MAC Multistage update operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                            
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_CbcMac_Update(CRYPTOLITE_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t const *src,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_CbcMac_Finish
+****************************************************************************//**
+*
+* Performs an AES CBC MAC finish operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param mac
+* The pointer to store the calculated mac.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                            
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_CbcMac_Finish(CRYPTOLITE_Type *base, uint8_t * mac, cy_stc_cryptolite_aes_state_t *aesState);                                                                                 
+#endif /*CY_CRYPTOLITE_CFG_CBC_MAC_C*/
+
 #endif /*CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC*/
 
 
@@ -293,7 +611,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cbc(CRYPTOLITE_Type *base,
 ********************************************************************************//**
 *
 * Performs AES operation on a plain text with the Cipher Feedback Block method (CFB).
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -330,6 +647,110 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cfb(CRYPTOLITE_Type *base,
                                              uint8_t *dst,
                                              uint8_t const *src,
                                              cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cfb_Setup
+****************************************************************************//**
+*
+* Performs an AES CFB setup operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param dirMode
+* Can be \ref CY_CRYPTOLITE_ENCRYPT or \ref CY_CRYPTO_DECRYPT
+* (\ref cy_en_cryptolite_dir_mode_t).
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                             
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cfb_Setup(CRYPTOLITE_Type *base,
+                                            cy_en_cryptolite_dir_mode_t dirMode,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cfb_Set_IV
+****************************************************************************//**
+*
+* Sets IV for AES CFB mode.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param iv
+* The pointer to iv.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                            
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cfb_Set_IV(CRYPTOLITE_Type *base,
+                                            uint8_t const * iv,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cfb_Update
+****************************************************************************//**
+*
+* Performs an AES CFB Multistage update operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                            
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cfb_Update(CRYPTOLITE_Type *base,
+                                             uint32_t srcSize,
+                                             uint8_t *dst,
+                                             uint8_t const *src,
+                                             cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Cfb_Finish
+****************************************************************************//**
+*
+* Performs an AES CFB finish operation.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                             
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cfb_Finish(CRYPTOLITE_Type *base, cy_stc_cryptolite_aes_state_t *aesState);
+
 #endif /*CY_CRYPTOLITE_CFG_CIPHER_MODE_CFB*/
 
 
@@ -339,7 +760,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cfb(CRYPTOLITE_Type *base,
 ********************************************************************************//**
 *
 * Performs an AES operation on a plain text using the counter method (CTR).
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -378,13 +798,108 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ctr(CRYPTOLITE_Type *base,
                                             uint8_t  const *src,
                                             cy_stc_cryptolite_aes_state_t *aesState);
 
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Ctr_Setup
+****************************************************************************//**
+*
+* Performs an AES CTR setup operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ctr_Setup(CRYPTOLITE_Type *base,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Ctr_Set_IV
+****************************************************************************//**
+*
+* Sets IV for the AES CTR operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param iv
+* The pointer to iv.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/                                            
+
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ctr_Set_IV(CRYPTOLITE_Type *base,
+                                            const uint8_t *iv,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Ctr_Update
+****************************************************************************//**
+*
+* Performs an AES CTR Multistage update operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param srcSize
+* The size of the source block.
+*
+* \param dst
+* The pointer to a destination cipher block.
+*
+* \param src
+* The pointer to a source block.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ctr_Update(CRYPTOLITE_Type *base,
+                                            uint32_t srcSize,
+                                            uint8_t *dst,
+                                            uint8_t const *src,
+                                            cy_stc_cryptolite_aes_state_t *aesState);
+
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_Aes_Ctr_Finish
+****************************************************************************//**
+*
+* Performs an AES CTR Finish operation.
+*
+* \param base
+* The pointer to the CRYPTOLITE instance.
+*
+* \param aesState
+* The pointer to the AES state structure allocated by the user. The user
+* must not modify anything in this structure.
+*
+* \return
+* \ref cy_en_cryptolite_status_t
+*
+*******************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ctr_Finish(CRYPTOLITE_Type *base, cy_stc_cryptolite_aes_state_t *aesState);
 
 /*******************************************************************************
 * Function Name: Cy_Cryptolite_Aes_Ctr_Zeropad
 ********************************************************************************//**
 *
 * Performs an AES operation on a plain text using the counter method (CTR).
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.

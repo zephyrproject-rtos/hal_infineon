@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -27,7 +27,7 @@
 #include "cy_device_headers.h"
 #include "cyhal_hw_types.h"
 
-#if defined(_GPIO_CYW20829B0_40_QFN_H_)
+#if defined(_GPIO_CYW20829_40_QFN_H_)
 #include "pin_packages/cyhal_cyw20829_40_qfn.h"
 
 /* Pin connections */

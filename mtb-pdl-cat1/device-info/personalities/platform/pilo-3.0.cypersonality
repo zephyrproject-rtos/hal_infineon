@@ -49,6 +49,7 @@
   <ConfigFirmware>
     <ConfigInclude value="cy_sysclk.h" include="true" />
     <ConfigDefine name="CY_CFG_SYSCLK_PILO_ENABLED" value="1" public="false" include="true" />
-    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_PiloInit()" body="    Cy_SysClk_PiloEnable();" public="false" include="true"  />
+    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_PiloInit()" body="    Cy_SysClk_PiloEnable();&#xA;&#xA;    if(!Cy_SysClk_PiloOkay())&#xA;    {&#xA;        Cy_SysPm_TriggerXRes();&#xA;    }" public="false" include="`${(&quot;mxs40ssrss&quot; eq getIpBlockName())}`" />
+	<ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_PiloInit()" body="    Cy_SysClk_PiloEnable();" public="false" include="`${(&quot;mxs40srss&quot; eq getIpBlockName()) || (&quot;mxs22srss&quot; eq getIpBlockName())}`"/>
   </ConfigFirmware>
 </Personality>

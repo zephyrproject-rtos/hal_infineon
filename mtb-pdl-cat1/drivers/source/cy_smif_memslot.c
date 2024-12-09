@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smif_memslot.c
-* \version 2.60
+* \version 2.100
 *
 * \brief
 *  This file provides the source code for the memory-level APIs of the SMIF driver.
@@ -27,7 +27,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSMIF)
+#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION <= 5)
 
 #include "cy_smif_memslot.h"
 #include "cy_gpio.h"
@@ -47,11 +47,6 @@ extern "C" {
 #define TIMEOUT_SLICE_DIV           (4U)           /* The division factor to use for slicing the timeout
                                                     * while polling the memory
                                                     */
-#if (CY_IP_MXSMIF_VERSION>=2)
-static cy_en_smif_status_t cy_smif_octalddrenable(SMIF_Type *base,
-                                    cy_stc_smif_mem_config_t const *memDevice,
-                                    cy_stc_smif_context_t const *context);
-#endif
 /** \endcond */
 
 /*******************************************************************************
@@ -131,6 +126,19 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
                 context->flags = memCfg->flags;
                 #endif /* (CY_IP_MXSMIF_VERSION>=2) */
 
+                /* Before SFDP Enumeration, configure SMIF dedicated Clock and RWDS lines */
+#if (CY_IP_MXSMIF_VERSION >= 5)
+                SMIF_CLK_HSIOM(base) = ((uint32_t)(HSIOM_SEL_ACT_15)) | (((uint32_t)HSIOM_SEL_ACT_15) << 8U);
+                SMIF_RWDS_HSIOM(base) = (uint32_t)HSIOM_SEL_ACT_15;
+                SMIF_CLK_DRIVEMODE(base) = CY_GPIO_DM_STRONG | (CY_GPIO_DM_STRONG << 4U);
+                SMIF_RWDS_DRIVEMODE(base) = CY_GPIO_DM_PULLDOWN;
+
+                /* DRIVE Strength kept as full for initial bring up.
+                   In case of power consumption impact we have to optimize this setting */
+                SMIF_CLK_DRIVE_STRENGTH(base) = ((CY_GPIO_DRIVE_FULL) | (CY_GPIO_DRIVE_FULL << 8U));
+                SMIF_RWDS_DRIVE_STRENGTH(base) = CY_GPIO_DRIVE_FULL;
+#endif
+
                 /* SPI(deviceCfg) and Hyperbus(hbdeviceCfg) are mutually exclusive and if both are initialized, priority would be for SPI(deviceCfg) */
                 if(memCfg->deviceCfg != NULL)
                 {
@@ -142,14 +150,6 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
                         SMIF_DEVICE_CTL(device)  = _CLR_SET_FLD32U(SMIF_DEVICE_CTL(device),
                                                                    SMIF_DEVICE_CTL_DATA_SEL,
                                                                   (uint32_t)memCfg->dataSelect);
-
-                        /* Before SFDP Enumeration, configure SMIF dedicated Clock and RWDS lines */
-                        #if (CY_IP_MXSMIF_VERSION >= 5)
-                        SMIF_CLK_HSIOM(base) = ((uint32_t)(HSIOM_SEL_ACT_15)) | (((uint32_t)HSIOM_SEL_ACT_15) << 8U);
-                        SMIF_RWDS_HSIOM(base) = (uint32_t)HSIOM_SEL_ACT_15;
-                        SMIF_CLK_DRIVEMODE(base) = CY_GPIO_DM_STRONG | (CY_GPIO_DM_STRONG << 4U);
-                        SMIF_RWDS_DRIVEMODE(base) = CY_GPIO_DM_PULLDOWN;
-                        #endif
 
                         uint32_t sfdpRet = (uint32_t)CY_SMIF_SUCCESS;
                         if (0U != (memCfg->flags & CY_SMIF_FLAG_DETECT_SFDP))
@@ -181,6 +181,18 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
     #if(CY_IP_MXSMIF_VERSION>=2)
                             context->preXIPDataRate = memCfg->deviceCfg->readCmd->dataRate;
     #endif /* CY_IP_MXSMIF_VERSION */
+    #if (CY_IP_MXSMIF_VERSION >= 4)
+                            if (context->preXIPDataRate == CY_SMIF_DDR)
+                            {
+                                SMIF_DEVICE_RX_CAPTURE_CONFIG(device) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_DDR_PIPELINE_POS_DAT, 1U) |
+                                                                         _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_DDR_SWAP_BYTES, 1U);
+                            }
+                            /* DDR_PIPELINE_POS_DAT should be SET for RX Capture mode xSPI */
+                            if (_FLD2VAL(SMIF_CORE_CTL2_RX_CAPTURE_MODE, (SMIF_CTL2(base))) == (uint32_t)CY_SMIF_SEL_XSPI_HYPERBUS_WITH_DQS)
+                            {
+                                SMIF_DEVICE_RX_CAPTURE_CONFIG(device) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_DDR_PIPELINE_POS_DAT, 1U);
+                            }
+    #endif
 
                             /* The device control register initialization */
                             SMIF_DEVICE_CTL(device) = _VAL2FLD(SMIF_DEVICE_CTL_WR_EN, ((bool)(memCfg->flags & CY_SMIF_FLAG_WRITE_ENABLE))? 1U : 0U) |
@@ -644,75 +656,10 @@ cy_en_smif_status_t Cy_SMIF_MemOctalEnable(SMIF_Type *base,
 
     if (dataRate == CY_SMIF_DDR)
     {
-        return cy_smif_octalddrenable(base, memDevice, context);
-    }
-    /* Check that command exists */
-    if((NULL != device->readStsRegOeCmd)  &&
-       (NULL != device->writeStsRegOeCmd))
-    {
-        uint8_t readOeCmd  = (uint8_t)device->readStsRegOeCmd->command;
-        uint8_t writeOeCmd = (uint8_t)device->writeStsRegOeCmd->command;
-        uint8_t octalEnableAddr[5] = {0U};
+        cy_stc_smif_octal_ddr_en_seq_t* oDDREnSeq = device->octalDDREnableSeq;
 
-        if (device->octalEnableRegAddr != CY_SMIF_NO_COMMAND_OR_MODE)
-        {
-            result = ReadAnyReg(base, memDevice->slaveSelect, &octalEnableAddr[4],
-                                    readOeCmd, 0, (uint8_t *)&device->octalEnableRegAddr,
-                                    4, context);
-
-            if (CY_SMIF_SUCCESS == result)
-            {
-                uint32_t oeMask = device->stsRegOctalEnableMask;
-
-                octalEnableAddr[4] |= (uint8_t)oeMask;
-
-                /* The Write Enable */
-                result =  Cy_SMIF_MemCmdWriteEnable(base, memDevice, context);
-
-                /* The Write Status */
-                if (CY_SMIF_SUCCESS == result)
-                {
-                    octalEnableAddr[3] = (uint8_t) device->octalEnableRegAddr; /* only 8 bits are valid as per SFDP spec */
-
-                    result = Cy_SMIF_TransmitCommand( base, writeOeCmd, CY_SMIF_WIDTH_SINGLE,
-                                (uint8_t const *)octalEnableAddr, 5, CY_SMIF_WIDTH_SINGLE,
-                                memDevice->slaveSelect, CY_SMIF_TX_LAST_BYTE, context);
-                }
-            }
-        }
-        else
-        {
-            uint8_t statusReg = 0;
-            result = Cy_SMIF_MemCmdReadStatus(base, memDevice, &statusReg,
-                        readOeCmd, context);
-            if (CY_SMIF_SUCCESS == result)
-            {
-                uint32_t oeMask = device->stsRegOctalEnableMask;
-
-                statusReg |= (uint8_t)oeMask;
-                result = Cy_SMIF_MemCmdWriteStatus(base, memDevice,
-                             &statusReg, writeOeCmd, context);
-            }
-        }
-    }
-
-    return(result);
-}
-#endif
-#if (CY_IP_MXSMIF_VERSION>=2)
-static cy_en_smif_status_t cy_smif_octalddrenable(SMIF_Type *base,
-                                    cy_stc_smif_mem_config_t const *memDevice,
-                                    cy_stc_smif_context_t const *context)
-{
-    cy_en_smif_status_t result= CY_SMIF_CMD_NOT_FOUND;
-    cy_stc_smif_mem_device_cfg_t* device =  memDevice->deviceCfg;
-    cy_stc_smif_octal_ddr_en_seq_t* oDDREnSeq = device->octalDDREnableSeq;
-
-    /* Check that command exists */
-    if ((oDDREnSeq != NULL) && (base != NULL) && (context != NULL))
-    {
         /* Send Command Sequence 1 */
-        if (oDDREnSeq->cmdSeq1Len > 0U)
+        if ((oDDREnSeq != NULL) && (oDDREnSeq->cmdSeq1Len > 0U))
         {
             result = Cy_SMIF_TransmitCommand( base, oDDREnSeq->cmdSeq1[0], CY_SMIF_WIDTH_SINGLE,
                         (uint8_t const *)&oDDREnSeq->cmdSeq1[1U],
@@ -720,68 +667,73 @@ static cy_en_smif_status_t cy_smif_octalddrenable(SMIF_Type *base,
                         memDevice->slaveSelect, CY_SMIF_TX_LAST_BYTE, context);
         }
         /* Send Command Sequence 2 */
-        if (oDDREnSeq->cmdSeq2Len > 0U)
+        if ((oDDREnSeq != NULL) && (oDDREnSeq->cmdSeq2Len > 0U))
         {
             result = Cy_SMIF_TransmitCommand( base, oDDREnSeq->cmdSeq2[0], CY_SMIF_WIDTH_SINGLE,
                         (uint8_t const *)&oDDREnSeq->cmdSeq2[1U],
                         ((uint32_t)oDDREnSeq->cmdSeq2Len - 1U), CY_SMIF_WIDTH_SINGLE,
                         memDevice->slaveSelect, CY_SMIF_TX_LAST_BYTE, context);
         }
-
-#if (CY_IP_MXSMIF_VERSION>=5)
-        /* Set the clock to xSPI mode */
-        Cy_SMIF_SetRxCaptureMode(base, CY_SMIF_SEL_XSPI_HYPERBUS_WITH_DQS);
-#endif
-
-        /* Change Write Enable to 16-bit Octal DDR */
-        device->writeEnCmd->commandH = CY_SMIF_WRITE_ENABLE_CMD;
-        device->writeEnCmd->cmdRate = CY_SMIF_DDR;
-        device->writeEnCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
-        device->writeEnCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
-
-        /* Change Write Disable to 16-bit Octal DDR*/
-        device->writeDisCmd->commandH = CY_SMIF_WRITE_ENABLE_CMD;
-        device->writeDisCmd->cmdRate = CY_SMIF_DDR;
-        device->writeDisCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
-        device->writeDisCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
-
-        /* Change Read WIP status register to 16-bit Octal DDR */
-        device->readStsRegWipCmd->commandH = CY_SMIF_READ_STATUS_REG1_CMD;
-        device->readStsRegWipCmd->cmdRate = CY_SMIF_DDR;
-        device->readStsRegWipCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
-        device->readStsRegWipCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
-        device->readStsRegWipCmd->addrRate = CY_SMIF_DDR;
-        device->readStsRegWipCmd->addrWidth = CY_SMIF_WIDTH_OCTAL;
-        device->readStsRegWipCmd->dummyCycles= 3;
-        device->readStsRegWipCmd->dummyCyclesPresence = CY_SMIF_PRESENT_2BYTE;
-
-        /* Change Chip Erase command to 16-bit Octal DDR */
-        device->chipEraseCmd->commandH = CY_SMIF_CHIP_ERASE_CMD;
-        device->chipEraseCmd->cmdRate = CY_SMIF_DDR;
-        device->chipEraseCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
-        device->chipEraseCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
-
-        /* Change Chip Erase command to 16-bit Octal DDR */
-        device->eraseCmd->commandH = CY_SMIF_CHIP_ERASE_CMD;
-        device->eraseCmd->cmdRate = CY_SMIF_DDR;
-        device->eraseCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
-        device->eraseCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
-        device->eraseCmd->addrRate = CY_SMIF_DDR;
-        device->eraseCmd->addrWidth = CY_SMIF_WIDTH_OCTAL;
-
-        /* Change Program command to 16-bit Octal DDR */
-        device->programCmd->commandH = device->programCmd->command;
-        device->programCmd->cmdRate = CY_SMIF_DDR;
-        device->programCmd->cmdWidth = CY_SMIF_WIDTH_OCTAL;
-        device->programCmd->cmdPresence = CY_SMIF_PRESENT_2BYTE;
-        device->programCmd->addrRate = CY_SMIF_DDR;
-        device->programCmd->addrWidth = CY_SMIF_WIDTH_OCTAL;
-        device->programCmd->dataRate = CY_SMIF_DDR;
-        device->programCmd->dataWidth = CY_SMIF_WIDTH_OCTAL;
     }
-    return(result);
+    else
+    {
+        /* Check that command exists */
+        if((NULL != device->readStsRegOeCmd)  &&
+           (NULL != device->writeStsRegOeCmd))
+        {
+            uint8_t readOeCmd  = (uint8_t)device->readStsRegOeCmd->command;
+            uint8_t writeOeCmd = (uint8_t)device->writeStsRegOeCmd->command;
+            uint8_t writeEnCmd = (uint8_t)device->writeEnCmd->command;
+            uint8_t octalEnableAddr[CY_SMIF_SFDP_ADDRESS_LENGTH + 1u] = {0U};
+
+            ValueToByteArray(device->octalEnableRegAddr, octalEnableAddr, 0u, CY_SMIF_SFDP_ADDRESS_LENGTH);
+
+            if (device->octalEnableRegAddr != CY_SMIF_NO_COMMAND_OR_MODE)
+            {
+                result = ReadAnyReg(base, memDevice->slaveSelect, &octalEnableAddr[CY_SMIF_SFDP_ADDRESS_LENGTH],
+                                        readOeCmd, 0, octalEnableAddr,
+                                        CY_SMIF_SFDP_ADDRESS_LENGTH, context);
+
+                if (CY_SMIF_SUCCESS == result)
+                {
+                    uint32_t oeMask = device->stsRegOctalEnableMask;
+
+                    octalEnableAddr[CY_SMIF_SFDP_ADDRESS_LENGTH] |= (uint8_t)oeMask;
+
+                    /* The Write Enable */
+                    result = Cy_SMIF_TransmitCommand(base, writeEnCmd,
+                                CY_SMIF_WIDTH_SINGLE, NULL, 0U, CY_SMIF_WIDTH_SINGLE,
+                                memDevice->slaveSelect, CY_SMIF_TX_LAST_BYTE, context);
+
+                    /* The Write Status */
+                    if (CY_SMIF_SUCCESS == result)
+                    {
+                        result = Cy_SMIF_TransmitCommand( base, writeOeCmd, CY_SMIF_WIDTH_SINGLE,
+                                    (uint8_t const *)octalEnableAddr, sizeof(octalEnableAddr), CY_SMIF_WIDTH_SINGLE,
+                                    memDevice->slaveSelect, CY_SMIF_TX_LAST_BYTE, context);
+                    }
+                }
+            }
+            else
+            {
+                uint8_t statusReg = 0;
+                result = Cy_SMIF_MemCmdReadStatus(base, memDevice, &statusReg,
+                            readOeCmd, context);
+                if (CY_SMIF_SUCCESS == result)
+                {
+                    uint32_t oeMask = device->stsRegOctalEnableMask;
+
+                    statusReg |= (uint8_t)oeMask;
+                    result = Cy_SMIF_MemCmdWriteStatus(base, memDevice,
+                                 &statusReg, writeOeCmd, context);
+                }
+            }
+        }
+    }
+    return (result);
 }
 #endif
+
 /*******************************************************************************
 * Function Name: Cy_SMIF_MemCmdReadStatus
 ****************************************************************************//**
@@ -1380,7 +1332,7 @@ void Cy_SMIF_SetReadyPollingDelay(uint16_t pollTimeoutUs,
 {
     CY_ASSERT_L1(NULL != context);
 
-    context->memReadyPollDealy = pollTimeoutUs;
+    context->memReadyPollDelay = pollTimeoutUs;
 }
 
 /*******************************************************************************
@@ -1422,11 +1374,11 @@ cy_en_smif_status_t Cy_SMIF_MemIsReady(SMIF_Type *base, cy_stc_smif_mem_config_t
 
     CY_ASSERT_L1(NULL != context);
 
-    if (context->memReadyPollDealy > 0U)
+    if (context->memReadyPollDelay > 0U)
     {    
         if (isBusy)
         {
-            uint16_t pollingDelay = (timeoutUs > context->memReadyPollDealy) ? context->memReadyPollDealy : (uint16_t)timeoutUs;
+            uint16_t pollingDelay = (timeoutUs > context->memReadyPollDelay) ? context->memReadyPollDelay : (uint16_t)timeoutUs;
             do
             {
                 /* Avoid using weak function if XIP is enabled */
@@ -1620,7 +1572,7 @@ cy_en_smif_status_t Cy_SMIF_MemEnableQuadMode(SMIF_Type *base, cy_stc_smif_mem_c
 * The address to read data from.
 *
 * \param rxBuffer
-* The buffer for storing the read data.
+* The buffer for storing the read data. In case of Octal DDR, address must be an even address.
 *
 * \param length
 * The size of data to read.
@@ -1701,7 +1653,25 @@ cy_en_smif_status_t Cy_SMIF_MemRead(SMIF_Type *base, cy_stc_smif_mem_config_t co
 
             if((CY_SMIF_SUCCESS == status) && (0U < cmdRead->dummyCycles))
             {
-                status = Cy_SMIF_SendDummyCycles_Ext(base, cmdRead->dataWidth, cmdRead->dataRate, cmdRead->dummyCycles);
+#if ((CY_IP_MXSMIF_VERSION==2) || (CY_IP_MXSMIF_VERSION==3))
+                    uint32_t ifRxSel = _FLD2VAL(SMIF_CTL_CLOCK_IF_RX_SEL, SMIF_CTL(base));
+
+                    if(ifRxSel == (uint32_t)CY_SMIF_SEL_SPHB_RWDS_CLK || ifRxSel == (uint32_t)CY_SMIF_SEL_INVERTED_SPHB_RWDS_CLK)
+                    {
+                        status = Cy_SMIF_SendDummyCycles_With_RWDS(base, true, (cmdRead->dummyCyclesPresence == CY_SMIF_PRESENT_2BYTE), cmdRead->dummyCycles);
+                    }
+                    else
+#endif
+#if (CY_IP_MXSMIF_VERSION >= 4)
+                    if (_FLD2VAL(SMIF_CORE_CTL2_RX_CAPTURE_MODE, (SMIF_CTL2(base))) == (uint32_t)CY_SMIF_SEL_XSPI_HYPERBUS_WITH_DQS)
+                    {
+                        status = Cy_SMIF_SendDummyCycles_With_RWDS(base, true, (cmdRead->dummyCyclesPresence == CY_SMIF_PRESENT_2BYTE), cmdRead->dummyCycles);
+                    }
+                    else
+#endif
+                    {
+                        status = Cy_SMIF_SendDummyCycles_Ext(base, cmdRead->dataWidth, cmdRead->dataRate, cmdRead->dummyCycles);
+                    }
             }
 
             if(CY_SMIF_SUCCESS == status)
@@ -1788,7 +1758,7 @@ cy_en_smif_status_t Cy_SMIF_MemRead(SMIF_Type *base, cy_stc_smif_mem_config_t co
 * The memory device configuration.
 *
 * \param address
-* The address to write data at.
+* The address to write data at. In case of Octal DDR, address must be an even address.
 *
 * \param txBuffer
 * The buffer holding the data to write in the external memory.
@@ -1872,7 +1842,25 @@ cy_en_smif_status_t Cy_SMIF_MemWrite(SMIF_Type *base, cy_stc_smif_mem_config_t c
 
                 if((CY_SMIF_SUCCESS == status) && (cmdProgram->dummyCycles > 0U))
                 {
-                    status = Cy_SMIF_SendDummyCycles_Ext(base, cmdProgram->dataWidth, cmdProgram->dataRate, cmdProgram->dummyCycles);
+#if ((CY_IP_MXSMIF_VERSION==2) || (CY_IP_MXSMIF_VERSION==3))
+                    uint32_t ifRxSel = _FLD2VAL(SMIF_CTL_CLOCK_IF_RX_SEL, SMIF_CTL(base));
+
+                    if(ifRxSel == (uint32_t)CY_SMIF_SEL_SPHB_RWDS_CLK || ifRxSel == (uint32_t)CY_SMIF_SEL_INVERTED_SPHB_RWDS_CLK)
+                    {
+                        status = Cy_SMIF_SendDummyCycles_With_RWDS(base, false, (cmdProgram->dummyCyclesPresence == CY_SMIF_PRESENT_2BYTE), cmdProgram->dummyCycles);
+                    }
+                    else
+#endif
+#if (CY_IP_MXSMIF_VERSION >= 4)
+                    if (_FLD2VAL(SMIF_CORE_CTL2_RX_CAPTURE_MODE, (SMIF_CTL2(base))) == (uint32_t)CY_SMIF_SEL_XSPI_HYPERBUS_WITH_DQS)
+                    {
+                        status = Cy_SMIF_SendDummyCycles_With_RWDS(base, false, (cmdProgram->dummyCyclesPresence == CY_SMIF_PRESENT_2BYTE), cmdProgram->dummyCycles);
+                    }
+                    else
+#endif
+                    {
+                        status = Cy_SMIF_SendDummyCycles_Ext(base, cmdProgram->dataWidth, cmdProgram->dataRate, cmdProgram->dummyCycles);
+                    }
                 }
 
                 if(CY_SMIF_SUCCESS == status)
@@ -1919,7 +1907,7 @@ cy_en_smif_status_t Cy_SMIF_MemWrite(SMIF_Type *base, cy_stc_smif_mem_config_t c
                                                          context);
                 }
 #endif /* CY_IP_MXSMIF_VERSION */
-                if(CY_SMIF_SUCCESS == status)
+                if ((CY_SMIF_SUCCESS == status) && (NULL != memConfig->deviceCfg->readStsRegWipCmd))
                 {
                     /* Check if the memory has completed the write operation. ProgramTime is in microseconds */
                     status = Cy_SMIF_MemIsReady(base, memConfig, memConfig->deviceCfg->programTime, context);
@@ -2045,7 +2033,7 @@ cy_en_smif_status_t Cy_SMIF_MemEraseSector(SMIF_Type *base, cy_stc_smif_mem_conf
             /* If end address is somewhere at the middle of erase page, align it to the page end */
             if (0UL != ((endAddress + 1UL) % eraseSectorSize))
             {
-                endAddress = (eraseSectorSize * (endAddress + 1UL) / eraseSectorSize);
+                endAddress = (((endAddress + eraseSectorSize - 1UL) / eraseSectorSize) * eraseSectorSize) - 1UL;
             }
             /* Update length according the aligned start address and end address */
             length = endAddress - address + 1UL;

@@ -202,7 +202,7 @@ typedef enum
 /*******************************************************************************
 *              Include IP Block Definitions
 *******************************************************************************/
-#include "ip/cyip_sflash.h"
+#include "ip/cyip_sflash_psoc6_01.h"
 #include "ip/cyip_peri.h"
 #include "ip/cyip_peri_v2.h"
 #include "ip/cyip_peri_ms_v2.h"

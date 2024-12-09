@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_ecc.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constant and parameters for the API for the ECC
@@ -50,6 +50,7 @@ typedef enum cy_en_red_mul_algs {
     CY_CRYPTO_NIST_P_BARRETT_RED_ALG
 } cy_en_crypto_ecc_red_mul_algs_t;
 
+
 /** Structure defines a NIST GF(p) curve */
 typedef struct {
     /**  The curve ID */
@@ -74,8 +75,41 @@ typedef struct {
     const uint8_t *Gy;
 } cy_stc_crypto_ecc_dp_type;
 
+/** Structure defines a Edwards GF(p) curve */
+typedef struct {
+    /**  The curve ID */
+    cy_en_crypto_ecc_curve_id_t id;
+    /** The size of the curve in bits */
+    uint32_t size;
+    /** The size of the barret_order coefs in bits */
+    uint32_t barret_osize;
+    /** The size of the barret_prime coefs in bits */
+    uint32_t barret_psize;
+    /** name of curve */
+    const char_t *name;
+    /** ECC calculation default algorithm */
+    cy_en_crypto_ecc_red_mul_algs_t algo;
+    /** The prime that defines the field the curve is in (encoded in hex) */
+    const uint8_t *prime;
+    /** Barrett coefficient for reduction modulo ECC prime (hex) */
+    const uint8_t *barrett_p;
+    /** The order of the curve (hex) */
+    const uint8_t *order;
+    /** Barrett coefficient for reduction modulo ECC order (hex) */
+    const uint8_t *barrett_o;
+   /** D (hex) */
+    const uint8_t *d;
+   /** A (hex) */
+    const uint8_t *a;
+   /** The x co-ordinate of the base point on the curve (hex) */
+    const uint8_t *Gx;
+    /** The y co-ordinate of the base point on the curve (hex) */
+    const uint8_t *Gy;
+} cy_stc_crypto_edw_dp_type;
 
 cy_stc_crypto_ecc_dp_type *Cy_Crypto_Core_ECC_GetCurveParams(cy_en_crypto_ecc_curve_id_t curveId);
+cy_en_crypto_status_t Cy_Crypto_Core_EDW_GetCurveParams(cy_stc_crypto_edw_dp_type *dp, cy_en_crypto_ecc_curve_id_t curveId);
+
 
 #if defined(CY_CRYPTO_CFG_ECDSA_C)
 /**
@@ -116,6 +150,51 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_VerifyHash(CRYPTO_Type *base,
                                     uint8_t *stat,
                                     const cy_stc_crypto_ecc_key *key);
 #endif /* defined(CY_CRYPTO_CFG_ECDSA_VERIFY_C) */
+
+#if defined(CY_CRYPTO_CFG_EDDSA_SIGN_C)
+cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base,
+                                    const uint8_t *hash,
+                                    uint32_t hashlen,
+                                    uint8_t *sig,const cy_stc_crypto_ecc_key *key,
+                                    cy_en_eddsa_sig_type_t sigType,
+                                    const uint8_t *sigctx,
+                                    uint32_t sigctx_len);
+
+cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMultiplication(CRYPTO_Type *base,
+                                    cy_en_crypto_ecc_curve_id_t curveID,
+                                    const uint8_t *ecpGX,
+                                    const uint8_t *ecpGY,
+                                    const uint8_t *ecpD,
+                                    uint8_t *ecpQX,
+                                    uint8_t *ecpQY);
+#endif /* defined(CY_CRYPTO_CFG_EDDSA_SIGN_C) */
+
+#if defined(CY_CRYPTO_CFG_EDDSA_VERIFY_C)
+/** \cond INTERNAL */
+cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointDecode(CRYPTO_Type *base,
+                                    cy_en_crypto_ecc_curve_id_t curveID,
+                                    const uint8_t *publicKey,
+                                    uint8_t *pubKey_x,
+                                    uint8_t *pubKey_y);
+/** \endcond */
+
+cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Verify(CRYPTO_Type *base,
+                                    uint8_t *sig,
+                                    const uint8_t *hash,
+                                    uint32_t hashlen,
+                                    const cy_stc_crypto_ecc_key *key,
+                                    uint32_t *stat,
+                                    cy_en_eddsa_sig_type_t sigType,
+                                    const uint8_t *sigctx,
+                                    uint32_t sigctx_len);
+#endif /* defined(CY_CRYPTO_CFG_EDDSA_VERIFY_C) */
+
+#if defined (CY_CRYPTO_CFG_EDDSA_GENKEY_C)
+cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MakePublicKey(CRYPTO_Type *base,
+                                    cy_en_crypto_ecc_curve_id_t curveID,
+                                    const uint8_t *privateKey,
+                                    cy_stc_crypto_ecc_key *publicKey);
+#endif /* defined(CY_CRYPTO_CFG_EDDSA_GENKEY_C) */
 
 /** \} group_crypto_lld_asymmetric_functions */
 #endif /* defined(CY_CRYPTO_CFG_ECDSA_C) */
@@ -160,6 +239,11 @@ cy_en_crypto_status_t Cy_Crypto_Core_ECC_VerifyHash(CRYPTO_Type *base,
 #undef  CY_CRYPTO_ECC_MAX_SIZE
 #define CY_CRYPTO_ECC_MAX_SIZE             CY_CRYPTO_ECC_P521_SIZE
 #endif /* defined(CY_CRYPTO_CFG_ECP_DP_SECP521R1_ENABLED) */
+
+#if defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED)
+#define CY_CRYPTO_ECC_ED25519_SIZE         (255u)      /* 2^555 - 19 */
+#define CY_CRYPTO_ECC_ED25519_BYTE_SIZE    CY_CRYPTO_BYTE_SIZE_OF_BITS(CY_CRYPTO_ECC_ED25519_SIZE)
+#endif /* defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED) */
 
 #if defined(CY_CRYPTO_ECC_MAX_SIZE)
 #define CY_CRYPTO_ECC_MAX_BYTE_SIZE        CY_CRYPTO_BYTE_SIZE_OF_BITS(CY_CRYPTO_ECC_MAX_SIZE)

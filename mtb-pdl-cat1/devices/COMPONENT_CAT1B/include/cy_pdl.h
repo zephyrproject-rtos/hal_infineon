@@ -62,6 +62,8 @@
 #include "cy_wdt.h"
 #include "cy_mcwdt.h"
 #include "cy_lvd.h"
+#include "cy_lpcomp.h"
 #include "cy_syspm_pdcm.h"
+#include "cy_flash.h"
 
 #endif /* CY_PDL_H */

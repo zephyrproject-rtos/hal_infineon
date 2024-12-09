@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash.h
-* \version 3.70
+* \version 3.110
 *
 * Provides the API declarations of the Flash driver.
 *
@@ -131,6 +131,8 @@
 * Cy_Flash_StartWrite, Cy_Flash_ProgramRow, Cy_Flash_Program and Cy_Flash_Program_WorkFlash.
 * User can use CY_ALIGN(32) macro for 32 byte alignment.
 *
+* CAT1B devices run on single core and hence IPC is not used for erase and write operations on flash memory.
+*
 * <center>
 * <table class="doxtable">
 * <caption>Table 1 - Block-out periods (timing values are valid just for the
@@ -183,6 +185,11 @@
 * This allows the core that initiates Cy_Flash_StartWrite() to execute for about
 * 20% of Flash Write operation. The other core executes for about 80% of Flash
 * Write operation.
+*
+* In CAT1B devices with flash IP CY_IP_MXS40FLASHC
+* When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
+* User need to make sure that this data is not corrupted while writing and erasing the row data.
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes
 *
 * Some constraints must be planned for in the Partially Blocking mode which are
 * described in detail below.
@@ -250,6 +257,31 @@
 *
 * <table class="doxtable">
 *   <tr><th>Version</th><th style="width: 52%;">Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>3.110</td>
+*     <td>In Cy_Flash_SendCmd, waiting for CM0 to be ready to accept command.</td>
+*     <td></td>
+*   </tr>
+*   <tr>
+*     <td>3.100</td>
+*     <td>Added support for PSoC C3 (CAT1B).<br>
+*         Added flash refresh feature.<br>
+*         Added inject ecc disable and corrected address in inject ecc.</td>
+*     <td>Added support for new devices, added new feature and code enhancement.</td>
+*   </tr>
+*   <tr>
+*     <td>3.90</td>
+*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
+*       Updated pre-processor check to only include code if ECT flash is not used.<br>
+*       In cy_flash_srom, changed pre-processor checks from using CM7 availability to using MXFLASHC ver. to determine flash hardware availability.<br>
+*       In cy_flash_srom, added interrupt compatibility for CM4 devices.</td>
+*     <td>Code enhancement and support for new devices.</td>
+*   </tr> 
+*   <tr>
+*     <td>3.80</td>
+*     <td>Dual bank support added for CAT1A devices.</td>
+*     <td>Newly added APIs \ref Cy_Flashc_SetMain_Flash_Mapping , \ref Cy_Flashc_SetWork_Flash_Mapping for CAT1A and CAT1C devices.</td>
+*   </tr>
 *   <tr>
 *     <td>3.70</td>
 *     <td>Fixed MISRA 2012 violations and Documentation Update.</td>
@@ -401,7 +433,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS)
+#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) || defined (CY_IP_MXS40FLASHC)
 
 #include "cy_ipc_drv.h"
 #include "cy_syslib.h"
@@ -425,7 +457,7 @@ extern "C" {
 #define CY_FLASH_DRV_VERSION_MAJOR       3
 
 /** Driver minor version */
-#define CY_FLASH_DRV_VERSION_MINOR       70
+#define CY_FLASH_DRV_VERSION_MINOR       110
 
 #define CY_FLASH_ID               (CY_PDL_DRV_ID(0x14UL))                          /**< FLASH PDL ID */
 
@@ -441,10 +473,22 @@ extern "C" {
 * \{
 */
 
+#if !defined (CY_IP_MXS40FLASHC)
 /** Flash row size */
 #define CY_FLASH_SIZEOF_ROW                (CPUSS_FLASHC_PA_SIZE * 4U)
 /** Long words flash row size */
 #define CY_FLASH_SIZEOF_ROW_LONG_UNITS     (CY_FLASH_SIZEOF_ROW / sizeof(uint32_t))
+
+#else
+/** Flash row size is 512 bytes. When refresh feature is enabled then extra 16 bytes are used to store column 33 related information.*/
+#define CY_FLASH_SIZEOF_ROW                512U
+/** Main NVM region start address */
+#define CY_FLASH_MAIN_START_ADDRESS        CPUSS_FLASHC_MAIN_START_ADDRESS
+/** Main NVM region end address */
+#define CY_FLASH_MAIN_END_ADDRESS          CY_FLASH_MAIN_START_ADDRESS + (0x400UL * 8UL * CPUSS_RRAMC_MAIN_N) /* Main NVM region size in multiples of 8KB */
+
+
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
 /** \} group_flash_general_macros */
 
@@ -521,18 +565,6 @@ typedef enum
     CY_FLASH_CA_CM0P_REGION
 } cy_en_region_t;
 
-typedef enum
-{
-    CY_FLASH_SINGLE_BANK_MODE = 0U,
-    CY_FLASH_DUAL_BANK_MODE = 1U
-} cy_en_bankmode_t;
-
-typedef enum
-{
-    CY_FLASH_MAPPING_A = 0U,
-    CY_FLASH_MAPPING_B = 1U
-} cy_en_maptype_t;
-
 /** \endcond */
 #endif // (defined(CY_IP_MXFLASHC_VERSION_ECT))
 
@@ -568,9 +600,50 @@ typedef enum cy_en_flashdrv_status
     CY_FLASH_DRV_INVALID_SFLASH_ADDR      =   ( CY_FLASH_ID_ERROR + 0xDUL),  /**< Returned when WriteRow is called on invalid SFLASH rows in NORMAL state (SROM STATUS CODE: 0xF00000B2) */
     CY_FLASH_DRV_SFLASH_BACKUP_ERASED     =   ( CY_FLASH_ID_ERROR + 0xEUL),  /**< Returned by Sflash programming APIs when backup sector is in erased state (SROM STATUS CODE: 0xF00000BB) */
     CY_FLASH_DRV_SECTOR_SUSPEND           =   ( CY_FLASH_ID_ERROR + 0xFUL),  /**< Returned when Program operation is called on sector which is suspended from erase (SROM STATUS CODE: 0xF0000091) */
-    CY_FLASH_DRV_SROM_API_TIMEOUT         =   ( CY_FLASH_ID_ERROR + 0x10UL)  /**< Time out happens after calling srom API driver */
+    CY_FLASH_DRV_SROM_API_TIMEOUT         =   ( CY_FLASH_ID_ERROR + 0x10UL),  /**< Time out happens after calling srom API driver */
+#if defined (CY_IP_MXS40FLASHC)
+    CY_FLASH_DRV_REFRESH_NOT_SUPPORTED    =   ( CY_FLASH_ID_ERROR + 0x11UL),  /**< Refresh on this sector is not supported. */
+    CY_FLASH_DRV_REFRESH_FAILED           =   ( CY_FLASH_ID_ERROR + 0x12UL),  /**< Refresh Operation failed. */
+    CY_FLASH_DRV_REFRESH_NOT_ENABLED      =   ( CY_FLASH_ID_ERROR + 0x13UL),  /**< Refresh Feature not enabled. */
+    CY_FLASH_DRV_INIT_FAILED              =   ( CY_FLASH_ID_ERROR + 0x14UL),  /**< Refresh Feature not enabled. */
+#endif /* defined (CY_IP_MXS40FLASHC) */
 } cy_en_flashdrv_status_t;
 
+#if defined (CY_IP_MXS40FLASHC)
+/** No of errors when ECC error injection is enabled.  */
+typedef enum
+{
+    CY_FLASH_ECC_ERRORS_LESS_THAN_TWO = (0x00UL),   /**< Number of non-recoverable errors are less than two */
+    CY_FLASH_ECC_ERRORS_MORE_THAN_ONE = (0x01UL)    /**< Number of non-recoverable errors are more than or equal to two */
+} cy_en_flash_ecc_inject_errors_t;
+#endif
+
+#if (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS)
+/** Flash Dual bank mode configuration */
+typedef enum
+{
+    CY_FLASH_SINGLE_BANK_MODE = 0U, /**< Single Bank Mode */
+    CY_FLASH_DUAL_BANK_MODE = 1U    /**< Dual Bank Mode   */
+} cy_en_bankmode_t;
+
+/** Flash Dual bank mode Mapping configuration */
+typedef enum
+{
+    CY_FLASH_MAPPING_A = 0U,  /**< Mapping A */
+    CY_FLASH_MAPPING_B = 1U   /**< Mapping B */
+} cy_en_maptype_t;
+#endif /* (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS) */
+
+#if defined (CY_IP_MXS40FLASHC)
+/** Flash Dual bank mode mapping configuration */
+typedef enum
+{
+    CY_FLASH_MAPPING_MAIN_A_WORK_A     = (0x00UL), /**< MAIN (Mapping A), WORK (Mapping A). */
+    CY_FLASH_MAPPING_MAIN_B_WORK_A     = (0x01UL), /**< MAIN (Mapping B), WORK (Mapping A). */
+    CY_FLASH_MAPPING_MAIN_A_WORK_B     = (0x10UL), /**< MAIN (Mapping A), WORK (Mapping B). */
+    CY_FLASH_MAPPING_MAIN_B_WORK_B     = (0x11UL)  /**< MAIN (Mapping B), WORK (Mapping B). */
+} cy_en_flash_dual_bank_mapping_t;
+#endif /* defined (CY_IP_MXS40FLASHC) */
 
 #if !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
     /** Flash notification configuration structure */
@@ -1103,7 +1176,351 @@ cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void);
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flashc_InjectECC(cy_en_region_t region, uint32_t address, uint8_t parity);
 
+/*******************************************************************************
+* Function Name: Cy_Flashc_InjectECC_Disable
+****************************************************************************//**
+*
+* This function disables ECC injection for the region specified.
+*
+* \param region : ECC injection is disabled for this region (Code/Work/Cache).
+* This parameter is defined by the cy_en_region_t
+* in \ref group_flash_macros macro.
+*
+* \note This function is applicable for CAT1C devices.
+*******************************************************************************/
+void Cy_Flashc_InjectECC_Disable(cy_en_region_t region);
 
+/** \} group_flash_functions */
+
+#endif
+
+#if ((!defined(CY_IP_MXFLASHC_VERSION_ECT)) || defined(CY_DOXYGEN))
+
+/**
+* \addtogroup group_flash_functions
+* \{
+*/
+
+/*******************************************************************************
+* Function Name: Cy_Flash_EraseRow
+****************************************************************************//**
+*
+* This function erases a single row of flash. Reports success or
+* a reason for failure. Does not return until the Write operation is
+* complete. Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in
+* the case when another process is writing to flash or erasing the row.
+* User firmware should not enter the Hibernate or Deep Sleep mode until flash Erase
+* is complete. The Flash operation is allowed in Sleep mode.
+* During the Flash operation, the device should not be reset, including the
+* XRES pin, a software reset, and watchdog reset sources. Also, low-voltage
+* detect circuits should be configured to generate an interrupt instead of a
+* reset. Otherwise, portions of flash may undergo unexpected changes.
+* \note  A Read while Write violation occurs when a flash Read operation is initiated
+* in the same or neighboring flash sector where the flash Write, Erase, ors
+* Program operation is working. This violation may cause a HardFault exception.
+* To avoid the Read while Write violation,
+* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
+* \note This function is applicable for CAT1A and CAT1B devices.
+* \note CAT1B devices doesn't use IPC for any flash operations.
+*
+* \param rowAddr Address of the flash row number.
+* The Read-while-Write violation occurs when the flash read operation is
+* initiated in the same flash sector where the flash write operation is
+* performing. Refer to the device datasheet for the details.
+* Address must match row start address.
+*
+* \note In CAT1B devices with flash IP CY_IP_MXS40FLASHC
+* When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
+* User need to make sure that this data is not corrupted while writing and erasing the row data.
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes
+*
+* \return Returns the status of the Flash operation,
+* see \ref cy_en_flashdrv_status_t.
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr);
+
+/*******************************************************************************
+* Function Name: Cy_Flash_StartEraseRow
+****************************************************************************//**
+*
+* Starts erasing a single row of flash. Returns immediately
+* and reports a successful start or reason for failure.
+* Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
+* by another process. User firmware should not enter the Hibernate or Deep Sleep mode until
+* flash Erase is complete. The Flash operation is allowed in Sleep mode.
+* During the flash operation, the device should not be reset, including the
+* XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
+* detect circuits should be configured to generate an interrupt instead of a reset.
+* Otherwise, portions of flash may undergo unexpected changes.
+* \note To avoid situation of reading data from cache memory - before
+* reading data from previously programmed/erased flash rows, the user must
+* clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
+* function.
+* \note  A Read while Write violation occurs when a flash Read operation is initiated
+* in the same or neighboring flash sector where the flash Write, Erase, or
+* Program operation is working. This violation may cause a HardFault exception.
+* To avoid the Read while Write violation,
+* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
+* \note This function is applicable for CAT1A and CAT1B devices.
+* \note CAT1B devices doesn't use IPC for any flash operations.
+*
+* \param rowAddr Address of the flash row number.
+* The Read-while-Write violation occurs when the flash read operation is
+* initiated in the same flash sector where the flash erase operation is
+* performing. Refer to the device datasheet for the details.
+* Address must match row start address.
+*
+* \note In CAT1B devices with flash IP CY_IP_MXS40FLASHC
+* When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
+* User need to make sure that this data is not corrupted while writing and erasing the row data.
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes
+*
+* \return Returns the status of the Flash operation,
+* see \ref cy_en_flashdrv_status_t.
+* returns CY_FLASH_DRV_OPERATION_STARTED if operation starts with out error.
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr);
+
+#if !defined(CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
+/*******************************************************************************
+* Function Name: Cy_Flash_EraseSubsector
+****************************************************************************//**
+*
+* This function erases an 8-row subsector of flash. Reports success or
+* a reason for failure. Does not return until the Write operation is
+* complete. Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in
+* the case when another process is writing to flash or erasing the row.
+* User firmware should not enter the Hibernate or Deep-Sleep mode until flash Erase
+* is complete. The Flash operation is allowed in Sleep mode.
+* During the Flash operation, the device should not be reset, including the
+* XRES pin, a software reset, and watchdog reset sources. Also, low-voltage
+* detect circuits should be configured to generate an interrupt instead of a
+* reset. Otherwise, portions of flash may undergo unexpected changes.
+** \note  A Read while Write violation occurs when a flash Read operation is initiated
+* in the same or neighboring flash sector where the flash Write, Erase, or
+* Program operation is working. This violation may cause a HardFault exception.
+* To avoid the Read while Write violation,
+* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
+* \note This function is applicable for CAT1A and CAT1B devices.
+* \note CAT1B devices doesn't use IPC for any flash operations.
+*
+* \param subSectorAddr Address of the flash row number.
+* The Read-while-Write violation occurs when the flash read operation is
+* initiated in the same flash sector where the flash write operation is
+* performing. Refer to the device datasheet for the details.
+* Address must match row start address.
+*
+* \return Returns the status of the Flash operation,
+* see \ref cy_en_flashdrv_status_t.
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_EraseSubsector(uint32_t subSectorAddr);
+
+/*******************************************************************************
+* Function Name: Cy_Flash_StartEraseSubsector
+****************************************************************************//**
+*
+* Starts erasing an 8-row subsector of flash. Returns immediately
+* and reports a successful start or reason for failure.
+* Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
+* by another process. User firmware should not enter the Hibernate or Deep-Sleep mode until
+* flash Erase is complete. The Flash operation is allowed in Sleep mode.
+* During the flash operation, the device should not be reset, including the
+* XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
+* detect circuits should be configured to generate an interrupt instead of a reset.
+* Otherwise, portions of flash may undergo unexpected changes.
+* \note Before reading data from previously programmed/erased flash rows, the
+* user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
+* function.
+* \note  A Read while Write violation occurs when a flash Read operation is initiated
+* in the same or neighboring flash sector where the flash Write, Erase, or
+* Program operation is working. This violation may cause a HardFault exception.
+* To avoid the Read while Write violation,
+* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
+* \note This function is applicable for CAT1A devices.
+*
+* \param subSectorAddr Address of the flash row number.
+* The Read-while-Write violation occurs when the flash read operation is
+* initiated in the same flash sector where the flash erase operation is
+* performing. Refer to the device datasheet for the details.
+* Address must match row start address.
+*
+* \return Returns the status of the Flash operation,
+* see \ref cy_en_flashdrv_status_t.
+* returns CY_FLASH_DRV_OPERATION_STARTED if operation starts with out error.
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_StartEraseSubsector(uint32_t subSectorAddr);
+
+#endif /* !defined (CY_IP_MXS40FLASHC) */
+
+/*******************************************************************************
+* Function Name: Cy_Flash_WriteRow
+****************************************************************************//**
+*
+* This function writes an array of data to a single row of flash. This is done
+* in three steps - pre-program, erase and then program flash row with the input
+* data. Reports success or a reason for failure. Does not return until the Write
+* operation is complete.
+* Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case
+* when another process is writing to flash. User firmware should not enter the
+* Hibernate or Deep-sleep mode until flash Write is complete. The Flash operation
+* is allowed in Sleep mode. During the Flash operation, the
+* device should not be reset, including the XRES pin, a software
+* reset, and watchdog reset sources. Also, low-voltage detect
+* circuits should be configured to generate an interrupt
+* instead of a reset. Otherwise, portions of flash may undergo
+* unexpected changes.
+* \note  A Read while Write violation occurs when a flash Read operation is initiated
+* in the same or neighboring flash sector where the flash Write, Erase, or
+* Program operation is working. This violation may cause a HardFault exception.
+* To avoid the Read while Write violation,
+* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
+*
+* \note This is a blocking function and will not return until the Write operation is complete.
+* \note This function is applicable for CAT1A and CAT1B devices.
+* \note CAT1B devices doesn't use IPC for any flash operations.
+*
+* \param rowAddr Address of the flash row number.
+* The Read-while-Write violation occurs when the flash read operation is
+* initiated in the same flash sector where the flash write operation is
+* performing. Refer to the device datasheet for the details.
+* Address must match row start address.
+*
+* \param data The pointer to the data which has to be written to flash. The size
+* of the data array must be equal to the flash row size. The flash row size for
+* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
+* the device datasheet for the details.
+*
+* \note In CAT1B devices with flash IP CY_IP_MXS40FLASHC
+* When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
+* User need to make sure that this data is not corrupted while writing and erasing the row data.
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes
+*
+* \return Returns the status of the Flash operation,
+* see \ref cy_en_flashdrv_status_t.
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data);
+
+/*******************************************************************************
+* Function Name: Cy_Flash_StartProgram
+****************************************************************************//**
+*
+* Starts writing an array of data to a single row of flash. Returns immediately
+* and reports a successful start or reason for failure.
+* Reports a \ref CY_FLASH_DRV_IPC_BUSY error if another process is writing
+* to flash. The user firmware should not enter Hibernate or Deep-Sleep mode until flash
+* Program is complete. The Flash operation is allowed in Sleep mode.
+* During the Flash operation, the device should not be reset, including the
+* XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
+* detect circuits should be configured to generate an interrupt instead of a reset.
+* Otherwise, portions of flash may undergo unexpected changes.\n
+* Before calling this function, the target flash region must be erased by
+* the StartEraseRow/EraseRow function.\n
+* Data to be programmed must be located in the SRAM memory region.
+* \note Before reading data from previously programmed/erased flash rows, the
+* user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
+* function.
+* \note  A Read while Write violation occurs when a flash Read operation is initiated
+* in the same or neighboring flash sector where the flash Write, Erase, or
+* Program operation is working. This violation may cause a HardFault exception.
+* To avoid the Read while Write violation,
+* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
+*
+* \note This is a non blocking function and will not wait until the Write operation is complete.
+* \note This function is applicable for CAT1A and CAT1B devices.
+* \note CAT1B devices doesn't use IPC for any flash operations.
+*
+* \param rowAddr The address of the flash row number.
+* The Read-while-Write violation occurs when the Flash Write operation is
+* performing. Refer to the device datasheet for the details.
+* The address must match the row start address.
+*
+* \param data The pointer to the data to be written to flash. The size
+* of the data array must be equal to the flash row size. The flash row size for
+* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
+* the device datasheet for the details.
+*
+* \note In CAT1B devices with flash IP CY_IP_MXS40FLASHC
+* When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
+* User need to make sure that this data is not corrupted while writing and erasing the row data.
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes 
+*
+* \return Returns the status of the Flash operation,
+* see \ref cy_en_flashdrv_status_t.
+* returns CY_FLASH_DRV_OPERATION_STARTED if operation starts with out error.
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* data);
+
+
+/*******************************************************************************
+* Function Name: Cy_Flash_GetExternalStatus
+****************************************************************************//**
+*
+* This function handles the case where a module such as security image captures
+* a system call from this driver and reports its own status or error code,
+* for example protection violation. In that case, a function from this
+* driver returns an unknown error (see cy_en_flashdrv_status_t). After receipt
+* of an unknown error, the user may call this function to get the status
+* of the capturing module.
+*
+* The user is responsible for parsing the content of the returned value
+* and casting it to the appropriate enumeration.
+* \note This function is applicable for CAT1A devices.
+*
+* \return Returns the status of the Flash operation code.
+*******************************************************************************/
+uint32_t Cy_Flash_GetExternalStatus(void);
+
+
+#if ((!defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED) && !defined (CY_IP_MXS40FLASHC)) || defined(CY_DOXYGEN))
+/*******************************************************************************
+* Function Name: Cy_Flash_InitExt
+****************************************************************************//**
+*
+* Initiates all needed prerequisites to support flash erase/write.
+* Should be called from each core. Defines the address of the message structure.
+*
+* Requires a call to Cy_IPC_Sema_Init(), Cy_IPC_Pipe_Config() and
+* Cy_IPC_Pipe_Init() functions before use.
+*
+* \note This function is applicable for CAT1A devices.
+*
+* This function is called in the Cy_Flash_Init() function - see the
+* \ref Cy_Flash_Init usage considerations.
+*
+*******************************************************************************/
+void Cy_Flash_InitExt(cy_stc_flash_notify_t *ipcWaitMessageAddr);
+#endif /* !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED) && !defined (CY_IP_MXS40FLASHC) */
+
+/** \} group_flash_functions */
+
+/** \cond INTERNAL */
+#if (CY_CPU_CORTEX_M4)
+void Cy_Flash_ResumeIrqHandler(void);
+#endif
+
+/*******************************************************************************
+Backward compatibility macro. The following code is DEPRECATED and must
+not be used in new projects
+*******************************************************************************/
+#define     CY_FLASH_NUMBER_ROWS             (CY_FLASH_SIZE / CY_FLASH_SIZEOF_ROW)
+#define     Cy_Flash_StartErase              Cy_Flash_StartEraseRow
+
+/** \endcond */
+
+
+#endif //(defined(CY_IP_MXFLASHC_VERSION_ECT) || defined(CY_DOXYGEN))
+
+/**
+* \addtogroup group_flash_functions
+* \{
+*/
+#if (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS)
 /*******************************************************************************
 * Function Name: Cy_Flashc_SetWorkBankMode
 ****************************************************************************//**
@@ -1166,305 +1583,34 @@ void Cy_Flashc_SetMainBankMode(cy_en_bankmode_t mode);
 *******************************************************************************/
 cy_en_bankmode_t Cy_Flashc_GetMainBankMode(void);
 
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetMain_Flash_Mapping
+****************************************************************************//**
+*
+* \brief Sets mapping for main flash region. Applicable only in Dual Bank mode of Main flash region
+*
+* \param mapping mapping to be set
+*
+* \return none
+*******************************************************************************/
+void Cy_Flashc_SetMain_Flash_Mapping(cy_en_maptype_t  mapping);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_SetWork_Flash_Mapping
+****************************************************************************//**
+*
+* \brief Sets mapping for work flash region. Applicable only in Dual Bank mode of Work flash region
+*
+* \param mapping mapping to be set
+*
+* \return none
+*******************************************************************************/
+void Cy_Flashc_SetWork_Flash_Mapping(cy_en_maptype_t mapping);
+
+
+#endif /* (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS) */
 
 /** \} group_flash_functions */
-
-#endif
-
-#if ((!defined(CY_IP_MXFLASHC_VERSION_ECT)) || defined(CY_DOXYGEN))
-
-/**
-* \addtogroup group_flash_functions
-* \{
-*/
-
-/*******************************************************************************
-* Function Name: Cy_Flash_EraseRow
-****************************************************************************//**
-*
-* This function erases a single row of flash. Reports success or
-* a reason for failure. Does not return until the Write operation is
-* complete. Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in
-* the case when another process is writing to flash or erasing the row.
-* User firmware should not enter the Hibernate or Deep Sleep mode until flash Erase
-* is complete. The Flash operation is allowed in Sleep mode.
-* During the Flash operation, the device should not be reset, including the
-* XRES pin, a software reset, and watchdog reset sources. Also, low-voltage
-* detect circuits should be configured to generate an interrupt instead of a
-* reset. Otherwise, portions of flash may undergo unexpected changes.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, ors
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-* \note This function is applicable for CAT1A devices.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-*
-*******************************************************************************/
-cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr);
-
-/*******************************************************************************
-* Function Name: Cy_Flash_StartEraseRow
-****************************************************************************//**
-*
-* Starts erasing a single row of flash. Returns immediately
-* and reports a successful start or reason for failure.
-* Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
-* by another process. User firmware should not enter the Hibernate or Deep Sleep mode until
-* flash Erase is complete. The Flash operation is allowed in Sleep mode.
-* During the flash operation, the device should not be reset, including the
-* XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
-* detect circuits should be configured to generate an interrupt instead of a reset.
-* Otherwise, portions of flash may undergo unexpected changes.
-* \note To avoid situation of reading data from cache memory - before
-* reading data from previously programmed/erased flash rows, the user must
-* clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
-* function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-* \note This function is applicable for CAT1A devices.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash erase operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-* returns CY_FLASH_DRV_OPERATION_STARTED if operation starts with out error.
-*
-*******************************************************************************/
-cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr);
-
-
-/*******************************************************************************
-* Function Name: Cy_Flash_EraseSubsector
-****************************************************************************//**
-*
-* This function erases an 8-row subsector of flash. Reports success or
-* a reason for failure. Does not return until the Write operation is
-* complete. Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in
-* the case when another process is writing to flash or erasing the row.
-* User firmware should not enter the Hibernate or Deep-Sleep mode until flash Erase
-* is complete. The Flash operation is allowed in Sleep mode.
-* During the Flash operation, the device should not be reset, including the
-* XRES pin, a software reset, and watchdog reset sources. Also, low-voltage
-* detect circuits should be configured to generate an interrupt instead of a
-* reset. Otherwise, portions of flash may undergo unexpected changes.
-** \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-* \note This function is applicable for CAT1A devices.
-*
-* \param subSectorAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-*
-*******************************************************************************/
-cy_en_flashdrv_status_t Cy_Flash_EraseSubsector(uint32_t subSectorAddr);
-
-/*******************************************************************************
-* Function Name: Cy_Flash_StartEraseSubsector
-****************************************************************************//**
-*
-* Starts erasing an 8-row subsector of flash. Returns immediately
-* and reports a successful start or reason for failure.
-* Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
-* by another process. User firmware should not enter the Hibernate or Deep-Sleep mode until
-* flash Erase is complete. The Flash operation is allowed in Sleep mode.
-* During the flash operation, the device should not be reset, including the
-* XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
-* detect circuits should be configured to generate an interrupt instead of a reset.
-* Otherwise, portions of flash may undergo unexpected changes.
-* \note Before reading data from previously programmed/erased flash rows, the
-* user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
-* function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-* \note This function is applicable for CAT1A devices.
-*
-* \param subSectorAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash erase operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-* returns CY_FLASH_DRV_OPERATION_STARTED if operation starts with out error.
-*
-*******************************************************************************/
-cy_en_flashdrv_status_t Cy_Flash_StartEraseSubsector(uint32_t subSectorAddr);
-
-
-
-/*******************************************************************************
-* Function Name: Cy_Flash_WriteRow
-****************************************************************************//**
-*
-* This function writes an array of data to a single row of flash. This is done
-* in three steps - pre-program, erase and then program flash row with the input
-* data. Reports success or a reason for failure. Does not return until the Write
-* operation is complete.
-* Returns immediately and reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case
-* when another process is writing to flash. User firmware should not enter the
-* Hibernate or Deep-sleep mode until flash Write is complete. The Flash operation
-* is allowed in Sleep mode. During the Flash operation, the
-* device should not be reset, including the XRES pin, a software
-* reset, and watchdog reset sources. Also, low-voltage detect
-* circuits should be configured to generate an interrupt
-* instead of a reset. Otherwise, portions of flash may undergo
-* unexpected changes.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \note This is a blocking function and will not return until the Write operation is complete.
-* \note This function is applicable for CAT1A devices.
-*
-* \param rowAddr Address of the flash row number.
-* The Read-while-Write violation occurs when the flash read operation is
-* initiated in the same flash sector where the flash write operation is
-* performing. Refer to the device datasheet for the details.
-* Address must match row start address.
-*
-* \param data The pointer to the data which has to be written to flash. The size
-* of the data array must be equal to the flash row size. The flash row size for
-* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
-* the device datasheet for the details.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-*
-*******************************************************************************/
-cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data);
-
-/*******************************************************************************
-* Function Name: Cy_Flash_StartProgram
-****************************************************************************//**
-*
-* Starts writing an array of data to a single row of flash. Returns immediately
-* and reports a successful start or reason for failure.
-* Reports a \ref CY_FLASH_DRV_IPC_BUSY error if another process is writing
-* to flash. The user firmware should not enter Hibernate or Deep-Sleep mode until flash
-* Program is complete. The Flash operation is allowed in Sleep mode.
-* During the Flash operation, the device should not be reset, including the
-* XRES pin, a software reset, and watchdog reset sources. Also, the low-voltage
-* detect circuits should be configured to generate an interrupt instead of a reset.
-* Otherwise, portions of flash may undergo unexpected changes.\n
-* Before calling this function, the target flash region must be erased by
-* the StartEraseRow/EraseRow function.\n
-* Data to be programmed must be located in the SRAM memory region.
-* \note Before reading data from previously programmed/erased flash rows, the
-* user must clear the flash cache with the Cy_SysLib_ClearFlashCacheAndBuffer()
-* function.
-* \note  A Read while Write violation occurs when a flash Read operation is initiated
-* in the same or neighboring flash sector where the flash Write, Erase, or
-* Program operation is working. This violation may cause a HardFault exception.
-* To avoid the Read while Write violation,
-* use Cy_Flash_IsOperationComplete() to ensure flash operation is complete.
-*
-* \note This is a non blocking function and will not wait until the Write operation is complete.
-* \note This function is applicable for CAT1A devices.
-*
-* \param rowAddr The address of the flash row number.
-* The Read-while-Write violation occurs when the Flash Write operation is
-* performing. Refer to the device datasheet for the details.
-* The address must match the row start address.
-*
-* \param data The pointer to the data to be written to flash. The size
-* of the data array must be equal to the flash row size. The flash row size for
-* the selected device is defined by the \ref CY_FLASH_SIZEOF_ROW macro. Refer to
-* the device datasheet for the details.
-*
-* \return Returns the status of the Flash operation,
-* see \ref cy_en_flashdrv_status_t.
-* returns CY_FLASH_DRV_OPERATION_STARTED if operation starts with out error.
-*
-*******************************************************************************/
-cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* data);
-
-/*******************************************************************************
-* Function Name: Cy_Flash_GetExternalStatus
-****************************************************************************//**
-*
-* This function handles the case where a module such as security image captures
-* a system call from this driver and reports its own status or error code,
-* for example protection violation. In that case, a function from this
-* driver returns an unknown error (see cy_en_flashdrv_status_t). After receipt
-* of an unknown error, the user may call this function to get the status
-* of the capturing module.
-*
-* The user is responsible for parsing the content of the returned value
-* and casting it to the appropriate enumeration.
-* \note This function is applicable for CAT1A devices.
-*
-* \return Returns the status of the Flash operation code.
-*******************************************************************************/
-uint32_t Cy_Flash_GetExternalStatus(void);
-
-#if !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
-/*******************************************************************************
-* Function Name: Cy_Flash_InitExt
-****************************************************************************//**
-*
-* Initiates all needed prerequisites to support flash erase/write.
-* Should be called from each core. Defines the address of the message structure.
-*
-* Requires a call to Cy_IPC_Sema_Init(), Cy_IPC_Pipe_Config() and
-* Cy_IPC_Pipe_Init() functions before use.
-*
-* \note This function is applicable for CAT1A devices.
-*
-* This function is called in the Cy_Flash_Init() function - see the
-* \ref Cy_Flash_Init usage considerations.
-*
-*******************************************************************************/
-void Cy_Flash_InitExt(cy_stc_flash_notify_t *ipcWaitMessageAddr);
-#endif /* !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
-
-/** \} group_flash_functions */
-
-/** \cond INTERNAL */
-#if (CY_CPU_CORTEX_M4)
-void Cy_Flash_ResumeIrqHandler(void);
-#endif
-
-/*******************************************************************************
-Backward compatibility macro. The following code is DEPRECATED and must
-not be used in new projects
-*******************************************************************************/
-#define     CY_FLASH_NUMBER_ROWS             (CY_FLASH_SIZE / CY_FLASH_SIZEOF_ROW)
-#define     Cy_Flash_StartErase              Cy_Flash_StartEraseRow
-
-/** \endcond */
-
-
-#endif //(defined(CY_IP_MXFLASHC_VERSION_ECT) || defined(CY_DOXYGEN))
 
 /**
 * \addtogroup group_flash_functions
@@ -1528,6 +1674,11 @@ cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void);
 * the device datasheet for the details.
 * For CAT1C devices this data pointer needs to point to 32 byte aligned data.
 *
+* \note In CAT1B devices with flash IP CY_IP_MXS40FLASHC
+* When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
+* User need to make sure that this data is not corrupted while writing and erasing the row data.
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes
+*
 * \return Returns the status of the Flash operation,
 * returns CY_FLASH_DRV_OPERATION_STARTED if operation starts with out error.
 * see \ref cy_en_flashdrv_status_t.
@@ -1535,6 +1686,7 @@ cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void);
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* data);
 
+#if !defined(CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_Flash_StartEraseSector
 ****************************************************************************//**
@@ -1571,6 +1723,8 @@ cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* da
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_StartEraseSector(uint32_t sectorAddr);
+
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
 /*******************************************************************************
 * Function Name: Cy_Flash_ProgramRow
@@ -1615,12 +1769,17 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseSector(uint32_t sectorAddr);
 * the device datasheet for the details.
 * For CAT1C devices this data pointer needs to point to 32 byte aligned data.
 *
+* \note In CAT1B devices with flash IP CY_IP_MXS40FLASHC
+* When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
+* User need to make sure that this data is not corrupted while writing and erasing the row data.
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes
+*
 * \return Returns the status of the Flash operation,
 * see \ref cy_en_flashdrv_status_t.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* data);
-
+#if !defined(CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_Flash_EraseSector
 ****************************************************************************//**
@@ -1655,6 +1814,7 @@ cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* da
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_EraseSector(uint32_t sectorAddr);
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
 /*******************************************************************************
 * Function Name: Cy_Flash_CalculateHash
@@ -1693,6 +1853,7 @@ cy_en_flashdrv_status_t Cy_Flash_CalculateHash(const uint32_t* data, uint32_t nu
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_RowChecksum(uint32_t rowAddr, uint32_t* checksumPtr);
 
+#if !defined(CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_Flash_Init
 ****************************************************************************//**
@@ -1711,6 +1872,172 @@ cy_en_flashdrv_status_t Cy_Flash_RowChecksum(uint32_t rowAddr, uint32_t* checksu
 *
 *******************************************************************************/
 void Cy_Flash_Init(void);
+
+#else
+/*******************************************************************************
+* Function Name: Cy_Flash_Init
+****************************************************************************//**
+*
+* Initiates all needed prerequisites to support flash erase/write.
+* Should be once before starting any flash operations.
+*
+* \param refresh_enable enable disable refresh feature
+*
+* \return success if Init is complete else will return err
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_Init(bool refresh_enable);
+
+/*******************************************************************************
+* Function Name: Cy_Flash_Refresh
+****************************************************************************//**
+*
+* Refreshes the flash rows which were not updated by the user code. This is a blocking call.
+* If there are only limited number of flash row writes for each flash sector then
+* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
+* This refresh feature will prevent the flash sector from wear out
+* This is not allowed on sector which has SFLASH
+*
+* \param address of the row that needs to be refreshed.
+*
+* \return success if refresh is complete. Else will return error
+*
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_Refresh(uint32_t flashAddr);
+
+/*******************************************************************************
+* Function Name: Cy_Flash_Refresh_Start
+****************************************************************************//**
+*
+* Refreshes the flash rows which were not updated by the user code. This is a non-blocking call.
+* If there are only limited number of flash row writes for each flash sector then
+* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
+* This refresh feature will prevent the flash sector from wear out
+* This is not allowed on sector which has SFLASH
+*
+* \param address of the row that needs to be refreshed.
+*
+* \return success if refresh is started. Else will return error
+*
+*
+*******************************************************************************/
+cy_en_flashdrv_status_t Cy_Flash_Refresh_Start(uint32_t flashAddr);
+
+/*******************************************************************************
+* Function Name: Cy_Flash_Is_Refresh_Required
+********************************************************************************
+* Checks whether a flash refresh is needed for a sector.
+
+* \returns
+* - TRUE, if a refresh is needed.
+* - FALSE, if a refresh is not needed.
+*******************************************************************************/
+bool Cy_Flash_Is_Refresh_Required(void);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_ECCEnable
+****************************************************************************//**
+*
+* \brief Enables ECC for flash
+* ECC checking/reporting on FLASH interface is enabled.
+* Correctable or non-correctable faults are reported by enabling ECC.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_ECCEnable(void);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_ECCDisable
+****************************************************************************//**
+*
+* \brief Disables ECC for flash
+* ECC checking/reporting on FLASH interface is disabled.
+* Correctable or non-correctable faults are not reported by disabling ECC.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_ECCDisable(void);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_INJ_ECCEnable
+****************************************************************************//**
+*
+* \brief This function enable ECC error injection for FLASH interface
+* And is applicable while ECC is enabled.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_INJ_ECCEnable(void);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_INJ_ECCDisable
+****************************************************************************//**
+*
+* \brief This function disables ECC error injection for FLASH interface
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_INJ_ECCDisable(void);
+
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_InjectECC
+****************************************************************************//**
+*
+* \brief This function enables ECC injection and sets the address where a parity will be injected
+* and the parity value.
+* Reports success or a reason for failure.
+*
+* \param address The address where ECC parity will be injected.
+*
+* \param parity The parity value which will be injected.
+*
+* \returns none.
+*
+*******************************************************************************/
+void Cy_Flashc_InjectECC(uint32_t address, uint8_t parity);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_Get_ECC_Error
+****************************************************************************//**
+*
+* \brief This function when ECC injection is enabled and error is injected will return no of errors generated.
+*
+* \returns no of errors generated with ECC error injection \ref cy_en_flash_ecc_inject_errors_t.
+*
+*******************************************************************************/
+cy_en_flash_ecc_inject_errors_t Cy_Flashc_Get_ECC_Error(void);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_Dual_Bank_Mode_Enable
+****************************************************************************//**
+*
+* \brief Enables Dual bank Mode for flash
+*
+* \param mapping : Mapping for the main and work regions.
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_Dual_Bank_Mode_Enable(cy_en_flash_dual_bank_mapping_t mapping);
+
+/*******************************************************************************
+* Function Name: Cy_Flashc_Dual_Bank_Mode_Disable
+****************************************************************************//**
+*
+* \brief Disables Dual bank Mode for flash
+*
+* \return none
+*
+*******************************************************************************/
+void Cy_Flashc_Dual_Bank_Mode_Disable(void);
+
+#endif /* !defined (CY_IP_MXS40FLASHC) */
 
 /** \} group_flash_functions */
 

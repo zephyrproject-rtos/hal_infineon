@@ -37,6 +37,7 @@
 #endif
 #include "system_cat1b.h"
 #include "cybsp_dsram.h"
+#include "cmsis_compiler.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -64,6 +65,7 @@ void cybsp_warmboot_handler(void)
     SystemInit_Warmboot_CAT1B_CM33();
 
     #if FLASH_BOOT
+    cybsp_smif_enable();
     cybsp_smif_init();
     #endif
 
@@ -75,20 +77,18 @@ void cybsp_warmboot_handler(void)
 
 CY_SECTION_RAMFUNC_END
 
-/* Currently only GCC_ARM compiler is supported for DS-RAM Warmboot Re-entry*/
-#if defined(__GNUC__) && !defined(__ARMCC_VERSION)
-extern unsigned int __StackTop;
+/* DS-RAM Warmboot Re-entry*/
+extern unsigned int __INITIAL_SP /*__StackTop*/;
 cy_stc_syspm_warmboot_entrypoint_t syspmBspDeepSleepEntryPoint =
-    { (uint32_t*)(&__StackTop), (uint32_t*)cybsp_warmboot_handler };
-#endif
+    { (uint32_t*)(&__INITIAL_SP), (uint32_t*)cybsp_warmboot_handler };
 
 //--------------------------------------------------------------------------------------------------
 // cybsp_syspm_dsram_init
 //--------------------------------------------------------------------------------------------------
 __WEAK cy_rslt_t cybsp_syspm_dsram_init(void)
 {
-    /* Currently only GCC_ARM compiler is supported for DS-RAM Warmboot Re-entry*/
-    #if defined(__GNUC__) && !defined(__ARMCC_VERSION)
+/* Setup DS-RAM Warmboot Re-entry. IAR is not supported */
+    #if defined(__ARMCC_VERSION) || defined (__GNUC__)
     Cy_Syslib_SetWarmBootEntryPoint((uint32_t*)&syspmBspDeepSleepEntryPoint, true);
     #endif
 

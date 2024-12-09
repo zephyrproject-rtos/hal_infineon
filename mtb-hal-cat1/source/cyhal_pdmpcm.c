@@ -509,6 +509,10 @@ static inline cy_rslt_t _cyhal_pdm_pcm_dma_start(cyhal_pdm_pcm_t *obj)
 
     rslt = cyhal_dma_configure(&(obj->dma), &dma_cfg);
 
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_InvalidateDCache_by_Addr((void *)obj->async_buffer, (transfer_size * obj->word_size));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
+
     if (CY_RSLT_SUCCESS == rslt)
     {
         rslt = cyhal_dma_enable(&(obj->dma));

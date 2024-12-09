@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_rsa.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides provides constant and parameters
@@ -82,8 +82,18 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify_Ext(CRYPTO_Type *base,
                             uint32_t digestLength,
                             uint8_t const *decryptedSignature,
                             uint32_t decryptedSignatureLength);
-
+                            
 #endif /* defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) */
+
+
+#if defined(CY_CRYPTO_CFG_RSA_SIGN_ENABLED)
+cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Sign(CRYPTO_Type *base,
+                            cy_en_crypto_sha_mode_t digestType,
+                            uint8_t const *digest,
+                            uint32_t digestLength,
+                            uint8_t *signature,
+                            uint32_t signatureLength);
+#endif /* defined(CY_CRYPTO_CFG_RSA_SIGN_ENABLED) */
 
 #endif /* (CPUSS_CRYPTO_VU == 1) && defined(CY_CRYPTO_CFG_RSA_C) */
 

@@ -844,6 +844,7 @@ typedef struct cyhal_ipc_s {
 #if defined(IPC) || defined(CY_IP_MXIPC)
     bool                                sema_preemptable;
     uint32_t                            sema_number;
+    bool                                sema_taken;
     struct cyhal_ipc_queue_s*           queue_obj;
     uint16_t                            user_events;
     /* events, that were already processed in callback */
@@ -893,8 +894,7 @@ typedef struct {
 typedef struct {
 #if defined (CY_IP_MXKEYSCAN)
     const cyhal_resource_inst_t*            resource;
-    /* keyscan PDL config is not const here because the config argument to Cy_Keyscan_Init is not const */
-    cy_stc_ks_config_t*                     config;
+    const cy_stc_ks_config_t*               config;
     const cyhal_clock_t*                    clock;
 #else
     void *empty;
@@ -909,7 +909,7 @@ typedef struct {
   * between platforms and/or HAL releases.
   */
 typedef struct {
-#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3))
+#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2))
     MCWDT_Type                          *base;
     cy_en_mcwdtctr_t                    counter;
     volatile uint32_t                   offset;
@@ -1074,7 +1074,7 @@ typedef struct {
 #ifdef CY_IP_MXSMIF
     const cyhal_resource_inst_t*            resource;
     const cy_stc_smif_config_t*             config;
-    cyhal_clock_t*                          clock;
+    const cyhal_clock_t*                    clock;
     struct
     {
         cyhal_gpio_t                        sclk;
@@ -1299,7 +1299,7 @@ typedef struct {
     const cyhal_resource_inst_t*            resource;
     const cy_stc_sd_host_init_config_t*     host_config;
     cy_stc_sd_host_sd_card_config_t*        card_config;
-    cyhal_clock_t*                          clock;
+    const cyhal_clock_t*                    clock;
     struct
     {
         cyhal_gpio_t                        clk;
@@ -1370,7 +1370,7 @@ typedef struct {
     const cyhal_resource_inst_t*            resource;
     const cy_stc_sd_host_init_config_t*     host_config;
     cy_stc_sd_host_sd_card_config_t*        card_config;
-    cyhal_clock_t*                          clock;
+    const cyhal_clock_t*                    clock;
     struct
     {
         cyhal_gpio_t                        clk;

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sysclk.c
-* \version 3.70
+* \version 3.110
 *
 * Provides an API implementation of the sysclk driver.
 *
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 3)
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)
 
 #include "cy_sysclk.h"
 #include "cy_syslib.h"
@@ -831,9 +831,10 @@ cy_en_sysclk_status_t Cy_SysClk_WcoEnable(uint32_t timeoutus)
     BACKUP_CTL |= BACKUP_CTL_WCO_EN_Msk;
 
     /* now do the timeout wait for STATUS, bit WCO_OK */
-    for (; (Cy_SysClk_WcoOkay() == false) && (0UL != timeoutus); timeoutus--)
+    while((Cy_SysClk_WcoOkay() == false) && (0UL != timeoutus)) 
     {
         Cy_SysLib_DelayUs(1U);
+        timeoutus--;
     }
 
     if (0UL != timeoutus)
@@ -1161,12 +1162,12 @@ uint32_t Cy_SysClk_EcoGetStatus(void)
       CY_SYSCLK_ECOSTAT_STABLE : (SRSS_CLK_ECO_STATUS_ECO_OK_Msk & SRSS_CLK_ECO_STATUS));
 }
 
-#if (defined (CY_IP_MXS40SRSS)&& (CY_IP_MXS40SRSS_VERSION < 3))
+#if (defined (CY_IP_MXS40SRSS)&& (CY_IP_MXS40SRSS_VERSION < 2))
 void Cy_SysClk_EcoSetFrequency(uint32_t freq)
 {
     ecoFrequency = freq; /* Store the ECO frequency */
 }
-#endif /* (defined (CY_IP_MXS40SRSS)&& (CY_IP_MXS40SRSS_VERSION < 3)) */
+#endif /* (defined (CY_IP_MXS40SRSS)&& (CY_IP_MXS40SRSS_VERSION < 2)) */
 
 cy_en_sysclk_status_t Cy_SysClk_EcoConfigure(uint32_t freq, uint32_t cSum, uint32_t esr, uint32_t driveLevel)
 {
@@ -1255,9 +1256,10 @@ cy_en_sysclk_status_t Cy_SysClk_EcoEnable(uint32_t timeoutus)
         SRSS_CLK_ECO_CONFIG |= SRSS_CLK_ECO_CONFIG_ECO_EN_Msk;
 
         /* Wait for CY_SYSCLK_ECOSTAT_STABLE */
-        for (; (CY_SYSCLK_ECOSTAT_STABLE != Cy_SysClk_EcoGetStatus()) && (0UL != timeoutus); timeoutus--)
+        while((CY_SYSCLK_ECOSTAT_STABLE != Cy_SysClk_EcoGetStatus()) && (0UL != timeoutus))
         {
             Cy_SysLib_DelayUs(1U);
+            timeoutus--;
         }
 
         if (zeroTimeout || (0UL != timeoutus))
@@ -1525,13 +1527,15 @@ cy_en_sysclk_status_t Cy_SysClk_FllConfigure(uint32_t inputFreq, uint32_t output
                     uint32_t locpgain = CY_SYSCLK_FLL_GAIN_VAL;
 
                     /* find the largest IGAIN value that is less than or equal to ki_p */
-                    for(config.igain = CY_SYSCLK_FLL_GAIN_IDX; config.igain != 0UL; config.igain--)
+                    config.igain = CY_SYSCLK_FLL_GAIN_IDX;
+                    while(config.igain != 0UL)
                     {
                        if(locigain <= ki_p)
                        {
                           break;
                        }
                        locigain >>= 1U;
+                       config.igain--;
                     }
                     /* decrement igain if the WCO is the FLL source */
                     if (wcoSource && (config.igain > 0U))
@@ -1541,13 +1545,15 @@ cy_en_sysclk_status_t Cy_SysClk_FllConfigure(uint32_t inputFreq, uint32_t output
                     }
 
                     /* then find the largest PGAIN value that is less than or equal to ki_p - igain */
-                    for(config.pgain = CY_SYSCLK_FLL_GAIN_IDX; config.pgain != 0UL; config.pgain--)
+                    config.pgain = CY_SYSCLK_FLL_GAIN_IDX;
+                    while(config.pgain != 0UL)
                     {
                       if(locpgain <= (ki_p - locigain))
                       {
                           break;
                       }
                       locpgain >>= 1U;
+                      config.pgain--;
                     }
 
                     /* decrement pgain if the WCO is the FLL source */
@@ -1690,11 +1696,10 @@ cy_en_sysclk_status_t Cy_SysClk_FllEnable(uint32_t timeoutus)
     SRSS_CLK_FLL_CONFIG4 |= SRSS_CLK_FLL_CONFIG4_CCO_ENABLE_Msk;
 
     /* Wait until CCO is ready */
-    for (; (!_FLD2BOOL(SRSS_CLK_FLL_STATUS_CCO_READY, SRSS_CLK_FLL_STATUS)) && /* if cco_ready == 0 */
-           (0UL != timeoutus);
-         timeoutus--)
+    while((!_FLD2BOOL(SRSS_CLK_FLL_STATUS_CCO_READY, SRSS_CLK_FLL_STATUS)) && /* if cco_ready == 0 */ (0UL != timeoutus))
     {
         Cy_SysLib_DelayUs(1U);
+         timeoutus--;
     }
 
     /* Set the FLL bypass mode to FLL_REF */
@@ -1707,11 +1712,10 @@ cy_en_sysclk_status_t Cy_SysClk_FllEnable(uint32_t timeoutus)
     }
 
     /* now do the timeout wait for FLL_STATUS, bit LOCKED */
-    for (; (!Cy_SysClk_FllLocked()) && /* if locked == 0 */
-           (0UL != timeoutus);
-         timeoutus--)
+    while((!Cy_SysClk_FllLocked()) && /* if locked == 0 */(0UL != timeoutus))
     {
         Cy_SysLib_DelayUs(1U);
+        timeoutus--;
     }
 
     if (zeroTimeout || (0UL != timeoutus))
@@ -1987,11 +1991,10 @@ cy_en_sysclk_status_t Cy_SysClk_PllEnable(uint32_t clkPath, uint32_t timeoutus)
         SRSS_CLK_PLL_CONFIG[clkPath] |= SRSS_CLK_PLL_CONFIG_ENABLE_Msk;
 
         /* now do the timeout wait for PLL_STATUS, bit LOCKED */
-        for (; (0UL == (SRSS_CLK_PLL_STATUS_LOCKED_Msk & SRSS_CLK_PLL_STATUS[clkPath])) &&
-               (0UL != timeoutus);
-             timeoutus--)
+        while((0UL == (SRSS_CLK_PLL_STATUS_LOCKED_Msk & SRSS_CLK_PLL_STATUS[clkPath])) && (0UL != timeoutus))
         {
             Cy_SysLib_DelayUs(1U);
+            timeoutus--;
         }
 
         if (zeroTimeout || (0UL != timeoutus))

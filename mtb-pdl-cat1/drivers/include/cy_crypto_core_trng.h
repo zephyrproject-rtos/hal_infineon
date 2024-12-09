@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_trng.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides provides constant and parameters
@@ -45,6 +45,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 14.3', 2, \
 
 #include "cy_crypto_core_hw.h"
 
+#include "cy_crypto_core_trng_config.h"
 
 typedef cy_en_crypto_status_t (*cy_crypto_trng_func_t)(CRYPTO_Type *base,
                                              uint32_t  GAROPol,
@@ -163,6 +164,32 @@ cy_en_crypto_status_t Cy_Crypto_Core_Trng(CRYPTO_Type *base,
                                              uint32_t  max,
                                              uint32_t *randomNum);
 
+
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Trng_Ext
+****************************************************************************//**
+*
+* Generates a True Random Number.
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param max
+* The maximum length of a random number, in the range of [0, 32] bits.
+*
+* \param randomNum
+* The pointer to a generated true random number. Must be 4-byte aligned.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Trng_Ext(CRYPTO_Type *base,
+                                             uint32_t  max,
+                                             uint32_t *randomNum)
+{
+    return Cy_Crypto_Core_Trng(base, CY_CRYPTO_DEF_TR_GARO, CY_CRYPTO_DEF_TR_FIRO, max, randomNum);
+}
 
 /** \} group_crypto_lld_rng_functions */
 

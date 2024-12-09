@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_common.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides common constants and parameters
@@ -51,7 +51,7 @@ extern "C" {
 #define CY_CRYPTOLITE_DRV_VERSION_MAJOR         2
 
 /** Driver minor version */
-#define CY_CRYPTOLITE_DRV_VERSION_MINOR         30
+#define CY_CRYPTOLITE_DRV_VERSION_MINOR         50
 
 /** Cryptolite Driver PDL ID */
 #define CY_CRYPTOLITE_ID                        CY_PDL_DRV_ID(0x74u)
@@ -60,8 +60,13 @@ extern "C" {
 /** \cond INTERNAL */
 
 
+
 /* Calculates the actual size in bytes of the bits value */
 #define CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(x)      (uint32_t)(((uint32_t)(x) + 7U) >> 3U)
+
+/* Calculates the word siz of the nearest byte size */
+#define CY_CRYPTOLITE_WORD_SIZE_OF_BYTES(x)      (uint32_t)(((uint32_t)(x) + 3U) >> 2U) 
+
 
 /** \endcond */
 
@@ -91,6 +96,10 @@ typedef enum
     CY_CRYPTOLITE_TRNG_NOT_ENABLED      = CY_CRYPTOLITE_ID | CY_PDL_STATUS_ERROR   | 0x07u,
     /** The TRNG is unhealthy. */
     CY_CRYPTOLITE_TRNG_UNHEALTHY        = CY_CRYPTOLITE_ID | CY_PDL_STATUS_ERROR   | 0x08u,
+        /** The Data in the buffer is not aligned. */
+    CY_CRYPTOLITE_BUFFER_NOT_ALIGNED    = CY_CRYPTOLITE_ID | CY_PDL_STATUS_ERROR   | 0x09u,
+        /** The Hardware error occurred. */
+    CY_CRYPTOLITE_HW_ERROR              = CY_CRYPTOLITE_ID | CY_PDL_STATUS_ERROR   | 0x0Au
 } cy_en_cryptolite_status_t;
 
 /** \} group_cryptolite_enums */
@@ -138,6 +147,15 @@ typedef enum
     CY_CRYPTOLITE_SIG_INVALID   = 0x0AAAAAAAu,
 } cy_en_cryptolite_sig_verify_result_t;
 
+/** AES CCM verification status */
+typedef enum
+{
+    /** The Tag is valid */
+    CY_CRYPTOLITE_TAG_VALID     = 0x05555555u,
+    /** The Tag is invalid */
+    CY_CRYPTOLITE_TAG_INVALID   = 0x0AAAAAAAu,
+} cy_en_cryptolite_ccm_auth_result_t;
+
 /** \} group_cryptolite_enums */
 
 
@@ -178,6 +196,10 @@ typedef enum
 
 /** \} group_cryptolite_enums */
 
+
+/** \cond INTERNAL */
+#define CY_REMAP_ADDRESS_CRYPTOLITE(addr)   (CY_PLATFORM_REMAP_ADDRESS_CRYPTOLITE(addr))
+/** \endcond */
 
 #if defined(__cplusplus)
 }

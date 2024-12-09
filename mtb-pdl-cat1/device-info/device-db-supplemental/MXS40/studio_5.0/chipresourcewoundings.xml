@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Woundings xml_version="1" xmlns="http://cypress.com/xsd/cychipresourcewoundings_v1">
+  <MemoryWounding name="SRAM_KB" memoryId="SRAM"/>
+  
+  <MemoryWounding name="FLASH_KB" memoryId="FLASH"/>
+  <!--<MemoryWounding name="FLASH_KB" memoryId="FLASH_LG_SBM"/>-->
+  <!--<MemoryWounding name="FLASH_KB" memoryId="FLASH_SM_SBM"/>-->
+  <!--<MemoryWounding name="FLASH_KB" memoryId="FLASH_LG_DBM1"/>-->
+  <!--<MemoryWounding name="FLASH_KB" memoryId="FLASH_SM_DBM1"/>-->
+  <!--<MemoryWounding name="WFLASH_KB" memoryId="WFLASH_LG_SBM"/>-->
+  <!--<MemoryWounding name="WFLASH_KB" memoryId="WFLASH_SM_SBM"/>-->
+  <!--<MemoryWounding name="WFLASH_KB" memoryId="WFLASH_LG_DBM1"/>-->
+  <!--<MemoryWounding name="WFLASH_KB" memoryId="WFLASH_SM_DBM1"/>-->
+
   <BooleanWounding name="ECO">
     <Block name="srss.clock.eco"/>
   </BooleanWounding>
@@ -37,6 +49,7 @@
   <NaWounding name="USB_TYPE">
     <Block name="usb"/>
   </NaWounding>
+
   <RemoveListWounding name="CAN_REMOVED">
     <Block name="can"/>
   </RemoveListWounding>
@@ -74,16 +87,27 @@
     <Block name="eth"/>
   </RemoveListWounding>
   <RemoveListWounding name="CXPI_REMOVED">
-    <Block name="cxpi"/>
+    <Block name="cxpi.ch"/>
   </RemoveListWounding>
-  <IndexResourceWounding name="DAC8_REMOVED">
-    <ResourceIndex index="0">
-      <Block name="csd.idac0" />
-    </ResourceIndex>
-    <ResourceIndex index="1">
-      <Block name="csd.idac1" />
-    </ResourceIndex>
-  </IndexResourceWounding>
+  <RemoveListWounding name="DMACCHANNELS_REMOVED">
+    <Block name="cpuss.dmac.chan"/>
+  </RemoveListWounding>
+  <RemoveListWounding name="AUDIODAC_REMOVED">
+    <Block name="dac"/>
+  </RemoveListWounding>
+  <RemoveListWounding name="JPEG_REMOVED">
+    <Block name="jpegdec"/>
+  </RemoveListWounding>
+  <RemoveListWounding name="MIPI_REMOVED">
+    <Block name="videoss.mipi"/>
+  </RemoveListWounding>
+  <RemoveListWounding name="SMIF_REMOVED">
+    <Block name="smif.core" />
+  </RemoveListWounding>
+  <RemoveListWounding name="I2S_REMOVED">
+    <Block name="tdm" />
+  </RemoveListWounding>
+
   <IndexResourceWounding name="I2S_REMOVED">
     <ResourceIndex index="0">
       <Block name="audioss[0].i2s[0]" />

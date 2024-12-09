@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_tcpwm_counter.h
-* \version 1.60
+* \version 1.70
 *
 * \brief
 * The header file of the TCPWM Timer Counter driver.
@@ -173,7 +173,8 @@ typedef struct cy_stc_tcpwm_counter_config
 #if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
     bool        buffer_swap_enable; /**< Configures swapping mechanism between CC0 and buffered CC0, CC1 and buffered CC1, PERIOD and buffered PERIOD, DT and buffered DT  */
     cy_en_counter_direction_t direction_mode; /**< Counter direction mode */ 
-    
+    bool        glitch_filter_enable;   /**< Enables Glitch filter for input triggers. */
+    cy_en_gf_depth_value_t gf_depth;    /**< Glitch filter depth value. */
 #endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
 }cy_stc_tcpwm_counter_config_t;
 /** \} group_tcpwm_data_structures_counter */
@@ -285,6 +286,7 @@ __STATIC_INLINE void Cy_TCPWM_Counter_EnableCompare1Swap(TCPWM_Type *base, uint3
 #endif
 #if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
 __STATIC_INLINE void Cy_TCPWM_Counter_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable);
+__STATIC_INLINE void Cy_TCPWM_Counter_SetDirection_Change_Mode(TCPWM_Type *base, uint32_t cntNum,  cy_en_counter_direction_t direction_mode);
 #endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
 
 /*******************************************************************************
@@ -548,6 +550,11 @@ __STATIC_INLINE uint32_t Cy_TCPWM_Counter_GetCompare0BufVal(TCPWM_Type const  *b
 *
 * \funcusage
 * \snippet tcpwm/counter/snippet/main.c snippet_Cy_TCPWM_Counter_EnableCompare0Swap
+*
+* \note From Version 3 of TCPWM, this feature is coupled with the swap enable feature (Cy_TCPWM_Counter_EnableSwap()).
+* when both reload and swap are enabled then CC0 value is swapped with CC0 buff value.
+* When only reload is enabled then CC0 buff value is copied to CC0.
+* There is no action when reload is disabled.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_Counter_EnableCompare0Swap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
@@ -816,6 +823,11 @@ __STATIC_INLINE uint32_t Cy_TCPWM_Counter_GetCapture1BufVal (TCPWM_Type const *b
 * \funcusage
 * \snippet tcpwm/counter/snippet/main.c snippet_Cy_TCPWM_Counter_EnableCompare1Swap
 *
+* \note From Version 3 of TCPWM, this feature is coupled with the swap enable feature (Cy_TCPWM_Counter_EnableSwap()).
+* when both reload and swap are enabled then CC1 value is swapped with CC1 buff value.
+* When only reload is enabled then CC1 buff value is copied to CC1.
+* There is no action when reload is disabled.
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_Counter_EnableCompare1Swap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
 {
@@ -838,11 +850,43 @@ __STATIC_INLINE void Cy_TCPWM_Counter_EnableCompare1Swap(TCPWM_Type *base, uint3
 * \param enable
 * true = swap enabled; false = swap disabled
 *
+* \note This feature is coupled with the reload feature.
+* when both reload and swap are enabled then CC0/CC1/PERIOD/DT values are swapped with CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values respectively
+* When only reload is enabled then CC_BUFF/CC1_BUFF/PERIOD_BUFF/DT_BUFF values are copied to CC0/CC1/PERIOD/DT respectively.
+* There is no action when reload is disabled.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_Counter_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
 {
     Cy_TCPWM_Block_EnableSwap(base, cntNum, enable);
+}
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_Counter_SetDirection_Change_Mode
+****************************************************************************//**
+*
+* Direction change mode Based on falling/rising edge of capture0 input.
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param direction_mode
+* Direction change mode Based on falling/rising edge of capture0 input \ref cy_en_counter_direction_t
+*
+* \note For TCPWM version 3 and above in compare mode, when external direction control is enabled and Capture0 input is disabled,
+*       user can use software capture0 trigger. While using this, User has to make sure that the
+*       external direction control is set to CY_TCPWM_COUNTER_DIRECTION_RISING
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_Counter_SetDirection_Change_Mode(TCPWM_Type *base, uint32_t cntNum,  cy_en_counter_direction_t direction_mode)
+{
+    uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
+
+    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) &= ~TCPWM_GRP_CNT_CTRL_QUAD_ENCODING_MODE_Msk;
+    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= (_VAL2FLD(TCPWM_GRP_CNT_CTRL_QUAD_ENCODING_MODE, direction_mode));
 }
 #endif /* (CY_IP_MXTCPWM_VERSION >= 3U) */
 /** \} group_tcpwm_functions_counter */

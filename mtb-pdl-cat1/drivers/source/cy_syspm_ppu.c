@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm_ppu.c
-* \version 5.94
+* \version 5.150
 *
 * This file provides the source code for ARM PPU Platform PD specific driver,
 * where the API's are used by Syspm driver for Power Management.
@@ -33,7 +33,9 @@
 #include <cy_syspm_ppu.h>
 #include "cy_syslib.h"
 #include "cy_syspm.h"
-
+#if defined (CY_IP_MXS22SRSS) && !defined (COMPONENT_SECURE_DEVICE)
+#include "cy_secure_services.h"
+#endif
 /**
 * \addtogroup group_syspm_ppu_functions
 * \{
@@ -78,7 +80,15 @@ cy_en_syspm_status_t cy_pd_ppu_init(struct ppu_v1_reg *ppu)
 enum ppu_v1_mode cy_pd_ppu_get_programmed_power_mode(struct ppu_v1_reg *ppu)
 {
     CY_ASSERT(ppu != NULL);
+#if defined(NO_RPC_CALL) || !defined (CY_IP_MXS22SRSS) || (defined (COMPONENT_SECURE_DEVICE) && defined (CY_IP_MXS22SRSS))
     return ppu_v1_get_programmed_power_mode(ppu);
+#else
+    cy_rpc_args_t rpcArgs;
+    rpcArgs.argc = 1;
+    rpcArgs.argv[0] = (uint32_t)ppu;
+    return (enum ppu_v1_mode)Cy_Send_RPC(CY_SECURE_SERVICE_TYPE_PM,
+                  (uint32_t)CY_SECURE_SERVICE_PM_GET_PROGRAMMED_POWER_MODE, &rpcArgs);
+#endif
 }
 
 
@@ -99,7 +109,15 @@ enum ppu_v1_mode cy_pd_ppu_get_programmed_power_mode(struct ppu_v1_reg *ppu)
 enum ppu_v1_mode cy_pd_ppu_get_power_mode(struct ppu_v1_reg *ppu)
 {
     CY_ASSERT(ppu != NULL);
+#if defined(NO_RPC_CALL) || !defined (CY_IP_MXS22SRSS) || (defined (COMPONENT_SECURE_DEVICE) && defined (CY_IP_MXS22SRSS))
     return ppu_v1_get_power_mode(ppu);
+#else
+    cy_rpc_args_t rpcArgs;
+    rpcArgs.argc = 1;
+    rpcArgs.argv[0] = (uint32_t)ppu;
+    return (enum ppu_v1_mode)Cy_Send_RPC(CY_SECURE_SERVICE_TYPE_PM,
+                  (uint32_t)CY_SECURE_SERVICE_PM_GET_POWER_MODE, &rpcArgs);
+#endif
 }
 
 /*******************************************************************************
@@ -121,6 +139,7 @@ enum ppu_v1_mode cy_pd_ppu_get_power_mode(struct ppu_v1_reg *ppu)
 
 cy_en_syspm_status_t cy_pd_ppu_set_power_mode(struct ppu_v1_reg *ppu, uint32_t mode)
 {
+#if defined(NO_RPC_CALL) || !defined (CY_IP_MXS22SRSS) || (defined (COMPONENT_SECURE_DEVICE) && defined (CY_IP_MXS22SRSS))
     cy_en_syspm_status_t status = CY_SYSPM_INVALID_STATE;
     CY_ASSERT(ppu != NULL);
     CY_ASSERT(mode < PPU_V1_MODE_COUNT);
@@ -128,6 +147,44 @@ cy_en_syspm_status_t cy_pd_ppu_set_power_mode(struct ppu_v1_reg *ppu, uint32_t m
     (void)ppu_v1_dynamic_enable(ppu, (enum ppu_v1_mode) mode); /* Suppress a compiler warning about unused return value */
 
     return status;
+#else
+    cy_rpc_args_t rpcArgs;
+    rpcArgs.argc = 2;
+    rpcArgs.argv[0] = (uint32_t)ppu;
+    rpcArgs.argv[1] = mode;
+    return (cy_en_syspm_status_t)Cy_Send_RPC(CY_SECURE_SERVICE_TYPE_PM,
+              (uint32_t)CY_SECURE_SERVICE_PM_SET_POWER_MODE, &rpcArgs);
+#endif
+}
+
+/*******************************************************************************
+* Function Name: cy_pd_ppu_enable_dynamic_mode
+****************************************************************************//**
+*
+* Enables/Disable Dynamic Mode of particular PPU.
+*
+*  \param ppu
+*  This parameter contains PPU base pointer for which the initialization has
+*  to be done.
+*
+*  \param enable
+*  true  - Enables the Dynamic mode for the PD.
+*  false - Disables the Dynamic mode for the PD.
+*
+*******************************************************************************/
+
+void cy_pd_ppu_enable_dynamic_mode(struct ppu_v1_reg *ppu, bool enable)
+{
+    CY_ASSERT(ppu != NULL);
+
+    if(enable)
+    {
+        ppu->PWPR |= PPU_V1_PWPR_DYNAMIC_EN;
+    }
+    else
+    {
+        ppu->PWPR &= ~(PPU_V1_PWPR_DYNAMIC_EN);
+    }
 }
 
 /*******************************************************************************
@@ -149,6 +206,7 @@ cy_en_syspm_status_t cy_pd_ppu_set_power_mode(struct ppu_v1_reg *ppu, uint32_t m
 
 cy_en_syspm_status_t cy_pd_ppu_set_static_power_mode(struct ppu_v1_reg *ppu, uint32_t mode)
 {
+#if defined(NO_RPC_CALL) || !defined (CY_IP_MXS22SRSS) || (defined (COMPONENT_SECURE_DEVICE) && defined (CY_IP_MXS22SRSS))
     cy_en_syspm_status_t status = CY_SYSPM_INVALID_STATE;
     CY_ASSERT(ppu != NULL);
     CY_ASSERT(mode < PPU_V1_MODE_COUNT);
@@ -156,6 +214,14 @@ cy_en_syspm_status_t cy_pd_ppu_set_static_power_mode(struct ppu_v1_reg *ppu, uin
     (void)ppu_v1_set_power_mode(ppu, (enum ppu_v1_mode) mode); /* Suppress a compiler warning about unused return value */
 
     return status;
+#else
+    cy_rpc_args_t rpcArgs;
+    rpcArgs.argc = 2;
+    rpcArgs.argv[0] = (uint32_t)ppu;
+    rpcArgs.argv[1] = mode;
+    return (cy_en_syspm_status_t)Cy_Send_RPC(CY_SECURE_SERVICE_TYPE_PM,
+              (uint32_t)CY_SECURE_SERVICE_PM_SET_STATIC_POWER_MODE, &rpcArgs);
+#endif
 }
 
 

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_ezi2c.h
-* \version 3.10
+* \version 3.20
 *
 * Provides EZI2C API declarations of the SCB driver.
 *
@@ -499,7 +499,9 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_HibernateCallback(cy_stc_syspm_callback_params
 #define CY_SCB_EZI2C_I2C_CTRL   (SCB_I2C_CTRL_S_GENERAL_IGNORE_Msk | SCB_I2C_CTRL_SLAVE_MODE_Msk | \
                                  SCB_I2C_CTRL_S_READY_ADDR_ACK_Msk | SCB_I2C_CTRL_S_READY_DATA_ACK_Msk)
 #elif (defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION==1))
-#define CY_SCB_EZI2C_I2C_CTRL   (SCB_I2C_CTRL_S_GENERAL_IGNORE_Msk | SCB_I2C_CTRL_SLAVE_MODE_Msk)
+#define CY_SCB_EZI2C_I2C_CTRL   (SCB_I2C_CTRL_S_GENERAL_IGNORE_Msk      | SCB_I2C_CTRL_SLAVE_MODE_Msk | \
+                                 SCB_I2C_CTRL_S_READY_ADDR_ACK_Msk      | SCB_I2C_CTRL_S_READY_DATA_ACK_Msk | \
+                                 SCB_I2C_CTRL_S_NOT_READY_ADDR_NACK_Msk | SCB_I2C_CTRL_S_NOT_READY_DATA_NACK_Msk)
 #endif /* CY_IP_MXSCB_VERSION */
 #define CY_SCB_EZI2C_RX_CTRL    (CY_SCB_I2C_RX_CTRL)
 #define CY_SCB_EZI2C_TX_CTRL    (CY_SCB_I2C_TX_CTRL)

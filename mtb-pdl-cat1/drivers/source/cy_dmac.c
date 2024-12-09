@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_dmac.c
-* \version 1.30.1
+* \version 1.40
 *
 * \brief
 * The source code file for the DMAC driver.

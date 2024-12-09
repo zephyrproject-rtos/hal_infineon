@@ -25,6 +25,20 @@ ifeq ($(WHICHFILE),true)
 $(info Processing $(lastword $(MAKEFILE_LIST)))
 endif
 
+ifneq (,$(filter XMC7x_CM0P_SLEEP, $(BSP_COMPONENTS)))
+BSP_LINKER_CORE:=linker
+else
+BSP_LINKER_CORE:=linker_d
+endif
+ifeq ($(TOOLCHAIN),GCC_ARM)
+	BSP_LINKER_SCRIPT_EXT:=ld
+else ifeq ($(TOOLCHAIN),ARM)
+	BSP_LINKER_SCRIPT_EXT:=sct
+else ifeq ($(TOOLCHAIN),IAR)
+	BSP_LINKER_SCRIPT_EXT:=icf
+endif
+MTB_BSP__LINKER_SCRIPT:=$(MTB_TOOLS__TARGET_DIR)/TOOLCHAIN_$(TOOLCHAIN)/$(BSP_LINKER_CORE).$(BSP_LINKER_SCRIPT_EXT)
+$(info "Using linker $(MTB_BSP__LINKER_SCRIPT)")
 # Any additional components to apply when using this board.
 BSP_COMPONENTS:=
 

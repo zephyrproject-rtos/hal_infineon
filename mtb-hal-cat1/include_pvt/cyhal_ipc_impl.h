@@ -44,39 +44,37 @@ extern "C" {
 * \cond INTERNAL
 */
 
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1D)
-    /* On CAT1A devices CY_IPC_CHANNELS is not available at compile time */
-    #define _CYHAL_IPC_DRV_CHANNELS     (16u)
+#if defined(COMPONENT_CAT1A)
+    /* On CAT1A devices CY_IPC_CHANNELS is not available at compile time,
+       except for TVIIBE devices. */
+    #if defined (CPUSS_IPC_IPC_NR) && (CPUSS_IPC_IPC_NR > 0)
+        #define _CYHAL_IPC_DRV_CHANNELS     (CPUSS_IPC_IPC_NR)
+    #else
+        #define _CYHAL_IPC_DRV_CHANNELS     (16u)
+    #endif
+#elif defined(COMPONENT_CAT1D)
+    /* Last channel is used by semaphores */
+    #define _CYHAL_IPC_DRV_CHANNELS     (CY_IPC_IP1_CH - 1)
 #else
     #define _CYHAL_IPC_DRV_CHANNELS     (CPUSS_IPC_IPC_NR)
-#endif /* defined(COMPONENT_CAT1A) or other */
+#endif
 
 /** Definition of _CYHAL_IPC_CHAN_USER which stands for first user-available IPC channel index */
 #if defined(CY_IPC_CHAN_USER)
+#if defined(COMPONENT_CAT1D)
+    #define _CYHAL_IPC_CHAN_USER        (CY_IPC_CHAN_USER - IPC0_IPC_NR)
+#else
     #define _CYHAL_IPC_CHAN_USER        (CY_IPC_CHAN_USER)
+#endif
 #else
     #if defined(COMPONENT_CAT1A)
         #define _CYHAL_IPC_CHAN_USER    (CY_IPC_CHAN_DDFT + 1)
     #elif defined(COMPONENT_CAT1B)
         #define _CYHAL_IPC_CHAN_USER    (0u)
-    #elif defined(COMPONENT_CAT1D)
-        #define _CYHAL_IPC_CHAN_USER    (8u)
     #else
         #error "Unhandled device"
     #endif /* defined(COMPONENT_CAT1A) or defined(COMPONENT_CAT1B) or other */
 #endif /* !defined(CY_IPC_CHAN_USER) */
-
-#define _CYHAL_IPC_CHAN_IDX_CORRECT(channel)    ((channel >= CYHAL_IPC_CHAN_0) && (channel < CYHAL_IPC_CHAN_0 + CYHAL_IPC_USR_CHANNELS))
-
-#define _CYHAL_IPC_RELEASE_INTR_BITS            (16u)
-
-#ifdef CY_IPC_SEMA_COUNT
-#define _CYHAL_IPC_PDL_SEMA_COUNT               (CY_IPC_SEMA_COUNT)
-#else
-#define _CYHAL_IPC_PDL_SEMA_COUNT               (128u)
-#endif /* ifdef CY_IPC_SEMA_COUNT or other */
-
-/** \endcond */
 
 /** Number of available for IPC HAL user channels */
 #define CYHAL_IPC_USR_CHANNELS                 ((_CYHAL_IPC_DRV_CHANNELS) - _CYHAL_IPC_CHAN_USER)
@@ -114,36 +112,125 @@ extern "C" {
     #define CYHAL_IPC_CHAN_7    (_CYHAL_IPC_CHAN_USER + 7)
 #endif /* CYHAL_IPC_USR_CHANNELS > 7 */
 #if (CYHAL_IPC_USR_CHANNELS > 8)
-    #error "Unhandled number of free IPC channels"
+    /** User IPC channel 8 */
+    #define CYHAL_IPC_CHAN_8    (_CYHAL_IPC_CHAN_USER + 8)
 #endif /* CYHAL_IPC_USR_CHANNELS > 8 */
+#if (CYHAL_IPC_USR_CHANNELS > 9)
+    /** User IPC channel 9 */
+    #define CYHAL_IPC_CHAN_9    (_CYHAL_IPC_CHAN_USER + 9)
+#endif /* CYHAL_IPC_USR_CHANNELS > 9 */
+#if (CYHAL_IPC_USR_CHANNELS > 10)
+    /** User IPC channel 10 */
+    #define CYHAL_IPC_CHAN_10    (_CYHAL_IPC_CHAN_USER + 10)
+#endif /* CYHAL_IPC_USR_CHANNELS > 10 */
+#if (CYHAL_IPC_USR_CHANNELS > 11)
+    /** User IPC channel 11 */
+    #define CYHAL_IPC_CHAN_11    (_CYHAL_IPC_CHAN_USER + 11)
+#endif /* CYHAL_IPC_USR_CHANNELS > 11 */
+#if (CYHAL_IPC_USR_CHANNELS > 12)
+    /** User IPC channel 12 */
+    #define CYHAL_IPC_CHAN_12    (_CYHAL_IPC_CHAN_USER + 12)
+#endif /* CYHAL_IPC_USR_CHANNELS > 12 */
+#if (CYHAL_IPC_USR_CHANNELS > 13)
+    /** User IPC channel 13 */
+    #define CYHAL_IPC_CHAN_13    (_CYHAL_IPC_CHAN_USER + 13)
+#endif /* CYHAL_IPC_USR_CHANNELS > 13 */
+#if (CYHAL_IPC_USR_CHANNELS > 14)
+    /** User IPC channel 14 */
+    #define CYHAL_IPC_CHAN_14    (_CYHAL_IPC_CHAN_USER + 14)
+#endif /* CYHAL_IPC_USR_CHANNELS > 14 */
+#if (CYHAL_IPC_USR_CHANNELS > 15)
+    /** User IPC channel 15 */
+    #define CYHAL_IPC_CHAN_15    (_CYHAL_IPC_CHAN_USER + 15)
+#endif /* CYHAL_IPC_USR_CHANNELS > 15 */
+#if (CYHAL_IPC_USR_CHANNELS > 16)
+    #error "Unhandled number of free IPC channels"
+#endif /* CYHAL_IPC_USR_CHANNELS > 16 */
+
+/** Definition of _CYHAL_IPC_INTR_USER which stands for first user-available IPC interrupt structure index */
+#if defined(CY_IPC_INTR_USER)
+#if defined(COMPONENT_CAT1D)
+#define _CYHAL_IPC_INTR_USER            (CY_IPC_INTR_USER - IPC0_IPC_IRQ_NR)
+#else
+#define _CYHAL_IPC_INTR_USER            (CY_IPC_INTR_USER)
+#endif
+#elif defined(CY_IPC_INTR_SPARE)
+#define _CYHAL_IPC_INTR_USER            (CY_IPC_INTR_SPARE)
+#else
+#define _CYHAL_IPC_INTR_USER            (CYHAL_IPC_CHAN_0)
+#endif
+
+#define _CYHAL_IPC_CHAN_IDX_CORRECT(channel)    (((channel) >= CYHAL_IPC_CHAN_0) && ((channel) < (CYHAL_IPC_CHAN_0 + CYHAL_IPC_USR_CHANNELS)))
+
+#ifdef CPUSS_IPC_IPC_IRQ_NR
+#define _CYHAL_IPC_RELEASE_INTR_BITS            (CPUSS_IPC_IPC_IRQ_NR)
+#else
+#define _CYHAL_IPC_RELEASE_INTR_BITS            (16u)
+#endif
+
+#ifdef CY_IPC_CHAN_SEMA
+#define _CYHAL_IPC_PDL_SEMA_CHAN                (CY_IPC_CHAN_SEMA)
+#elif defined(COMPONENT_CAT1D)
+/* Last available channel is used for semaphores */
+#define _CYHAL_IPC_PDL_SEMA_CHAN                (CY_IPC_IP1_CH - 1)
+#endif /* ifdef CY_IPC_CHAN_SEMA or other */
+
+/** \endcond */
+
+/** Number of semaphores, that can be used */
+#ifdef CY_IPC_SEMA_COUNT
+#define CYHAL_IPC_SEMA_COUNT               (CY_IPC_SEMA_COUNT)
+#else
+#define CYHAL_IPC_SEMA_COUNT               (128u)
+#endif /* ifdef CY_IPC_SEMA_COUNT or other */
+
+/** The round up of cacheline size MACRO */
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+#define L1_DCACHE_LINE_BYTES_MASK         (uint32_t)(__SCB_DCACHE_LINE_SIZE - 1)
+#define L1_DCACHE_ROUND_UP_BYTES(a)       (((uint32_t)(a) + L1_DCACHE_LINE_BYTES_MASK) & ~(L1_DCACHE_LINE_BYTES_MASK))
+#define L1_DCACHE_LINE_WORDS_MASK         (uint32_t)((__SCB_DCACHE_LINE_SIZE >> 2) - 1)
+#define L1_DCACHE_ROUND_UP_WORDS(a)       (((uint32_t)(a) + L1_DCACHE_LINE_WORDS_MASK) & ~(L1_DCACHE_LINE_WORDS_MASK))
+#endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
 /** Macro for Queue pool shared memory allocation. Can be used only in function scope. Please use CY_SECTION_SHAREDMEM
  * instead if allocation in global scope is needed.
  * Params:
  * queue_pool - void pointer to point to the shared memory
- * NUM_ITEMS - number of intems, that are expected to fit into the queue
+ * NUM_ITEMS - number of items, that are expected to fit into the queue
  * ITEMSIZE - size of one queue item (in bytes)
  */
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
 #define CYHAL_IPC_QUEUE_POOL_ALLOC(queue_pool, NUM_ITEMS, ITEMSIZE) \
-    do { CY_SECTION_SHAREDMEM static uint8_t _cyhal_ipc_queue_pool[ITEMSIZE * NUM_ITEMS] CY_ALIGN(__SCB_DCACHE_LINE_SIZE); queue_pool = (void*)&_cyhal_ipc_queue_pool; } while (0)
+    do { \
+        CY_SECTION_SHAREDMEM static uint8_t _cyhal_ipc_queue_pool[L1_DCACHE_ROUND_UP_BYTES(ITEMSIZE * NUM_ITEMS)] CY_ALIGN(__SCB_DCACHE_LINE_SIZE); \
+        queue_pool = (void*)&_cyhal_ipc_queue_pool; \
+    } while (0)
 #else
 #define CYHAL_IPC_QUEUE_POOL_ALLOC(queue_pool, NUM_ITEMS, ITEMSIZE) \
-    do { CY_SECTION_SHAREDMEM static uint8_t _cyhal_ipc_queue_pool[ITEMSIZE * NUM_ITEMS]; queue_pool = (void*)&_cyhal_ipc_queue_pool; } while (0)
-#endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
+    do { \
+        CY_SECTION_SHAREDMEM static uint8_t _cyhal_ipc_queue_pool[ITEMSIZE * NUM_ITEMS]; \
+        queue_pool = (void*)&_cyhal_ipc_queue_pool; \
+    } while (0)
+#endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
 /** Macro for Queue handle shared memory allocation. Can be used only in function scope. Please use CY_SECTION_SHAREDMEM
  * instead if allocation in global scope is needed.
  * Params:
  * queue_handle - pointer to cyhal_ipc_queue_t data type, which will point to the shared memory
  */
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
 #define CYHAL_IPC_QUEUE_HANDLE_ALLOC(queue_handle) \
-    do { CY_SECTION_SHAREDMEM static cyhal_ipc_queue_t _cyhal_ipc_queue_handle CY_ALIGN(__SCB_DCACHE_LINE_SIZE); queue_handle = &_cyhal_ipc_queue_handle; } while (0)
+    do { \
+        CY_SECTION_SHAREDMEM static cyhal_ipc_queue_t _cyhal_ipc_queue_handle CY_ALIGN(__SCB_DCACHE_LINE_SIZE); \
+        queue_handle = &_cyhal_ipc_queue_handle; \
+    } while (0)
 #else
 #define CYHAL_IPC_QUEUE_HANDLE_ALLOC(queue_handle) \
-    do { CY_SECTION_SHAREDMEM static cyhal_ipc_queue_t _cyhal_ipc_queue_handle; queue_handle = &_cyhal_ipc_queue_handle; } while (0)
-#endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
+    do { \
+        CY_SECTION_SHAREDMEM static cyhal_ipc_queue_t _cyhal_ipc_queue_handle; \
+        queue_handle = &_cyhal_ipc_queue_handle; \
+    } while (0)
+#endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
 
 /** Polling interval, that will be used in blocking cyhal_ipc_* functions.
  * It is recommended to use value either below 1000 (e.g. 750) or multiple of 1000 (e.g. 1000, 2000, 3000, etc.)
@@ -156,7 +243,9 @@ extern "C" {
  * Please refer to implementation specific documentation for details.
  */
 #ifndef CYHAL_IPC_INIT_CORE
-#if defined(COMPONENT_CAT1C)
+#if defined(CY_DEVICE_TVIIBE)
+#define CYHAL_IPC_INIT_CORE CORE_NAME_CM4_0
+#elif defined(COMPONENT_CAT1C)
 #define CYHAL_IPC_INIT_CORE CORE_NAME_CM7_0
 #elif defined(COMPONENT_CAT1D)
 #define CYHAL_IPC_INIT_CORE CORE_NAME_CM55

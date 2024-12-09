@@ -229,7 +229,7 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_CTDAC = 0x0019,
     /** Module identifier for the eFuse driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_EFUSE = 0x001a,
-    /** Module identifier for the Emulated EEPROM driver. Asset(s): (emeeprom) */
+    /** Module identifier for the Emulated EEPROM driver. Asset(s): (em_eeprom) */
     CY_RSLT_MODULE_DRIVER_EM_EEPROM = 0x001b,
     /** Module identifier for the Profile driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_PROFILE = 0x001e,
@@ -300,7 +300,7 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_PDM_PCM2 = 0x0073,
     /** Module identifier for the Crypto Lite driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_CRYPTOLITE = 0x0074,
-    /** Module identifier for the SysFault driver. Asset(s): (mtb-pdl-cat1) */
+    /** Module identifier for the SysFault driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_SYSFAULT = 0x0076,
     /** Module identifier for the LVD HT driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_LVD_HT = 0x0078,
@@ -318,6 +318,10 @@ typedef enum
     CY_RSLT_MODULE_ABSTRACTION_RESOURCE = 0x0182,
     /** Module identifier for RTOS abstraction. Asset(s): (abstraction-rtos) */
     CY_RSLT_MODULE_ABSTRACTION_OS = 0x0183,
+    /** Module identifier for Data Streaming abstraction. Asset(s): (data-streaming) */
+    CY_RSLT_MODULE_ABSTRACTION_DATA_STREAMING= 0x0184,
+    /** Module identifier for Block storage abstraction. Asset(s): (block-storage) */
+    CY_RSLT_MODULE_ABSTRACTION_BLOCK_STORAGE= 0x0185,
 
     /** Module identifier for the Retarget IO Board Library. Asset(s): (retarget-io) */
     CY_RSLT_MODULE_BOARD_LIB_RETARGET_IO = 0x1A0,
@@ -370,6 +374,9 @@ typedef enum
     CY_RSLT_MODULE_BOARD_HARDWARE_XENSIV_BGT60TRXX = 0x01CC,
     /** Module identifier for the LM49450 Audio Codec Library. Asset(s): (audio-codec-lm49450) */
     CY_RSLT_MODULE_BOARD_HARDWARE_LM49450 = 0x01CE,
+    /** Module identifier for the TLV320DAC3100 Audio Codec Library.
+       Asset(s): (audio-codec-tlv320dac3100) */
+    CY_RSLT_MODULE_BOARD_HARDWARE_TLV320DAC3100 = 0x01CF,
 
     /** Module identifier for the MDNS library. Asset(s): (mdns) */
     CY_RSLT_MODULE_MIDDLEWARE_MNDS = 0x200,
@@ -405,13 +412,16 @@ typedef enum
     CY_RSLT_MODULE_MIDDLEWARE_HTTP_CLIENT = 0x20e,
     /** Module identifier for the Machine Learning(ML) library. Asset(s): (ml-middleware) */
     CY_RSLT_MODULE_MIDDLEWARE_ML = 0x20f,
-
+    /** Module identifier for the Emulated EEPROM Middleware Library. Asset(s): (emeeprom) */
+    CY_RSLT_MODULE_MIDDLEWARE_EM_EEPROM = 0x24f,
     /** Module identifier for the KV Store Middleware Library. Asset(s): (kv-store) */
     CY_RSLT_MODULE_MIDDLEWARE_KVSTORE = 0x250,
     /** Module identifier for the LIN Middleware Library. Asset(s): (lin) */
     CY_RSLT_MODULE_MIDDLEWARE_LIN = 0x0251,
     /** Module identifier for the UBM Middleware Library. Asset(s): (ubm) */
-    CY_RSLT_MODULE_MIDDLEWARE_UBM = 0x0252
+    CY_RSLT_MODULE_MIDDLEWARE_UBM = 0x0252,
+    /** Module identifier for the KV Store CAT5 Middleware Library. Asset(s): (kv-store-cat5 ) */
+    CY_RSLT_MODULE_MIDDLEWARE_KVSTORE_CAT5 = 0x0253
 } cy_en_rslt_module_t;
 
 /** \} modules */

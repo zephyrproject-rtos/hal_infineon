@@ -51,8 +51,13 @@ typedef cy_en_flashdrv_status_t (*_cyhal_flash_operation)(uint32_t rowAddr, cons
 
 static bool _cyhal_flash_pm_callback(cyhal_syspm_callback_state_t state, cyhal_syspm_callback_mode_t mode, void* callback_arg);
 
+#if defined(CPUSS_FLASHC_ECT)
+#define _CYHAL_USES_ECT_FLASH (CPUSS_FLASHC_ECT == 1)
+#else
+#define _CYHAL_USES_ECT_FLASH (0u)
+#endif
 
-#if defined(CY_IP_M7CPUSS)
+#if (_CYHAL_USES_ECT_FLASH)
 #define _CYHAL_INTERNAL_FLASH_MEMORY_BLOCKS (4u)
 #elif (CY_EM_EEPROM_SIZE > 0)
 #define _CYHAL_INTERNAL_FLASH_MEMORY_BLOCKS (2u)
@@ -67,7 +72,7 @@ static cyhal_syspm_callback_data_t _cyhal_flash_internal_pm_cb = {
     .states = (cyhal_syspm_callback_state_t)(CYHAL_SYSPM_CB_CPU_SLEEP | CYHAL_SYSPM_CB_CPU_DEEPSLEEP | CYHAL_SYSPM_CB_CPU_DEEPSLEEP_RAM | CYHAL_SYSPM_CB_SYSTEM_HIBERNATE | CYHAL_SYSPM_CB_SYSTEM_LOW),
     .next = NULL,
     .args = NULL,
-    .ignore_modes = (cyhal_syspm_callback_mode_t)(CYHAL_SYSPM_BEFORE_TRANSITION | CYHAL_SYSPM_AFTER_DS_WFI_TRANSITION),
+    .ignore_modes = (cyhal_syspm_callback_mode_t)(CYHAL_SYSPM_AFTER_DS_WFI_TRANSITION),
 };
 
 static inline cy_rslt_t _cyhal_flash_convert_status(uint32_t pdl_status)
@@ -92,14 +97,24 @@ static bool _cyhal_flash_pm_callback(cyhal_syspm_callback_state_t state, cyhal_s
     {
         case CYHAL_SYSPM_CHECK_READY:
             _cyhal_flash_pending_pm_change = true;
-            #if defined(CY_IP_MXS40SRSS) || defined(CY_IP_M7CPUSS) || CY_FLASH_NON_BLOCKING_SUPPORTED
+            #if defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH) || CY_FLASH_NON_BLOCKING_SUPPORTED
             if (CY_RSLT_SUCCESS != Cy_Flash_IsOperationComplete())
             {
-                _cyhal_flash_pending_pm_change = false;
-                allow = false;
+                #if (_CYHAL_USES_ECT_FLASH)
+                /* The SROM API response is invalid unless a flash operation has occurred at least once.
+                   Therefore allow that case as an exception. */
+                un_srom_api_resps_t resp = {{ 0UL }};
+                cy_en_srom_api_status_t status = Cy_Srom_GetApiResponse(&resp);
+                if(CY_SROM_STATUS_INVALID != status)
+                #endif
+                {
+                    _cyhal_flash_pending_pm_change = false;
+                    allow = false;
+                }
             }
             #endif
             break;
+        case CYHAL_SYSPM_BEFORE_TRANSITION:
         case CYHAL_SYSPM_AFTER_TRANSITION:
         case CYHAL_SYSPM_CHECK_FAIL:
             _cyhal_flash_pending_pm_change = false;
@@ -128,7 +143,7 @@ static cy_rslt_t _cyhal_flash_run_operation(
         status = (_cyhal_flash_is_sram_address((uint32_t)data))
             ? (cy_rslt_t)_cyhal_flash_convert_status((cy_rslt_t)operation(address, data))
             : CYHAL_NVM_RSLT_ERR_ADDRESS;
-#if defined(CY_IP_M7CPUSS) /* PDL automatically clears cache when necessary */
+#if defined(CY_IP_M7CPUSS) /* PDL automatically clears cache when necessary in M7 devices */
         CY_UNUSED_PARAMETER(clearCache);
 #else
         if (clearCache)
@@ -201,7 +216,7 @@ __STATIC_INLINE bool _cyhal_rram_is_busy()
 
 static const cyhal_nvm_region_info_t _cyhal_nvm_mem_regions[_CYHAL_NVM_MEMORY_BLOCKS_COUNT] = {
 #if (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
-    #if defined(CY_IP_M7CPUSS)
+    #if _CYHAL_USES_ECT_FLASH
         /* Each flash area is divided into two regions: A "large" region with 2KB sectors and a
         * "small" region with 128b sectors. The flash can be configured in either single- or
         * double-bank mode. In double-bank mode, the flash is divided into two sub-regions such
@@ -406,11 +421,21 @@ cy_rslt_t cyhal_nvm_init(cyhal_nvm_t *obj)
 #endif /* defined(CY_IP_S8SRSSLT) && CY_FLASH_NON_BLOCKING_SUPPORTED */
     if(_cyhal_nvm_init_count == 0)
     {
-        _cyhal_syspm_register_peripheral_callback(&_cyhal_flash_internal_pm_cb);
-    #if defined(CY_IP_M7CPUSS)
-        Cy_Flash_Init();
+    #if _CYHAL_USES_ECT_FLASH
+        // Cy_Flash_Init is only safe to call a single time after the SysPm HAL
+        // has been initialized (or anything else in the application has registered
+        // a callback). It unconditionally re-initializes its callback struct each
+        // time, which would remove any callbacks registered with lower priority.
+        static bool flash_initialized = false;
+        if(false == flash_initialized)
+        {
+            flash_initialized = true;
+            Cy_Flash_Init();
+        }
+        // Always call this, because `cyhal_nvm_free` disables the work flash write
         Cy_Flashc_WorkWriteEnable();
-    #endif /* defined(CY_IP_M7CPUSS) */
+    #endif /* _CYHAL_USES_ECT_FLASH */
+    _cyhal_syspm_register_peripheral_callback(&_cyhal_flash_internal_pm_cb);
     }
     _cyhal_nvm_init_count++;
     status = CY_RSLT_SUCCESS;
@@ -443,9 +468,9 @@ void cyhal_nvm_free(cyhal_nvm_t *obj)
     if(_cyhal_nvm_init_count == 0)
     {
         _cyhal_syspm_unregister_peripheral_callback(&_cyhal_flash_internal_pm_cb);
-    #if defined(CY_IP_M7CPUSS)
+    #if _CYHAL_USES_ECT_FLASH
         Cy_Flashc_WorkWriteDisable();
-    #endif /* defined(CY_IP_M7CPUSS) */
+    #endif /* _CYHAL_USES_ECT_FLASH */
     }
 #endif /* #if (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
 
@@ -533,27 +558,33 @@ cy_rslt_t cyhal_nvm_erase(cyhal_nvm_t *obj, uint32_t address)
     }
     else
     {
+        #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+        SCB_InvalidateDCache_by_Addr((void *)address, _cyhal_nvm_current_block_info.sector_size);
+        #endif
         if (CYHAL_NVM_TYPE_FLASH == _cyhal_nvm_current_block_info.nvm_type)
         {
-        #if (defined(CY_IP_MXS40SRSS) || defined(CY_IP_M7CPUSS)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
+        #if (defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
             if (_cyhal_flash_pending_pm_change)
             {
                 status = CYHAL_SYSPM_RSLT_ERR_PM_PENDING;
             }
             else
             {
-            #if defined(CY_IP_M7CPUSS)
+            #if (_CYHAL_USES_ECT_FLASH) 
                 /* This IP does not support row-at-a-time erase */
                 status = (cy_rslt_t)_cyhal_flash_convert_status(Cy_Flash_EraseSector(address));
-                /* PDL automatically clears cache when necessary */
             #else
                 status = (cy_rslt_t)_cyhal_flash_convert_status(Cy_Flash_EraseRow(address));
-                Cy_SysLib_ClearFlashCacheAndBuffer();
             #endif
+			
+			#if !defined(CY_IP_M7CPUSS)
+				Cy_SysLib_ClearFlashCacheAndBuffer();
+			#endif
+			/* PDL automatically clears cache when necessary in M7 devices */
             }
         #else
             status = CYHAL_NVM_RSLT_ERR_NOT_SUPPORTED;
-        #endif /* (defined(CY_IP_MXS40SRSS) || defined(CY_IP_M7CPUSS)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
+        #endif /* (defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
         }
         else if (CYHAL_NVM_TYPE_RRAM == _cyhal_nvm_current_block_info.nvm_type)
         {
@@ -594,7 +625,7 @@ cy_rslt_t cyhal_nvm_write(cyhal_nvm_t *obj, uint32_t address, const uint32_t* da
     {
         if (CYHAL_NVM_TYPE_FLASH == _cyhal_nvm_current_block_info.nvm_type)
         {
-        #if !defined(CY_IP_M7CPUSS) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
+        #if !(_CYHAL_USES_ECT_FLASH) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
             status = _cyhal_flash_run_operation(Cy_Flash_WriteRow, address, data, true);
         #else
             /* CY_IP_M7CPUSS does not support a bundled write (erase + program) operation. Instead,
@@ -603,7 +634,7 @@ cy_rslt_t cyhal_nvm_write(cyhal_nvm_t *obj, uint32_t address, const uint32_t* da
             CY_UNUSED_PARAMETER(address);
             CY_UNUSED_PARAMETER(data);
             status = CYHAL_NVM_RSLT_ERR_NOT_SUPPORTED;
-        #endif /* !defined(CY_IP_M7CPUSS) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
+        #endif /* !(_CYHAL_USES_ECT_FLASH) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
         }
         else if (CYHAL_NVM_TYPE_RRAM == _cyhal_nvm_current_block_info.nvm_type)
         {
@@ -675,11 +706,15 @@ cy_rslt_t cyhal_nvm_program(cyhal_nvm_t *obj, uint32_t address, const uint32_t *
     }
     else
     {
+        #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+        SCB_CleanDCache_by_Addr((void *)data, _cyhal_nvm_current_block_info.block_size);
+        SCB_InvalidateDCache_by_Addr((void *)address, _cyhal_nvm_current_block_info.block_size);
+        #endif
         if (CYHAL_NVM_TYPE_FLASH == _cyhal_nvm_current_block_info.nvm_type)
         {
-        #if (defined(CY_IP_MXS40SRSS) || defined(CY_IP_M7CPUSS)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
+        #if (defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
             status = _cyhal_flash_run_operation(Cy_Flash_ProgramRow, address, data, true);
-        #endif /* (defined(CY_IP_MXS40SRSS) || defined(CY_IP_M7CPUSS)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
+        #endif /* (defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH)) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
         }
         else if (CYHAL_NVM_TYPE_RRAM == _cyhal_nvm_current_block_info.nvm_type)
         {
@@ -730,7 +765,7 @@ cy_rslt_t cyhal_nvm_start_erase(cyhal_nvm_t *obj, uint32_t address)
             else
             {
                 status = (cy_rslt_t)_cyhal_flash_convert_status(
-            #if defined(CY_IP_M7CPUSS)
+            #if _CYHAL_USES_ECT_FLASH
                     Cy_Flash_StartEraseSector(address)
             #else
                     Cy_Flash_StartEraseRow(address)
@@ -779,13 +814,13 @@ cy_rslt_t cyhal_nvm_start_write(cyhal_nvm_t *obj, uint32_t address, const uint32
         if (CYHAL_NVM_TYPE_FLASH == _cyhal_nvm_current_block_info.nvm_type)
         {
             /* M7CPUSS does not support write, only erase + program */
-        #if ((defined(CY_IP_MXS40SRSS) && !defined(CY_IP_M7CPUSS)) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
+        #if ((defined(CY_IP_MXS40SRSS) && !(_CYHAL_USES_ECT_FLASH)) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
             status = _cyhal_flash_run_operation(Cy_Flash_StartWrite, address, data, false);
         #else
             CY_UNUSED_PARAMETER(address);
             CY_UNUSED_PARAMETER(data);
             status = CYHAL_NVM_RSLT_ERR_NOT_SUPPORTED;
-        #endif /* ((defined(CY_IP_MXS40SRSS) && !defined(CY_IP_M7CPUSS)) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)*/
+        #endif /* ((defined(CY_IP_MXS40SRSS) && !(_CYHAL_USES_ECT_FLASH)) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)*/
         }
         else if (CYHAL_NVM_TYPE_RRAM == _cyhal_nvm_current_block_info.nvm_type)
         {
@@ -828,7 +863,7 @@ cy_rslt_t cyhal_nvm_start_program(cyhal_nvm_t *obj, uint32_t address, const uint
         if (CYHAL_NVM_TYPE_FLASH == _cyhal_nvm_current_block_info.nvm_type)
         {
         #if defined(CY_IP_MXS40SRSS) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
-            #if defined(CY_IP_M7CPUSS) /* StartWrite on this device behaves the same as StartProgram on others */
+            #if _CYHAL_USES_ECT_FLASH /* StartWrite on this device behaves the same as StartProgram on others */
                 status = _cyhal_flash_run_operation(Cy_Flash_StartWrite, address, data, false);
             #else
                 status = _cyhal_flash_run_operation(Cy_Flash_StartProgram, address, data, false);
@@ -867,15 +902,15 @@ bool cyhal_nvm_is_operation_complete(cyhal_nvm_t *obj)
 
     bool complete = true;
 
-#if (defined(CY_IP_MXS40SRSS) || defined(CY_IP_M7CPUSS) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
+#if (defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
     complete = (CY_FLASH_DRV_SUCCESS == Cy_Flash_IsOperationComplete());
-    #if !defined(CY_IP_M7CPUSS) /* PDL automatically clears cache when necessary */
+    #if !defined(CY_IP_M7CPUSS) /* PDL automatically clears cache when necessary in M7 devices */
         if (complete)
             Cy_SysLib_ClearFlashCacheAndBuffer();
     #endif
 #else
     complete = true;
-#endif /* (defined(CY_IP_MXS40SRSS) || defined(CY_IP_M7CPUSS) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
+#endif /* (defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH) */
 
 #if (_CYHAL_DRIVER_AVAILABLE_NVM_RRAM)
     if (complete)

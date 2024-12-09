@@ -1,6 +1,6 @@
  /***************************************************************************//**
 * \file cy_ble_clk.c
-* \version 3.60
+* \version 3.70
 *
 * \brief
 *  This driver provides the source code for API BLE ECO clock.
@@ -325,6 +325,7 @@ cy_en_ble_eco_status_t Cy_BLE_EcoConfigure(cy_en_ble_eco_freq_t freq, cy_en_ble_
                                                         BLE_RCB_CTRL_DIV_ENABLED_Msk) : 0U));
 
                 /* If user uses SIMO Buck, enable Buck2 in hardware mode for BLE */
+#if (defined (SRSS_BUCKCTL_PRESENT) && (SRSS_BUCKCTL_PRESENT == 1u))
                 if((Cy_SysPm_SimoBuckIsEnabled()) && (voltageReg == CY_BLE_ECO_VOLTAGE_REG_AUTO))
                 {
                     Cy_SysPm_BuckSetVoltage2(CY_SYSPM_BUCK_OUT2_VOLTAGE_1_3V, true);
@@ -335,6 +336,10 @@ cy_en_ble_eco_status_t Cy_BLE_EcoConfigure(cy_en_ble_eco_freq_t freq, cy_en_ble_
                     BLE_BLESS_MISC_EN_CTRL |= (BLE_BLESS_MISC_EN_CTRL_ACT_REG_EN_CTRL_Msk |
                                                 BLE_BLESS_MISC_EN_CTRL_BUCK_EN_CTRL_Msk);
                 }
+#else
+                BLE_BLESS_MISC_EN_CTRL |= (BLE_BLESS_MISC_EN_CTRL_ACT_REG_EN_CTRL_Msk |
+                                            BLE_BLESS_MISC_EN_CTRL_BUCK_EN_CTRL_Msk);
+#endif
 
                 /* Enable the VIO supply and LDO in standby mode for slow ramp */
                 temp = BLE_BLESS_MT_CFG;
@@ -387,10 +392,15 @@ cy_en_ble_eco_status_t Cy_BLE_EcoConfigure(cy_en_ble_eco_freq_t freq, cy_en_ble_
                     /* Clear the BLERD_ACTIVE_INTR */
                     BLE_BLESS_INTR_STAT |= BLE_BLESS_INTR_STAT_BLERD_ACTIVE_INTR_Msk;
 
+ 
+ #if (defined (SRSS_BUCKCTL_PRESENT) && (SRSS_BUCKCTL_PRESENT == 1u))
                     if((!Cy_SysPm_SimoBuckOutputIsEnabled(CY_SYSPM_BUCK_VRF)) || (voltageReg == CY_BLE_ECO_VOLTAGE_REG_BLESSLDO))
                     {
                         temp |= BLE_BLESS_MT_CFG_ACT_LDO_NOT_BUCK_Msk;
                     }
+#else
+                    temp |= BLE_BLESS_MT_CFG_ACT_LDO_NOT_BUCK_Msk;
+#endif
                     /* Enable Radio */
                     temp |= BLE_BLESS_MT_CFG_ENABLE_BLERD_Msk;
 

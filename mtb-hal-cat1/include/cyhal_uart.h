@@ -352,6 +352,14 @@ cy_rslt_t cyhal_uart_set_async_mode(cyhal_uart_t *obj, cyhal_async_mode_t mode, 
  * must register a callback with \ref cyhal_uart_register_callback. If desired, TX callback
  * events can be enabled using \ref cyhal_uart_enable_event with the appropriate events.
  *
+ * If D-cache is enabled and data Cache line is 32 bytes,
+ * the user needs to make sure that the tx pointer passed to the cyhal_uart_write_async
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
+ *
  * @param[in] obj               The UART object
  * @param[in] tx                The transmit buffer
  * @param[in] length            The number of bytes to transmit
@@ -366,6 +374,14 @@ cy_rslt_t cyhal_uart_write_async(cyhal_uart_t *obj, void *tx, size_t length);
  * Received data is placed in the user specified buffer. The user must register a callback with
  * \ref cyhal_uart_register_callback. RX callback events can be enabled using \ref
  * cyhal_uart_enable_event with the appropriate events.
+ *
+ * If D-cache is enabled and data Cache line is 32 bytes,
+ * the user needs to make sure that the tx pointer passed to the cyhal_uart_read_async
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
  *
  * @param[in]  obj              The UART object
  * @param[out] rx               The user specified receive buffer

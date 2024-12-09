@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_prot.c
-* \version 1.80
+* \version 1.100
 *
 * \brief
 * Provides an API implementation of the Protection Unit driver
@@ -38,12 +38,25 @@
 extern "C" {
 #endif
 
+#if defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 3U)
+#define PERI_MS_PPU_PR_V2_MS_ATT0_PC0_NS_Msk          (PERI_MS_PPU_PR_MS_ATT0_PC0_NS_Msk)
+#define PERI_MS_PPU_PR_V2_MS_ATT0_PC1_UR_Pos          (PERI_MS_PPU_PR_MS_ATT0_PC1_UR_Pos)
+#define PERI_MS_PPU_PR_V2_SL_ADDR_ADDR30_Pos          (PERI_MS_PPU_PR_SL_ADDR_ADDR30_Pos)
+#define PERI_MS_PPU_PR_V2_SL_ADDR_ADDR30_Msk          (PERI_MS_PPU_PR_SL_ADDR_ADDR30_Msk)
+#define PERI_MS_PPU_PR_V2_SL_SIZE_REGION_SIZE_Pos     (PERI_MS_PPU_PR_SL_SIZE_REGION_SIZE_Pos)
+#define PERI_MS_PPU_PR_V2_SL_SIZE_REGION_SIZE_Msk     (PERI_MS_PPU_PR_SL_SIZE_REGION_SIZE_Msk)
+#define PERI_MS_PPU_PR_V2_SL_SIZE_VALID_Pos           (PERI_MS_PPU_PR_SL_SIZE_VALID_Pos)
+#define PERI_MS_PPU_PR_V2_SL_SIZE_VALID_Msk           (PERI_MS_PPU_PR_SL_SIZE_VALID_Msk)
+#endif
+
 static bool Prot_IsSmpuStructDisabled(uint32_t smpuStcIndex);
-#if defined (CY_IP_M4CPUSS)
+#if defined (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1u)
 static bool Prot_IsPpuProgStructDisabled(uint32_t ppuStcIndex);
-#endif /* (CY_IP_M4CPUSS) */
+#endif
+#if defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION > 1U)
 static cy_en_prot_status_t Prot_ConfigPpuAtt(volatile uint32_t * reg, uint16_t pcMask,
                                        cy_en_prot_perm_t userPermission, cy_en_prot_perm_t privPermission, bool secure);
+#endif
 
 /* Define to enable all attributes for SMPU slave structure */
 #define PROT_SMPU_STRUCT_ATT0_ENABLE_ALL_MASK      (PROT_SMPU_SMPU_STRUCT_ATT0_UR_Msk | \
@@ -786,6 +799,7 @@ cy_en_prot_status_t Cy_Prot_GetSmpuStruct(PROT_SMPU_SMPU_STRUCT_Type** base,
     return status;
 }
 
+#if (defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION > 1U)) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Prot_ConfigPpuAtt
 ********************************************************************************
@@ -830,6 +844,7 @@ static cy_en_prot_status_t Prot_ConfigPpuAtt(volatile uint32_t * reg, uint16_t p
                                        cy_en_prot_perm_t userPermission, cy_en_prot_perm_t privPermission, bool secure)
 {
     cy_en_prot_status_t status = CY_PROT_INVALID_STATE;
+
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 14.3','Intentional check for the macro CY_PERI_V1.');
     if(CY_PERI_V1 == 0U)
     {
@@ -890,7 +905,8 @@ static cy_en_prot_status_t Prot_ConfigPpuAtt(volatile uint32_t * reg, uint16_t p
             }
         }
     }
-return status;
+
+    return status;
 }
 
 /*******************************************************************************
@@ -963,7 +979,6 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuProgMasterAtt(PERI_MS_PPU_PR_Type* base, ui
     return (Prot_ConfigPpuAtt(PERI_MS_PPU_PR_MS_ATT(base), pcMask, userPermission, privPermission, secure));
 }
 
-#if defined (CY_IP_M4CPUSS)
 /*******************************************************************************
 * Function Name: Cy_Prot_ConfigPpuProgSlaveAddr
 ****************************************************************************//**
@@ -1010,19 +1025,15 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuProgSlaveAddr(PERI_MS_PPU_PR_Type* base, ui
     CY_ASSERT_L1(NULL != base);
     CY_ASSERT_L3(CY_PROT_IS_PPU_V2_SIZE_VALID(regionSize));
 
-    if (CY_PERI_V1 == 0U)
-    {
-        PERI_MS_PPU_PR_SL_ADDR(base) = address & PERI_MS_PPU_PR_V2_SL_ADDR_ADDR30_Msk;
-        PERI_MS_PPU_PR_SL_SIZE(base) = _CLR_SET_FLD32U((PERI_MS_PPU_PR_SL_SIZE(base)), PERI_MS_PPU_PR_V2_SL_SIZE_REGION_SIZE, regionSize);
+    PERI_MS_PPU_PR_SL_ADDR(base) = address & PERI_MS_PPU_PR_V2_SL_ADDR_ADDR30_Msk;
+    PERI_MS_PPU_PR_SL_SIZE(base) = _CLR_SET_FLD32U((PERI_MS_PPU_PR_SL_SIZE(base)), PERI_MS_PPU_PR_V2_SL_SIZE_REGION_SIZE, regionSize);
 
-        status = ((PERI_MS_PPU_PR_SL_ADDR(base) != (address & PERI_MS_PPU_PR_V2_SL_ADDR_ADDR30_Msk)) ||
-                  (_FLD2VAL(PERI_MS_PPU_PR_V2_SL_SIZE_REGION_SIZE, PERI_MS_PPU_PR_SL_SIZE(base)) != (uint32_t)regionSize)) ?
-                   CY_PROT_FAILURE : CY_PROT_SUCCESS;
-    }
+    status = ((PERI_MS_PPU_PR_SL_ADDR(base) != (address & PERI_MS_PPU_PR_V2_SL_ADDR_ADDR30_Msk)) ||
+                (_FLD2VAL(PERI_MS_PPU_PR_V2_SL_SIZE_REGION_SIZE, PERI_MS_PPU_PR_SL_SIZE(base)) != (uint32_t)regionSize)) ?
+                CY_PROT_FAILURE : CY_PROT_SUCCESS;
 
     return status;
 }
-#endif /* (CY_IP_M4CPUSS) */
 
 /*******************************************************************************
 * Function Name: Cy_Prot_ConfigPpuProgSlaveAtt
@@ -1085,7 +1096,6 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuProgSlaveAtt(PERI_MS_PPU_PR_Type* base, uin
     return (Prot_ConfigPpuAtt(PERI_MS_PPU_PR_SL_ATT(base), pcMask, userPermission, privPermission, secure));
 }
 
-#if defined (CY_IP_M4CPUSS)
 /*******************************************************************************
 * Function Name: Cy_Prot_EnablePpuProgSlaveRegion
 ****************************************************************************//**
@@ -1119,14 +1129,11 @@ cy_en_prot_status_t Cy_Prot_EnablePpuProgSlaveRegion(PERI_MS_PPU_PR_Type* base)
 
     CY_ASSERT_L1(NULL != base);
 
-    if (CY_PERI_V1 == 0U)
-    {
-        PERI_MS_PPU_PR_SL_SIZE(base) =
-        _CLR_SET_FLD32U((PERI_MS_PPU_PR_SL_SIZE(base)), PERI_MS_PPU_PR_V2_SL_SIZE_VALID, CY_PROT_STRUCT_ENABLE);
+    PERI_MS_PPU_PR_SL_SIZE(base) =
+    _CLR_SET_FLD32U((PERI_MS_PPU_PR_SL_SIZE(base)), PERI_MS_PPU_PR_V2_SL_SIZE_VALID, CY_PROT_STRUCT_ENABLE);
 
-        status = (_FLD2VAL(PERI_MS_PPU_PR_V2_SL_SIZE_VALID, PERI_MS_PPU_PR_SL_SIZE(base)) != CY_PROT_STRUCT_ENABLE) ?
-        CY_PROT_FAILURE : CY_PROT_SUCCESS;
-    }
+    status = (_FLD2VAL(PERI_MS_PPU_PR_V2_SL_SIZE_VALID, PERI_MS_PPU_PR_SL_SIZE(base)) != CY_PROT_STRUCT_ENABLE) ?
+    CY_PROT_FAILURE : CY_PROT_SUCCESS;
 
     return status;
 }
@@ -1166,18 +1173,14 @@ cy_en_prot_status_t Cy_Prot_DisablePpuProgSlaveRegion(PERI_MS_PPU_PR_Type* base)
 
     CY_ASSERT_L1(NULL != base);
 
-    if (CY_PERI_V1 == 0U)
-    {
-        PERI_MS_PPU_PR_SL_SIZE(base) =
-        _CLR_SET_FLD32U((PERI_MS_PPU_PR_SL_SIZE(base)), PERI_MS_PPU_PR_V2_SL_SIZE_VALID, CY_PROT_STRUCT_DISABLE);
+    PERI_MS_PPU_PR_SL_SIZE(base) =
+    _CLR_SET_FLD32U((PERI_MS_PPU_PR_SL_SIZE(base)), PERI_MS_PPU_PR_V2_SL_SIZE_VALID, CY_PROT_STRUCT_DISABLE);
 
-        status = (_FLD2VAL(PERI_MS_PPU_PR_V2_SL_SIZE_VALID, PERI_MS_PPU_PR_SL_SIZE(base)) != CY_PROT_STRUCT_DISABLE) ?
-        CY_PROT_FAILURE : CY_PROT_SUCCESS;
-    }
+    status = (_FLD2VAL(PERI_MS_PPU_PR_V2_SL_SIZE_VALID, PERI_MS_PPU_PR_SL_SIZE(base)) != CY_PROT_STRUCT_DISABLE) ?
+    CY_PROT_FAILURE : CY_PROT_SUCCESS;
 
     return status;
 }
-#endif /* (CY_IP_M4CPUSS) */
 
 /*******************************************************************************
 * Function Name: Cy_Prot_ConfigPpuFixedMasterAtt
@@ -1310,8 +1313,9 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuFixedSlaveAtt(PERI_MS_PPU_FX_Type* base, ui
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 18.1','Checked manually, base pointer will not exceed register range.');
     return (Prot_ConfigPpuAtt(PERI_MS_PPU_FX_SL_ATT(base), pcMask, userPermission, privPermission, secure));
 }
+#endif /* defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION > 1U) */
 
-#if defined (CY_IP_M4CPUSS)
+#if (defined (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U)) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_Prot_ConfigPpuProgMasterStruct
 ****************************************************************************//**
@@ -2795,7 +2799,7 @@ cy_en_prot_status_t Cy_Prot_DisablePpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* ba
     return status;
 }
 
-#endif /* #if (CY_IP_M4CPUSS) */
+#endif /* (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1U) */
 
 /*******************************************************************************
 * Function Name: Prot_IsSmpuStructDisabled
@@ -2819,14 +2823,14 @@ static bool Prot_IsSmpuStructDisabled(uint32_t smpuStcIndex)
             (!_FLD2BOOL(PROT_SMPU_SMPU_STRUCT_ATT1_ENABLED, PROT_SMPU_SMPU_STRUCT_IDX_ATT1(smpuStcIndex))));
 }
 
-#if defined (CY_IP_M4CPUSS)
+#if defined (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1u)
 /*******************************************************************************
 * Function Name: Prot_IsPpoProgStructDisabled
 ****************************************************************************//**
 *
 * This function returns the Peripheral PPU disabled status.
 *
-* \note This function is applicable for both CPUSS ver_1 and ver_2.
+* \note This function is applicable for CPUSS ver_1.
 *
 * \param ppuStcIndex
 * index of the Prot_IsPpoProgStructDisabled structure.
@@ -2841,7 +2845,7 @@ static bool Prot_IsPpuProgStructDisabled(uint32_t ppuStcIndex)
     return ((!_FLD2BOOL(PERI_PPU_PR_ATT0_ENABLED, PROT_PERI_PPU_PR_STRUCT_IDX_ATT0(ppuStcIndex))) &&
             (!_FLD2BOOL(PERI_PPU_PR_ATT1_ENABLED, PROT_PERI_PPU_PR_STRUCT_IDX_ATT1(ppuStcIndex))));
 }
-#endif /* (CY_IP_M4CPUSS) */
+#endif /* defined (CY_IP_M4CPUSS) && defined (CY_IP_MXPERI_VERSION) && (CY_IP_MXPERI_VERSION == 1u) */
 
 #if defined(__cplusplus)
 }

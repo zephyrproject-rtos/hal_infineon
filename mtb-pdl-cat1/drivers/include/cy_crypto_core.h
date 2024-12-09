@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides common constants and parameters
@@ -213,7 +213,7 @@
 *   \{
 *     \defgroup group_crypto_lld_symmetric_functions Functions
 *   \}
-*   \defgroup group_crypto_lld_asymmetric Asymmetric Key Algorithms (RSA, ECP, ECDSA)
+*   \defgroup group_crypto_lld_asymmetric Asymmetric Key Algorithms (RSA, ECP, ECDSA, EDDSA)
 *   \{
 *       \defgroup group_crypto_lld_asymmetric_functions Functions
 *       \defgroup group_crypto_lld_asymmetric_enums Enumerated Types
@@ -225,6 +225,10 @@
 *   \defgroup group_crypto_lld_mac Message Authentication Code (CMAC, HMAC)
 *   \{
 *     \defgroup group_crypto_lld_mac_functions Functions
+*   \}
+*   \defgroup group_crypto_lld_kdf Key Derivative Function (HKDF)
+*   \{
+*     \defgroup group_crypto_lld_kdf_functions Functions
 *   \}
 *   \defgroup group_crypto_lld_crc Cyclic Redundancy Code (CRC)
 *   \{
@@ -261,8 +265,7 @@
 #include "cy_crypto_core_sha.h"
 #include "cy_crypto_core_trng.h"
 #include "cy_crypto_core_vu.h"
-
-
+#include "cy_crypto_core_hkdf.h"
 #endif /* #if !defined (CY_CRYPTO_CORE_H) */
 
 /* [] END OF FILE */

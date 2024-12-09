@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_config.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides default configuration parameters
@@ -45,14 +45,18 @@
 #define CY_CRYPTOLITE_CFG_SHA_C
 #define CY_CRYPTOLITE_CFG_HMAC_C
 #define CY_CRYPTOLITE_CFG_SHA2_256_ENABLED
+#define CY_CRYPTOLITE_CFG_HKDF_C
 
 #define CY_CRYPTOLITE_CFG_TRNG_C
 #define CY_CRYPTOLITE_CFG_AES_C
+#define CY_CRYPTOLITE_CFG_CMAC_C
+#define CY_CRYPTOLITE_CFG_CBC_MAC_C
 
 /* AES Cipher modes */
 #define CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC
 #define CY_CRYPTOLITE_CFG_CIPHER_MODE_CFB
 #define CY_CRYPTOLITE_CFG_CIPHER_MODE_CTR
+#define CY_CRYPTOLITE_CFG_CIPHER_MODE_CCM
 
 /* RSA functionality */
 #define CY_CRYPTOLITE_CFG_RSA_C
@@ -68,14 +72,16 @@
 /* Only NIST-P curves are currently supported */
 #define CY_CRYPTOLITE_CFG_ECP_C
 
-//#define CY_CRYPTOLITE_CFG_ECP_DP_SECP192R1_ENABLED
-//#define CY_CRYPTOLITE_CFG_ECP_DP_SECP224R1_ENABLED
+#define CY_CRYPTOLITE_CFG_ECP_DP_SECP192R1_ENABLED
+#define CY_CRYPTOLITE_CFG_ECP_DP_SECP224R1_ENABLED
 #define CY_CRYPTOLITE_CFG_ECP_DP_SECP256R1_ENABLED
 #define CY_CRYPTOLITE_CFG_ECP_DP_SECP384R1_ENABLED
 //#define CY_CRYPTOLITE_CFG_ECP_DP_SECP521R1_ENABLED
 
 /* ECDSA functionality */
 #define CY_CRYPTOLITE_CFG_ECDSA_C
+/* ECDSA Sign */
+#define CY_CRYPTOLITE_CFG_ECDSA_SIGN_C
 /* ECDSA verification */
 #define CY_CRYPTOLITE_CFG_ECDSA_VERIFY_C
 
@@ -103,6 +109,11 @@
 #error "CY_CRYPTOLITE_CFG_SHA_C is not defined to use HMAC calculation"
 #endif /* defined(CY_CRYPTOLITE_CFG_HMAC_C) && !defined(CY_CRYPTOLITE_CFG_SHA_C) */
 
+/* Check HKDF configuration */
+#if defined(CY_CRYPTOLITE_CFG_HKDF_C) && !defined(CY_CRYPTOLITE_CFG_HMAC_C)
+#error "CY_CRYPTOLITE_CFG_HMAC_C is not defined to use HMAC calculation"
+#endif /* defined(CY_CRYPTOLITE_CFG_HKDF_C) && !defined(CY_CRYPTOLITE_CFG_HMAC_C) */
+
 /* Check RSA verify configuration */
 #if defined(CY_CRYPTOLITE_CFG_RSA_VERIFY_ENABLED) && !defined(CY_CRYPTOLITE_CFG_RSA_C)
 #error "CY_CRYPTOLITE_CFG_RSA_C is not defined to use RSA verification functionality"
@@ -115,6 +126,25 @@
 /* Check ECDSA configuration */
 #if (defined(CY_CRYPTOLITE_CFG_ECDSA_VERIFY_C) && !defined(CY_CRYPTOLITE_CFG_ECDSA_C))
 #error "CY_CRYPTOLITE_CFG_ECDSA_C is not defined to use ECDSA functionalities"
+#endif
+
+#if (defined(CY_CRYPTOLITE_CFG_ECDSA_SIGN_C) && !defined(CY_CRYPTOLITE_CFG_ECDSA_C))
+#error "CY_CRYPTOLITE_CFG_ECDSA_C is not defined to use ECDSA functionalities"
+#endif
+
+/* Check AES CCM configuration */
+#if (defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CCM) && (!defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CTR) || !defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC)))
+#error "CY_CRYPTOLITE_CFG_CIPHER_MODE_CTR / CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC  is not defined to use AES CCM  functionalities"
+#endif
+
+/* Check AES CMAC configuration */
+#if (defined(CY_CRYPTOLITE_CFG_CMAC_C) && (!defined(CY_CRYPTOLITE_CFG_AES_C) || !defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC)))
+#error "CY_CRYPTOLITE_CFG_AES_C / CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC  is not defined to use AES CMAC  functionalities"
+#endif
+
+/* Check AES CBC-MAC configuration */
+#if (defined(CY_CRYPTOLITE_CFG_CBC_MAC_C) && (!defined(CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC)))
+#error "CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC  is not defined to use CBC-MAC  functionalities"
 #endif
 
 #if defined(CY_CRYPTOLITE_CFG_ECDSA_C) && !defined(CY_CRYPTOLITE_CFG_ECP_C)

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm_v3.c
-* \version 5.94
+* \version 5.150
 *
 * This driver provides the source code for API power management.
 *
@@ -26,7 +26,7 @@
 #include "cy_device.h"
 #include "cy_sysclk.h"
 
-#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)
 
 #include "cy_syspm.h"
 
@@ -57,10 +57,19 @@
                                                SRSS_PWR_HIBERNATE_MASK_HIBPIN_Msk))
 
 /** The mask for the Hibernate wakeup sources */
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 3u) && defined (CY_IP_MXS40SRSS_VERSION_MINOR) && (CY_IP_MXS40SRSS_VERSION_MINOR >= 3u)
+/** The mask for the Hibernate wakeup sources, for SRSSv3p3 and above */
+#define HIBERNATE_WAKEUP_MASK               ((SRSS_PWR_HIB_WAKE_CTL_HIB_WAKE_SRC_Msk |\
+                                              SRSS_PWR_HIB_WAKE_CTL_HIB_WAKE_CSV_BAK_Msk |\
+                                              SRSS_PWR_HIB_WAKE_CTL_HIB_WAKE_RTC_Msk |\
+                                              SRSS_PWR_HIB_WAKE_CTL_HIB_WAKE_WDT_Msk))
+#else                                              
+/** The mask for the Hibernate wakeup sources */
 #define HIBERNATE_WAKEUP_MASK               ((SRSS_PWR_HIBERNATE_MASK_HIBALARM_Msk |\
                                               SRSS_PWR_HIBERNATE_MASK_HIBWDT_Msk |\
                                               SRSS_PWR_HIBERNATE_POLARITY_HIBPIN_Msk |\
                                               SRSS_PWR_HIBERNATE_MASK_HIBPIN_Msk))
+#endif
 
 /** The define to update the token to indicate the transition into Hibernate */
 #define HIBERNATE_TOKEN                    ((uint32_t) 0x1BU << SRSS_PWR_HIBERNATE_TOKEN_Pos)
@@ -97,6 +106,8 @@
 #define CY_SYSPM_CBUCK_BUSY_RETRY_COUNT         (100U)
 #define CY_SYSPM_CBUCK_BUSY_RETRY_DELAY_MS      (1U)
 
+/* Mask for checking the CM4 Deep Sleep status */
+#define CM4_DEEPSLEEP_MASK     (CPUSS_CM4_STATUS_SLEEPING_Msk | CPUSS_CM4_STATUS_SLEEPDEEP_Msk)
 
 
 /*******************************************************************************
@@ -413,6 +424,11 @@ cy_en_syspm_status_t Cy_SysPm_SystemEnterHibernate(void)
          */
         SRSS_PWR_HIBERNATE = (SRSS_PWR_HIBERNATE & HIBERNATE_WAKEUP_MASK) | HIBERNATE_TOKEN;
 
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 3u) && defined (CY_IP_MXS40SRSS_VERSION_MINOR) && (CY_IP_MXS40SRSS_VERSION_MINOR >= 3u)
+        /* Clear Previous Wakeup Reasons */
+        Cy_SysPm_ClearHibernateWakeupCause();
+#endif
+
         /* Disable overriding by the peripherals the next pin-freeze command */
         SRSS_PWR_HIBERNATE |= SET_HIBERNATE_MODE;
 
@@ -529,8 +545,11 @@ cy_en_syspm_status_t Cy_SysPm_LdoSetMode(cy_en_syspm_ldo_mode_t mode)
         case CY_SYSPM_LDO_MODE_DISABLED:
         {
             /* Disable the LDO, Deep Sleep, nWell, and Retention regulators */
-            SRSS_PWR_CTL2 |= (_VAL2FLD(SRSS_PWR_CTL2_DPSLP_REG_DIS, 1U) |
-                             _VAL2FLD(SRSS_PWR_CTL2_LINREG_DIS, 1U));
+            SRSS_PWR_CTL2 |= SRSS_PWR_CTL2_LINREG_DIS_Msk;
+            #if ((defined (SRSS_ULP_VARIANT)) && (SRSS_ULP_VARIANT == 1u))
+            /* Only set this bit if the deep sleep regulator is supported. */
+            SRSS_PWR_CTL2 |= SRSS_PWR_CTL2_DPSLP_REG_DIS_Msk;
+            #endif
 
             retVal = CY_SYSPM_SUCCESS;
         }
@@ -588,6 +607,135 @@ void Cy_SysPm_SetHibernateWakeupSource(uint32_t wakeupSource)
 {
     CY_ASSERT_L3(CY_SYSPM_IS_WAKE_UP_SOURCE_VALID(wakeupSource));
 
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 3u) && defined (CY_IP_MXS40SRSS_VERSION_MINOR) && (CY_IP_MXS40SRSS_VERSION_MINOR >= 3u)
+    uint32_t polarityMask = 0U;
+    uint32_t wakeSrcMask = 0U;
+
+    /* PIN0 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 0)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW;
+        }
+    }
+
+    /* PIN1 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 1)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW;
+        }
+    }
+
+    /* PIN2 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 2)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW;
+        }
+    }
+
+    /* PIN3 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 3)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW;
+        }
+    }
+
+    /* PIN4 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 4)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW;
+        }
+    }
+
+    /* PIN5 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 5)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW;
+        }
+    }
+
+    /* PIN6 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 6)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW;
+        }
+    }
+
+    /* PIN7 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 7)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW;
+        }
+    }
+
+    /* PIN8 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 8)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW;
+        }
+    }
+
+    /* PIN9 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 9)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW;
+        }
+    }
+
+    /* CSV_BAK */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_CSV_BAK))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_CSV_BAK;
+    }
+
+    /* RTC */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_RTC_ALARM))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_RTC_ALARM;
+    }
+
+    /* WDT */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_WDT))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_WDT;
+    }
+
+    SRSS_PWR_HIB_WAKE_CTL = (SRSS_PWR_HIB_WAKE_CTL | wakeSrcMask);
+    SRSS_PWR_HIB_WAKE_CTL2 = (SRSS_PWR_HIB_WAKE_CTL2 | polarityMask);
+
+    /* Read registers to make sure it is settled */
+    (void) SRSS_PWR_HIB_WAKE_CTL;
+    (void) SRSS_PWR_HIB_WAKE_CTL2;
+#else
     uint32_t polarityMask = 0U;
 
     if (0U != _FLD2VAL(SRSS_PWR_HIBERNATE_POLARITY_HIBPIN, wakeupSource))
@@ -618,12 +766,144 @@ void Cy_SysPm_SetHibernateWakeupSource(uint32_t wakeupSource)
 
     /* Read register to make sure it is settled */
     (void) SRSS_PWR_HIBERNATE;
+#endif
+
 }
 
 void Cy_SysPm_ClearHibernateWakeupSource(uint32_t wakeupSource)
 {
     CY_ASSERT_L3(CY_SYSPM_IS_WAKE_UP_SOURCE_VALID(wakeupSource));
 
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 3u) && defined (CY_IP_MXS40SRSS_VERSION_MINOR) && (CY_IP_MXS40SRSS_VERSION_MINOR >= 3u)
+
+    uint32_t polarityMask = 0U;
+    uint32_t wakeSrcMask = 0U;
+
+    /* PIN0 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 0)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW;
+        }
+    }
+
+    /* PIN1 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 1)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW;
+        }
+    }
+
+    /* PIN2 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 2)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW;
+        }
+    }
+
+    /* PIN3 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 3)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW;
+        }
+    }
+
+    /* PIN4 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 4)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW;
+        }
+    }
+
+    /* PIN5 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 5)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW;
+        }
+    }
+
+    /* PIN6 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 6)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW;
+        }
+    }
+
+    /* PIN7 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 7)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW;
+        }
+    }
+
+    /* PIN8 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 8)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW;
+        }
+    }
+
+    /* PIN9 */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW;
+        if (0U != (wakeupSource & (CY_SYSPM_HIBERNATE_POLARITY_HIGH_FLAG << 9)))
+        {
+            polarityMask |= (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW;
+        }
+    }
+
+    /* CSV_BAK */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_CSV_BAK))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_CSV_BAK;
+    }
+
+    /* RTC */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_RTC_ALARM))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_RTC_ALARM;
+    }
+
+    /* WDT */
+    if (0U != (wakeupSource & (uint32_t)CY_SYSPM_HIBERNATE_WDT))
+    {
+        wakeSrcMask |= (uint32_t)CY_SYSPM_HIBERNATE_WDT;
+    }
+
+    SRSS_PWR_HIB_WAKE_CTL = (SRSS_PWR_HIB_WAKE_CTL & (~wakeSrcMask));
+    SRSS_PWR_HIB_WAKE_CTL2 = (SRSS_PWR_HIB_WAKE_CTL2 & (~polarityMask));
+
+    /* Read registers to make sure it is settled */
+    (void) SRSS_PWR_HIB_WAKE_CTL;
+    (void) SRSS_PWR_HIB_WAKE_CTL2;
+#else
     uint32_t clearWakeupSourceMask = wakeupSource & (uint32_t) ~SRSS_PWR_HIBERNATE_POLARITY_HIBPIN_Msk;
 
     if (0U != _FLD2VAL(SRSS_PWR_HIBERNATE_POLARITY_HIBPIN, wakeupSource))
@@ -654,7 +934,156 @@ void Cy_SysPm_ClearHibernateWakeupSource(uint32_t wakeupSource)
 
     /* Read register to make sure it is settled */
     (void) SRSS_PWR_HIBERNATE;
+#endif
 }
+
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 3u) && defined (CY_IP_MXS40SRSS_VERSION_MINOR) && (CY_IP_MXS40SRSS_VERSION_MINOR >= 3u)
+/* These functions are available for SRSSv3p3 and above. */
+cy_en_syspm_hibernate_wakeup_source_t Cy_SysPm_GetHibernateWakeupCause(void)
+{
+    cy_en_syspm_hibernate_wakeup_source_t wakeupSource = CY_SYSPM_HIBERNATE_NO_SRC;
+    uint32_t wakeupCause;
+    uint32_t wakeupCausePolarity;
+
+    wakeupCause = SRSS_PWR_HIB_WAKE_CAUSE;
+    wakeupCausePolarity = SRSS_PWR_HIB_WAKE_CTL2;
+
+    if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_CSV_BAK))
+    {
+        wakeupSource = CY_SYSPM_HIBERNATE_CSV_BAK;
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_RTC_ALARM))
+    {
+        wakeupSource = CY_SYSPM_HIBERNATE_RTC_ALARM;
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_WDT))
+    {
+        wakeupSource = CY_SYSPM_HIBERNATE_WDT;
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN0_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN0_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN0_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN1_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN1_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN1_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN2_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN2_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN2_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN3_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN3_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN3_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN4_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN4_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN4_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN5_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN5_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN5_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN6_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN6_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN6_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN7_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN7_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN7_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN8_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN8_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN8_LOW;
+        }
+    }
+    else if (0UL != (wakeupCause & (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW))
+    {
+        if (0UL != (wakeupCausePolarity & (uint32_t)CY_SYSPM_HIBERNATE_PIN9_LOW))
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN9_HIGH;
+        }
+        else
+        {
+            wakeupSource = CY_SYSPM_HIBERNATE_PIN9_LOW;
+        }
+    }
+    else
+    {
+        /* No wakeup source found */
+    }
+
+    return wakeupSource;
+}
+
+void Cy_SysPm_ClearHibernateWakeupCause(void)
+{
+    uint32_t temp = SRSS_PWR_HIB_WAKE_CAUSE;
+    SRSS_PWR_HIB_WAKE_CAUSE = temp;
+}
+#endif
 
 bool Cy_SysPm_RegisterCallback(cy_stc_syspm_callback_t* handler)
 {
@@ -1004,7 +1433,8 @@ void Cy_SysPm_BackupEnableVoltageMeasurement(void)
 
 void Cy_SysPm_BackupDisableVoltageMeasurement(void)
 {
-#if (SRSS_BACKUP_VBCK_PRESENT)
+/* The MXS40SRSSv2 does have VBCK present, but is not compatible with the VBACKUP_MEAS register bit. */
+#if (SRSS_BACKUP_VBCK_PRESENT && (CY_IP_MXS40SRSS_VERSION != 2u))
     BACKUP_CTL &= ((uint32_t) ~BACKUP_CTL_VBACKUP_MEAS_Msk);
 #endif
 }
@@ -1028,6 +1458,8 @@ void Cy_SysPm_BackupSuperCapCharge(cy_en_syspm_sc_charge_key_t key)
 #endif
 }
 
+/* These functions are only available for devices that contain the SRSS_BACKUP IP. */
+#if defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (defined (SRSS_BACKUP_PRESENT) && (SRSS_BACKUP_PRESENT == 1u)))
 void Cy_SysPm_BackupWordStore(uint32_t wordIndex, uint32_t *wordSrcPointer, uint32_t wordSize)
 {
     CY_ASSERT_L3(CY_SYSPM_IS_WORD_INDEX_VALID(wordIndex));
@@ -1057,6 +1489,7 @@ void Cy_SysPm_BackupWordReStore(uint32_t wordIndex, uint32_t *wordDstPointer, ui
         wordSize--;
     }
 }
+#endif  /* defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (defined (SRSS_BACKUP_PRESENT) && (SRSS_BACKUP_PRESENT == 1u))) */
 
 cy_en_syspm_status_t Cy_SysPm_SetSRAMMacroPwrMode(cy_en_syspm_sram_index_t sramNum, uint32_t sramMacroNum, cy_en_syspm_sram_pwr_mode_t sramPwrMode)
 {
@@ -1189,6 +1622,7 @@ uint32_t Cy_SysPm_ReadStatus(void)
     uint32_t pmStatus = 0u;
     interruptState = Cy_SysLib_EnterCriticalSection();
 
+    #if defined (CY_CPU_CORTEX_M7) && (CY_CPU_CORTEX_M7)
     /* Check whether CM7_0 is in the deep sleep mode*/
     if((0u != _FLD2VAL(CPUSS_CM7_0_STATUS_SLEEPING, CPUSS_CM7_0_STATUS)) &&
        (0u != _FLD2VAL(CPUSS_CM7_0_STATUS_SLEEPDEEP, CPUSS_CM7_0_STATUS)))
@@ -1220,28 +1654,45 @@ uint32_t Cy_SysPm_ReadStatus(void)
     {
         pmStatus |= CY_SYSPM_STATUS_CM7_1_ACTIVE;
     }
-
-
-    /* Check whether CM0p is in the deep sleep mode*/
-    if((0u != _FLD2VAL(CPUSS_CM0_STATUS_SLEEPING, CPUSS_CM0_STATUS)) &&
-       (0u != _FLD2VAL(CPUSS_CM0_STATUS_SLEEPDEEP, CPUSS_CM0_STATUS)))
+    #elif defined (CY_CPU_CORTEX_M4) && (CY_CPU_CORTEX_M4)
+    /* Check whether CM4 is in Deep Sleep mode */
+    if ((CPUSS_CM4_STATUS & CM4_DEEPSLEEP_MASK) == CM4_DEEPSLEEP_MASK)
     {
-        pmStatus |= (uint32_t) CY_SYSPM_STATUS_CM0_DEEPSLEEP;
+        pmStatus |= CY_SYSPM_STATUS_CM4_DEEPSLEEP;
     }
-    /* Check whether CM0p is in the sleep mode*/
-    else if (0u != _FLD2VAL(CPUSS_CM0_STATUS_SLEEPING, CPUSS_CM0_STATUS))
+    /* Check whether CM4 is in Sleep mode */
+    else if(0U != _FLD2VAL(CPUSS_CM4_STATUS_SLEEPING, CPUSS_CM4_STATUS))
     {
-        pmStatus |= CY_SYSPM_STATUS_CM0_SLEEP;
+        pmStatus |= CY_SYSPM_STATUS_CM4_SLEEP;
     }
     else
     {
-        pmStatus |= CY_SYSPM_STATUS_CM0_ACTIVE;
+        pmStatus |= CY_SYSPM_STATUS_CM4_ACTIVE;
+    }
+    #endif
+
+
+    /* Check whether CM0p is in the sleep or deep sleep mode*/
+    if (0u != _FLD2VAL(CPUSS_CM0_STATUS_SLEEPING, CPUSS_CM0_STATUS))
+    {
+        if (0u != _FLD2VAL(CPUSS_CM0_STATUS_SLEEPDEEP, CPUSS_CM0_STATUS))
+        {
+            pmStatus |= (uint32_t) CY_SYSPM_STATUS_CM0_DEEPSLEEP;
+        }
+        else
+        {
+            pmStatus |= (uint32_t) CY_SYSPM_STATUS_CM0_SLEEP;
+        }
+    }
+    else
+    {
+        pmStatus |= (uint32_t) CY_SYSPM_STATUS_CM0_ACTIVE;
     }
 
     /* Check whether the device is in LPACTIVE mode or not */
     if(Cy_SysPm_IsSystemLpActiveEnabled())
     {
-        pmStatus |= CY_SYSPM_STATUS_SYSTEM_LOWPOWER;
+        pmStatus |= (uint32_t) CY_SYSPM_STATUS_SYSTEM_LOWPOWER;
     }
 
     Cy_SysLib_ExitCriticalSection(interruptState);
@@ -1249,6 +1700,7 @@ uint32_t Cy_SysPm_ReadStatus(void)
     return(pmStatus);
 }
 
+#if defined(CY_IP_M7CPUSS) && (CY_IP_M7CPUSS == 1u)
 bool Cy_SysPm_Cm7IsActive(uint8_t core)
 {
     bool status = false;
@@ -1310,35 +1762,31 @@ bool Cy_SysPm_Cm7IsDeepSleep(uint8_t core)
 }
 
 
-bool Cy_SysPm_Cm7IsLowPower(uint8_t core)
+#endif // defined(CY_IP_M7CPUSS) && (CY_IP_M7CPUSS == 1u)
+
+#if defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS == 1u)
+bool Cy_SysPm_Cm4IsActive(void)
 {
-    bool status = false;
-
-    if(core == CORE_CM7_0)
-    {
-        return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM7_0_LOWPOWER) != 0u);
-    }
-    else if(core == CORE_CM7_1)
-    {
-        return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM7_1_LOWPOWER) != 0u);
-    }
-    else
-    {
-        /* CM7 Not active */
-    }
-
-    return status;
+    return ((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM4_ACTIVE) != 0U);
 }
+
+
+bool Cy_SysPm_Cm4IsSleep(void)
+{
+    return ((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM4_SLEEP) != 0U);
+}
+
+
+bool Cy_SysPm_Cm4IsDeepSleep(void)
+{
+    return ((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM4_DEEPSLEEP) != 0U);
+}
+
+#endif // defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS == 1u)
 
 bool Cy_SysPm_Cm0IsActive(void)
 {
     return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM0_ACTIVE) != 0u);
-}
-
-
-bool Cy_SysPm_Cm0IsLowPower(void)
-{
-    return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_CM0_LOWPOWER) != 0u);
 }
 
 bool Cy_SysPm_Cm0IsSleep(void)
@@ -1356,7 +1804,8 @@ bool Cy_SysPm_IsSystemLp(void)
     return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_SYSTEM_LOWPOWER) != 0u);
 }
 
-
+#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2u)) || \
+    ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2u)) && (defined (SRSS_BACKUP_VBCK_PRESENT) && (SRSS_BACKUP_VBCK_PRESENT == 1u)))
 void Cy_SysPm_PmicEnable(void)
 {
     if(CY_SYSPM_PMIC_UNLOCK_KEY == _FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL))
@@ -1436,6 +1885,8 @@ bool Cy_SysPm_PmicIsLocked(void)
 {
     return((_FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL) == CY_SYSPM_PMIC_UNLOCK_KEY) ? false : true);
 }
+#endif /* (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2u)) || \
+    ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2u)) && (defined (SRSS_BACKUP_VBCK_PRESENT) && (SRSS_BACKUP_VBCK_PRESENT == 1u))) */
 
 void Cy_SysPm_OvdEnable(cy_en_syspm_ovd_sel_t ovdSel)
 {
@@ -1646,6 +2097,8 @@ bool Cy_SySPm_IsDeepSleepRegEnabled(void)
     return(0u == _FLD2VAL(SRSS_PWR_CTL2_DPSLP_REG_DIS, SRSS_PWR_CTL2));
 }
 
+/* High Current Regulator is not available in version 2 of the MXS40SRSS IP block. */
+#if (defined (SRSS_S40E_REGHC_PRESENT) && (SRSS_S40E_REGHC_PRESENT == 1u)) || (defined (SRSS_S40E_HTREGHC_PRESENT) && (SRSS_S40E_HTREGHC_PRESENT == 1u))
 void Cy_SysPm_ReghcSelectMode(cy_en_syspm_reghc_mode_t mode)
 {
     CY_REG32_CLR_SET(SRSS_PWR_REGHC_CTL, SRSS_PWR_REGHC_CTL_REGHC_MODE, mode);
@@ -1872,6 +2325,10 @@ cy_en_syspm_status_t Cy_SysPm_ReghcDeConfigure(void)
     return retVal;
 }
 
-#endif /* (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3) */
+
+#endif  /* (SRSS_S40E_REGHC_PRESENT == 1u) || (SRSS_S40E_HTREGHC_PRESENT == 1u) */
+
+
+#endif /* (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2) */
 
 /* [] END OF FILE */

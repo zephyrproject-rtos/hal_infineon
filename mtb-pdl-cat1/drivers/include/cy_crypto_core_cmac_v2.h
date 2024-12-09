@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_cmac_v2.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -42,40 +42,50 @@ extern "C" {
 /** \cond INTERNAL */
 
 /* The structure to store the AES-CMAC context */
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
+#endif
 typedef struct
 {
-    uint32_t block_idx;
+    cy_stc_crypto_aes_state_t aesState;
     uint8_t *k;
+    #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+    CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
+    #endif    
+    uint8_t *temp;
 } cy_stc_crypto_v2_cmac_state_t;
 
 /* The structure to define used memory buffers */
 typedef struct
 {
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
-    CY_ALIGN(32) cy_stc_crypto_v2_cmac_state_t cmacState;
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+    CY_ALIGN(32)     cy_stc_crypto_aes_buffers_t      aesBuffersData; 
     CY_ALIGN(32) uint8_t k[CY_CRYPTO_AES_BLOCK_SIZE];
+    CY_ALIGN(32) uint8_t temp[CY_CRYPTO_AES_BLOCK_SIZE];
 #else
-    cy_stc_crypto_v2_cmac_state_t cmacState;
     uint8_t k[CY_CRYPTO_AES_BLOCK_SIZE];
+    cy_stc_crypto_aes_buffers_t      aesBuffersData; 
+    uint8_t temp[CY_CRYPTO_AES_BLOCK_SIZE];
 #endif
 } cy_stc_crypto_v2_cmac_buffers_t;
 
 /* The function prototypes */
-void Cy_Crypto_Core_V2_Cmac_Init(cy_stc_crypto_v2_cmac_state_t *cmacState,
-                              uint8_t *k);
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Init(CRYPTO_Type *base, cy_stc_crypto_v2_cmac_state_t* cmacState, cy_stc_crypto_v2_cmac_buffers_t* buffer);
 
-void Cy_Crypto_Core_V2_Cmac_Start(CRYPTO_Type *base,
-                              cy_stc_crypto_v2_cmac_state_t *cmacState);
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Start(CRYPTO_Type *base, cy_stc_crypto_v2_cmac_state_t *cmacState, 
+                                                    uint8_t const *aesKey, cy_en_crypto_aes_key_length_t keyLength);
 
-void Cy_Crypto_Core_V2_Cmac_Update(CRYPTO_Type *base,
-                              cy_stc_crypto_v2_cmac_state_t *cmacState,
-                              uint8_t  const *message,
-                              uint32_t messageSize);
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Update(CRYPTO_Type *base,
+                                cy_stc_crypto_v2_cmac_state_t *cmacState,
+                                uint8_t const *message,
+                                uint32_t  messageSize);
 
-void Cy_Crypto_Core_V2_Cmac_Finish(CRYPTO_Type *base,
-                              cy_stc_crypto_v2_cmac_state_t *cmacState,
-                              uint8_t* cmac);
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Finish(CRYPTO_Type *base, cy_stc_crypto_v2_cmac_state_t *cmacState, uint8_t* cmac);
 
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Free(CRYPTO_Type *base,
+                                cy_stc_crypto_v2_cmac_state_t *cmacState
+                                );
+                                
 cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac(CRYPTO_Type *base,
                               uint8_t  const *message,
                               uint32_t messageSize,

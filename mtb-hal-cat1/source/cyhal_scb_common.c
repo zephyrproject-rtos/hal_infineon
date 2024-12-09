@@ -40,8 +40,9 @@ extern "C"
 
 const uint32_t _CYHAL_SCB_AVAILABLE_BLOCKS_MASK =
 {
+    0
 #ifdef SCB0
-    1 << 0u
+    | 1 << 0u
 #endif
 #ifdef SCB1
     | 1 << 1u
@@ -245,6 +246,114 @@ const _cyhal_system_irq_t _CYHAL_SCB_IRQ_N[_SCB_ARRAY_SIZE] =
     scb_15_interrupt_IRQn,
 #endif
 };
+
+// All PSoC™ 6 devices have scb triggers but not all PSoC™ 4 devices do
+#if ((defined(CY_IP_MXSCB) && !defined(COMPONENT_CAT2)) || defined(CY_DEVICE_PSOC4AMC) || defined(CY_DEVICE_PSOC4AS3) || defined(CY_DEVICE_PSOC4AS4) || defined(CY_IP_MXS22SCB))
+const cyhal_internal_source_t _CYHAL_SCB_TR_RX_REQ[_SCB_ARRAY_SIZE] =
+{
+#ifdef SCB0
+    _CYHAL_TRIGGER_SCB0_TR_RX_REQ,
+#endif
+#ifdef SCB1
+    _CYHAL_TRIGGER_SCB1_TR_RX_REQ,
+#endif
+#ifdef SCB2
+    _CYHAL_TRIGGER_SCB2_TR_RX_REQ,
+#endif
+#ifdef SCB3
+    _CYHAL_TRIGGER_SCB3_TR_RX_REQ,
+#endif
+#ifdef SCB4
+    _CYHAL_TRIGGER_SCB4_TR_RX_REQ,
+#endif
+#ifdef SCB5
+    _CYHAL_TRIGGER_SCB5_TR_RX_REQ,
+#endif
+#ifdef SCB6
+    _CYHAL_TRIGGER_SCB6_TR_RX_REQ,
+#endif
+#ifdef SCB7
+    _CYHAL_TRIGGER_SCB7_TR_RX_REQ,
+#endif
+#ifdef SCB8
+    _CYHAL_TRIGGER_SCB8_TR_RX_REQ,
+#endif
+#ifdef SCB9
+    _CYHAL_TRIGGER_SCB9_TR_RX_REQ,
+#endif
+#ifdef SCB10
+    _CYHAL_TRIGGER_SCB10_TR_RX_REQ,
+#endif
+#ifdef SCB11
+    _CYHAL_TRIGGER_SCB11_TR_RX_REQ,
+#endif
+#ifdef SCB12
+    _CYHAL_TRIGGER_SCB12_TR_RX_REQ,
+#endif
+#ifdef SCB13
+    _CYHAL_TRIGGER_SCB13_TR_RX_REQ,
+#endif
+#ifdef SCB14
+    _CYHAL_TRIGGER_SCB14_TR_RX_REQ,
+#endif
+#ifdef SCB15
+    _CYHAL_TRIGGER_SCB15_TR_RX_REQ,
+#endif
+};
+
+const cyhal_internal_source_t _CYHAL_SCB_TR_TX_REQ[_SCB_ARRAY_SIZE] =
+{
+#ifdef SCB0
+    _CYHAL_TRIGGER_SCB0_TR_TX_REQ,
+#endif
+#ifdef SCB1
+    _CYHAL_TRIGGER_SCB1_TR_TX_REQ,
+#endif
+#ifdef SCB2
+    _CYHAL_TRIGGER_SCB2_TR_TX_REQ,
+#endif
+#ifdef SCB3
+    _CYHAL_TRIGGER_SCB3_TR_TX_REQ,
+#endif
+#ifdef SCB4
+    _CYHAL_TRIGGER_SCB4_TR_TX_REQ,
+#endif
+#ifdef SCB5
+    _CYHAL_TRIGGER_SCB5_TR_TX_REQ,
+#endif
+#ifdef SCB6
+    _CYHAL_TRIGGER_SCB6_TR_TX_REQ,
+#endif
+#ifdef SCB7
+    _CYHAL_TRIGGER_SCB7_TR_TX_REQ,
+#endif
+#ifdef SCB8
+    _CYHAL_TRIGGER_SCB8_TR_TX_REQ,
+#endif
+#ifdef SCB9
+    _CYHAL_TRIGGER_SCB9_TR_TX_REQ,
+#endif
+#ifdef SCB10
+    _CYHAL_TRIGGER_SCB10_TR_TX_REQ,
+#endif
+#ifdef SCB11
+    _CYHAL_TRIGGER_SCB11_TR_TX_REQ,
+#endif
+#ifdef SCB12
+    _CYHAL_TRIGGER_SCB12_TR_TX_REQ,
+#endif
+#ifdef SCB13
+    _CYHAL_TRIGGER_SCB13_TR_TX_REQ,
+#endif
+#ifdef SCB14
+    _CYHAL_TRIGGER_SCB14_TR_TX_REQ,
+#endif
+#ifdef SCB15
+    _CYHAL_TRIGGER_SCB15_TR_TX_REQ,
+#endif
+};
+
+#endif // ((defined(CY_IP_MXSCB) && !defined(COMPONENT_CAT2)) || defined(CY_DEVICE_PSOC4AMC) || defined(CY_DEVICE_PSOC4AS3) || defined(CY_DEVICE_PSOC4AS4) || defined(CY_IP_MXS22SCB))
 
 /** The configuration structs for the resource in use on each SCB block */
 static void *_cyhal_scb_config_structs[_SCB_ARRAY_SIZE];
@@ -618,7 +727,7 @@ cy_rslt_t _cyhal_scb_enable_output(cyhal_resource_inst_t resource, cyhal_scb_out
     uint8_t scb_arr_index = _cyhal_scb_get_block_index(resource.block_num);
     if(output == CYHAL_SCB_OUTPUT_TRIGGER_RX_FIFO_LEVEL_REACHED)
     {
-        src_int = (cyhal_internal_source_t)(_CYHAL_TRIGGER_SCB0_TR_RX_REQ + scb_arr_index);
+        src_int = _CYHAL_SCB_TR_RX_REQ[scb_arr_index];
         *source = (cyhal_source_t)_CYHAL_TRIGGER_CREATE_SOURCE(src_int, CYHAL_SIGNAL_TYPE_LEVEL);
         return CY_RSLT_SUCCESS;
     }
@@ -626,7 +735,7 @@ cy_rslt_t _cyhal_scb_enable_output(cyhal_resource_inst_t resource, cyhal_scb_out
     // to actually set level.
     else if(output == CYHAL_SCB_OUTPUT_TRIGGER_TX_FIFO_LEVEL_REACHED)
     {
-        src_int = (cyhal_internal_source_t)(_CYHAL_TRIGGER_SCB0_TR_TX_REQ + scb_arr_index);
+        src_int = _CYHAL_SCB_TR_TX_REQ[scb_arr_index];
         *source = (cyhal_source_t)_CYHAL_TRIGGER_CREATE_SOURCE(src_int, CYHAL_SIGNAL_TYPE_LEVEL);
         return CY_RSLT_SUCCESS;
     }

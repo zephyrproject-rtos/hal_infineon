@@ -68,7 +68,7 @@ extern "C" {
 * error code generation.
 *
 * \section section_hal_impl_ipc_last_sema_occupied Last available IPC semaphore is occupied by HAL IPC
-* Last available IPC semaphore (_CYHAL_IPC_PDL_SEMA_COUNT - 1) is occupied by multi-core interrupt synchronization mechanism
+* Last available IPC semaphore (CYHAL_IPC_SEMA_COUNT - 1) is occupied by multi-core interrupt synchronization mechanism
 * and is not available for user.
 *
 * \section section_hal_impl_ipc_semaphores_initialization On some devices (currently, CAT1C and CAT1D devices), startup
@@ -87,6 +87,9 @@ typedef struct
     uint8_t *isr_enable_sync;
     uint8_t *isr_clear_sync;
     cyhal_ipc_queue_t *queues_ll_pointer;
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    uint32_t padding[5]; /* Necessary to make sure the total size is a multiple of __SCB_DCACHE_LINE_SIZE */
+#endif
 } _cyhal_ipc_sevice_data_t;
 
 _cyhal_ipc_sevice_data_t *_cyhal_ipc_service_data = NULL;
@@ -256,6 +259,27 @@ typedef struct
 static _cyhal_ipc_rtos_sema_t _cyhal_ipc_rtos_semaphores[CYHAL_IPC_RTOS_SEMA_NUM] = { 0 };
 #endif /* (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE)) && (CYHAL_IPC_RTOS_SEMA_NUM > 0) */
 
+/* Shared memory is non-cacheable memory. Currently we invalidate/clean all memory as if it is cached.
+ *
+ * Before Reading cacheable Memory:
+ *     SCB_InvalidateDCache_by_Addr(addr,size) for invalidating the D-Cache (to Read RAM, updating the cache)
+ * After Writing to cacheable Memory:
+ *     SCB_CleanDCache_by_Addr(addr,size) for cleaning the D-Cache (writing the cache through to RAM)
+ */
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+/* NOTES:
+ *  D-Cache is invalidated starting from a 32 byte aligned address in 32 byte granularity.
+ *  D-Cache memory blocks which are part of given address + given size are invalidated.
+ */
+#define INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(addr,size)      \
+    SCB_InvalidateDCache_by_Addr( (volatile void *)( (uint32_t)addr), size)
+
+#define CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(addr,size)              \
+    SCB_CleanDCache_by_Addr( (volatile void *)( (uint32_t)addr), size)
+#else
+#define INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(addr,size)
+#define CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(addr,size)
+#endif
 /*************************************** INTERNAL FUNCTIONS PROTOTYPES *************************************************/
 
 static void _cyhal_ipc_irq_handler(void);
@@ -300,17 +324,19 @@ static cy_rslt_t _cyhal_ipc_sema_init(cyhal_ipc_t *obj, uint32_t semaphore_num, 
 
     /* On CAT1C and CAT1D devices, unlike CAT1A devices, startup code does not initialized IPC PDL semaphore and
     *  does not allocate shared memory for them. */
-    #if defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
+    #if defined(COMPONENT_CAT1D) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0))
     if (false == semas_initialized)
     {
         #if (CYHAL_IPC_INIT_CORE)
         CY_SECTION_SHAREDMEM
-        static uint32_t ipc_sema_array[_CYHAL_IPC_PDL_SEMA_COUNT / CY_IPC_SEMA_PER_WORD]
-        #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+        #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+        static uint32_t ipc_sema_array[L1_DCACHE_ROUND_UP_WORDS(CYHAL_IPC_SEMA_COUNT / CY_IPC_SEMA_PER_WORD)]
         CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-        #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
+        #else
+        static uint32_t ipc_sema_array[CYHAL_IPC_SEMA_COUNT / CY_IPC_SEMA_PER_WORD]
+        #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
         ;
-        result = (cy_rslt_t)Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, _CYHAL_IPC_PDL_SEMA_COUNT, ipc_sema_array);
+        result = (cy_rslt_t)Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, CYHAL_IPC_SEMA_COUNT, ipc_sema_array);
         #else
         result = (cy_rslt_t)Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, 0, NULL);
         #endif /* CYHAL_IPC_INIT_CORE or other */
@@ -319,12 +345,13 @@ static cy_rslt_t _cyhal_ipc_sema_init(cyhal_ipc_t *obj, uint32_t semaphore_num, 
             semas_initialized = true;
         }
     }
-    #endif /* defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) */
+    #endif /* defined(COMPONENT_CAT1D) || (defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)) */
 
     if (CY_RSLT_SUCCESS == result)
     {
         obj->sema_preemptable = preemptable;
         obj->sema_number = semaphore_num;
+        obj->sema_taken = false;
         #if (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE)) && (CYHAL_IPC_RTOS_SEMA_NUM > 0)
         obj->rtos_sema = NULL;
         #endif /* (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE)) && (CYHAL_IPC_RTOS_SEMA_NUM > 0) */
@@ -357,7 +384,7 @@ static cy_rslt_t _cyhal_ipc_sema_take(cyhal_ipc_t *obj, uint32_t *timeout_us, ui
         bool in_isr = (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0;
         if (((*timeout_us >= 1000) || is_never_timeout) && (false == in_isr))
         {
-            while ((result = (cy_rslt_t)Cy_IPC_Sema_Set(obj->sema_number, obj->sema_preemptable)) == (cy_rslt_t)CY_IPC_SEMA_LOCKED)
+            while ((result = (cy_rslt_t)Cy_IPC_Sema_Set(obj->sema_number, obj->sema_preemptable)) != (cy_rslt_t)CY_IPC_SEMA_SUCCESS)
             {
                 _cyhal_ipc_wait_step(is_never_timeout ? NULL : timeout_us, step_us);
             }
@@ -442,6 +469,11 @@ static cy_rslt_t _cyhal_ipc_sema_take(cyhal_ipc_t *obj, uint32_t *timeout_us, ui
     }
     #endif /* (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE)) && (CYHAL_IPC_RTOS_SEMA_NUM > 0) */
 
+    if (CY_RSLT_SUCCESS == result)
+    {
+        obj->sema_taken = true;
+    }
+
     return result;
 }
 
@@ -494,7 +526,9 @@ static cy_rslt_t _cyhal_ipc_clear_interrupt(cyhal_ipc_t *obj, uint32_t isr_sourc
     if (CY_RSLT_SUCCESS == (result = _cyhal_ipc_acquire_core_sync_sema(obj, &timeout_acq)))
     {
         Cy_IPC_Drv_ClearInterrupt(ipc_intr_base, (1UL << isr_chan), 0);
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data->isr_clear_sync, sizeof(*_cyhal_ipc_service_data->isr_clear_sync));
         _CYHAL_IPC_CI(isr_chan, _CYHAL_IPC_CUR_CORE_IDX);
+        CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(_cyhal_ipc_service_data->isr_clear_sync, sizeof(*_cyhal_ipc_service_data->isr_clear_sync));
         result = _cyhal_ipc_give_core_sync_sema(obj, &timeout_give);
     }
     cyhal_system_critical_section_exit(intr_status);
@@ -513,6 +547,8 @@ static bool _cyhal_ipc_check_isr_handled(cyhal_ipc_t *obj, uint32_t channel, uin
     uint32_t intr_status = cyhal_system_critical_section_enter();
     if (CY_RSLT_SUCCESS == _cyhal_ipc_acquire_core_sync_sema(obj, timeout))
     {
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data->isr_enable_sync, sizeof(*_cyhal_ipc_service_data->isr_enable_sync));
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data->isr_clear_sync, sizeof(*_cyhal_ipc_service_data->isr_clear_sync));
         /* interrupt is disabled for specific channel and core
         *   or (if enabled) interrupt is serviced */
         handled =   (((false == _CYHAL_IPC_IIE(channel, _CYHAL_IPC_CUR_CORE_IDX))
@@ -543,6 +579,7 @@ static cy_rslt_t _cyhal_ipc_set_isr_expected(cyhal_ipc_t *obj, uint32_t channel)
     uint32_t intr_status = cyhal_system_critical_section_enter();
     if (CY_RSLT_SUCCESS == (result = _cyhal_ipc_acquire_core_sync_sema(obj, &timeout_acq)))
     {
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data->isr_clear_sync, sizeof(*_cyhal_ipc_service_data->isr_clear_sync));
         _CYHAL_IPC_SI(channel, _CYHAL_IPC_CUR_CORE_IDX);
         #if (_CYHAL_IPC_CORE_NUM == 2)
         _CYHAL_IPC_SI(channel, _CYHAL_IPC_OTHER_CORE_IDX);
@@ -550,6 +587,7 @@ static cy_rslt_t _cyhal_ipc_set_isr_expected(cyhal_ipc_t *obj, uint32_t channel)
         _CYHAL_IPC_SI(channel, _CYHAL_IPC_OTHER_CORE_0_IDX);
         _CYHAL_IPC_SI(channel, _CYHAL_IPC_OTHER_CORE_1_IDX);
         #endif /* (_CYHAL_IPC_CORE_NUM == 2) or (_CYHAL_IPC_CORE_NUM == 3) */
+        CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(_cyhal_ipc_service_data->isr_clear_sync, sizeof(*_cyhal_ipc_service_data->isr_clear_sync));
         result = _cyhal_ipc_give_core_sync_sema(obj, &timeout_give);
     }
     cyhal_system_critical_section_exit(intr_status);
@@ -573,6 +611,7 @@ static cy_rslt_t _cyhal_ipc_enable_interrupt(cyhal_ipc_t *obj, uint32_t channel,
     uint32_t intr_status = cyhal_system_critical_section_enter();
     if (CY_RSLT_SUCCESS == (result = _cyhal_ipc_acquire_core_sync_sema(obj, &timeout_acq)))
     {
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data->isr_enable_sync, sizeof(*_cyhal_ipc_service_data->isr_enable_sync));
         if (enable)
         {
             Cy_IPC_Drv_ClearInterrupt(ipc_intr_base, channel_intr_mask, 0);
@@ -584,6 +623,7 @@ static cy_rslt_t _cyhal_ipc_enable_interrupt(cyhal_ipc_t *obj, uint32_t channel,
             Cy_IPC_Drv_SetInterruptMask(ipc_intr_base, current_ipc_interrupt_mask & ~channel_intr_mask, 0);
             _CYHAL_IPC_SID(channel, _CYHAL_IPC_CUR_CORE_IDX);
         }
+        CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(_cyhal_ipc_service_data->isr_enable_sync, sizeof(*_cyhal_ipc_service_data->isr_enable_sync));
         result = _cyhal_ipc_give_core_sync_sema(obj, &timeout_give);
     }
     cyhal_system_critical_section_exit(intr_status);
@@ -595,7 +635,14 @@ static cyhal_ipc_queue_t *_cyhal_ipc_find_last_element(cyhal_ipc_queue_t *queue_
     CY_ASSERT(NULL != queue_handle);
 
     cyhal_ipc_queue_t *retval = queue_handle;
-    while ((retval->next_queue_obj) != NULL) { retval = retval->next_queue_obj; }
+    do
+    {
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(retval, sizeof(*retval));
+        if (retval->next_queue_obj == NULL)
+            break;
+        retval = retval->next_queue_obj;
+    } while (true);
+
     return retval;
 }
 
@@ -603,11 +650,16 @@ static bool _cyhal_ipc_check_queue_number_used(const cyhal_ipc_queue_t *queue_to
 {
     CY_ASSERT(NULL != queue_to_be_added);
 
-    if ((NULL != _cyhal_ipc_service_data) && (NULL != _cyhal_ipc_service_data->queues_ll_pointer))
+    if (NULL == _cyhal_ipc_service_data)
+        return false;
+
+    INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
+    if (NULL != _cyhal_ipc_service_data->queues_ll_pointer)
     {
         cyhal_ipc_queue_t *queue_handle = _cyhal_ipc_service_data->queues_ll_pointer;
         do
         {
+            INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(queue_handle, sizeof(*queue_handle));
             if ((queue_handle->channel_num == queue_to_be_added->channel_num) &&
                 (queue_handle->queue_num == queue_to_be_added->queue_num))
             {
@@ -634,25 +686,33 @@ static void _cyhal_ipc_add_queue_element(cyhal_ipc_t *obj, cyhal_ipc_queue_t *qu
     queue_handle_to_add->next_queue_obj = NULL;
     queue_handle_to_add->triggered_events = 0;
 
+    CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(queue_handle_to_add, sizeof(*queue_handle_to_add));
+    CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(queue_handle_to_add->queue_pool, queue_handle_to_add->num_items * queue_handle_to_add->item_size);
+    INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
+
     if (NULL != queue_handle)
     {
         cyhal_ipc_queue_t *last_queue_handle = _cyhal_ipc_find_last_element(queue_handle);
         last_queue_handle->next_queue_obj = queue_handle_to_add;
+        CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(last_queue_handle, sizeof(*last_queue_handle));
     }
     else
     {
         /* First queue in current cyhal_ipc_t object */
         obj->queue_obj = (void *)queue_handle_to_add;
+
         if (NULL != _cyhal_ipc_service_data->queues_ll_pointer)
         {
             cyhal_ipc_queue_t *last_queue_handle = _cyhal_ipc_find_last_element(_cyhal_ipc_service_data->queues_ll_pointer);
             last_queue_handle->next_queue_obj = obj->queue_obj;
+            CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(last_queue_handle, sizeof(*last_queue_handle));
         }
     }
 
     if (NULL == _cyhal_ipc_service_data->queues_ll_pointer)
     {
         _cyhal_ipc_service_data->queues_ll_pointer = queue_handle_to_add;
+        CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
     }
 }
 
@@ -764,6 +824,8 @@ static cy_rslt_t _cyhal_ipc_queue_put_get(cyhal_ipc_t *obj, void *msg, uint32_t 
         uint16_t triggered_events = 0;
         if (CY_RSLT_SUCCESS == result)
         {
+            INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(queue_handle, sizeof(*queue_handle));
+            INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(queue_handle->queue_pool, queue_handle->num_items * queue_handle->item_size);
             _CYHAL_IPC_CLR_TRIGGERED_EVENT(queue_handle->triggered_events);
 
             if (put)
@@ -834,6 +896,8 @@ static cy_rslt_t _cyhal_ipc_queue_put_get(cyhal_ipc_t *obj, void *msg, uint32_t 
                 result = _cyhal_ipc_set_isr_expected(obj, channel);
             }
 
+            CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(queue_handle->queue_pool, queue_handle->num_items * queue_handle->item_size);
+            CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(queue_handle, sizeof(*queue_handle));
             /* No reason to check the return value, as this function can return either:
             * - CY_IPC_DRV_SUCCESS - if lock was successfully released, or
             * - CY_IPC_DRV_ERROR - if IPC channel was not acquired before the function call, which is impossible in this
@@ -859,6 +923,7 @@ static cy_rslt_t _cyhal_ipc_queue_put_get(cyhal_ipc_t *obj, void *msg, uint32_t 
 uint16_t _cyhal_ipc_decode_triggered_events(cyhal_ipc_t *obj)
 {
     CY_ASSERT(NULL != obj);
+    INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(obj->queue_obj, sizeof(*obj->queue_obj));
     /* Check what events signatures are changed and combine with triggered events */
     uint16_t retval = _CYHAL_IPC_GET_SIGNATURES(obj->queue_obj->triggered_events ^ obj->processed_events) &
         _CYHAL_IPC_GET_TRIGGERED_EVENT(obj->queue_obj->triggered_events);
@@ -941,7 +1006,7 @@ cy_rslt_t cyhal_ipc_semaphore_init(cyhal_ipc_t *obj, uint32_t semaphore_num, boo
     CY_ASSERT(NULL != obj);
 
     /* Last semaphore is used for internal IPC queues functionality */
-    if (semaphore_num >= (_CYHAL_IPC_PDL_SEMA_COUNT - 1))
+    if (semaphore_num >= (CYHAL_IPC_SEMA_COUNT - 1))
     {
         /* Semaphore index exceeds the number of allowed Semaphores */
         return CYHAL_IPC_RSLT_ERR_INVALID_PARAMETER;
@@ -971,7 +1036,7 @@ cy_rslt_t cyhal_ipc_semaphore_init(cyhal_ipc_t *obj, uint32_t semaphore_num, boo
         {
             IPC_INTR_STRUCT_Type *ipc_intr_base = Cy_IPC_Drv_GetIntrBaseAddr(_CYHAL_IPC_SEMA_INTR_STR_NUM);
             /* Enable all possible interrupt bits for sema interrupt */
-            Cy_IPC_Drv_SetInterruptMask(ipc_intr_base, (1 << _CYHAL_IPC_RELEASE_INTR_BITS) - 1, 0);
+            Cy_IPC_Drv_SetInterruptMask(ipc_intr_base, (1 << obj->sema_number) - 1, 0);
             _cyhal_irq_register((_cyhal_system_irq_t)(cpuss_interrupts_ipc_0_IRQn + _CYHAL_IPC_SEMA_INTR_STR_NUM), CYHAL_ISR_PRIORITY_DEFAULT, _cyhal_ipc_irq_handler);
             /* No IRQ enable, as it will be done before each time interrupt is needed */
         }
@@ -991,9 +1056,19 @@ void cyhal_ipc_semaphore_free(cyhal_ipc_t *obj)
         ((_cyhal_ipc_rtos_sema_t *)obj->rtos_sema)->sema_num = 0;
         obj->rtos_sema = NULL;
     }
-    #else
-    CY_UNUSED_PARAMETER(obj);
+
+    /* clear the interrupt mask for this semaphore */
+    IPC_INTR_STRUCT_Type *ipc_intr_base = Cy_IPC_Drv_GetIntrBaseAddr(_CYHAL_IPC_SEMA_INTR_STR_NUM);
+    uint32_t mask = Cy_IPC_Drv_GetInterruptMask(ipc_intr_base);
+    mask &= ~(1 << (obj->sema_number));
+    Cy_IPC_Drv_SetInterruptMask(ipc_intr_base, mask, 0);
+
     #endif /* (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE)) && (CYHAL_IPC_RTOS_SEMA_NUM > 0) or other */
+
+    if (obj->sema_taken)
+    {
+        (void)cyhal_ipc_semaphore_give(obj);
+    }
 }
 
 cy_rslt_t cyhal_ipc_semaphore_take(cyhal_ipc_t *obj, uint32_t timeout_us)
@@ -1015,6 +1090,12 @@ cy_rslt_t cyhal_ipc_semaphore_give(cyhal_ipc_t *obj)
         Cy_IPC_Drv_SetInterrupt(ipc_intr_base, 1 << obj->sema_number, 0);
     }
     #endif /* (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE)) && (CYHAL_IPC_RTOS_SEMA_NUM > 0) */
+
+    if (CY_RSLT_SUCCESS == result)
+    {
+        obj->sema_taken = false;
+    }
+
     return result;
 }
 
@@ -1040,7 +1121,7 @@ cy_rslt_t cyhal_ipc_queue_init(cyhal_ipc_t *obj, cyhal_ipc_queue_t *queue_handle
     {
         memset(obj, 0, sizeof(cyhal_ipc_t));
 
-        result = _cyhal_ipc_sema_init(obj, _CYHAL_IPC_PDL_SEMA_COUNT - 1, false);
+        result = _cyhal_ipc_sema_init(obj, CYHAL_IPC_SEMA_COUNT - 1, false);
         if (CY_RSLT_SUCCESS == result)
         {
             /* If this is first IPC object being initialized,
@@ -1053,22 +1134,26 @@ cy_rslt_t cyhal_ipc_queue_init(cyhal_ipc_t *obj, cyhal_ipc_queue_t *queue_handle
             if (NULL == _cyhal_ipc_service_data)
             {
                 CY_SECTION_SHAREDMEM
-                static uint8_t isr_clear_sync[_CYHAL_IPC_CORE_NUM]
-                #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+                #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+                static uint8_t isr_clear_sync[L1_DCACHE_ROUND_UP_BYTES(_CYHAL_IPC_CORE_NUM)]
                 CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-                #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
+                #else
+                static uint8_t isr_clear_sync[_CYHAL_IPC_CORE_NUM]
+                #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
                 ;
                 CY_SECTION_SHAREDMEM
-                static uint8_t isr_enable_sync[_CYHAL_IPC_CORE_NUM]
-                #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+                #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+                static uint8_t isr_enable_sync[L1_DCACHE_ROUND_UP_BYTES(_CYHAL_IPC_CORE_NUM)]
                 CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-                #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
+                #else
+                static uint8_t isr_enable_sync[_CYHAL_IPC_CORE_NUM]
+                #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
                 ;
                 CY_SECTION_SHAREDMEM
                 static _cyhal_ipc_sevice_data_t ipc_service_data
-                #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+                #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
                 CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-                #endif /* (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE) */
+                #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
                 ;
 
                 memset(isr_clear_sync, 0, sizeof(isr_clear_sync));
@@ -1078,6 +1163,9 @@ cy_rslt_t cyhal_ipc_queue_init(cyhal_ipc_t *obj, cyhal_ipc_queue_t *queue_handle
                 ipc_service_data.isr_enable_sync = isr_enable_sync;
                 ipc_service_data.queues_ll_pointer = NULL;
                 _cyhal_ipc_service_data = &ipc_service_data;
+                CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(isr_clear_sync, sizeof(*isr_clear_sync));
+                CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(isr_enable_sync, sizeof(*isr_enable_sync));
+                CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
 
                 for (uint32_t chan_idx = CYHAL_IPC_CHAN_0; chan_idx < CYHAL_IPC_CHAN_0 + CYHAL_IPC_USR_CHANNELS; ++chan_idx)
                 {
@@ -1126,6 +1214,7 @@ void cyhal_ipc_queue_free(cyhal_ipc_t *obj)
 
     uint32_t channel = obj->queue_obj->channel_num;
 
+    INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
     if (NULL != _cyhal_ipc_service_data->queues_ll_pointer)
     {
         cyhal_ipc_queue_t *current_queue_obj = _cyhal_ipc_service_data->queues_ll_pointer;
@@ -1139,18 +1228,22 @@ void cyhal_ipc_queue_free(cyhal_ipc_t *obj)
                 timeout = _CYHAL_IPC_SERVICE_SEMA_TIMEOUT_US;;
             }
             _cyhal_ipc_service_data->queues_ll_pointer = obj->queue_obj->next_queue_obj;
+            CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
             while (CY_RSLT_SUCCESS != cyhal_ipc_semaphore_give(obj)) { cyhal_system_delay_us(_CYHAL_IPC_SERVICE_SEMA_STEP_US); }
         }
         else
         {
             while (NULL != current_queue_obj)
             {
+                INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(current_queue_obj, sizeof(*current_queue_obj));
                 if (current_queue_obj->next_queue_obj == obj->queue_obj)
                 {
                     IPC_STRUCT_Type *ipc_base = Cy_IPC_Drv_GetIpcBaseAddress(current_queue_obj->next_queue_obj->channel_num);
                     /* Locking IPC channel before modifying one of its queues */
                     _cyhal_ipc_wait_lock_acquire(ipc_base, NULL, true);
+                    INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(current_queue_obj->next_queue_obj, sizeof(*current_queue_obj->next_queue_obj));
                     current_queue_obj->next_queue_obj = current_queue_obj->next_queue_obj->next_queue_obj;
+                    CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(current_queue_obj, sizeof(*current_queue_obj));
                     (void)Cy_IPC_Drv_LockRelease(ipc_base, 0);
                     break;
                 }
@@ -1198,7 +1291,12 @@ cy_rslt_t cyhal_ipc_queue_get_handle(cyhal_ipc_t *obj, uint32_t channel_num, uin
         /* Getting shared memory memory pointer to the first element of queues linked list */
         IPC_STRUCT_Type *ipc_base = Cy_IPC_Drv_GetIpcBaseAddress(channel_num);
         _cyhal_ipc_service_data = (_cyhal_ipc_sevice_data_t *)Cy_IPC_Drv_ReadDataValue(ipc_base);
-        if ((NULL == _cyhal_ipc_service_data) || (NULL == _cyhal_ipc_service_data->queues_ll_pointer))
+        if (NULL == _cyhal_ipc_service_data)
+        {
+            return CYHAL_IPC_RSLT_ERR_QUEUE_NOT_FOUND;
+        }
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
+        if (NULL == _cyhal_ipc_service_data->queues_ll_pointer)
         {
             return CYHAL_IPC_RSLT_ERR_QUEUE_NOT_FOUND;
         }
@@ -1208,6 +1306,7 @@ cy_rslt_t cyhal_ipc_queue_get_handle(cyhal_ipc_t *obj, uint32_t channel_num, uin
         }
     }
 
+    INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(_cyhal_ipc_service_data, sizeof(*_cyhal_ipc_service_data));
     if (NULL != _cyhal_ipc_service_data->queues_ll_pointer)
     {
         bool queue_obj_found = false;
@@ -1215,6 +1314,7 @@ cy_rslt_t cyhal_ipc_queue_get_handle(cyhal_ipc_t *obj, uint32_t channel_num, uin
 
         while (queue_ptr != NULL)
         {
+            INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(queue_ptr, sizeof(*queue_ptr));
             if ((queue_ptr->channel_num == channel_num) && (queue_ptr->queue_num == queue_num))
             {
                 queue_obj_found = true;
@@ -1234,7 +1334,7 @@ cy_rslt_t cyhal_ipc_queue_get_handle(cyhal_ipc_t *obj, uint32_t channel_num, uin
             obj->prev_object = _CYHAL_IPC_OBJ_ARR_EL(channel_num);
             _CYHAL_IPC_OBJ_ARR_EL(channel_num) = obj;
 
-            result = _cyhal_ipc_sema_init(obj, _CYHAL_IPC_PDL_SEMA_COUNT - 1, false);
+            result = _cyhal_ipc_sema_init(obj, CYHAL_IPC_SEMA_COUNT - 1, false);
 
             if ((CY_RSLT_SUCCESS == result) && (false == interrupts_initialized))
             {
@@ -1271,6 +1371,7 @@ void cyhal_ipc_queue_enable_event(cyhal_ipc_t *obj, cyhal_ipc_event_t event, uin
         IPC_STRUCT_Type *ipc_base = Cy_IPC_Drv_GetIpcBaseAddress(channel);
         _cyhal_ipc_wait_lock_acquire(ipc_base, NULL, true);
         uint32_t event_and_sign_mask = (event << _CYHAL_IPC_EVENTS_SIGNATURES_BITS) | event;
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(obj->queue_obj, sizeof(*obj->queue_obj));
         /* Extract event in question and its signature from current queue triggered events and copy such bits into
         *  obj->processed_events, so callback will not be called for currently pending (but being now activated) events. */
         obj->processed_events =
@@ -1344,6 +1445,7 @@ uint32_t cyhal_ipc_queue_count(cyhal_ipc_t *obj)
     uint32_t channel = obj->queue_obj->channel_num;
     IPC_STRUCT_Type *ipc_base = Cy_IPC_Drv_GetIpcBaseAddress(channel);
     (void)_cyhal_ipc_wait_lock_acquire(ipc_base, NULL, true);
+    INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(obj->queue_obj, sizeof(*obj->queue_obj));
     uint32_t curr_items = obj->queue_obj->curr_items;
     (void)Cy_IPC_Drv_LockRelease(ipc_base, 0);
     return curr_items;
@@ -1362,10 +1464,12 @@ cy_rslt_t cyhal_ipc_queue_reset(cyhal_ipc_t *obj)
 
     if (CY_RSLT_SUCCESS == result)
     {
+        INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(queue_handle, sizeof(*queue_handle));
         queue_handle->curr_items = 0;
         queue_handle->queue_head = queue_handle->queue_pool;
         queue_handle->queue_tail = queue_handle->queue_pool;
         _CYHAL_IPC_ADD_TRIGGERED_EVENT(queue_handle->triggered_events, CYHAL_IPC_QUEUE_RESET);
+        CLEAR_DCACHE_AFTER_WRITING_TO_MEMORY(queue_handle, sizeof(*queue_handle));
         (void)Cy_IPC_Drv_LockRelease(ipc_base, _CYHAL_IPC_TRIGGER_ISR_MASK);
     }
 

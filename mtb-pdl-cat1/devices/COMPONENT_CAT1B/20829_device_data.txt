@@ -1,3 +1,3 @@
-20829_SAS_REV=258557
-cympnvalidator_REV=1129
-device-db_REV=cd9d3d352d4e7a3aa46066135eaca127652c9bc7
+20829_SAS_REV=262602
+cympnvalidator_REV=1487
+device-db_REV=5ba7de3242307882068fc6007b16a6f9f2b41725

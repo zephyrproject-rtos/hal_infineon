@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_mem.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the headers for the memory management API
@@ -64,6 +64,7 @@ typedef void (*cy_crypto_memxor_func_t)(CRYPTO_Type *base, void* dst,
 * Function MemCpy uses Crypto HW.
 * Memory structures should not overlap!
 * There is no alignment restriction.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters dst and src must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -100,6 +101,7 @@ __STATIC_INLINE void Cy_Crypto_Core_MemCpy(CRYPTO_Type *base, void* dst, void co
 *
 * Function MemSet uses Crypto HW.
 * There is no alignment restriction.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameter dst must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -136,6 +138,7 @@ __STATIC_INLINE void Cy_Crypto_Core_MemSet(CRYPTO_Type *base, void* dst, uint8_t
 *
 * Function MemCmp uses Crypto HW.
 * There is no alignment restriction.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters src0 and src1 must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -179,6 +182,7 @@ __STATIC_INLINE uint32_t Cy_Crypto_Core_MemCmp(CRYPTO_Type *base, void const *sr
 * Function MemXor uses Crypto HW.
 * Memory structures should not overlap!
 * There is no alignment restriction.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters dst, src0 and src1 must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.

@@ -129,7 +129,7 @@ static const cy_stc_scb_uart_config_t _cyhal_uart_default_config = {
 
     .enableCts                  = false,
     .ctsPolarity                = CY_SCB_UART_ACTIVE_LOW,
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
+#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) || defined(COMPONENT_CAT5)
     .rtsRxFifoLevel             = 20UL,
 #elif defined(COMPONENT_CAT2)
     .rtsRxFifoLevel             = 3UL,
@@ -467,40 +467,50 @@ static bool _cyhal_uart_pm_callback_instance(void *obj_ptr, cyhal_syspm_callback
                     )
                 #endif /* CYHAL_DRIVER_AVAILABLE_DMA */
                 {
+                    /* Not all interrupts are preserved across DeepSleep entry/exit. For example,
+                     * TX_UART_DONE is not. So block DeepSleep entry if any of our interrupts are
+                     * unmasked. It is safe to check at the SCB level rather than the NVIC because
+                     * the HAL never unmasks an interrupt without registering a handler.
+                     *
+                     * Neither of the FIFOs are preserved, so also block DeepSleep if either of them
+                     * has contents.
+                     */
+                    uint32_t txMasked = Cy_SCB_GetTxInterruptStatusMasked(obj->base);
+                    uint32_t rxMasked = Cy_SCB_GetRxInterruptStatusMasked(obj->base);
                     /* If all data elements are transmitted from the TX FIFO and
                     * shifter and the RX FIFO is empty: the UART is ready to enter
                     * Deep Sleep mode.
                     */
-                    if (Cy_SCB_UART_IsTxComplete(obj->base))
+
+                    if (Cy_SCB_UART_IsTxComplete(obj->base)
+                         && (0UL == Cy_SCB_UART_GetNumInRxFifo(obj->base))
+                         && (0UL == txMasked) && (0UL == rxMasked))
                     {
-                        if (0UL == Cy_SCB_UART_GetNumInRxFifo(obj->base))
+                        /* Disable the UART. The transmitter stops driving the
+                        * lines and the receiver stops receiving data until
+                        * the UART is enabled.
+                        * This happens when the device failed to enter Deep
+                        * Sleep or it is awaken from Deep Sleep mode.
+                        */
+
+                        if (NULL != txport)
                         {
-                            /* Disable the UART. The transmitter stops driving the
-                            * lines and the receiver stops receiving data until
-                            * the UART is enabled.
-                            * This happens when the device failed to enter Deep
-                            * Sleep or it is awaken from Deep Sleep mode.
-                            */
-
-                            if (NULL != txport)
-                            {
-                                obj->saved_tx_hsiom = Cy_GPIO_GetHSIOM(txport, txpin);
-                                Cy_GPIO_Set(txport, txpin);
-                                Cy_GPIO_SetHSIOM(txport, txpin, HSIOM_SEL_GPIO);
-                            }
-                            if (NULL != rtsport)
-                            {
-                                obj->saved_rts_hsiom = Cy_GPIO_GetHSIOM(rtsport, rtspin);
-                                Cy_GPIO_Set(rtsport, rtspin);
-                                Cy_GPIO_SetHSIOM(rtsport, rtspin, HSIOM_SEL_GPIO);
-                            }
-
-                            Cy_SCB_UART_Disable(obj->base, &(obj->context));
-                            allow = true;
-
+                            obj->saved_tx_hsiom = Cy_GPIO_GetHSIOM(txport, txpin);
+                            Cy_GPIO_Set(txport, txpin);
+                            Cy_GPIO_SetHSIOM(txport, txpin, HSIOM_SEL_GPIO);
                         }
+                        if (NULL != rtsport)
+                        {
+                            obj->saved_rts_hsiom = Cy_GPIO_GetHSIOM(rtsport, rtspin);
+                            Cy_GPIO_Set(rtsport, rtspin);
+                            Cy_GPIO_SetHSIOM(rtsport, rtspin, HSIOM_SEL_GPIO);
+                        }
+
+                        Cy_SCB_UART_Disable(obj->base, &(obj->context));
+                        allow = true;
                     }
                 }
+
                 break;
 
             case CY_SYSPM_CHECK_FAIL:
@@ -1352,6 +1362,11 @@ cy_rslt_t _cyhal_uart_dma_write_async(cyhal_uart_t *obj)
         #endif
         result = cyhal_dma_configure(&(obj->dma_tx), &dma_config);
     }
+
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void *)obj->async_tx_buff, (length * (mem_width / 8)));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
+
     if(result == CY_RSLT_SUCCESS)
     {
         result = cyhal_dma_enable(&(obj->dma_tx));
@@ -1430,6 +1445,11 @@ cy_rslt_t _cyhal_uart_dma_read_async(cyhal_uart_t *obj)
         #endif
         result = cyhal_dma_configure(&(obj->dma_rx), &dma_config);
     }
+
+    #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_InvalidateDCache_by_Addr((void *)obj->async_rx_buff, (length * (mem_width / 8)));
+    #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
+
     if(result == CY_RSLT_SUCCESS)
     {
         result = cyhal_dma_enable(&(obj->dma_rx));

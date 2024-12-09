@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_efuse_v3.c
-* \version 2.30
+* \version 2.40
 *
 * \brief
 * Provides API implementation of the eFuse version_3 driver.
@@ -31,7 +31,6 @@
 /* Include files                                                             */
 /*****************************************************************************/
 #include "cy_efuse.h"
-
 /*****************************************************************************/
 /* Local pre-processor symbols/macros ('#define')                            */
 /*****************************************************************************/
@@ -236,10 +235,10 @@ cy_en_efuse_status_t Cy_EFUSE_WriteWord(EFUSE_Type *base, uint32_t src, uint32_t
 {
     cy_en_efuse_status_t ret = CY_EFUSE_BAD_PARAM;
 
-    if (offset < EFUSE_SIZE)
+    if ((offset < EFUSE_SIZE) && (0U == offset % 4U))
     {
         /* Clear the src bits that are already set */
-        uint32_t readWord;
+        uint32_t readWord = 0UL;
         /* No error check since the function parameters are already checked */
         (void)Cy_EFUSE_ReadWord(base, &readWord, offset);
         src &= (uint32_t)~readWord;
@@ -358,9 +357,8 @@ cy_en_efuse_status_t Cy_EFUSE_ReadWord(EFUSE_Type *base, uint32_t *dst, uint32_t
 {
     /* Suppress a compiler warning about unused variables */
     (void) base;
-
     cy_en_efuse_status_t ret = CY_EFUSE_BAD_PARAM;
-    if (offset < EFUSE_SIZE)
+    if ((offset < EFUSE_SIZE) && (0U == offset % 4U))
     {
         *dst = CY_GET_REG32(CY_EFUSE_BASE + offset);
         ret = CY_EFUSE_SUCCESS;

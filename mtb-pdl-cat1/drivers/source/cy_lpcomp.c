@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_lpcomp.c
-* \version 1.60
+* \version 1.70
 *
 * \brief
 *  This file provides the driver code to the API for the Low Power Comparator
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -28,7 +28,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXLPCOMP) || defined (CY_IP_MXS22LPCOMP)
+#if defined (CY_IP_MXLPCOMP) || defined (CY_IP_MXS22LPCOMP) || defined (CY_IP_MXS40LPCOMP)
 
 #include "cy_lpcomp.h"
 
@@ -39,6 +39,20 @@ extern "C" {
 #if defined (CY_IP_MXLPCOMP)
 static cy_stc_lpcomp_context_t cy_lpcomp_context;
 #endif
+
+#if defined (CY_IP_MXS22LPCOMP)
+#include "cy_systrimm.h"
+
+/* Start trimming data for COMP_CH0 */
+#define TRIMM_START_IDX_COMP_CH0                                                                (90UL)
+/* Start trimming data for COMP_CH1 */
+#define TRIMM_START_IDX_COMP_CH1                                                                (91UL)
+
+/* Forward declarations */
+#if (0) /* Until SORT Si */
+static cy_en_lpcomp_status_t LPComp_LoadTrimmValues(LPCOMP_Type *base, cy_en_lpcomp_channel_t channel);
+#endif /* Until SORT Si */
+#endif /* CY_IP_MXS22LPCOMP */
 
 /*******************************************************************************
 * Function Name: Cy_LPComp_Init_Ext
@@ -108,7 +122,16 @@ cy_en_lpcomp_status_t Cy_LPComp_Init_Ext(LPCOMP_Type *base, cy_en_lpcomp_channel
         /* Save power to use it in the Cy_LPComp_Enable_Ext() function */
         context->power[(uint8_t)channel - 1u] = config->power;
 
+#if defined (CY_IP_MXS22LPCOMP)
+        /* Read and apply trimming values */
+#if (0) /* Until SORT Si */
+        ret = LPComp_LoadTrimmValues(base, channel);
+#endif /* Until SORT Si */
         ret = CY_LPCOMP_SUCCESS;
+#else
+        ret = CY_LPCOMP_SUCCESS;
+#endif /* CY_IP_MXS22LPCOMP */
+
     }
 
     return (ret);
@@ -994,19 +1017,19 @@ void Cy_LPComp_GetTrim(LPCOMP_Type const * base, cy_en_lpcomp_channel_t channel,
 
     if (CY_LPCOMP_CHANNEL_0 == channel)
     {
-        trim->enable =   _FLD2BOOL(LPCOMP_CMP0_OFFSET_TRIM_CMP0_EN,        LPCOMP_CMP0_OFFSET_TRIM(base));
-        CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.3', 2, 'Intentional typecast of uint32_t to enum')
-        trim->polarity =  _FLD2VAL(LPCOMP_CMP0_OFFSET_TRIM_CMP0_POLARITY,  LPCOMP_CMP0_OFFSET_TRIM(base));
-        trim->magnitude = _FLD2VAL(LPCOMP_CMP0_OFFSET_TRIM_CMP0_MAGNITUDE, LPCOMP_CMP0_OFFSET_TRIM(base));
-        CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.3')
+        trim->enable = _FLD2BOOL(LPCOMP_CMP0_OFFSET_TRIM_CMP0_EN, LPCOMP_CMP0_OFFSET_TRIM(base));
+        CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 2, 'Intentional typecast of uint32_t to enum')
+        trim->polarity = (cy_en_lpcomp_trim_polarity_t)_FLD2VAL(LPCOMP_CMP0_OFFSET_TRIM_CMP0_POLARITY, LPCOMP_CMP0_OFFSET_TRIM(base));
+        trim->magnitude = (cy_en_lpcomp_trim_magnitude_t)_FLD2VAL(LPCOMP_CMP0_OFFSET_TRIM_CMP0_MAGNITUDE, LPCOMP_CMP0_OFFSET_TRIM(base));
+        CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
     }
     else
     {
-        trim->enable =   _FLD2BOOL(LPCOMP_CMP1_OFFSET_TRIM_CMP1_EN,        LPCOMP_CMP1_OFFSET_TRIM(base));
-        CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.3', 2, 'Intentional typecast of uint32_t to enum')
-        trim->polarity =  _FLD2VAL(LPCOMP_CMP1_OFFSET_TRIM_CMP1_POLARITY,  LPCOMP_CMP1_OFFSET_TRIM(base));
-        trim->magnitude = _FLD2VAL(LPCOMP_CMP1_OFFSET_TRIM_CMP1_MAGNITUDE, LPCOMP_CMP1_OFFSET_TRIM(base));
-        CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.3')
+        trim->enable = _FLD2BOOL(LPCOMP_CMP1_OFFSET_TRIM_CMP1_EN, LPCOMP_CMP1_OFFSET_TRIM(base));
+        CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 2, 'Intentional typecast of uint32_t to enum')
+        trim->polarity = (cy_en_lpcomp_trim_polarity_t)_FLD2VAL(LPCOMP_CMP1_OFFSET_TRIM_CMP1_POLARITY, LPCOMP_CMP1_OFFSET_TRIM(base));
+        trim->magnitude = (cy_en_lpcomp_trim_magnitude_t)_FLD2VAL(LPCOMP_CMP1_OFFSET_TRIM_CMP1_MAGNITUDE, LPCOMP_CMP1_OFFSET_TRIM(base));
+        CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
     }
 }
 
@@ -1048,12 +1071,56 @@ void Cy_LPComp_SetTrim(LPCOMP_Type * base, cy_en_lpcomp_channel_t channel, const
                                          _VAL2FLD(LPCOMP_CMP1_OFFSET_TRIM_CMP1_MAGNITUDE, trim->magnitude);
     }
 }
-#endif
+
+
+#if (0) /* Until SORT Si */
+/*******************************************************************************
+* Function Name: LPComp_LoadTrimmValues
+****************************************************************************//**
+*
+* Used to load trimming values from RRAM into MMIO for further use at runtime.
+*
+* \param *base
+*     The low-power comparator registers structure pointer.
+*
+* \param channel
+*     The low-power comparator channel index.
+*
+* \return
+* Status of operation, \ref cy_en_lpcomp_status_t.
+*
+*******************************************************************************/
+static cy_en_lpcomp_status_t LPComp_LoadTrimmValues(LPCOMP_Type *base, cy_en_lpcomp_channel_t channel)
+{
+    cy_en_lpcomp_status_t ret = CY_LPCOMP_TRIMM_ERR;
+
+    uint32_t trimmData[TRIMM_SECTION_SIZE_BYTES / sizeof(int)];
+
+    /* Read array of trimming constants */
+    if (Cy_Trimm_ReadRRAMdata(TRIMM_SECTION_SIZE_BYTES, trimmData))
+    {
+        ret = CY_LPCOMP_SUCCESS;
+
+        if (CY_LPCOMP_CHANNEL_0 == channel)
+        {
+            LPCOMP_CMP0_OFFSET_TRIM(base) = trimmData[TRIMM_START_IDX_COMP_CH0];
+        }
+        else
+        {
+            LPCOMP_CMP1_OFFSET_TRIM(base) = trimmData[TRIMM_START_IDX_COMP_CH1];
+        }
+    }
+
+    return ret;
+}
+#endif /* Until SORT Si */
+
+#endif /* CY_IP_MXS22LPCOMP */
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* CY_IP_MXLPCOMP and CY_IP_MXS22LPCOMP */
+#endif /* CY_IP_MXLPCOMP, CY_IP_MXS22LPCOMP, and CY_IP_MXS40LPCOMP */
 
 /* [] END OF FILE */

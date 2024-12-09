@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_sha256.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides common constants and parameters
@@ -71,11 +71,11 @@ extern "C" {
 typedef struct
 {
     /** \cond INTERNAL */
-    uint32_t msgblock[CY_CRYPTOLITE_SHA256_BLOCK_SIZE / 4u];
+    uint32_t msgblock[(CY_CRYPTOLITE_SHA256_BLOCK_SIZE / 4u) + 1u]; //Allocating extra buffer for 4byte aligned Copy from OTP region.
     uint32_t hash[CY_CRYPTOLITE_SHA256_HASH_SIZE / 4u];
     uint32_t message_schedule[CY_CRYPTOLITE_SHA256_BLOCK_SIZE];
     uint8_t *message;
-    uint32_t messageSize;
+    uint64_t messageSize;
     uint32_t msgIdx;
     /** Operation data descriptors */
     cy_stc_cryptolite_descr_t message_schedule_struct;
@@ -144,7 +144,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Start(CRYPTOLITE_Type *base,
 * The pointer to the CRYPTOLITE instance.
 *
 * \param message
-* The SAHB mapped address pointer to the message whose Hash is being computed.
+* The address pointer to the message whose Hash is being computed.
 *
 * \param messageSize
 * The size of the message whose Hash is being computed.
@@ -178,7 +178,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
 * The pointer to the CRYPTOLITE instance.
 *
 * \param digest
-* The SAHB mapped address pointer to the calculated Hash digest.
+* The address pointer to the calculated Hash digest.
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_cryptolite_context_sha256_t structure that stores all
@@ -230,13 +230,13 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Free(CRYPTOLITE_Type *base,
 * The pointer to the CRYPTOLITE instance.
 *
 * \param message
-* The SAHB mapped address pointer to a message whose hash value is being computed.
+* The address pointer to a message whose hash value is being computed.
 *
 * \param messageSize
 * The size of a message in bytes.
 *
 * \param digest
-* The SAHB mapped address pointer to the hash digest.
+* The address pointer to the hash digest.
 *
 * \param cfContext
 * The pointer to the \ref cy_stc_cryptolite_context_sha256_t structure that stores all

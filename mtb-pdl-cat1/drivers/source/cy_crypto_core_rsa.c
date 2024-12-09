@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_rsa.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the source code to the API to calculate
@@ -43,12 +43,12 @@ extern "C" {
 #include <string.h>
 
 /* Functions prototypes */
-static void Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, uint32_t modReg, uint32_t size);
-static void Cy_Crypto_Core_Rsa_BarrettGetU(CRYPTO_Type *base, uint32_t barrettUReg, uint32_t modReg, uint32_t size);
-static void Cy_Crypto_Core_Rsa_MontTransform(CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t barrett, uint32_t mod, uint32_t size);
-static void Cy_Crypto_Core_Rsa_MontMul(CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t b, uint32_t montModDer, uint32_t mod, uint32_t size);
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, uint32_t modReg, uint32_t size);
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_BarrettGetU(CRYPTO_Type *base, uint32_t barrettUReg, uint32_t modReg, uint32_t size);
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_MontTransform(CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t barrett, uint32_t mod, uint32_t size);
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_MontMul(CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t b, uint32_t montModDer, uint32_t mod, uint32_t size);
 
-static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
                                      uint32_t y,
                                      uint32_t x,
                                      uint32_t e,
@@ -58,10 +58,70 @@ static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
                                      uint32_t rBar,
                                      uint32_t size);
 
+#if (defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) || defined(CY_CRYPTO_CFG_RSA_SIGN_ENABLED))
+    /* Encodings for hash functions */
+
+    #define CY_CRYPTO_SHA1_PADDING_SIZE        (15u)
+    #define CY_CRYPTO_SHA256_512_PADDING_SIZE  (19u)
+
+    #if (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED)
+    static const uint8_t sha1EncStr[CY_CRYPTO_SHA1_PADDING_SIZE] =
+    {
+        0x30u, 0x21u, 0x30u, 0x09u, 0x06u, 0x05u, 0x2Bu, 0x0Eu,
+        0x03u, 0x02u, 0x1Au, 0x05u, 0x00u, 0x04u, 0x14u
+    };
+    #endif /* (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED) */
+
+    #if (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED)
+    static const uint8_t sha224EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
+    {
+        0x30u, 0x2Du, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
+        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x04u, 0x05u,
+        0x00u, 0x04u, 0x1Cu
+    };
+
+    static const uint8_t sha256EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
+    {
+        0x30u, 0x31u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
+        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x01u, 0x05u,
+        0x00u, 0x04u, 0x20u
+    };
+    #endif /* (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) */
+
+    #if (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)
+    static const uint8_t sha384EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
+    {
+        0x30u, 0x41u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
+        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x02u, 0x05u,
+        0x00u, 0x04u, 0x30u
+    };
+
+    static const uint8_t sha512EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
+    {
+        0x30u, 0x51u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
+        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x03u, 0x05u,
+        0x00u, 0x04u, 0x40u
+    };
+
+    static const uint8_t sha512_224EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
+    {
+        0x30u, 0x2Du, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
+        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x05u, 0x05u,
+        0x00u, 0x04u, 0x1Cu
+    };
+
+    static const uint8_t sha512_256EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
+    {
+        0x30u, 0x31u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
+        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x06u, 0x05u,
+        0x00u, 0x04u, 0x20u
+    };
+    #endif /* (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) */
+#endif /* (defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) || defined(CY_CRYPTO_CFG_RSA_SIGN_ENABLED)) */
+
+
 #if defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED)
 
-#define CY_CRYPTO_SHA1_PADDING_SIZE        (15u)
-#define CY_CRYPTO_SHA256_512_PADDING_SIZE  (19u)
 
 /**
 * \addtogroup group_crypto_lld_asymmetric_functions
@@ -78,6 +138,8 @@ static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
 * using only SHA, cases with MD2 and MD5 are not supported.
 * PKCS1-v1_5 described here, page 31:
 * http://www.emc.com/collateral/white-papers/h11300-pkcs-1v2-2-rsa-cryptography-standard-wp.pdf
+*
+* For CAT1C & CAT1D devices when D-Cache is enabled parameter decryptedSignature must align and end in 32 byte boundary.
 *
 * Returns the verification result \ref cy_en_crypto_rsa_ver_result_t.
 *
@@ -137,7 +199,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify(CRYPTO_Type *base,
 * PKCS1-v1_5 described here, page 31:
 * http://www.emc.com/collateral/white-papers/h11300-pkcs-1v2-2-rsa-cryptography-standard-wp.pdf
 *
-* For CAT1C devices when D-Cache is enabled parameter decryptedSignature must align and end in 32 byte boundary.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameter decryptedSignature must align and end in 32 byte boundary.
 *
 * Returns the verification result \ref cy_en_crypto_rsa_ver_result_t.
 *
@@ -178,201 +240,155 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify_Ext(CRYPTO_Type *base,
                             uint32_t decryptedSignatureLength)
 {
     cy_en_crypto_status_t tmpResult = CY_CRYPTO_SUCCESS;
-
-    /* Encodings for hash functions */
-
-    #if (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED)
-    static const uint8_t sha1EncStr[CY_CRYPTO_SHA1_PADDING_SIZE] =
-    {
-        0x30u, 0x21u, 0x30u, 0x09u, 0x06u, 0x05u, 0x2Bu, 0x0Eu,
-        0x03u, 0x02u, 0x1Au, 0x05u, 0x00u, 0x04u, 0x14u
-    };
-    #endif /* (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED) */
-
-    #if (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED)
-    static const uint8_t sha224EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
-    {
-        0x30u, 0x2Du, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
-        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x04u, 0x05u,
-        0x00u, 0x04u, 0x1Cu
-    };
-
-    static const uint8_t sha256EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
-    {
-        0x30u, 0x31u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
-        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x01u, 0x05u,
-        0x00u, 0x04u, 0x20u
-    };
-    #endif /* (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) */
-
-    #if (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)
-    static const uint8_t sha384EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
-    {
-        0x30u, 0x41u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
-        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x02u, 0x05u,
-        0x00u, 0x04u, 0x30u
-    };
-
-    static const uint8_t sha512EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
-    {
-        0x30u, 0x51u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
-        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x03u, 0x05u,
-        0x00u, 0x04u, 0x40u
-    };
-
-    static const uint8_t sha512_224EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
-    {
-        0x30u, 0x2Du, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
-        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x05u, 0x05u,
-        0x00u, 0x04u, 0x1Cu
-    };
-
-    static const uint8_t sha512_256EncStr[CY_CRYPTO_SHA256_512_PADDING_SIZE] =
-    {
-        0x30u, 0x31u, 0x30u, 0x0Du, 0x06u, 0x09u, 0x60u, 0x86u,
-        0x48u, 0x01u, 0x65u, 0x03u, 0x04u, 0x02u, 0x06u, 0x05u,
-        0x00u, 0x04u, 0x20u
-    };
-    #endif /* (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) */
-
-    uint8_t  const *encodingArr = NULL;
     uint32_t encodingArrSize = 0u;
     uint32_t locDigestSize = 0u;
     uint32_t i;
     uint32_t psLength;
     uint32_t cmpRes = 0u;
+    uint8_t *digestRemap;
+    uint8_t *decryptedSignatureRemap;
+    uint8_t *decryptedSignatureIn;
+    uint8_t *encodingArr = NULL;
+    uint8_t *encodingArrRemap = NULL;
 
     if( (NULL == verResult) || ((NULL == digest) && (digestLength != 0UL))  || (NULL == decryptedSignature) )
     {
         tmpResult =  CY_CRYPTO_BAD_PARAMS;
     }
 
+    digestRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(digest);
+    decryptedSignatureRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(decryptedSignature);
+    decryptedSignatureIn = (uint8_t *)decryptedSignature;
+
     if(tmpResult == CY_CRYPTO_SUCCESS)
     {
         switch (digestType)
         {
 
-    #if (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED)
-    case CY_CRYPTO_MODE_SHA1:
-        encodingArr  = sha1EncStr;
-        encodingArrSize = sizeof(sha1EncStr);
-        locDigestSize      = CY_CRYPTO_SHA1_DIGEST_SIZE;
-        break;
-    #endif /* (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED) */
+        #if (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED)
+        case CY_CRYPTO_MODE_SHA1:
+            encodingArr  = (uint8_t *)sha1EncStr;
+            encodingArrSize = sizeof(sha1EncStr);
+            locDigestSize      = CY_CRYPTO_SHA1_DIGEST_SIZE;
+            break;
+        #endif /* (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED) */
 
-    #if (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED)
-    case CY_CRYPTO_MODE_SHA224:
-        encodingArr  = sha224EncStr;
-        encodingArrSize = sizeof(sha224EncStr);
-        locDigestSize      = CY_CRYPTO_SHA224_DIGEST_SIZE;
-        break;
+        #if (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED)
+        case CY_CRYPTO_MODE_SHA224:
+            encodingArr  = (uint8_t *)sha224EncStr;
+            encodingArrSize = sizeof(sha224EncStr);
+            locDigestSize      = CY_CRYPTO_SHA224_DIGEST_SIZE;
+            break;
 
-    case CY_CRYPTO_MODE_SHA256:
-        encodingArr  = sha256EncStr;
-        encodingArrSize = sizeof(sha256EncStr);
-        locDigestSize      = CY_CRYPTO_SHA256_DIGEST_SIZE;
-        break;
-    #endif /* (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) */
+        case CY_CRYPTO_MODE_SHA256:
+            encodingArr  = (uint8_t *)sha256EncStr;
+            encodingArrSize = sizeof(sha256EncStr);
+            locDigestSize      = CY_CRYPTO_SHA256_DIGEST_SIZE;
+            break;
+        #endif /* (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) */
 
-    #if (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)
-    case CY_CRYPTO_MODE_SHA384:
-        encodingArr  = sha384EncStr;
-        encodingArrSize = sizeof(sha384EncStr);
-        locDigestSize      = CY_CRYPTO_SHA384_DIGEST_SIZE;
-        break;
+        #if (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)
+        case CY_CRYPTO_MODE_SHA384:
+            encodingArr  = (uint8_t *)sha384EncStr;
+            encodingArrSize = sizeof(sha384EncStr);
+            locDigestSize      = CY_CRYPTO_SHA384_DIGEST_SIZE;
+            break;
 
-    case CY_CRYPTO_MODE_SHA512:
-        encodingArr  = sha512EncStr;
-        encodingArrSize = sizeof(sha512EncStr);
-        locDigestSize      = CY_CRYPTO_SHA512_DIGEST_SIZE;
-        break;
+        case CY_CRYPTO_MODE_SHA512:
+            encodingArr  = (uint8_t *)sha512EncStr;
+            encodingArrSize = sizeof(sha512EncStr);
+            locDigestSize      = CY_CRYPTO_SHA512_DIGEST_SIZE;
+            break;
 
-    case CY_CRYPTO_MODE_SHA512_224:
-        encodingArr  = sha512_224EncStr;
-        encodingArrSize = sizeof(sha512_224EncStr);
-        locDigestSize      = CY_CRYPTO_SHA512_224_DIGEST_SIZE;
-        break;
+        case CY_CRYPTO_MODE_SHA512_224:
+            encodingArr  = (uint8_t *)sha512_224EncStr;
+            encodingArrSize = sizeof(sha512_224EncStr);
+            locDigestSize      = CY_CRYPTO_SHA512_224_DIGEST_SIZE;
+            break;
 
-    case CY_CRYPTO_MODE_SHA512_256:
-        encodingArr  = sha512_256EncStr;
-        encodingArrSize = sizeof(sha512_256EncStr);
-        locDigestSize      = CY_CRYPTO_SHA512_256_DIGEST_SIZE;
-        break;
-    #endif /* (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) */
-    case CY_CRYPTO_MODE_SHA_NONE:
-        encodingArr  = NULL;
-        encodingArrSize = 0;
-        locDigestSize  = digestLength;
-        break;
-    default:
-    /* Unknown Digest Type */
-        break;
-    }
-
-    /* Fail by default */
-    *verResult = CY_CRYPTO_RSA_VERIFY_FAIL;
-
-    if (CY_CRYPTO_MODE_SHA_NONE != digestType)
-    {
-        /* Check size of decrypted message */
-        if (decryptedSignatureLength < (encodingArrSize + locDigestSize + 11u))
-        {
-            cmpRes = 1u;  /* further checking is not needed */
+        case CY_CRYPTO_MODE_SHA512_256:
+            encodingArr  = (uint8_t *)sha512_256EncStr;
+            encodingArrSize = sizeof(sha512_256EncStr);
+            locDigestSize      = CY_CRYPTO_SHA512_256_DIGEST_SIZE;
+            break;
+        #endif /* (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) */
+        case CY_CRYPTO_MODE_SHA_NONE:
+            encodingArr  = NULL;
+            encodingArrSize = 0;
+            locDigestSize  = digestLength;
+            break;
+        default:
+        /* Unknown Digest Type */
+            break;
         }
 
-    }
+        /* Fail by default */
+        *verResult = CY_CRYPTO_RSA_VERIFY_FAIL;
 
+        encodingArrRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(encodingArr);
 
-    psLength = decryptedSignatureLength - locDigestSize - encodingArrSize - 3u;
-
-    /* Check whether the begin of message is 0x00, 0x01 and after PS string (before T string) is 0x00 byte.*/
-    if ( (0u != cmpRes) ||
-         (0x00u != *(decryptedSignature)) ||
-         (0x01u != *(decryptedSignature + 1)) ||
-         (0x00u != *(decryptedSignature + psLength + 2u)) )
-    {
-        cmpRes = 1u;  /* Further checking is not needed */
-    }
-
-    /* Check FFs */
-    if (0u == cmpRes )
-    {
-        for (i = 0u; i < psLength; i++)
+        if (CY_CRYPTO_MODE_SHA_NONE != digestType)
         {
-            if (0xFFu != *(decryptedSignature + 2u + i))
+            /* Check size of decrypted message */
+            if (decryptedSignatureLength < (encodingArrSize + locDigestSize + 11u))
             {
-                cmpRes = 1u;  /* Further checking is not needed */
-                break;
+                cmpRes = 1u;  /* further checking is not needed */
+            }
+
+        }
+
+
+        psLength = decryptedSignatureLength - locDigestSize - encodingArrSize - 3u;
+
+        /* Check whether the begin of message is 0x00, 0x01 and after PS string (before T string) is 0x00 byte.*/
+        if ( (0u != cmpRes) ||
+            (0x00u != *(decryptedSignatureIn)) ||
+            (0x01u != *(decryptedSignatureIn + 1)) ||
+            (0x00u != *(decryptedSignatureIn + psLength + 2u)) )
+        {
+            cmpRes = 1u;  /* Further checking is not needed */
+        }
+
+        /* Check FFs */
+        if (0u == cmpRes )
+        {
+            for (i = 0u; i < psLength; i++)
+            {
+                if (0xFFu != *(decryptedSignatureIn + 2u + i))
+                {
+                    cmpRes = 1u;  /* Further checking is not needed */
+                    break;
+                }
             }
         }
-    }
 
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
-        /* Flush the cache */
-        SCB_CleanDCache_by_Addr((volatile void *)(decryptedSignature),(int32_t)decryptedSignatureLength);
-#endif
+    #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
 
-    if ((CY_CRYPTO_MODE_SHA_NONE != digestType) && (0u == cmpRes))
-    {
+            /* Flush the cache */
+            SCB_CleanDCache_by_Addr((volatile void *)(decryptedSignatureIn),(int32_t)decryptedSignatureLength);
+    #endif
 
-        cmpRes = Cy_Crypto_Core_MemCmp(base, (void const *)encodingArr,
-                        (void const *)(decryptedSignature + psLength + 3u),
-                        (uint16_t)encodingArrSize);
-    }
+        if ((CY_CRYPTO_MODE_SHA_NONE != digestType) && (0u == cmpRes))
+        {
 
-    /* Check the digest */
-    if (0u == cmpRes)
-    {
+            cmpRes = Cy_Crypto_Core_MemCmp(base, (void const *)encodingArrRemap,
+                            (void const *)(decryptedSignatureRemap + psLength + 3u),
+                            (uint16_t)encodingArrSize);
+        }
 
-        cmpRes = Cy_Crypto_Core_MemCmp(base, (void const *)digest,
-                        (void const *)(decryptedSignature + (decryptedSignatureLength - locDigestSize)),
-                        (uint16_t)locDigestSize);
-    }
+        /* Check the digest */
+        if (0u == cmpRes)
+        {
 
-    if (0u == cmpRes )
-    {
-        *verResult = CY_CRYPTO_RSA_VERIFY_SUCCESS;
-    }
+            cmpRes = Cy_Crypto_Core_MemCmp(base, (void const *)digestRemap,
+                            (void const *)(decryptedSignatureRemap + (decryptedSignatureLength - locDigestSize)),
+                            (uint16_t)locDigestSize);
+        }
+
+        if (0u == cmpRes )
+        {
+            *verResult = CY_CRYPTO_RSA_VERIFY_SUCCESS;
+        }
     }
 
     return (tmpResult);
@@ -380,6 +396,216 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify_Ext(CRYPTO_Type *base,
 
 /** \} group_crypto_lld_asymmetric_functions */
 #endif /* defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) */
+
+
+
+#if defined(CY_CRYPTO_CFG_RSA_SIGN_ENABLED)
+/*******************************************************************************
+* Function Name: Cy_Crypto_Core_Rsa_Sign
+****************************************************************************//**
+*
+* The functions forms the PKCS1-v1_5 padding of the message needed for signature generation.
+* \ref Cy_Crypto_Core_Rsa_Proc should be called after for generating the signature.
+* Supports only PKCS1-v1_5 format, inside of this format supported padding
+* using only SHA, cases with MD2 and MD5 are not supported.
+* PKCS1-v1_5 described here, page 31:
+* http://www.emc.com/collateral/white-papers/h11300-pkcs-1v2-2-rsa-cryptography-standard-wp.pdf
+*
+* For CAT1C & CAT1D devices when D-Cache is enabled parameter digest & signature must align and end in 32 byte boundary.
+*
+*
+* \param base
+* The pointer to the CRYPTO instance.
+*
+* \param digestType
+* SHA mode used for hash calculation \ref cy_en_crypto_sha_mode_t.
+*
+* \param digest
+* The pointer to the hash of the message or the message whose signature is to be generated.
+*
+* \param digestLength
+* The length of the message whose signature to be generated and is applicable for CY_CRYPTO_MODE_SHA_NONE mode.
+*
+* \param signature
+* The pointer to the signature buffer.
+*
+* \param signatureLength
+* The length of the signature buffer.
+*
+* \return
+* \ref cy_en_crypto_status_t
+*
+*******************************************************************************/
+cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Sign(CRYPTO_Type *base,
+                            cy_en_crypto_sha_mode_t digestType,
+                            uint8_t const *digest,
+                            uint32_t digestLength,
+                            uint8_t *signature,
+                            uint32_t signatureLength)
+{
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_SUCCESS;
+    uint8_t  *encodingArr = NULL;
+    uint32_t encodingArrSize = 0u;
+    uint32_t locDigestSize = 0u;
+    uint32_t psLength;
+    uint8_t* digestRemap;
+    uint8_t* signatureRemap;
+    uint8_t  *encodingArrRemap = NULL;
+    uint8_t* signaturePtr;
+    uint32_t oidSize = 0u;
+
+    if( ((NULL == digest) && (digestLength != 0UL))  || (NULL == signature) )
+    {
+        tmpResult = CY_CRYPTO_BAD_PARAMS;
+    }
+
+    digestRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(digest);
+    signatureRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(signature);
+    signaturePtr = signature;
+
+    if(tmpResult == CY_CRYPTO_SUCCESS)
+    {
+        switch (digestType)
+        {
+
+        #if (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED)
+        case CY_CRYPTO_MODE_SHA1:
+            encodingArr  = (uint8_t *)sha1EncStr;
+            encodingArrSize = sizeof(sha1EncStr);
+            locDigestSize      = CY_CRYPTO_SHA1_DIGEST_SIZE;
+            break;
+        #endif /* (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED) */
+
+        #if (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED)
+        case CY_CRYPTO_MODE_SHA224:
+            encodingArr  = (uint8_t *)sha224EncStr;
+            encodingArrSize = sizeof(sha224EncStr);
+            locDigestSize      = CY_CRYPTO_SHA224_DIGEST_SIZE;
+            break;
+
+        case CY_CRYPTO_MODE_SHA256:
+            encodingArr  = (uint8_t *)sha256EncStr;
+            encodingArrSize = sizeof(sha256EncStr);
+            locDigestSize      = CY_CRYPTO_SHA256_DIGEST_SIZE;
+            break;
+        #endif /* (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) */
+
+        #if (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)
+        case CY_CRYPTO_MODE_SHA384:
+            encodingArr  = (uint8_t *)sha384EncStr;
+            encodingArrSize = sizeof(sha384EncStr);
+            locDigestSize      = CY_CRYPTO_SHA384_DIGEST_SIZE;
+            break;
+
+        case CY_CRYPTO_MODE_SHA512:
+            encodingArr  = (uint8_t *)sha512EncStr;
+            encodingArrSize = sizeof(sha512EncStr);
+            locDigestSize      = CY_CRYPTO_SHA512_DIGEST_SIZE;
+            break;
+
+        case CY_CRYPTO_MODE_SHA512_224:
+            encodingArr  = (uint8_t *)sha512_224EncStr;
+            encodingArrSize = sizeof(sha512_224EncStr);
+            locDigestSize      = CY_CRYPTO_SHA512_224_DIGEST_SIZE;
+            break;
+
+        case CY_CRYPTO_MODE_SHA512_256:
+            encodingArr  = (uint8_t *)sha512_256EncStr;
+            encodingArrSize = sizeof(sha512_256EncStr);
+            locDigestSize      = CY_CRYPTO_SHA512_256_DIGEST_SIZE;
+            break;
+        #endif /* (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) */
+        case CY_CRYPTO_MODE_SHA_NONE:
+            encodingArr  = NULL;
+            encodingArrSize = 0;
+            locDigestSize  = digestLength;
+            break;
+        default:
+        /* Unknown Digest Type */
+            break;
+        }
+
+        if(NULL != encodingArr)
+        {
+            oidSize = encodingArr[5u];
+        }
+
+        encodingArrRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(encodingArr);
+
+        if(CY_CRYPTO_MODE_SHA_NONE == digestType)
+        {
+            // 3bytes for signature header & padding delimiter and 8 bytes for minimal padding.
+            if(signatureLength < locDigestSize + 3u + 8u)
+            {
+                return CY_CRYPTO_BAD_PARAMS;
+            }
+        }
+        else
+        {
+            if(signatureLength < 10u + locDigestSize + oidSize +3u +8u)
+            {
+                return CY_CRYPTO_BAD_PARAMS;
+            }
+
+            if(locDigestSize != digestLength)
+            {
+                return CY_CRYPTO_BAD_PARAMS;
+            }
+        }
+        
+
+        psLength = signatureLength - locDigestSize - encodingArrSize - 3u;
+
+        /* Set the beginning of message to 0x00, 0x01*/
+        *signaturePtr++ = 0x00u;
+        *signaturePtr++ = 0x01u;
+
+    #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+            /* Flush the cache */
+            SCB_CleanDCache_by_Addr((volatile void *)(signature),(int32_t)signatureLength);
+            SCB_CleanDCache_by_Addr((volatile void *)(digest),(int32_t)digestLength);
+
+    #endif
+
+        signatureRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(signaturePtr);
+
+        Cy_Crypto_Core_MemSet(base, signatureRemap, 0xFF, (uint16_t)psLength);
+        signaturePtr += psLength;
+
+
+    #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+            /* Flush the cache */
+            SCB_InvalidateDCache_by_Addr((volatile void *)(signature),(int32_t)signatureLength);
+    #endif
+        /* After PS string (before T string) Set to 0x00 byte.*/
+        *signaturePtr++ = 0x00;
+
+    #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+            /* Flush the cache */
+            SCB_CleanDCache_by_Addr((volatile void *)(signature),(int32_t)signatureLength);
+
+    #endif
+        if (CY_CRYPTO_MODE_SHA_NONE != digestType)
+        {
+            signatureRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(signaturePtr);
+            Cy_Crypto_Core_MemCpy(base, signatureRemap, encodingArrRemap, (uint16_t)encodingArrSize);
+            signaturePtr += encodingArrSize;
+        }
+
+        signatureRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(signaturePtr);
+        Cy_Crypto_Core_MemCpy(base, (void *)signatureRemap, (void const *)digestRemap, (uint16_t)locDigestSize);
+
+    #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+            /* Flush the cache */
+            SCB_InvalidateDCache_by_Addr((volatile void *)(signature),(int32_t)signatureLength);
+    #endif
+    }
+
+    return (tmpResult);
+}
+
+#endif
+
 
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_Rsa_MontCoeff
@@ -409,8 +635,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify_Ext(CRYPTO_Type *base,
 * \param size
 * Modulo size in bits.
 *
+* \return
+* \ref cy_en_crypto_status_t
 *******************************************************************************/
-static void Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, uint32_t modReg, uint32_t size)
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, uint32_t modReg, uint32_t size)
 {
     uint32_t myMod  = 9u;
     uint32_t tmp    = 10u;
@@ -418,6 +646,7 @@ static void Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, 
     uint32_t rb      = 12u;
     uint32_t ru      = 13u;
     uint32_t rv      = 14u;
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
 
     uint32_t status;
     uint32_t aZero;
@@ -428,9 +657,23 @@ static void Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, 
     CY_CRYPTO_VU_LD_REG      (base, rv,     modDerReg);
     CY_CRYPTO_VU_LD_REG      (base, myMod, modReg);
 
-    CY_CRYPTO_VU_ALLOC_MEM   (base, ra, size);
-    CY_CRYPTO_VU_ALLOC_MEM   (base, rb, size);
-    CY_CRYPTO_VU_ALLOC_MEM   (base, ru, size);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM   (base, ra, size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM   (base, rb, size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM   (base, ru, size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
 
     CY_CRYPTO_VU_SET_TO_ONE  (base, ru);
     CY_CRYPTO_VU_SET_TO_ZERO (base, rv);
@@ -478,6 +721,8 @@ static void Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, 
     CY_CRYPTO_VU_FREE_MEM(base, CY_CRYPTO_VU_REG_BIT(ra) | CY_CRYPTO_VU_REG_BIT(rb) | CY_CRYPTO_VU_REG_BIT(ru));
 
     CY_CRYPTO_VU_POP_REG(base);
+
+    return CY_CRYPTO_SUCCESS;
 }
 
 /*******************************************************************************
@@ -504,18 +749,35 @@ static void Cy_Crypto_Core_Rsa_MontCoeff(CRYPTO_Type *base, uint32_t modDerReg, 
 * \param size
 * The modulo size in bits.
 *
+* \return
+* \ref cy_en_crypto_status_t
 *******************************************************************************/
-static void Cy_Crypto_Core_Rsa_BarrettGetU(CRYPTO_Type *base, uint32_t barrettUReg, uint32_t modReg, uint32_t size)
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_BarrettGetU(CRYPTO_Type *base, uint32_t barrettUReg, uint32_t modReg, uint32_t size)
 {
     uint32_t dividend = 0u;
     uint32_t t        = 1u;
     uint32_t temp     = 2u;
     uint32_t sh       = 3u;
     int32_t i;
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
 
-    CY_CRYPTO_VU_ALLOC_MEM (base, dividend, size + 1u);
-    CY_CRYPTO_VU_ALLOC_MEM (base, t,        size + 1u);
-    CY_CRYPTO_VU_ALLOC_MEM (base, temp,     size + 1u);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, dividend, size + 1u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }  
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, t,        size + 1u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }  
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, temp,     size + 1u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
 
     /* (1 << size) - there is probably a more efficient way to initialize this */
     CY_CRYPTO_VU_SET_REG     (base, sh, size, 1u);
@@ -537,6 +799,8 @@ static void Cy_Crypto_Core_Rsa_BarrettGetU(CRYPTO_Type *base, uint32_t barrettUR
     }
 
     CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(dividend) | CY_CRYPTO_VU_REG_BIT(temp) | CY_CRYPTO_VU_REG_BIT(t));
+
+    return CY_CRYPTO_SUCCESS;
 }
 
 /*******************************************************************************
@@ -565,17 +829,29 @@ static void Cy_Crypto_Core_Rsa_BarrettGetU(CRYPTO_Type *base, uint32_t barrettUR
 * \param size
 * Bit size.
 *
+* \return
+* \ref cy_en_crypto_status_t
 *******************************************************************************/
-static void Cy_Crypto_Core_Rsa_MontTransform(CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t barrett, uint32_t mod, uint32_t size)
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_MontTransform(CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t barrett, uint32_t mod, uint32_t size)
 {
     uint32_t sh      = 0u;
     uint32_t t1Plus2 = 1u;
     uint32_t t2Plus2 = 0u;
     uint32_t tDouble = 2u;
     uint32_t aDouble = 3u;
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
 
-    CY_CRYPTO_VU_ALLOC_MEM      (base, tDouble, 2u * size);
-    CY_CRYPTO_VU_ALLOC_MEM      (base, aDouble, 2u * size);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM      (base, tDouble, 2u * size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM      (base, aDouble, 2u * size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }
 
     CY_CRYPTO_VU_SET_REG        (base, sh, size, 1u);
 
@@ -586,13 +862,21 @@ static void Cy_Crypto_Core_Rsa_MontTransform(CRYPTO_Type *base, uint32_t z, uint
 
     CY_CRYPTO_VU_LSL            (base, aDouble, a, sh);
 
-    CY_CRYPTO_VU_ALLOC_MEM      (base, t2Plus2, size + 2u);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM      (base, t2Plus2, size + 2u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }
 
     CY_CRYPTO_VU_SUB            (base, t2Plus2, aDouble, tDouble);
 
     CY_CRYPTO_VU_FREE_MEM       (base, CY_CRYPTO_VU_REG_BIT(aDouble) | CY_CRYPTO_VU_REG_BIT(tDouble));
 
-    CY_CRYPTO_VU_ALLOC_MEM      (base, t1Plus2, size + 2u);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM      (base, t1Plus2, size + 2u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }
 
     /* Check CARRY = (a >= b) */
     CY_CRYPTO_VU_SUB            (base, t1Plus2, t2Plus2, mod);
@@ -604,6 +888,8 @@ static void Cy_Crypto_Core_Rsa_MontTransform(CRYPTO_Type *base, uint32_t z, uint
     CY_CRYPTO_VU_COND_MOV       (base, CY_CRYPTO_VU_COND_CS, z, t2Plus2);
 
     CY_CRYPTO_VU_FREE_MEM       (base, CY_CRYPTO_VU_REG_BIT(t2Plus2) | CY_CRYPTO_VU_REG_BIT(t1Plus2));
+
+    return CY_CRYPTO_SUCCESS;
 }
 
 /*******************************************************************************
@@ -642,8 +928,10 @@ static void Cy_Crypto_Core_Rsa_MontTransform(CRYPTO_Type *base, uint32_t z, uint
 * \param size
 * Bit size.
 *
+* \return
+* \ref cy_en_crypto_status_t
 *******************************************************************************/
-static void Cy_Crypto_Core_Rsa_MontMul(CRYPTO_Type *base,
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_MontMul(CRYPTO_Type *base,
                                 uint32_t z, uint32_t a, uint32_t b,
                                 uint32_t montModDer, uint32_t mod, uint32_t size)
 {
@@ -651,12 +939,24 @@ static void Cy_Crypto_Core_Rsa_MontMul(CRYPTO_Type *base,
     uint32_t t        = 1u;
     uint32_t uDouble = 2u;
     uint32_t tDouble = 3u;
-
     uint32_t status = 4u;
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
 
-    CY_CRYPTO_VU_ALLOC_MEM  (base, t,       size + 1u);
-    CY_CRYPTO_VU_ALLOC_MEM  (base, uDouble, 2u * size);
-    CY_CRYPTO_VU_ALLOC_MEM  (base, tDouble, 2u * size);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM  (base, t,       size + 1u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM  (base, uDouble, 2u * size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM  (base, tDouble, 2u * size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
 
     CY_CRYPTO_VU_SET_REG    (base, sh, size, 1u);
 
@@ -696,6 +996,8 @@ static void Cy_Crypto_Core_Rsa_MontMul(CRYPTO_Type *base,
     CY_CRYPTO_VU_MOV (base, z, uDouble);
 
     CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(tDouble) | CY_CRYPTO_VU_REG_BIT(uDouble) | CY_CRYPTO_VU_REG_BIT(t));
+
+    return CY_CRYPTO_SUCCESS;
 }
 
 /*******************************************************************************
@@ -732,8 +1034,9 @@ static void Cy_Crypto_Core_Rsa_MontMul(CRYPTO_Type *base,
 * \param size
 * The modulo size in bits.
 *
+* \return status code. See \ref cy_en_crypto_status_t.
 *******************************************************************************/
-static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
+static cy_en_crypto_status_t Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
                                      uint32_t y,
                                      uint32_t x,
                                      uint32_t e,
@@ -759,6 +1062,7 @@ static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
     uint32_t barrett  = 12u;
     uint32_t xBar     = 13u;
     uint32_t REG      = 14u;
+    cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
 
     CY_CRYPTO_VU_PUSH_REG(base);
 
@@ -771,12 +1075,29 @@ static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
 
     CY_CRYPTO_VU_MOV(base, myY, rBar);
 
-    CY_CRYPTO_VU_ALLOC_MEM(base, myReg0,    size);
-    CY_CRYPTO_VU_ALLOC_MEM(base, xBar,      size);
-    CY_CRYPTO_VU_ALLOC_MEM(base, temp,      size);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, myReg0,    size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
 
-    Cy_Crypto_Core_Rsa_MontTransform(base, xBar, myX, barrett, myN, size);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, xBar,      size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
 
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, temp,      size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+
+    tmpResult = Cy_Crypto_Core_Rsa_MontTransform(base, xBar, myX, barrett, myN, size);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }  
     CY_CRYPTO_VU_MOV(base, temp, myE);
     CY_CRYPTO_VU_SET_TO_ZERO(base, myReg0);
 
@@ -802,33 +1123,57 @@ static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
         if (carry != 0u)
         {
             /* myY = myY * xBar */
-            Cy_Crypto_Core_Rsa_MontMul(base, myY, myY, xBar, nPrime, myN, size);
+            tmpResult = Cy_Crypto_Core_Rsa_MontMul(base, myY, myY, xBar, nPrime, myN, size);
+            if(CY_CRYPTO_SUCCESS != tmpResult)
+            {
+                return tmpResult;
+            }              
             Cy_Crypto_Core_Vu_WaitForComplete(base);
 
             /* xBar = xBar ^ 2 */
-            Cy_Crypto_Core_Rsa_MontMul(base, xBar, xBar, xBar, nPrime, myN, size);
+            tmpResult = Cy_Crypto_Core_Rsa_MontMul(base, xBar, xBar, xBar, nPrime, myN, size);
+            if(CY_CRYPTO_SUCCESS != tmpResult)
+            {
+                return tmpResult;
+            }              
             Cy_Crypto_Core_Vu_WaitForComplete(base);
         }
         else
         {
             /* xBar = myY * xBar */
-            Cy_Crypto_Core_Rsa_MontMul(base, xBar, myY, xBar, nPrime, myN, size);
+            tmpResult = Cy_Crypto_Core_Rsa_MontMul(base, xBar, myY, xBar, nPrime, myN, size);
+            if(CY_CRYPTO_SUCCESS != tmpResult)
+            {
+                return tmpResult;
+            }              
             Cy_Crypto_Core_Vu_WaitForComplete(base);
 
             /* myY = myY ^ 2 */
-            Cy_Crypto_Core_Rsa_MontMul(base, myY, myY, myY, nPrime, myN, size);
+            tmpResult = Cy_Crypto_Core_Rsa_MontMul(base, myY, myY, myY, nPrime, myN, size);
+            if(CY_CRYPTO_SUCCESS != tmpResult)
+            {
+                return tmpResult;
+            }     
+
             Cy_Crypto_Core_Vu_WaitForComplete(base);
         }
     }
 
     CY_CRYPTO_VU_SET_TO_ONE(base, myReg0);
 
-    Cy_Crypto_Core_Rsa_MontMul(base, myY, myY, myReg0, nPrime , myN, size);
+    tmpResult = Cy_Crypto_Core_Rsa_MontMul(base, myY, myY, myReg0, nPrime , myN, size);
+
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    } 
 
     CY_CRYPTO_VU_FREE_MEM(base, CY_CRYPTO_VU_REG_BIT(myReg0) | CY_CRYPTO_VU_REG_BIT(xBar) | CY_CRYPTO_VU_REG_BIT(temp));
     CY_CRYPTO_VU_POP_REG(base);
 
     Cy_Crypto_Core_Vu_WaitForComplete(base);
+
+    return CY_CRYPTO_SUCCESS;
 }
 
 /**
@@ -843,11 +1188,8 @@ static void Cy_Crypto_Core_Rsa_expModByMont(CRYPTO_Type *base,
 * RSA process algorithm based on the Montgomery algorithm
 * using Barrett reduction
 *
-* For CAT1C devices when D-Cache is enabled parameters message, processedMessage and
+* For CAT1C & CAT1D devices when D-Cache is enabled parameters message, processedMessage and
 * key(pubExpPtr, moduloPtr, barretCoefPtr, inverseModuloPtr and  rBarPtr) must align and end in 32 byte boundary.
-*
-* For Modulus size greater than 2048, set the system sram memory buffer for the crypto operation and the minimum size should be 8192 bytes
-* \ref Cy_Crypto_Core_SetVuMemoryAddress function for setting the system sram memory buffer.
 *
 * https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29
 *
@@ -882,13 +1224,19 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Proc(CRYPTO_Type *base,
 {
     cy_en_crypto_status_t tmpResult = CY_CRYPTO_SUCCESS;
 
-    uint8_t *expPtr              = key->pubExpPtr;
+    uint8_t* messageRemap;
+    uint8_t* processedMessageRemap;
+
+    messageRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(message);
+    processedMessageRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(processedMessage);
+
+    uint8_t *expPtrRemap         = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->pubExpPtr);
     uint32_t expBitLength        = key->pubExpLength;
-    uint8_t *nPtr                = key->moduloPtr;
+    uint8_t *nPtrRemap           = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->moduloPtr);
     uint32_t nBitLength          = key->moduloLength;
-    uint8_t *barretCoef          = key->barretCoefPtr;
-    uint8_t *inverseModulo       = key->inverseModuloPtr;
-    uint8_t *rBar                = key->rBarPtr;
+    uint8_t *barretCoefRemap     = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->barretCoefPtr);
+    uint8_t *inverseModuloRemap  = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->inverseModuloPtr);
+    uint8_t *rBarRemap           = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->rBarPtr);
 
     uint32_t yReg                = 5u;
     uint32_t xReg                = 6u;
@@ -899,10 +1247,12 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Proc(CRYPTO_Type *base,
     uint32_t rBarReg             = 11u;
     uint16_t vu_mem_size         = 0U;
     void *vu_mem_address         = NULL;
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+
     /* Flush the cache */
-    SCB_CleanDCache_by_Addr((volatile void *)expPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(expBitLength));
-    SCB_CleanDCache_by_Addr((volatile void *)nPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
+    SCB_CleanDCache_by_Addr((volatile void *)key->pubExpPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(expBitLength));
+    SCB_CleanDCache_by_Addr((volatile void *)key->moduloPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
     SCB_CleanDCache_by_Addr((volatile void *)message,(int32_t)messageSize);
 #endif
 
@@ -912,66 +1262,117 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Proc(CRYPTO_Type *base,
     /* Clear all Crypto Buffer before operations */
     Cy_Crypto_Core_MemSet(base, (void*)vu_mem_address, 0x00u, vu_mem_size);
 
-    CY_CRYPTO_VU_ALLOC_MEM(base, yReg,             nBitLength);
-    CY_CRYPTO_VU_ALLOC_MEM(base, xReg,             nBitLength);
-    CY_CRYPTO_VU_ALLOC_MEM(base, eReg,             nBitLength);
-    CY_CRYPTO_VU_ALLOC_MEM(base, modReg,           nBitLength);
-    CY_CRYPTO_VU_ALLOC_MEM(base, barrettReg,       nBitLength + (uint32_t)1u);
-    CY_CRYPTO_VU_ALLOC_MEM(base, rBarReg,          nBitLength);
-    CY_CRYPTO_VU_ALLOC_MEM(base, inverseModuloReg, nBitLength);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, yReg,             nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    } 
 
-    Cy_Crypto_Core_Vu_SetMemValue(base, modReg, nPtr,   nBitLength);
-    Cy_Crypto_Core_Vu_SetMemValue(base, eReg,   expPtr, expBitLength);
-    Cy_Crypto_Core_Vu_SetMemValue(base, xReg,   (uint8_t const *)message, messageSize * (uint32_t)8u);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, xReg,             nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }   
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, eReg,             nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, modReg,           nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }   
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, barrettReg,       nBitLength + (uint32_t)1u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, rBarReg,          nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, inverseModuloReg, nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
+
+    Cy_Crypto_Core_Vu_SetMemValue(base, modReg, nPtrRemap,   nBitLength);
+    Cy_Crypto_Core_Vu_SetMemValue(base, eReg,   expPtrRemap, expBitLength);
+    Cy_Crypto_Core_Vu_SetMemValue(base, xReg,   (uint8_t const *)messageRemap, messageSize * (uint32_t)8u);
 
     /* Check coefficients */
-    if (barretCoef == NULL)
+    if (barretCoefRemap == NULL)
     {
 
-        Cy_Crypto_Core_Rsa_BarrettGetU(base, barrettReg, modReg, nBitLength);
+        tmpResult = Cy_Crypto_Core_Rsa_BarrettGetU(base, barrettReg, modReg, nBitLength);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        } 
         Cy_Crypto_Core_Vu_WaitForComplete(base);
     }
     else
     {
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+
         /* Flush the cache */
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
-        SCB_CleanDCache_by_Addr((volatile void *)barretCoef,(int32_t)(CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength) + (uint32_t)1u));
+        SCB_CleanDCache_by_Addr((volatile void *)key->barretCoefPtr,(int32_t)(CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength) + (uint32_t)1u));
 #endif
-        Cy_Crypto_Core_Vu_SetMemValue(base, barrettReg, barretCoef, nBitLength + (uint32_t)1u);
+        Cy_Crypto_Core_Vu_SetMemValue(base, barrettReg, barretCoefRemap, nBitLength + (uint32_t)1u);
     }
 
-    if (rBar == NULL)
+    if (rBarRemap == NULL)
     {
         /* inverseModuloReg used here as temp variable */
         CY_CRYPTO_VU_SET_TO_ONE(base, inverseModuloReg);
-        Cy_Crypto_Core_Rsa_MontTransform(base, rBarReg, inverseModuloReg, barrettReg, modReg, nBitLength);
+        tmpResult = Cy_Crypto_Core_Rsa_MontTransform(base, rBarReg, inverseModuloReg, barrettReg, modReg, nBitLength);
+
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        } 
+
         Cy_Crypto_Core_Vu_WaitForComplete(base);
     }
     else
     {
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+
         /* Flush the cache */
-        SCB_CleanDCache_by_Addr((volatile void *)rBar,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
+        SCB_CleanDCache_by_Addr((volatile void *)key->rBarPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
 #endif
-        Cy_Crypto_Core_Vu_SetMemValue(base, rBarReg, rBar, nBitLength);
+        Cy_Crypto_Core_Vu_SetMemValue(base, rBarReg, rBarRemap, nBitLength);
     }
 
-    if (inverseModulo == NULL)
+    if (inverseModuloRemap == NULL)
     {
-        Cy_Crypto_Core_Rsa_MontCoeff(base, inverseModuloReg, modReg, nBitLength);
+        tmpResult = Cy_Crypto_Core_Rsa_MontCoeff(base, inverseModuloReg, modReg, nBitLength);
+        if(CY_CRYPTO_SUCCESS != tmpResult)
+        {
+            return tmpResult;
+        }  
         Cy_Crypto_Core_Vu_WaitForComplete(base);
     }
     else
     {
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+
         /* Flush the cache */
-        SCB_CleanDCache_by_Addr((volatile void *)inverseModulo,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
+        SCB_CleanDCache_by_Addr((volatile void *)key->inverseModuloPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
 #endif
-        Cy_Crypto_Core_Vu_SetMemValue(base, inverseModuloReg, inverseModulo, nBitLength);
+        Cy_Crypto_Core_Vu_SetMemValue(base, inverseModuloReg, inverseModuloRemap, nBitLength);
     }
 
-    Cy_Crypto_Core_Rsa_expModByMont(base,
+    tmpResult = Cy_Crypto_Core_Rsa_expModByMont(base,
                                     yReg,
                                     xReg,
                                     eReg,
@@ -981,11 +1382,16 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Proc(CRYPTO_Type *base,
                                     rBarReg,
                                     nBitLength);
 
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }  
     Cy_Crypto_Core_Vu_WaitForComplete(base);
 
     /* Copy the tmpResult to output buffer */
-    Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t*)processedMessage, yReg, nBitLength);
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+    Cy_Crypto_Core_Vu_GetMemValue(base, (uint8_t*)processedMessageRemap, yReg, nBitLength);
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+
         SCB_InvalidateDCache_by_Addr(processedMessage, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
 #endif
 
@@ -1009,7 +1415,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Proc(CRYPTO_Type *base,
 *                         binary inverse of the modulo,
 *                         result of (2^moduloLength mod modulo)
 *
-* For CAT1C devices when D-Cache is enabled parameters key(moduloPtr, barretCoefPtr, inverseModuloPtr and  rBarPtr) must align and end in 32 byte boundary.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters key(moduloPtr, barretCoefPtr, inverseModuloPtr and  rBarPtr) must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -1027,11 +1433,11 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Coef(CRYPTO_Type *base,
 {
     cy_en_crypto_status_t tmpResult = CY_CRYPTO_SUCCESS;
 
-    uint8_t *nPtr               = key->moduloPtr;
-    uint32_t nBitLength         = key->moduloLength;
-    uint8_t *barretCoef         = key->barretCoefPtr;
-    uint8_t *inverseModulo      = key->inverseModuloPtr;
-    uint8_t *rBar               = key->rBarPtr;
+    uint8_t *nPtrRemap               = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->moduloPtr);
+    uint32_t nBitLength              = key->moduloLength;
+    uint8_t *barretCoefRemap         = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->barretCoefPtr);
+    uint8_t *inverseModuloRemap      = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->inverseModuloPtr);
+    uint8_t *rBarRemap               = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(key->rBarPtr);
 
     uint32_t modReg              = 11u;
     uint32_t inverseModuloReg    = 12u;
@@ -1040,9 +1446,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Coef(CRYPTO_Type *base,
     uint16_t vu_mem_size         = 0U;
     void *vu_mem_address         = NULL;
 
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+
     /* Flush the cache */
-    SCB_CleanDCache_by_Addr((volatile void *)nPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
+    SCB_CleanDCache_by_Addr((volatile void *)key->moduloPtr,(int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
 #endif
 
     vu_mem_address = Cy_Crypto_Core_GetVuMemoryAddress(base);
@@ -1051,41 +1458,73 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Coef(CRYPTO_Type *base,
     /* Clear all Crypto Buffer before operations */
     Cy_Crypto_Core_MemSet(base, (void*)vu_mem_address, 0x00u, vu_mem_size);
 
-    CY_CRYPTO_VU_ALLOC_MEM(base, modReg,           nBitLength);
-    CY_CRYPTO_VU_ALLOC_MEM(base, barrettReg,       nBitLength + 1u);
-    CY_CRYPTO_VU_ALLOC_MEM(base, inverseModuloReg, nBitLength);
-    CY_CRYPTO_VU_ALLOC_MEM(base, rBarReg,          nBitLength);
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, modReg,           nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, barrettReg,       nBitLength + 1u);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }  
+
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, inverseModuloReg, nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }   
+     
+    tmpResult = CY_CRYPTO_VU_ALLOC_MEM(base, rBarReg,          nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }    
 
     /* Copy modulo to Crypto SRAM */
-    Cy_Crypto_Core_Vu_SetMemValue(base, modReg, nPtr, nBitLength);
+    Cy_Crypto_Core_Vu_SetMemValue(base, modReg, nPtrRemap, nBitLength);
 
-    Cy_Crypto_Core_Rsa_BarrettGetU(base, barrettReg, modReg, nBitLength);
+    tmpResult = Cy_Crypto_Core_Rsa_BarrettGetU(base, barrettReg, modReg, nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }
+
     Cy_Crypto_Core_Vu_WaitForComplete(base);
 
     /* Copy calculated Barrett coefficient */
-    Cy_Crypto_Core_Vu_GetMemValue(base, barretCoef, barrettReg, nBitLength + 1u);
+    Cy_Crypto_Core_Vu_GetMemValue(base, barretCoefRemap, barrettReg, nBitLength + 1u);
 
     /* inverseModuloReg used here as temp variable */
     CY_CRYPTO_VU_SET_TO_ONE(base, inverseModuloReg);
-    Cy_Crypto_Core_Rsa_MontTransform(base, rBarReg, inverseModuloReg, barrettReg, modReg, nBitLength);
+    tmpResult = Cy_Crypto_Core_Rsa_MontTransform(base, rBarReg, inverseModuloReg, barrettReg, modReg, nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }      
     Cy_Crypto_Core_Vu_WaitForComplete(base);
 
     /* Copy calculated r-bar = (1 << size) mod modulo */
-    Cy_Crypto_Core_Vu_GetMemValue(base, rBar, rBarReg, nBitLength);
+    Cy_Crypto_Core_Vu_GetMemValue(base, rBarRemap, rBarReg, nBitLength);
 
-    Cy_Crypto_Core_Rsa_MontCoeff(base, inverseModuloReg, modReg, nBitLength);
-
+    tmpResult = Cy_Crypto_Core_Rsa_MontCoeff(base, inverseModuloReg, modReg, nBitLength);
+    if(CY_CRYPTO_SUCCESS != tmpResult)
+    {
+        return tmpResult;
+    }  
     /* Copy calculated inverse modulo */
-    Cy_Crypto_Core_Vu_GetMemValue(base, inverseModulo, inverseModuloReg, nBitLength);
+    Cy_Crypto_Core_Vu_GetMemValue(base, inverseModuloRemap, inverseModuloReg, nBitLength);
 
     CY_CRYPTO_VU_FREE_MEM(base, CY_CRYPTO_VU_REG_BIT(modReg) | CY_CRYPTO_VU_REG_BIT(inverseModuloReg) | CY_CRYPTO_VU_REG_BIT(barrettReg) | CY_CRYPTO_VU_REG_BIT(rBarReg));
 
     Cy_Crypto_Core_Vu_WaitForComplete(base);
-#if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
-    SCB_InvalidateDCache_by_Addr(barretCoef, (int32_t)(CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength)+1u));
-    SCB_InvalidateDCache_by_Addr(inverseModulo, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
-    SCB_InvalidateDCache_by_Addr(rBar, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
+    SCB_InvalidateDCache_by_Addr(key->barretCoefPtr, (int32_t)(CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength)+1u));
+    SCB_InvalidateDCache_by_Addr(key->inverseModuloPtr, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
+    SCB_InvalidateDCache_by_Addr(key->rBarPtr, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(nBitLength));
 #endif
 
     return (tmpResult);

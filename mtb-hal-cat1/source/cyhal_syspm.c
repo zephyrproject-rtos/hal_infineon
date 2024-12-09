@@ -124,7 +124,9 @@ static const cy_stc_syspm_callback_t _cyhal_syspm_cb_default =
 static cy_stc_syspm_callback_t _cyhal_syspm_sleep;
 static cy_stc_syspm_callback_t _cyhal_syspm_deepsleep;
 static cy_stc_syspm_callback_t _cyhal_syspm_hibernate;
-#if defined(COMPONENT_CAT1A)
+
+// This code will only run on CAT1A if ULP variant has not been set, or we are targeting S40E with HT mode.
+#if (defined(COMPONENT_CAT1A) && !(defined(SRSS_ULP_VARIANT) && (SRSS_ULP_VARIANT == 0u)))
 static cy_stc_syspm_callback_t _cyhal_syspm_lp;
 static cy_stc_syspm_callback_t _cyhal_syspm_normal;
 #elif defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
@@ -132,7 +134,7 @@ static cy_stc_syspm_callback_t _cyhal_syspm_lp;
 static cy_stc_syspm_callback_t _cyhal_syspm_normal;
 static cy_stc_syspm_callback_t _cyhal_syspm_deepsleep_ram;
 static cy_stc_syspm_callback_t _cyhal_syspm_deepsleep_off;
-#endif /* defined(COMPONENT_CAT1A) */
+#endif /* defined(COMPONENT_CAT1A)  && !(defined(SRSS_ULP_VARIANT) && (SRSS_ULP_VARIANT == 0u)))*/
 
 static cyhal_syspm_callback_data_t* _cyhal_syspm_call_all_pm_callbacks(
     cyhal_syspm_callback_data_t* entry, bool* allow, cyhal_syspm_callback_state_t state, cyhal_syspm_callback_mode_t mode)
@@ -242,13 +244,13 @@ static cy_en_syspm_status_t _cyhal_syspm_cb_hibernate(cy_stc_syspm_callback_para
     CY_UNUSED_PARAMETER(callback_params);
     return _cyhal_syspm_common_cb(mode, CYHAL_SYSPM_CB_SYSTEM_HIBERNATE);
 }
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
+#if (defined(COMPONENT_CAT1A) && !(defined(SRSS_ULP_VARIANT) && (SRSS_ULP_VARIANT == 0u))) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
 static cy_en_syspm_status_t _cyhal_syspm_cb_normal(cy_stc_syspm_callback_params_t *callback_params, cy_en_syspm_callback_mode_t mode)
 {
     CY_UNUSED_PARAMETER(callback_params);
     cy_en_syspm_status_t status = _cyhal_syspm_common_cb(mode, CYHAL_SYSPM_CB_SYSTEM_NORMAL);
 
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1C)
+#if defined(COMPONENT_CAT1A)
     if (mode == CY_SYSPM_AFTER_TRANSITION)
     {
         uint32_t hfclk_freq_mhz = Cy_SysClk_ClkHfGetFrequency(0) / 1000000;
@@ -269,7 +271,7 @@ static cy_en_syspm_status_t _cyhal_syspm_cb_lp(cy_stc_syspm_callback_params_t *c
     }
     return status;
 }
-#endif
+#endif  /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D) */
 #if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
 static cy_en_syspm_status_t _cyhal_syspm_cb_deepsleep_ram(cy_stc_syspm_callback_params_t *callback_params, cy_en_syspm_callback_mode_t mode)
 {
@@ -342,43 +344,14 @@ static bool _cyhal_syspm_register_cb(cy_stc_syspm_callback_t *data, cy_en_syspm_
     return Cy_SysPm_RegisterCallback(data);
 }
 
-#if defined(CY_IP_MXS40SSRSS) && (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE))
-CY_RAMFUNC_BEGIN
-cy_rslt_t _cyhal_syspm_enter_deepsleep_ram(void)
-{
-    cy_rslt_t retVal;
-    uint32_t dsramIntState;
-
-    retVal = Cy_SysPm_SetupDeepSleepRAM(CY_SYSPM_PRE_DSRAM, &dsramIntState); /* Pre DSRAM checks */
-    if(retVal == CY_RSLT_SUCCESS)
-    {
-        System_Store_NVIC_Reg();
-        cyabs_rtos_enter_dsram(); /* Enter WFI with context saved */
-        System_Restore_NVIC_Reg();
-
-        Cy_SysPm_SetupDeepSleepRAM(CY_SYSPM_POST_DSRAM, &dsramIntState); /* Post DSRAM Checks */
-    }
-    return retVal;
-}
-CY_RAMFUNC_END
-#endif
 
 
 static cy_rslt_t _cyhal_syspm_deepsleep_internal(void)
 {
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
-#if defined(CY_IP_MXS40SSRSS) && (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE))
-        if(Cy_SysPm_GetDeepSleepMode() == CY_SYSPM_MODE_DEEPSLEEP_RAM)
-        {
-            return _cyhal_syspm_enter_deepsleep_ram();
-        }
-        else
-#endif
-        {
-            return Cy_SysPm_CpuEnterDeepSleep(CY_SYSPM_WAIT_FOR_INTERRUPT);
-        }
+    return Cy_SysPm_CpuEnterDeepSleep(CY_SYSPM_WAIT_FOR_INTERRUPT);
 #elif defined(COMPONENT_CAT2)
-        return Cy_SysPm_CpuEnterDeepSleep();
+    return Cy_SysPm_CpuEnterDeepSleep();
 #endif
 
 }
@@ -403,7 +376,7 @@ cy_rslt_t cyhal_syspm_init(void)
     if (!_cyhal_syspm_register_cb(&_cyhal_syspm_sleep, CY_SYSPM_SLEEP, _cyhal_syspm_cb_sleep)
         || !_cyhal_syspm_register_cb(&_cyhal_syspm_deepsleep, CY_SYSPM_DEEPSLEEP, _cyhal_syspm_cb_deepsleep)
         || !_cyhal_syspm_register_cb(&_cyhal_syspm_hibernate, CY_SYSPM_HIBERNATE, _cyhal_syspm_cb_hibernate)
-    #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1D)
+    #if (defined(COMPONENT_CAT1A) && !(defined(SRSS_ULP_VARIANT) && (SRSS_ULP_VARIANT == 0u))) || defined(COMPONENT_CAT1D)
         || !_cyhal_syspm_register_cb(&_cyhal_syspm_normal, CY_SYSPM_LP, _cyhal_syspm_cb_normal)
         || !_cyhal_syspm_register_cb(&_cyhal_syspm_lp, CY_SYSPM_ULP, _cyhal_syspm_cb_lp)
     #endif /* defined(COMPONENT_CAT1A) */
@@ -419,11 +392,13 @@ cy_rslt_t cyhal_syspm_init(void)
         {
             rslt = CYHAL_SYSPM_RSLT_INIT_ERROR;
         }
+
     return rslt;
 }
 
 cy_rslt_t cyhal_syspm_hibernate(cyhal_syspm_hibernate_source_t wakeup_source)
 {
+    cy_rslt_t result = CYHAL_SYSPM_RSLT_ERR_NOT_SUPPORTED;
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
     /* Defines for mapping hal hibernate sources to pdl */
     static const uint32_t source_map[] =
@@ -442,16 +417,17 @@ cy_rslt_t cyhal_syspm_hibernate(cyhal_syspm_hibernate_source_t wakeup_source)
     };
 
     Cy_SysPm_SetHibernateWakeupSource(_cyhal_utils_convert_flags(source_map, sizeof(source_map) / sizeof(uint32_t), (uint32_t)wakeup_source));
-    return Cy_SysPm_SystemEnterHibernate();
+    result = Cy_SysPm_SystemEnterHibernate();
 #elif defined(COMPONENT_CAT2)
     CY_UNUSED_PARAMETER(wakeup_source);
-    return CYHAL_SYSPM_RSLT_ERR_NOT_SUPPORTED;
+    result = CYHAL_SYSPM_RSLT_ERR_NOT_SUPPORTED;
 #endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) */
+    return result;
 }
 
 cy_rslt_t cyhal_syspm_set_system_state(cyhal_syspm_system_state_t state)
 {
-#if defined(COMPONENT_CAT2) || defined(COMPONENT_CAT1C)
+#if defined(COMPONENT_CAT2) || defined(COMPONENT_CAT1C) || (defined(SRSS_ULP_VARIANT) && (SRSS_ULP_VARIANT == 0u))
     CY_UNUSED_PARAMETER(state);
     return CYHAL_SYSPM_RSLT_ERR_NOT_SUPPORTED;
 #else
@@ -543,7 +519,7 @@ cy_rslt_t cyhal_syspm_tickless_sleep_deepsleep(cyhal_lptimer_t *obj, uint32_t de
 
     *actual_ms = 0;
 
-    if(desired_ms > 0)
+    if(desired_ms > 1)
     {
         cyhal_lptimer_get_info(obj, &timer_info);
 
@@ -588,6 +564,35 @@ cy_rslt_t cyhal_syspm_tickless_sleep_deepsleep(cyhal_lptimer_t *obj, uint32_t de
     #endif /* (CYHAL_DRIVER_AVAILABLE_LPTIMER != 0) */
 
     return result;
+}
+
+cyhal_syspm_system_deep_sleep_mode_t cyhal_syspm_get_deepsleep_mode (void)
+{
+    cyhal_syspm_system_deep_sleep_mode_t deep_sleep_mode = CYHAL_SYSPM_SYSTEM_DEEPSLEEP;
+
+    #if defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D)
+    cy_en_syspm_deep_sleep_mode_t mode = Cy_SysPm_GetDeepSleepMode();
+    switch (mode)
+    {
+        case CY_SYSPM_MODE_DEEPSLEEP:
+            deep_sleep_mode = CYHAL_SYSPM_SYSTEM_DEEPSLEEP;
+            break;
+        case CY_SYSPM_MODE_DEEPSLEEP_RAM:
+            deep_sleep_mode = CYHAL_SYSPM_SYSTEM_DEEPSLEEP_RAM;
+            break;
+        case CY_SYSPM_MODE_DEEPSLEEP_OFF:
+            deep_sleep_mode = CYHAL_SYSPM_SYSTEM_DEEPSLEEP_OFF;
+            break;
+        case CY_SYSPM_MODE_DEEPSLEEP_NONE:
+            deep_sleep_mode = CYHAL_SYSPM_SYSTEM_DEEPSLEEP_NONE;
+            break;
+        default:
+            deep_sleep_mode = CYHAL_SYSPM_SYSTEM_DEEPSLEEP_NONE;
+            break;
+    }
+    #endif /* defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1D) */
+
+    return deep_sleep_mode;
 }
 
 

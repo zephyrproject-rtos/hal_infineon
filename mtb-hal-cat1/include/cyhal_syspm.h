@@ -205,6 +205,18 @@ typedef enum
     CYHAL_SYSPM_SYSTEM_LOW,         /**< Low Power Mode. */
 } cyhal_syspm_system_state_t;
 
+/** Enumeration of the system Deep Sleep modes. These modes are device specifc and
+ * may not be supported on all devices. Refer to the device specific documentation
+ * or the Data Sheet to determine what is allowed.
+ */
+typedef enum
+{
+    CYHAL_SYSPM_SYSTEM_DEEPSLEEP_NONE,  /**< Not Deep Sleep Mode. */
+    CYHAL_SYSPM_SYSTEM_DEEPSLEEP,       /**< Deep Sleep Mode.     */
+    CYHAL_SYSPM_SYSTEM_DEEPSLEEP_RAM,   /**< Deep Sleep RAM Mode. */
+    CYHAL_SYSPM_SYSTEM_DEEPSLEEP_OFF,   /**< Deep Sleep OFF Mode. */
+} cyhal_syspm_system_deep_sleep_mode_t;
+
 /** Flags enum for the hibernate wakeup sources.
  * \note Not all wakeup sources are valid on devices. Refer to the datasheet for
  * device specifics.
@@ -408,6 +420,16 @@ cy_rslt_t cyhal_syspm_tickless_deepsleep(cyhal_lptimer_t *lptimer_obj, uint32_t 
  * @return The status of the sleep request.
  */
 cy_rslt_t cyhal_syspm_tickless_sleep(cyhal_lptimer_t *lptimer_obj, uint32_t desired_ms, uint32_t *actual_ms);
+
+/** Indicates, that \ref cyhal_syspm_get_deepsleep_mode function is available in this version of HAL. */
+#define CYHAL_API_AVAILABLE_SYSPM_GET_DEEPSLEEP_MODE
+
+/** Get current deep sleep mode.
+ *
+ * Provides a way to get the current deep sleep mode.
+ * @return The current deep sleep mode.
+ */
+cyhal_syspm_system_deep_sleep_mode_t cyhal_syspm_get_deepsleep_mode(void);
 
 /** Informs the system of the current voltage level on the specified supply.
   *

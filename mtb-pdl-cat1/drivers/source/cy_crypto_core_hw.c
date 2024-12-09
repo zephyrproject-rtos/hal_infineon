@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hw.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the source code to the API for the utils
@@ -229,21 +229,23 @@ cy_en_crypto_status_t Cy_Crypto_Core_SetVuMemoryAddress(CRYPTO_Type *base,
                                                         uint32_t const *vuMemoryAddr, uint32_t vuMemorySize)
 {
     cy_en_crypto_status_t resultVal = CY_CRYPTO_BAD_PARAMS;
-    uint32_t *vuMemAddr = (uint32_t *)vuMemoryAddr;
+    uint32_t *vuMemAddrRemap = (uint32_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(vuMemoryAddr);
+    uint32_t *vuMemAddrIn = (uint32_t *)vuMemoryAddr;
+
     uint32_t  vuMemSize = vuMemorySize;
 
 #if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
     if (cy_cryptoIP != NULL)
     {
 #endif
-        if ((vuMemAddr == NULL) && (vuMemSize == 0uL))
+        if ((vuMemAddrIn == NULL) && (vuMemSize == 0uL))
         {
-            vuMemAddr = REG_CRYPTO_MEM_BUFF(base);
+            vuMemAddrIn = REG_CRYPTO_MEM_BUFF(base);
             vuMemSize = CY_CRYPTO_MEM_BUFF_SIZE;
         }
 
         /* Check for new memory size is less or equal to maximal IP allowed value */
-        if ((vuMemAddr != NULL) && (vuMemSize != 0uL) && (vuMemSize <= 32768u))
+        if ((vuMemAddrIn != NULL) && (vuMemSize != 0uL) && (vuMemSize <= 32768u))
         {
             /* mxcrypto (V1) IP uses MEM_BUF aligned to 16KB */
             uint32_t memAlignMask = 16384uL - 1uL;
@@ -310,7 +312,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_SetVuMemoryAddress(CRYPTO_Type *base,
                 #endif
 
                 /* Use the new address when it aligned to appropriate memory block size */
-                if (((uint32_t)vuMemAddr & (memAlignMask)) == 0uL)
+                if (((uint32_t)vuMemAddrIn & (memAlignMask)) == 0uL)
                 {
                     #if defined(CY_CRYPTO_CFG_HW_V2_ENABLE)
                     if (!(CY_CRYPTO_V1))
@@ -319,7 +321,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_SetVuMemoryAddress(CRYPTO_Type *base,
                     }
                     #endif
 
-                    REG_CRYPTO_VU_CTL1(base) = (uint32_t)vuMemAddr;
+                    REG_CRYPTO_VU_CTL1(base) = (uint32_t)vuMemAddrRemap;
 
                     /* Set the stack pointer to the Crypto buff size, in words */
                     CY_CRYPTO_VU_SET_REG(base, CY_CRYPTO_VU_HW_REG15, vuMemSize / 4u, 1u);

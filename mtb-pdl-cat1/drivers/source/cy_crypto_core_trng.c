@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_trng.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the source code to the API for the TRNG
@@ -37,8 +37,6 @@ extern "C" {
 #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
 #include "cy_crypto_core_hw_v1.h"
 #endif
-
-#include "cy_crypto_core_trng_config.h"
 
 const cy_stc_crypto_trng_config_t cy_trngDefaultConfig =
 {

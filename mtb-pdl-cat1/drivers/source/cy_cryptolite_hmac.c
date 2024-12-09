@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_hmac.c
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  Provides API implementation of the Cryptolite HAMC-SHA256 PDL driver.
@@ -108,6 +108,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Start(CRYPTOLITE_Type *base,
     uint8_t *ipadPtrTmp;
     uint8_t *opadPtrTmp;
     uint8_t *m0KeyPtrTmp;
+
     cy_en_cryptolite_status_t status = CY_CRYPTOLITE_SUCCESS;
 
     /* Input parameters verification */
@@ -338,26 +339,23 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Hmac_Sha256_Free(CRYPTOLITE_Type *base,
                                     cy_stc_cryptolite_context_hmac_sha256_t *cfContext)
 {
     uint32_t i;
-    (void)base;
 
     /* Input parameters verification */
-    if (NULL == cfContext)
+    if (NULL != cfContext)
     {
-        return CY_CRYPTOLITE_BAD_PARAMS;
-    }
+        /* Clear the context memory */
+        for (i=0U; i < CY_CRYPTOLITE_HMAC_MAX_PAD_SIZE; i++)
+        {
+            cfContext->ipad[i]  = 0;
+            cfContext->opad[i]  = 0;
+            cfContext->m0Key[i] = 0;
+        }
+        cfContext->blocksize = 0;
+        cfContext->digestsize = 0;
 
-    /* Clear the context memory */
-    for (i=0U; i < CY_CRYPTOLITE_HMAC_MAX_PAD_SIZE; i++)
-    {
-        cfContext->ipad[i]  = 0;
-        cfContext->opad[i]  = 0;
-        cfContext->m0Key[i] = 0;
+        /*Clear hash context*/
+        (void)Cy_Cryptolite_Sha256_Free (base, &cfContext->ctx_sha256);
     }
-    cfContext->blocksize = 0;
-    cfContext->digestsize = 0;
-
-    /*Clear hash context*/
-    (void)Cy_Cryptolite_Sha256_Free (base, &cfContext->ctx_sha256);
 
     return CY_CRYPTOLITE_SUCCESS;
 }

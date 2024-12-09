@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_tcpwm_counter.c
-* \version 1.60
+* \version 1.70
 *
 * \brief
 *  The source file of the tcpwm driver.
@@ -111,15 +111,17 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
 #else
             uint32_t grp = TCPWM_GRP_CNT_GET_GRP(cntNum);
             bool enabled_bit = _FLD2BOOL(TCPWM_GRP_CNT_V2_CTRL_ENABLED, TCPWM_GRP_CNT_CTRL(base, grp, cntNum));
-
+#if defined (CY_IP_MXS40TCPWM)
+            TCPWM_GRP_CNT_PS(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_PS_PS_DIV, config->clockPrescaler));
+#else
             TCPWM_GRP_CNT_DT(base, grp, cntNum) = _VAL2FLD(TCPWM_GRP_CNT_V2_DT_DT_LINE_OUT_L, config->clockPrescaler);
-
+#endif
             TCPWM_GRP_CNT_CTRL(base, grp, cntNum) =
                                           (_VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_ONE_SHOT, config->runMode) |
                                           _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_UP_DOWN_MODE, config->countDirection) |
                                           _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_MODE, config->compareOrCapture) |
                                           (config->enableCompareSwap ? TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_CC0_Msk : 0UL) |
-#if (CY_IP_MXTCPWM_VERSION >= 3U)
+#if defined (CY_IP_MXS40TCPWM)
                                           _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED, config->buffer_swap_enable) |
                                           _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_QUAD_ENCODING_MODE, config->direction_mode) |
 #endif
@@ -158,6 +160,7 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
 
             if (CY_TCPWM_INPUT_CREATOR != config->countInput)
             {
+#if !defined (CY_IP_MXS40TCPWM)
                 TCPWM_GRP_CNT_TR_IN_SEL0(base, grp, cntNum) =
                                                   (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL0_CAPTURE0_SEL, config->captureInput) |
                                                   _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL0_RELOAD_SEL, config->reloadInput) |
@@ -165,6 +168,13 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
                                                   _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL0_COUNT_SEL, config->countInput));
 
                 TCPWM_GRP_CNT_TR_IN_SEL1(base, grp, cntNum) = _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL1_START_SEL, config->startInput);
+#else
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_START, config->startInputMode, config->startInput, config->gf_depth);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_RELOAD_OR_INDEX, config->reloadInputMode, config->reloadInput, config->gf_depth);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_STOP_OR_KILL, config->stopInputMode, config->stopInput, config->gf_depth);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_COUNT, config->countInputMode, config->countInput, config->gf_depth);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE0, config->captureInputMode, config->captureInput, config->gf_depth);
+#endif
             }
 
             TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) =
@@ -176,9 +186,13 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
 
             if(TCPWM_GRP_CC1(base, grp))
             {
+#if !defined (CY_IP_MXS40TCPWM)
                 TCPWM_GRP_CNT_TR_IN_SEL1(base, grp, cntNum) |= _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL1_CAPTURE1_SEL, config->capture1Input);
                 TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) |=
                                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_CAPTURE1_EDGE, config->capture1InputMode));
+#else
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE1, config->capture1InputMode, config->capture1Input, config->gf_depth);
+#endif
             }
 
             TCPWM_GRP_CNT_TR_OUT_SEL(base, grp, cntNum) =
@@ -186,7 +200,6 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_OUT_SEL_OUT1, config->trigger1Event));
 
             TCPWM_GRP_CNT_INTR_MASK(base, grp, cntNum) = config->interruptSources;
-
 
             status = CY_TCPWM_SUCCESS;
 #endif

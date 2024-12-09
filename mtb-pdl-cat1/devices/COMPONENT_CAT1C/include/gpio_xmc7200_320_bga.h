@@ -64,7 +64,7 @@ typedef enum
 } cy_en_amux_split_t;
 
 /* Port List */
-/* PORT 0 (AUTOLVL) */
+/* PORT 0 (GPIO) */
 #define P0_0_PORT                       GPIO_PRT0
 #define P0_0_PIN                        0u
 #define P0_0_NUM                        0u
@@ -82,7 +82,7 @@ typedef enum
 #define P0_3_NUM                        3u
 #define P0_3_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 1 (AUTOLVL) */
+/* PORT 1 (GPIO) */
 #define P1_0_PORT                       GPIO_PRT1
 #define P1_0_PIN                        0u
 #define P1_0_NUM                        0u
@@ -112,7 +112,7 @@ typedef enum
 #define P1_6_NUM                        6u
 #define P1_6_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 2 (AUTOLVL) */
+/* PORT 2 (GPIO) */
 #define P2_0_PORT                       GPIO_PRT2
 #define P2_0_PIN                        0u
 #define P2_0_NUM                        0u
@@ -146,7 +146,7 @@ typedef enum
 #define P2_7_NUM                        7u
 #define P2_7_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 3 (AUTOLVL) */
+/* PORT 3 (GPIO) */
 #define P3_0_PORT                       GPIO_PRT3
 #define P3_0_PIN                        0u
 #define P3_0_NUM                        0u
@@ -180,7 +180,7 @@ typedef enum
 #define P3_7_NUM                        7u
 #define P3_7_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 4 (AUTOLVL) */
+/* PORT 4 (GPIO) */
 #define P4_0_PORT                       GPIO_PRT4
 #define P4_0_PIN                        0u
 #define P4_0_NUM                        0u
@@ -210,7 +210,7 @@ typedef enum
 #define P4_6_NUM                        6u
 #define P4_6_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 5 (AUTOLVL) */
+/* PORT 5 (GPIO) */
 #define P5_0_PORT                       GPIO_PRT5
 #define P5_0_PIN                        0u
 #define P5_0_NUM                        0u
@@ -236,7 +236,7 @@ typedef enum
 #define P5_5_NUM                        5u
 #define P5_5_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 6 (AUTOLVL) */
+/* PORT 6 (GPIO) */
 #define P6_0_PORT                       GPIO_PRT6
 #define P6_0_PIN                        0u
 #define P6_0_NUM                        0u
@@ -270,7 +270,7 @@ typedef enum
 #define P6_7_NUM                        7u
 #define P6_7_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 7 (AUTOLVL) */
+/* PORT 7 (GPIO) */
 #define P7_0_PORT                       GPIO_PRT7
 #define P7_0_PIN                        0u
 #define P7_0_NUM                        0u
@@ -304,7 +304,7 @@ typedef enum
 #define P7_7_NUM                        7u
 #define P7_7_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 8 (AUTOLVL) */
+/* PORT 8 (GPIO) */
 #define P8_0_PORT                       GPIO_PRT8
 #define P8_0_PIN                        0u
 #define P8_0_NUM                        0u
@@ -326,7 +326,7 @@ typedef enum
 #define P8_4_NUM                        4u
 #define P8_4_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 9 (AUTOLVL) */
+/* PORT 9 (GPIO) */
 #define P9_0_PORT                       GPIO_PRT9
 #define P9_0_PIN                        0u
 #define P9_0_NUM                        0u
@@ -344,7 +344,7 @@ typedef enum
 #define P9_3_NUM                        3u
 #define P9_3_AMUXSEGMENT                AMUXBUS_MAIN
 
-/* PORT 10 (AUTOLVL) */
+/* PORT 10 (GPIO) */
 #define P10_0_PORT                      GPIO_PRT10
 #define P10_0_PIN                       0u
 #define P10_0_NUM                       0u
@@ -378,7 +378,7 @@ typedef enum
 #define P10_7_NUM                       7u
 #define P10_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 11 (AUTOLVL) */
+/* PORT 11 (GPIO) */
 #define P11_0_PORT                      GPIO_PRT11
 #define P11_0_PIN                       0u
 #define P11_0_NUM                       0u
@@ -392,7 +392,7 @@ typedef enum
 #define P11_2_NUM                       2u
 #define P11_2_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 12 (AUTOLVL) */
+/* PORT 12 (GPIO) */
 #define P12_0_PORT                      GPIO_PRT12
 #define P12_0_PIN                       0u
 #define P12_0_NUM                       0u
@@ -426,7 +426,7 @@ typedef enum
 #define P12_7_NUM                       7u
 #define P12_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 13 (AUTOLVL) */
+/* PORT 13 (GPIO) */
 #define P13_0_PORT                      GPIO_PRT13
 #define P13_0_PIN                       0u
 #define P13_0_NUM                       0u
@@ -460,7 +460,7 @@ typedef enum
 #define P13_7_NUM                       7u
 #define P13_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 14 (AUTOLVL) */
+/* PORT 14 (GPIO) */
 #define P14_0_PORT                      GPIO_PRT14
 #define P14_0_PIN                       0u
 #define P14_0_NUM                       0u
@@ -494,7 +494,7 @@ typedef enum
 #define P14_7_NUM                       7u
 #define P14_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 15 (AUTOLVL) */
+/* PORT 15 (GPIO) */
 #define P15_0_PORT                      GPIO_PRT15
 #define P15_0_PIN                       0u
 #define P15_0_NUM                       0u
@@ -512,7 +512,7 @@ typedef enum
 #define P15_3_NUM                       3u
 #define P15_3_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 16 (AUTOLVL) */
+/* PORT 16 (GPIO) */
 #define P16_0_PORT                      GPIO_PRT16
 #define P16_0_PIN                       0u
 #define P16_0_NUM                       0u
@@ -546,7 +546,7 @@ typedef enum
 #define P16_7_NUM                       7u
 #define P16_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 17 (AUTOLVL) */
+/* PORT 17 (GPIO) */
 #define P17_0_PORT                      GPIO_PRT17
 #define P17_0_PIN                       0u
 #define P17_0_NUM                       0u
@@ -580,7 +580,7 @@ typedef enum
 #define P17_7_NUM                       7u
 #define P17_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 18 (AUTOLVL) */
+/* PORT 18 (GPIO) */
 #define P18_0_PORT                      GPIO_PRT18
 #define P18_0_PIN                       0u
 #define P18_0_NUM                       0u
@@ -614,7 +614,7 @@ typedef enum
 #define P18_7_NUM                       7u
 #define P18_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 19 (AUTOLVL) */
+/* PORT 19 (GPIO) */
 #define P19_0_PORT                      GPIO_PRT19
 #define P19_0_PIN                       0u
 #define P19_0_NUM                       0u
@@ -636,7 +636,7 @@ typedef enum
 #define P19_4_NUM                       4u
 #define P19_4_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 20 (AUTOLVL) */
+/* PORT 20 (GPIO) */
 #define P20_0_PORT                      GPIO_PRT20
 #define P20_0_PIN                       0u
 #define P20_0_NUM                       0u
@@ -670,7 +670,7 @@ typedef enum
 #define P20_7_NUM                       7u
 #define P20_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 21 (AUTOLVL) */
+/* PORT 21 (GPIO) */
 #define P21_0_PORT                      GPIO_PRT21
 #define P21_0_PIN                       0u
 #define P21_0_NUM                       0u
@@ -704,7 +704,7 @@ typedef enum
 #define P21_7_NUM                       7u
 #define P21_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 22 (AUTOLVL) */
+/* PORT 22 (GPIO) */
 #define P22_1_PORT                      GPIO_PRT22
 #define P22_1_PIN                       1u
 #define P22_1_NUM                       1u
@@ -734,7 +734,7 @@ typedef enum
 #define P22_7_NUM                       7u
 #define P22_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 23 (AUTOLVL) */
+/* PORT 23 (GPIO) */
 #define P23_0_PORT                      GPIO_PRT23
 #define P23_0_PIN                       0u
 #define P23_0_NUM                       0u
@@ -768,7 +768,7 @@ typedef enum
 #define P23_7_NUM                       7u
 #define P23_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 24 (HSIO, AUTOLVL) */
+/* PORT 24 (GPIO) */
 #define P24_0_PORT                      GPIO_PRT24
 #define P24_0_PIN                       0u
 #define P24_0_NUM                       0u
@@ -790,7 +790,7 @@ typedef enum
 #define P24_4_NUM                       4u
 #define P24_4_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 25 (HSIO, AUTOLVL) */
+/* PORT 25 (GPIO) */
 #define P25_0_PORT                      GPIO_PRT25
 #define P25_0_PIN                       0u
 #define P25_0_NUM                       0u
@@ -824,7 +824,7 @@ typedef enum
 #define P25_7_NUM                       7u
 #define P25_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 26 (HSIO, AUTOLVL) */
+/* PORT 26 (GPIO) */
 #define P26_0_PORT                      GPIO_PRT26
 #define P26_0_PIN                       0u
 #define P26_0_NUM                       0u
@@ -858,7 +858,7 @@ typedef enum
 #define P26_7_NUM                       7u
 #define P26_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 27 (HSIO, AUTOLVL) */
+/* PORT 27 (GPIO) */
 #define P27_0_PORT                      GPIO_PRT27
 #define P27_0_PIN                       0u
 #define P27_0_NUM                       0u
@@ -892,7 +892,7 @@ typedef enum
 #define P27_7_NUM                       7u
 #define P27_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 28 (AUTOLVL) */
+/* PORT 28 (GPIO) */
 #define P28_0_PORT                      GPIO_PRT28
 #define P28_0_PIN                       0u
 #define P28_0_NUM                       0u
@@ -926,7 +926,7 @@ typedef enum
 #define P28_7_NUM                       7u
 #define P28_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 29 (AUTOLVL) */
+/* PORT 29 (GPIO) */
 #define P29_0_PORT                      GPIO_PRT29
 #define P29_0_PIN                       0u
 #define P29_0_NUM                       0u
@@ -960,7 +960,7 @@ typedef enum
 #define P29_7_NUM                       7u
 #define P29_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 30 (AUTOLVL) */
+/* PORT 30 (GPIO) */
 #define P30_0_PORT                      GPIO_PRT30
 #define P30_0_PIN                       0u
 #define P30_0_NUM                       0u
@@ -978,7 +978,7 @@ typedef enum
 #define P30_3_NUM                       3u
 #define P30_3_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 31 (AUTOLVL) */
+/* PORT 31 (GPIO) */
 #define P31_0_PORT                      GPIO_PRT31
 #define P31_0_PIN                       0u
 #define P31_0_NUM                       0u
@@ -992,7 +992,7 @@ typedef enum
 #define P31_2_NUM                       2u
 #define P31_2_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 32 (AUTOLVL) */
+/* PORT 32 (GPIO) */
 #define P32_0_PORT                      GPIO_PRT32
 #define P32_0_PIN                       0u
 #define P32_0_NUM                       0u
@@ -1026,7 +1026,7 @@ typedef enum
 #define P32_7_NUM                       7u
 #define P32_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 33 (HSIO, AUTOLVL) */
+/* PORT 33 (GPIO) */
 #define P33_0_PORT                      GPIO_PRT33
 #define P33_0_PIN                       0u
 #define P33_0_NUM                       0u
@@ -1060,7 +1060,7 @@ typedef enum
 #define P33_7_NUM                       7u
 #define P33_7_AMUXSEGMENT               AMUXBUS_MAIN
 
-/* PORT 34 (HSIO, AUTOLVL) */
+/* PORT 34 (GPIO) */
 #define P34_0_PORT                      GPIO_PRT34
 #define P34_0_PIN                       0u
 #define P34_0_NUM                       0u

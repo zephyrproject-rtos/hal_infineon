@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_sha256.c
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  Provides API implementation of the Cryptolite SHA256 PDL driver.
@@ -29,6 +29,7 @@
 #if defined (CY_IP_MXCRYPTOLITE)
 
 #include "cy_cryptolite_sha256.h"
+#include "cy_cryptolite_utils.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -231,6 +232,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Start(CRYPTOLITE_Type *base,
     return CY_CRYPTOLITE_SUCCESS;
 }
 
+
 /*******************************************************************************
 * Cy_Cryptolite_Sha256_Update
 ********************************************************************************
@@ -261,9 +263,9 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
 {
     cy_en_cryptolite_status_t err = CY_CRYPTOLITE_BAD_PARAMS;
     uint32_t readIdx = 0U;
-    uint32_t idx = 0U;
     uint32_t msg_add = (uint32)message;
     uint32_t lmessageSize;
+    uint8_t *messageRemap;
 
     if (0UL == messageSize)
     {
@@ -282,6 +284,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
         return CY_CRYPTOLITE_HW_BUSY;
     }
 
+    messageRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(message);
     lmessageSize = messageSize;
 
     /*Check for 4 byte aligned buffer and process*/
@@ -290,7 +293,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
         /*Check for fragmented message and size*/
         if (cfContext->msgIdx == 0UL && messageSize >= CY_CRYPTOLITE_SHA256_BLOCK_SIZE)
         {
-            err = Cy_Cryptolite_Sha256_Process_aligned(base, cfContext, message, &lmessageSize);
+            err = Cy_Cryptolite_Sha256_Process_aligned(base, cfContext, messageRemap, &lmessageSize);
             if(CY_CRYPTOLITE_SUCCESS != err)
             {
                 return err;
@@ -302,12 +305,16 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
     while((cfContext->msgIdx + lmessageSize) >= CY_CRYPTOLITE_SHA256_BLOCK_SIZE)
     {
         uint32_t tocopy = CY_CRYPTOLITE_SHA256_BLOCK_SIZE - cfContext->msgIdx;
-        /* Create a message block */
-        for ( idx = 0; idx < tocopy; idx++ )
+        
+        err = Cy_Cryptolite_Memcpy(base, &cfContext->message[cfContext->msgIdx], (uint8_t *)&messageRemap[readIdx], tocopy); 
+
+        if(CY_CRYPTOLITE_SUCCESS != err)
         {
-            cfContext->message[cfContext->msgIdx] = message[readIdx++];
-            cfContext->msgIdx++;
-        }
+            return err;
+        }     
+        readIdx += tocopy;
+        cfContext->msgIdx += tocopy;
+        
         /* calculate message schedule and process */
         err = Cy_Cryptolite_Sha256_Process(base, cfContext);
         if(CY_CRYPTOLITE_SUCCESS != err)
@@ -318,12 +325,14 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
         cfContext->messageSize+= CY_CRYPTOLITE_SHA256_BLOCK_SIZE;
         cfContext->msgIdx = 0U;
     }
-    /* Copy message fragment*/
-    for ( idx = 0; idx < lmessageSize; idx++ )
+
+    err = Cy_Cryptolite_Memcpy(base, &cfContext->message[cfContext->msgIdx], (uint8_t *)&messageRemap[readIdx], lmessageSize);
+
+    if(CY_CRYPTOLITE_SUCCESS != err)
     {
-        cfContext->message[cfContext->msgIdx] = message[readIdx++];
-        cfContext->msgIdx++;
-    }
+        return err;
+    }     
+    cfContext->msgIdx += lmessageSize;
 
     return CY_CRYPTOLITE_SUCCESS;
 }
@@ -369,7 +378,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Finish(CRYPTOLITE_Type *base,
         return CY_CRYPTOLITE_HW_BUSY;
     }
 
-    totalMessageSizeInBits = ((uint64_t)(cfContext->messageSize) + (uint64_t)(cfContext->msgIdx)) * 8U;
+    totalMessageSizeInBits = (cfContext->messageSize + (uint64_t)(cfContext->msgIdx)) * 8U;
     /*Append one bit to end and clear rest of block*/
     cfContext->message[cfContext->msgIdx] = 0x80U;
     idx = cfContext->msgIdx + 1U;
@@ -454,20 +463,23 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Free(CRYPTOLITE_Type *base,
     (void)base;
 
     /* Input parameters verification */
-    if (NULL == cfContext)
+    if (NULL != cfContext)
     {
-        return CY_CRYPTOLITE_BAD_PARAMS;
-    }
+        /* Clear the context memory */
+        for ( idx = 0; idx < CY_CRYPTOLITE_SHA256_BLOCK_SIZE; idx++ )
+        {
+            cfContext->message_schedule[idx] = 0U;
+        }
+        
+        for ( idx = 0; idx < (CY_CRYPTOLITE_SHA256_BLOCK_SIZE / 4u) + 1u ; idx++ )
+        {
+            cfContext->msgblock[idx] = 0U;
+        }
 
-    /* Clear the context memory */
-    for ( idx = 0; idx < CY_CRYPTOLITE_SHA256_BLOCK_SIZE; idx++ )
-    {
-        cfContext->message[idx] = 0U;
-        cfContext->message_schedule[idx] = 0U;
-    }
-    for ( idx = 0; idx < CY_CRYPTOLITE_SHA256_HASH_SIZE/4U ; idx++ )
-    {
-        cfContext->hash[idx] = 0U;
+        for ( idx = 0; idx < CY_CRYPTOLITE_SHA256_HASH_SIZE/4U ; idx++ )
+        {
+            cfContext->hash[idx] = 0U;
+        }
     }
 
     return CY_CRYPTOLITE_SUCCESS;

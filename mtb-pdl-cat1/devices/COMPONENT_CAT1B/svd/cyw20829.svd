@@ -27,7 +27,7 @@
     <revision>r0p1</revision>
     <endian>little</endian>
     <mpuPresent>true</mpuPresent>
-    <fpuPresent>true</fpuPresent>
+    <fpuPresent>false</fpuPresent>
     <vtorPresent>1</vtorPresent>
     <nvicPrioBits>3</nvicPrioBits>
     <vendorSystickConfig>0</vendorSystickConfig>
@@ -421,6 +421,25 @@ This is readonly register connecting to PERI input signal coming from the respec
 Since this register is passthorugh of status signal from peripheral the default value defined is w.r.t. respective IP reset.</description>
                 <bitRange>[31:0]</bitRange>
                 <access>read-only</access>
+              </field>
+            </fields>
+          </register>
+          <register>
+            <name>SL_WOUND</name>
+            <description>Slave wounding</description>
+            <addressOffset>0x20</addressOffset>
+            <size>32</size>
+            <access>read-write</access>
+            <resetValue>0x0</resetValue>
+            <resetMask>0xFFFFFFFF</resetMask>
+            <fields>
+              <field>
+                <name>DISABLED</name>
+                <description>Slave disabled. Each bit indicates whether the respective slave is disabled. Setting this bit to 1 has the same effect as setting SL_CTL.ENABLED_0 to 0.  However, once set to 1, this bit cannot be changed back to 0 anymore.
+
+Note: For peripheral group 0 slave 0,1, and 2 (the peripheral interconnect MMIO registers), this field is a constant '0' (SW: R): the slave can NOT be disabled.</description>
+                <bitRange>[31:0]</bitRange>
+                <access>read-write</access>
               </field>
             </fields>
           </register>
@@ -5645,9 +5664,9 @@ Note: the CPUs have dedicated XXX_SYSTEM_INT_CTL registers. In other words, the 
           <fields>
             <field>
               <name>ECC_EN</name>
-              <description>Enable ECC checking:
-'0': Disabled.
-'1': Enabled.</description>
+              <description>Enable SECDED ECC checking (Single Error Correction Double Error Detection Error Correcting Code Functionality). 
+'0': Disabled
+'1': Enabled</description>
               <bitRange>[0:0]</bitRange>
               <access>read-write</access>
             </field>
@@ -9536,8 +9555,8 @@ Note: This bit is a write-once bit until the next reset.  Avoid changing any oth
                   <value>1</value>
                 </enumeratedValue>
                 <enumeratedValue>
-                  <name>VBACKUP</name>
-                  <description>Selects VBACKUP</description>
+                  <name>RSVD</name>
+                  <description>N/A</description>
                   <value>2</value>
                 </enumeratedValue>
                 <enumeratedValue>
@@ -11000,7 +11019,8 @@ To disable the FLL, use the following sequence:
             </field>
             <field>
               <name>UNLOCK_OCCURRED</name>
-              <description>This bit sets whenever the FLL is enabled and goes out of lock.  This bit stays set until cleared by firmware.</description>
+              <description>This bit sets whenever the FLL is enabled and goes out of lock.  This bit stays set until cleared by firmware.
+Note: When exiting Deep Sleep with FLL enabled, UNLOCK_OCCURRED will set. Therefore, after FLL successfully locks, FW should clear UNLOCK_OCCURRED flag to prevent a false positive that would indicate that FLL erroneously unlocked.</description>
               <bitRange>[1:1]</bitRange>
               <access>read-write</access>
             </field>
@@ -14345,7 +14365,7 @@ For Hibernate operation CLK_ILO0_CONFIG. ILO_BACKUP must be set.  If there are m
             </field>
             <field>
               <name>EN_CHARGE_KEY</name>
-              <description>When set to 3C, the supercap charger circuit is enabled.  Any other code disables the supercap charger.  THIS CHARGING CIRCUIT IS FOR A SUPERCAP ONLY AND CANNOT SAFELY CHARGE A BATTERY.  DO NOT WRITE THIS KEY WHEN VBACKUP IS CONNECTED TO A BATTERY.</description>
+              <description>When set to 3C, the supercap charger circuit is enabled.  Any other code disables the supercap charger.  THIS CHARGING CIRCUIT IS FOR A SUPERCAP ONLY AND CANNOT SAFELY CHARGE A BATTERY.  DO NOT WRITE THIS KEY WHEN VBACKUP IS CONNECTED TO A BATTERY. Enabling this supercap charger with a depleted supercap can cause a temporary IR drop on the power rail supplying the logic in the backup domain.  During cold boot, FW can determine that this condition could exist by seeing that any backup domain register has been reset. The charging time is 2.2*R*C, where R=100Kohm. So for a 100uF supercap, FW should wait for the charging time of 22seconds before issuing BACKUP.RESET and then enabling the WCO/PILO/ILO clock source and expecting data in BREGs to be retained.</description>
               <bitRange>[31:24]</bitRange>
               <access>read-write</access>
             </field>
@@ -18738,7 +18758,7 @@ Note: The ongoing message transfer is NOT aborted.</description>
                 <name>TX_BUSY</name>
                 <description>Transmitter busy.
 - Set to '1' on the start of the following commands: TX_HEADER, TX_RESPONSE, TX_WAKEUP.
-- Set to '0' on successful completion of previous commands or when an error is detected.
+- Set to '0' on successful completion of previous commands or when an error is detected. In the successful completion case, TX_BUSY is updated one cycle after TX_DONE.
    In 'TX_HEADER, RX_RESPONSE' case, set to '0' at the start bit falling edge in the first response data byte, after header transmission</description>
                 <bitRange>[8:8]</bitRange>
                 <access>read-only</access>
@@ -18750,7 +18770,7 @@ Note: The ongoing message transfer is NOT aborted.</description>
    in RX_HEADER case, set at Break filed rising edge.
    in RX_RESPONSE case, set at the start bit falling edge in the first response data byte.
 
-- Set to '0' on successful completion of previous commands or when an error is detected.</description>
+- Set to '0' on successful completion of previous commands or when an error is detected. In the successful completion case, RX_BUSY is updated one cycle after RX_DONE.</description>
                 <bitRange>[9:9]</bitRange>
                 <access>read-only</access>
               </field>
@@ -24726,7 +24746,7 @@ To generate a duty cycle of 0 percent, the counter CC0 register should be set to
             </field>
             <field>
               <name>FIFO_STATUS</name>
-              <description>Indicates fifo status of the fifo that stores pcm data. The almost empty and almost full indicates there is 1 location before being full or empty and pgmble indiates the level is half the depth of the fifo that has a total depth of 64. 
+              <description>Indicates fifo status of the fifo that stores pcm data. The almost empty and almost full indicates there is 1 location before being full or empty and pgmble indicates the level is half the depth of the fifo that has a total depth of 64. A read of the fifo when empty will return 0 and will not read from the fifo so the underflow bit will never be set
  fifo_status[7] = afifo_empty              
  fifo_status[6] = afifo_almost_empty
  fifo_status[5] = afifo_pgmble_empty
@@ -35517,13 +35537,13 @@ Note: in all cases a SAMPLE_DELAY value that brings the capture edge close to th
 '0': CIC filter PCM frequency is 1/2 * PDM frequency. CIC PCM values are in the range [-0x10, 0x10].
 '1': CIC filter PCM frequency is 1/4 * PDM frequency. CIC PCM values are in the range [-0x200, 0x200].
 '2': CIC filter PCM frequency is 1/8 * PDM frequency. CIC PCM values are in the range [-0x4000, 0x4000].
-'3': CIC filter PCM frequency is 1/16 * PDM frequency. CIC PCM values are in the range [-0x80000, 0x80000].
-'4': CIC filter PCM frequency is 1/32 * PDM frequency. CIC PCM values are in the range [-0x1000000, 0x1000000].
+'3': CIC filter PCM frequency is 1/16 * PDM frequency. CIC PCM values are in the range [-0x8:0000, 0x8:0000].
+'4': CIC filter PCM frequency is 1/32 * PDM frequency. CIC PCM values are in the range [-0x100:0000, 0x100:0000].
 '5'-'7': Illegal values.
 
 Note: The CIC filter functionality includes offsetting logic to ensure that 'digital silence' on the PDM interface (an alternating pattern of '0', '1', '0', '1' ... PDM  values) results in CIC filter PCM values of '0'. Similarly, a pattern of '0', '0', '0', ... PDM values results in minimum CIC PCM value (-0x100:0000 when DECIMATION is '4') and a pattern of '1', '1', '1', ... PDM values results in maximum CIC PCM value (0x100:0000 when DECIMATION is '4').
 
-Note: The desired 'clk_sys' frequency is a function of the PDM interface clock, the CIC filter decimation (CIC_CTL.DECIM_CODE[]) and the FIR filter decimation (FIR_CTL.DECIM_CODE[]).</description>
+Note: The IP's desired 'clk_sys' frequency is a function of the PDM interface clock, the CIC filter decimation (CIC_CTL.DECIM_CODE[]) and the FIR filter decimation (FIR_CTL.DECIM_CODE[]).</description>
                 <bitRange>[2:0]</bitRange>
                 <access>read-write</access>
                 <enumeratedValues>
@@ -36259,7 +36279,7 @@ Overflow condition (more than 20 keys detected in the scan cycle) may occur befo
           <addressOffset>0xC</addressOffset>
           <size>32</size>
           <access>read-only</access>
-          <resetValue>0x0</resetValue>
+          <resetValue>0xFF</resetValue>
           <resetMask>0xC00000FF</resetMask>
           <fields>
             <field>

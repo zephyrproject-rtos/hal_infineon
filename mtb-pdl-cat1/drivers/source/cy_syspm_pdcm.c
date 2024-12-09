@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm_pdcm.c
-* \version 5.94
+* \version 5.150
 *
 * This file provides the source code for PDCM driver, where the API's are used
 * by Syspm driver and BTSS driver.
@@ -24,7 +24,9 @@
 *******************************************************************************/
 
 #include "cy_device.h"
-
+#if defined (CY_IP_MXS22SRSS) && !defined (COMPONENT_SECURE_DEVICE)
+#include "cy_secure_services.h"
+#endif
 #if defined(CY_IP_MXS40SSRSS) || defined(CY_IP_MXS22SRSS) || defined (CY_DOXYGEN)
 
 #include <stdbool.h>
@@ -59,7 +61,7 @@ cy_pd_pdcm_dep_t cy_pd_pdcm_get_dependency(cy_pd_pdcm_id_t host_pd,cy_pd_pdcm_id
 
     CY_ASSERT(CY_SYSPM_IS_PDCM_ID_VALID(host_pd));
     CY_ASSERT(CY_SYSPM_IS_PDCM_ID_VALID(dest_pd));
-
+#if defined(NO_RPC_CALL) || !defined (CY_IP_MXS22SRSS) || (defined (COMPONENT_SECURE_DEVICE) && defined (CY_IP_MXS22SRSS))
     dep = (((_FLD2VAL(PWRMODE_PD_PD_SPT_PD_FORCE_ON, CY_PDCM_PD_SPT(host_pd)) >> ((uint32_t)dest_pd)) & CY_PD_PDCM_DEPENDENCY_MASK) | 
             (((_FLD2VAL(PWRMODE_PD_PD_SPT_PD_CONFIG_ON, CY_PDCM_PD_SPT(host_pd)) >> ((uint32_t)dest_pd)) & CY_PD_PDCM_DEPENDENCY_MASK ) << CY_PD_PDCM_DEPENDENCY_MASK));
 
@@ -67,7 +69,14 @@ cy_pd_pdcm_dep_t cy_pd_pdcm_get_dependency(cy_pd_pdcm_id_t host_pd,cy_pd_pdcm_id
     {
         dep = (uint32_t)CY_PD_PDCM_DEP_CONFIG;
     }
-
+#else
+    cy_rpc_args_t rpcArgs;
+    rpcArgs.argc = 2;
+    rpcArgs.argv[0] = (uint32_t)host_pd;
+    rpcArgs.argv[1] = (uint32_t)dest_pd;
+    dep = Cy_Send_RPC(CY_SECURE_SERVICE_TYPE_PM,
+                        (uint32_t)CY_SECURE_SERVICE_PD_PDCM_GET_DEP, &rpcArgs);
+#endif
     return (cy_pd_pdcm_dep_t)dep;
 }
 
@@ -91,16 +100,22 @@ cy_pd_pdcm_dep_t cy_pd_pdcm_get_dependency(cy_pd_pdcm_id_t host_pd,cy_pd_pdcm_id
 cy_en_syspm_status_t cy_pd_pdcm_set_dependency(cy_pd_pdcm_id_t host_pd,cy_pd_pdcm_id_t dest_pd)
 {
     cy_en_syspm_status_t ret = CY_SYSPM_FAIL;
-
     CY_ASSERT(CY_SYSPM_IS_PDCM_ID_VALID(host_pd));
     CY_ASSERT(CY_SYSPM_IS_PDCM_ID_VALID(dest_pd));
-
+#if defined(NO_RPC_CALL) || !defined (CY_IP_MXS22SRSS) || (defined (COMPONENT_SECURE_DEVICE) && defined (CY_IP_MXS22SRSS))
     if(CY_PD_PDCM_DEP_CONFIG == cy_pd_pdcm_get_dependency(host_pd,dest_pd))
     {
         CY_PDCM_PD_SENSE(host_pd) |= (CY_PD_PDCM_DEPENDENCY_MASK << ((uint32_t)dest_pd));
         ret = CY_SYSPM_SUCCESS;
     }
-
+#else
+    cy_rpc_args_t rpcArgs;
+    rpcArgs.argc = 2;
+    rpcArgs.argv[0] = (uint32_t)host_pd;
+    rpcArgs.argv[1] = (uint32_t)dest_pd;
+    ret = (cy_en_syspm_status_t)Cy_Send_RPC(CY_SECURE_SERVICE_TYPE_PM,
+            (uint32_t)CY_SECURE_SERVICE_PD_PDCM_SET_DEP, &rpcArgs);
+#endif
     return ret;
 }
 
@@ -124,16 +139,22 @@ cy_en_syspm_status_t cy_pd_pdcm_set_dependency(cy_pd_pdcm_id_t host_pd,cy_pd_pdc
 cy_en_syspm_status_t cy_pd_pdcm_clear_dependency(cy_pd_pdcm_id_t host_pd,cy_pd_pdcm_id_t dest_pd)
 {
     cy_en_syspm_status_t ret = CY_SYSPM_FAIL;
-
     CY_ASSERT(CY_SYSPM_IS_PDCM_ID_VALID(host_pd));
     CY_ASSERT(CY_SYSPM_IS_PDCM_ID_VALID(dest_pd));
-
+#if defined(NO_RPC_CALL) || !defined (CY_IP_MXS22SRSS) || (defined (COMPONENT_SECURE_DEVICE) && defined (CY_IP_MXS22SRSS))
     if(CY_PD_PDCM_DEP_CONFIG == cy_pd_pdcm_get_dependency(host_pd,dest_pd))
     {
         CY_PDCM_PD_SENSE(host_pd) &= ~(CY_PD_PDCM_DEPENDENCY_MASK << ((uint32_t)dest_pd));
         ret = CY_SYSPM_SUCCESS;
     }
-
+#else
+    cy_rpc_args_t rpcArgs;
+    rpcArgs.argc = 2;
+    rpcArgs.argv[0] = (uint32_t)host_pd;
+    rpcArgs.argv[1] = (uint32_t)dest_pd;
+    ret = (cy_en_syspm_status_t)Cy_Send_RPC(CY_SECURE_SERVICE_TYPE_PM,
+                      (uint32_t)CY_SECURE_SERVICE_PD_PDCM_CLEAR_DEP, &rpcArgs);
+#endif
     return ret;
 }
 

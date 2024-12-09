@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_trng_config.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides internal (not public) constants and parameters
@@ -29,7 +29,7 @@
 #if !defined (CY_CRYPTO_CORE_TRNG_CONFIG_H)
 #define CY_CRYPTO_CORE_TRNG_CONFIG_H
 
-#include "cy_crypto_core_trng.h"
+#include "cy_crypto_common.h"
 
 #if defined (CY_IP_MXCRYPTO)
 

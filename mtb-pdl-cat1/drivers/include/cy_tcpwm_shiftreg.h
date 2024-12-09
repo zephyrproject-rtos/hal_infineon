@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_tcpwm_shiftreg.h
-* \version 1.60
+* \version 1.70
 *
 * \brief
 * The header file of the TCPWM Shift Register driver.
@@ -140,9 +140,9 @@ typedef struct cy_stc_tcpwm_shiftreg_config
     uint32_t    shiftRegOnDisable;  /**< Specifies the behavior of the ShiftReg outputs line_out and line_compl_out while the Shift Register is disabled. */
     uint32_t    trigger0Event;      /**< Configures which internal event generates on output trigger 0. */
     uint32_t    trigger1Event;      /**< Configures which internal event generates on output trigger 1. */
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
     bool        buffer_swap_enable; /**< Configures swapping mechanism between CC0 and buffered CC0, CC1 and buffered CC1, PERIOD and buffered PERIOD, DT and buffered DT  */
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 }cy_stc_tcpwm_shiftreg_config_t;
 
 #else
@@ -247,9 +247,9 @@ __STATIC_INLINE void Cy_TCPWM_ShiftReg_SetTaps(TCPWM_Type *base, uint32_t cntNum
 __STATIC_INLINE uint32_t Cy_TCPWM_ShiftReg_GetTaps(TCPWM_Type const *base, uint32_t cntNum);
 __STATIC_INLINE uint32_t Cy_TCPWM_ShiftReg_LineOutStatus (TCPWM_Type const *base, uint32_t cntNum, uint32_t shiftRegOutSelect);
 #endif
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 __STATIC_INLINE void Cy_TCPWM_Shiftreg_EnableSwap(TCPWM_Type *base, uint32_t cntNum,  bool enable);
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN) */
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 
 #if (CY_IP_MXTCPWM_VERSION >= 2U) || defined (CY_DOXYGEN)
 /*******************************************************************************
@@ -697,7 +697,7 @@ __STATIC_INLINE uint32_t Cy_TCPWM_ShiftReg_LineOutStatus (TCPWM_Type const *base
 
 #endif /* CY_IP_MXTCPWM_VERSION >= 2U */
 
-#if (CY_IP_MXTCPWM_VERSION >= 3U) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_TCPWM_Shiftreg_EnableSwap
 ****************************************************************************//**
@@ -719,7 +719,7 @@ __STATIC_INLINE void Cy_TCPWM_Shiftreg_EnableSwap(TCPWM_Type *base, uint32_t cnt
 {
     Cy_TCPWM_Block_EnableSwap(base, cntNum, enable);
 }
-#endif /* (CY_IP_MXTCPWM_VERSION >= 3U) */
+#endif /* defined (CY_IP_MXS40TCPWM) */
 
 /** \} group_tcpwm_functions_shiftreg */
 

@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -44,6 +44,7 @@
 #define CLK_PLL400M_SECTION_SIZE                0x00000010UL
 #define CLK_DPLL_LP_SECTION_SIZE                0x00000020UL
 #define RAM_TRIM_SECTION_SIZE                   0x00000008UL
+#define CLK_TRIM_DPLL_LP_SECTION_SIZE           0x00000020UL
 #define MCWDT_STRUCT_SECTION_SIZE               0x00000040UL
 #define SRSS_SECTION_SIZE                       0x00010000UL
 
@@ -149,6 +150,18 @@ typedef struct {
 } RAM_TRIM_Type;                                /*!< Size = 8 (0x8) */
 
 /**
+  * \brief DPLL LP Trims (CLK_TRIM_DPLL_LP)
+  */
+typedef struct {
+  __IOM uint32_t DPLL_LP_CTL;                   /*!< 0x00000000 DPLL LP Trim Register */
+   __IM uint32_t RESERVED;
+  __IOM uint32_t DPLL_LP_CTL3;                  /*!< 0x00000008 DPLL LP Trim Register 3 */
+  __IOM uint32_t DPLL_LP_CTL4;                  /*!< 0x0000000C DPLL LP Trim Register 4 */
+   __IM uint32_t RESERVED1[3];
+  __IOM uint32_t DPLL_LP_TEST4;                 /*!< 0x0000001C DPLL LP Test Register 4 */
+} CLK_TRIM_DPLL_LP_Type;                        /*!< Size = 32 (0x20) */
+
+/**
   * \brief Multi-Counter Watchdog Timer (Type A) (MCWDT_STRUCT)
   */
 typedef struct {
@@ -233,7 +246,7 @@ typedef struct {
   __IOM uint32_t CLK_ROOT_SELECT[16];           /*!< 0x00001240 Clock Root Select Register */
   __IOM uint32_t CLK_DIRECT_SELECT[16];         /*!< 0x00001280 Clock Root Direct Select Register */
    __IM uint32_t RESERVED15[80];
-        CSV_HF_Type CSV_HF;                     /*!< 0x00001400 Clock Supervisor (CSV) registers for Root clocks */
+        CSV_HF_Type CSV_HF_STRUCT;              /*!< 0x00001400 Clock Supervisor (CSV) registers for Root clocks */
   __IOM uint32_t CLK_SELECT;                    /*!< 0x00001500 Clock selection register */
    __IM uint32_t RESERVED16;
   __IOM uint32_t CLK_ILO0_CONFIG;               /*!< 0x00001508 ILO0 Configuration */
@@ -267,7 +280,7 @@ typedef struct {
   __IOM uint32_t CSV_REF_SEL;                   /*!< 0x00001700 Select CSV Reference clock for Active domain */
    __IM uint32_t RESERVED23[3];
         CSV_REF_Type CSV_REF;                   /*!< 0x00001710 CSV registers for the CSV Reference clock */
-        CSV_LF_Type CSV_LF;                     /*!< 0x00001720 CSV registers for LF clock */
+        CSV_LF_Type CSV_LF_STRUCT;              /*!< 0x00001720 CSV registers for LF clock */
         CSV_ILO_Type CSV_ILO;                   /*!< 0x00001730 CSV registers for ILO clock */
    __IM uint32_t RESERVED24[48];
   __IOM uint32_t RES_CAUSE;                     /*!< 0x00001800 Reset Cause Observation Register */
@@ -292,18 +305,23 @@ typedef struct {
   __IOM uint32_t TST_XRES_SECURE;               /*!< 0x00002054 SECURE TEST and FIRMWARE TEST Key control register */
    __IM uint32_t RESERVED31[21];
   __IOM uint32_t PWR_TRIM_CBUCK_CTL;            /*!< 0x000020AC CBUCK Trim Register */
-   __IM uint32_t RESERVED32[987];
+   __IM uint32_t RESERVED32[12];
+  __IOM uint32_t PWR_TRIM_PWRSYS_CTL;           /*!< 0x000020E0 Power System Trim Register */
+  __IOM uint32_t PWR_TRIM_PWRSYS_CTL2;          /*!< 0x000020E4 Power System Trim Register 2 */
+   __IM uint32_t RESERVED33[973];
   __IOM uint32_t CLK_TRIM_ECO_CTL;              /*!< 0x0000301C ECO Trim Register */
-   __IM uint32_t RESERVED33[128];
+   __IM uint32_t RESERVED34[128];
   __IOM uint32_t CLK_TRIM_ILO1_CTL;             /*!< 0x00003220 ILO1 Trim Register */
-   __IM uint32_t RESERVED34[887];
-        RAM_TRIM_Type RAM_TRIM;                 /*!< 0x00004000 SRAM Trim registers */
-   __IM uint32_t RESERVED35[8190];
+   __IM uint32_t RESERVED35[887];
+        RAM_TRIM_Type RAM_TRIM_STRUCT;          /*!< 0x00004000 SRAM Trim registers */
+   __IM uint32_t RESERVED36[126];
+        CLK_TRIM_DPLL_LP_Type CLK_TRIM_DPLL_LP[15]; /*!< 0x00004200 DPLL LP Trims */
+   __IM uint32_t RESERVED37[7944];
   __IOM uint32_t WDT_CTL;                       /*!< 0x0000C000 Watchdog Counter Control Register (Type A) */
   __IOM uint32_t WDT_CNT;                       /*!< 0x0000C004 Watchdog Counter Count Register (Type A) */
   __IOM uint32_t WDT_MATCH;                     /*!< 0x0000C008 Watchdog Counter Match Register (Type A) */
   __IOM uint32_t WDT_MATCH2;                    /*!< 0x0000C00C Watchdog Counter Match Register 2 (Type A) */
-   __IM uint32_t RESERVED36[1020];
+   __IM uint32_t RESERVED38[1020];
         MCWDT_STRUCT_Type MCWDT_STRUCT[4];      /*!< 0x0000D000 Multi-Counter Watchdog Timer (Type A) */
 } SRSS_Type;                                    /*!< Size = 53504 (0xD100) */
 
@@ -417,8 +435,8 @@ typedef struct {
 #define CLK_DPLL_LP_CONFIG_REFERENCE_DIV_Msk    0x1F00UL
 #define CLK_DPLL_LP_CONFIG_OUTPUT_DIV_Pos       16UL
 #define CLK_DPLL_LP_CONFIG_OUTPUT_DIV_Msk       0x1F0000UL
-#define CLK_DPLL_LP_CONFIG_PLL_DCO_MODE_MULT_Pos 27UL
-#define CLK_DPLL_LP_CONFIG_PLL_DCO_MODE_MULT_Msk 0x8000000UL
+#define CLK_DPLL_LP_CONFIG_PLL_DCO_CODE_MULT_Pos 27UL
+#define CLK_DPLL_LP_CONFIG_PLL_DCO_CODE_MULT_Msk 0x8000000UL
 #define CLK_DPLL_LP_CONFIG_BYPASS_SEL_Pos       28UL
 #define CLK_DPLL_LP_CONFIG_BYPASS_SEL_Msk       0x30000000UL
 #define CLK_DPLL_LP_CONFIG_ENABLE_Pos           31UL
@@ -492,6 +510,50 @@ typedef struct {
 /* RAM_TRIM.TRIM_ROM_CTL */
 #define RAM_TRIM_TRIM_ROM_CTL_TRIM_Pos          0UL
 #define RAM_TRIM_TRIM_ROM_CTL_TRIM_Msk          0xFFFFFFFFUL
+
+
+/* CLK_TRIM_DPLL_LP.DPLL_LP_CTL */
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_SAR_CYCLE_STOP_Pos 4UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_SAR_CYCLE_STOP_Msk 0xF0UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_SAR_DIS_Pos 8UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_SAR_DIS_Msk 0x100UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_PLL_SAR_FSM_EN_Pos 9UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_PLL_SAR_FSM_EN_Msk 0x200UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_LDO_DCO_TRIM_Pos 12UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_LDO_DCO_TRIM_Msk 0x7000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_PLL_DCO_SD_SEL_Pos 16UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_PLL_DCO_SD_SEL_Msk 0x30000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_LDO_PERI_TRIM_Pos 19UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_LDO_PERI_TRIM_Msk 0x380000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_PLL_FRAC_ORDER_Pos 22UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_PLL_FRAC_ORDER_Msk 0x400000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_ISOLATE_N_Pos 23UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_ISOLATE_N_Msk 0x800000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_ISOLATE_CNT_Pos 24UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_ISOLATE_CNT_Msk 0x3F000000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_ENABLE_CNT_Pos 31UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL_ENABLE_CNT_Msk 0x80000000UL
+/* CLK_TRIM_DPLL_LP.DPLL_LP_CTL3 */
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL3_PHASE_ACC_CNT_Pos 0UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL3_PHASE_ACC_CNT_Msk 0x3FFUL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL3_PHASE_ACC_CNT_SSCG_Pos 16UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL3_PHASE_ACC_CNT_SSCG_Msk 0x3FF0000UL
+/* CLK_TRIM_DPLL_LP.DPLL_LP_CTL4 */
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL4_LOCK_WAIT_FALL_Pos 0UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL4_LOCK_WAIT_FALL_Msk 0x3UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL4_LOCK_WAIT_RISE_Pos 4UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_CTL4_LOCK_WAIT_RISE_Msk 0x3FF0UL
+/* CLK_TRIM_DPLL_LP.DPLL_LP_TEST4 */
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PLL_USER_DCO_CODE_Pos 0UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PLL_USER_DCO_CODE_Msk 0x3FFFUL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PLL_DIS_FAST_LOCK_Pos 14UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PLL_DIS_FAST_LOCK_Msk 0x4000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PLL_READ_EN_Pos 15UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PLL_READ_EN_Msk 0x8000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PHASE_ACC_USER_WRITE_INT_Pos 16UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PHASE_ACC_USER_WRITE_INT_Msk 0x7F0000UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PHASE_ACC_USER_WRITE_FRACT_Pos 23UL
+#define CLK_TRIM_DPLL_LP_DPLL_LP_TEST4_PHASE_ACC_USER_WRITE_FRACT_Msk 0x3F800000UL
 
 
 /* MCWDT_STRUCT.MCWDT_CNTLOW */
@@ -1260,6 +1322,22 @@ typedef struct {
 #define SRSS_PWR_TRIM_CBUCK_CTL_CBUCK_DPSLP_VSEL_Msk 0x1FUL
 #define SRSS_PWR_TRIM_CBUCK_CTL_CBUCK_DPSLP_MODE_Pos 8UL
 #define SRSS_PWR_TRIM_CBUCK_CTL_CBUCK_DPSLP_MODE_Msk 0x1F00UL
+/* SRSS.PWR_TRIM_PWRSYS_CTL */
+#define SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM_Pos 0UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM_Msk 0x1FUL
+#define SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_BOOST_Pos 30UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_BOOST_Msk 0xC0000000UL
+/* SRSS.PWR_TRIM_PWRSYS_CTL2 */
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_DPSLP_REG_TRIM_Pos 8UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_DPSLP_REG_TRIM_Msk 0x700UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_RET_REG_TRIM_Pos 12UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_RET_REG_TRIM_Msk 0x7000UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_NWELL_REG_TRIM_Pos 16UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_NWELL_REG_TRIM_Msk 0x70000UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_DPSLP_REG_ACT_TRIM_Pos 20UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_DPSLP_REG_ACT_TRIM_Msk 0x700000UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_RET_REG_ACT_TRIM_Pos 24UL
+#define SRSS_PWR_TRIM_PWRSYS_CTL2_RET_REG_ACT_TRIM_Msk 0x7000000UL
 /* SRSS.CLK_TRIM_ECO_CTL */
 #define SRSS_CLK_TRIM_ECO_CTL_ITRIM_Pos         16UL
 #define SRSS_CLK_TRIM_ECO_CTL_ITRIM_Msk         0x3F0000UL

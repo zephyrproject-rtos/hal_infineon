@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_rsa.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides provides constant and parameters
@@ -153,7 +153,6 @@ typedef struct cy_stc_cryptolite_context_rsa_t
 ****************************************************************************//**
 *
 * Initialize the RSA context.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -186,7 +185,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Init(CRYPTOLITE_Type *base,
 * https://en.wikipedia.org/wiki/RSA_%28cryptosystem%29
 *
 * Key, message, processedMessage  buffers must be 4 byte aligned and end with 4 byte boundary.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -230,7 +228,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Proc(CRYPTOLITE_Type *base,
 *                         coefficient for Barrett reduction,
 *                         binary inverse of the modulo,
 *                         result of (2^moduloLength mod modulo)
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -257,7 +254,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Coef(CRYPTOLITE_Type *base,
 ****************************************************************************//**
 *
 * Cleanup the RSA context.
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * \param base
 * The pointer to the CRYPTOLITE instance.
@@ -288,7 +284,6 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Rsa_Free(CRYPTOLITE_Type *base,
 * http://www.emc.com/collateral/white-papers/h11300-pkcs-1v2-2-rsa-cryptography-standard-wp.pdf
 *
 * The digest and decryptedSignature buffers must be 4 byte aligned
-* \note This API is not available in CYW20829 A0 CAT1B device
 *
 * Returns the verification result \ref cy_en_cryptolite_sig_verify_result_t.
 *

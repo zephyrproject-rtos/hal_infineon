@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hw_vu.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -492,20 +492,25 @@ __STATIC_INLINE void CY_CRYPTO_VU_POP_REG (CRYPTO_Type *base)
     CY_CRYPTO_VU_COND_POP_REG (base, CY_CRYPTO_VU_COND_ALWAYS);
 }
 
-__STATIC_INLINE void CY_CRYPTO_VU_COND_ALLOC_MEM (CRYPTO_Type *base, uint32_t cc, uint32_t rdst, uint32_t size)
+__STATIC_INLINE cy_en_crypto_status_t CY_CRYPTO_VU_COND_ALLOC_MEM (CRYPTO_Type *base, uint32_t cc, uint32_t rdst, uint32_t size)
 {
-    CY_ASSERT_L1( (uint32_t)(CY_CRYPTO_VU_READ_SP_REG(base) * 4u) >= CY_CRYPTO_BYTE_SIZE_OF_BITS(size) );
+    if((uint32_t)(CY_CRYPTO_VU_READ_SP_REG(base) * 4u) < CY_CRYPTO_BYTE_SIZE_OF_BITS(size) )
+    {
+        return CY_CRYPTO_MEMORY_ALLOC_FAIL;
+    }
 
     Cy_Crypto_Core_Vu_RunInstr(base, CY_CRYPTO_SYNC_NON_BLOCKING,
           (uint32_t)CY_CRYPTO_VU_ALLOC_MEM_OPC,
          ((uint32_t)cc   << CY_CRYPTO_RSRC20_SHIFT) |
          ((uint32_t)rdst << ((CY_CRYPTO_V1) ? CY_CRYPTO_RSRC12_SHIFT : CY_CRYPTO_RSRC16_SHIFT)) |
         (((uint32_t)size - 1u)  << CY_CRYPTO_RSRC0_SHIFT));
+    
+    return CY_CRYPTO_SUCCESS;
 }
 
-__STATIC_INLINE void CY_CRYPTO_VU_ALLOC_MEM (CRYPTO_Type *base, uint32_t rdst, uint32_t size)
+__STATIC_INLINE cy_en_crypto_status_t CY_CRYPTO_VU_ALLOC_MEM (CRYPTO_Type *base, uint32_t rdst, uint32_t size)
 {
-    CY_CRYPTO_VU_COND_ALLOC_MEM (base, CY_CRYPTO_VU_COND_ALWAYS, rdst, size);
+    return CY_CRYPTO_VU_COND_ALLOC_MEM (base, CY_CRYPTO_VU_COND_ALWAYS, rdst, size);
 }
 
 __STATIC_INLINE void CY_CRYPTO_VU_COND_FREE_MEM (CRYPTO_Type *base, uint32_t cc, uint32_t reg_mask)

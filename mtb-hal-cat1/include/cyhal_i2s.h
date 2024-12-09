@@ -374,6 +374,14 @@ bool cyhal_i2s_is_rx_busy(cyhal_i2s_t *obj);
  *
  * cyhal_i2s_set_async_mode can be used to control whether this uses DMA or a CPU-driven transfer.
  *
+ * @note If D-cache is enabled, cyhal_i2s_set_async_mode is DMA and data Cache line is 32 bytes,
+ * the user needs to make sure that the rx pointer passed to the cyhal_i2s_read_async
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
+ * 
  * @note Each word will be aligned to the next largest power of 2. For example, if the word length is 16 bits,
  * each word will consume two bytes. But if the word length is 20, each word will consume 32 bytes.
  *
@@ -391,6 +399,14 @@ cy_rslt_t cyhal_i2s_read_async(cyhal_i2s_t *obj, void *rx, size_t rx_length);
  * event will be raised. See @ref cyhal_i2s_register_callback and @ref cyhal_i2s_enable_event.
  *
  * cyhal_i2s_set_async_mode can be used to control whether this uses DMA or a SW (CPU-driven) transfer.
+ *
+ * @note If D-cache is enabled, cyhal_i2s_set_async_mode is DMA and data Cache line is 32 bytes,
+ * the user needs to make sure that the tx pointer passed to the cyhal_i2s_write_async
+ * function points to a 32 byte aligned array of words that contains the buffer data.
+ * The size of buffer data must be a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
+ * Refer to \ref DCACHE_Management for more information.
  *
  * @note Each word will be aligned to the next largest power of 2. For example, if the word length is 16 bits,
  * each word will consume two bytes. But if the word length is 20, each word will consume 32 bytes.

@@ -1,3 +1,4 @@
-SAS_REV=387360
-cympnvalidator_REV=964
-device-db_REV=3ce031ac4f3db5ca92ddaf6a38a2faec592293e6
+SAS_REV=caddb:391299
+cympnvalidator_REV=1521
+device-db_REV=b35177b2c9f9c9c43652ee1febd264ae8c1fec2d
+hobto_fw_gen_REV=1.6.0.2043

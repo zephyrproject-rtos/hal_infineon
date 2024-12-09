@@ -16,6 +16,29 @@ The this release of the RTOS Abstraction API includes support for the following:
     * ThreadX
 
 ### What Changed?
+#### v1.8.1
+Extended full support on CAT5.
+#### v1.8.0
+Pre-production release for CAT5 only. Only one application thread is supported. The Scheduler API functions are not supported.
+#### v1.7.6
+* FreeRTOS: vApplicationSleep issue fixed where sleep could not be entered in non-deeplseep idle mode.
+#### v1.7.5
+* FreeRTOS: On devices that support DeepSleep, allow the application to specify a separate latency value for DeepSleep and normal Sleep, by defining `CY_CFG_PWR_SLEEP_LATENCY`.
+#### v1.7.4
+* FreeRTOS: On devices that support DeepSleep-RAM, allow the application to specify a separate latency value for DeepSleep-RAM (vs. DeepSleep), by defining `CY_CFG_PWR_DEEPSLEEP_RAM_LATENCY`.
+* FreeRTOS: Simplify flow for storing and restoring context during entry/exit from DeepSleep-RAM.
+#### v1.7.3
+FreeRTOS: Improve context switching speed when an ISR unblocks a thread.
+#### v1.7.2
+Expanded FreeRTOS support for DS RAM
+#### v1.7.1
+Explicitly include cmsis_compiler.h where required.
+#### v1.7.0
+* FreeRTOS: When DeepSleep is locked, the default idle loop will attempt to enter Sleep instead.
+* FreeRTOS: Add pre-production support for warm-boot after wake from DeepSleep-RAM power state (currently only present on CAT1B devices).
+#### v1.6.0
+* Removed the explicit in_isr argument from all functions. CPU status registers are used to automatically determine whether a function is executing in an interrupt context.
+* Renamed all functions in order to make grouping more clear. The original function names are deprecated.
 #### v1.5.0
 * Added additional parameter validation for ThreadX
 #### v1.4.0
@@ -57,8 +80,8 @@ This version of the RTOS Abstraction API was validated for compatibility with th
 | :---                                      | :----:  |
 | ModusToolbox™ Software Environment        | 2.4.0   |
 | GCC Compiler                              | 10.3.1  |
-| IAR Compiler                              | 8.4     |
-| ARM Compiler                              | 6.11    |
+| IAR Compiler                              | 9.40.2  |
+| ARM Compiler                              | 6.16    |
 
 Minimum required ModusToolbox™ Software Environment: v2.0
 
@@ -70,4 +93,4 @@ Use the following links for more information, as needed:
 * [ModusToolbox™](https://www.cypress.com/products/modustoolbox-software-environment)
 
 ---
-© Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation, 2019-2021.
+© Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation, 2019-2023.

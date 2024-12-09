@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_pipe.c
-* \version 1.91
+* \version 1.130
 *
 *  Description:
 *   IPC Pipe Driver - This source file includes code for the Pipe layer on top
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) || (defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U))
+#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) || defined (CY_IP_MXIPC)
 
 #include "cy_ipc_pipe.h"
 
@@ -124,9 +124,14 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
     epConfigDataA = config->ep1ConfigData;
     epConfigDataB = config->ep0ConfigData;
 
+    #if (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+    ipc_intr_cypipeConfig.intrSrc          = (IRQn_Type)(((uint32_t)epConfigDataA.ipcNotifierMuxNumber << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | (uint32_t)((uint32_t)cpuss_interrupts_ipc_0_IRQn + (uint32_t)epConfigDataA.ipcNotifierNumber));
+    ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
+    #else
     /* Configure interrupts */
     ipc_intr_cypipeConfig.intrSrc          = (IRQn_Type)((int32_t)cpuss_interrupts_ipc_0_IRQn + (int32_t)epConfigDataA.ipcNotifierNumber);
     ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
+    #endif
 
 #endif /* (CY_CPU_CORTEX_M0P) */
 
@@ -142,8 +147,21 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
 
     (void)Cy_SysInt_Init(&ipc_intr_cypipeConfig, config->userPipeIsrHandler);
 
+    #if (CY_CPU_CORTEX_M0P)
     /* Enable the interrupts */
     NVIC_EnableIRQ(ipc_intr_cypipeConfig.intrSrc);
+    #elif (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+    {
+        /* Enable the interrupts */
+        IRQn_Type IRQn = (IRQn_Type)(((uint32_t)ipc_intr_cypipeConfig.intrSrc >> CY_SYSINT_INTRSRC_MUXIRQ_SHIFT)
+                                & CY_SYSINT_INTRSRC_MASK); /* Fetch bit 12-31 to get CPU IRQ value */
+        NVIC_EnableIRQ(IRQn);
+        NVIC_SetPriority(IRQn, ipc_intr_cypipeConfig.intrPriority);
+    }
+    #else
+        /* Enable the interrupts */
+        NVIC_EnableIRQ(ipc_intr_cypipeConfig.intrSrc);
+    #endif
 
 #else
 
@@ -161,7 +179,7 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
         ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
     }
 #if !(CY_CPU_CORTEX_M0P)
-    else if(epConfigDataA.ipcNotifierNumber > CY_IPC_IP0_INT)
+    else if(epConfigDataA.ipcNotifierNumber >= CY_IPC_IP0_INT)
     {
          ipc_intr_cypipeConfig.intrSrc          = (IRQn_Type) ((int32_t)cpuss_interrupts_ipc_1_IRQn +
                                                   (int32_t)(epConfigDataA.ipcNotifierNumber - CY_IPC_IP0_INT));
@@ -179,7 +197,7 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
     ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
 #elif defined (CY_IP_M7CPUSS) /* CM7 */
     /* Configure CM0 interrupts */
-    ipc_intr_cypipeConfig.intrSrc          = ((epConfigDataA.ipcNotifierMuxNumber << 16) | (uint32_t)((int32_t)cpuss_interrupts_ipc_0_IRQn + (int32_t)epConfigDataA.ipcNotifierNumber));
+    ipc_intr_cypipeConfig.intrSrc          = ((epConfigDataA.ipcNotifierMuxNumber << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | (uint32_t)((int32_t)cpuss_interrupts_ipc_0_IRQn + (int32_t)epConfigDataA.ipcNotifierNumber));
     ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
 #else
     /* Configure interrupts */
@@ -213,8 +231,13 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
     (void)Cy_SysInt_Init(&ipc_intr_cypipeConfig, config->userPipeIsrHandler);
 
     /* Enable the interrupts */
-#if defined (CY_IP_M7CPUSS)
-   NVIC_EnableIRQ((IRQn_Type)((ipc_intr_cypipeConfig.intrSrc >> 16) & 0x00FFU));
+#if defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+{
+    IRQn_Type IRQn = (IRQn_Type)(((uint32_t)ipc_intr_cypipeConfig.intrSrc >> CY_SYSINT_INTRSRC_MUXIRQ_SHIFT)
+                                      & CY_SYSINT_INTRSRC_MASK); /* Fetch bit 12-31 to get CPU IRQ value */
+    NVIC_EnableIRQ(IRQn);
+    NVIC_SetPriority(IRQn, ipc_intr_cypipeConfig.intrPriority);
+}
 #else
     NVIC_EnableIRQ(ipc_intr_cypipeConfig.intrSrc);
 #endif /* defined (CY_IP_M7CPUSS) */
@@ -299,11 +322,11 @@ void Cy_IPC_Pipe_EndpointInit(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t 
 
     if (NULL != epInterrupt)
     {
-        #if defined (CY_IP_M7CPUSS)
-            endpoint->pipeIntrSrc     = (IRQn_Type)((epInterrupt->intrSrc >> 16) & 0x00FFU);
+        #if defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+            endpoint->pipeIntrSrc     = (IRQn_Type)(((uint32_t)epInterrupt->intrSrc >> CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) & CY_SYSINT_INTRSRC_MASK);
         #else
             endpoint->pipeIntrSrc     = epInterrupt->intrSrc;
-        #endif /* CY_IP_M7CPUSS */
+        #endif
     }
 }
 
@@ -385,11 +408,11 @@ void Cy_IPC_Pipe_EndpointInitExt(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr
 
     if (NULL != epInterrupt)
     {
-        #if defined (CY_IP_M7CPUSS)
-            endpoint->pipeIntrSrc     = (IRQn_Type)((epInterrupt->intrSrc >> 16) & 0x00FFU);
+        #if defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+            endpoint->pipeIntrSrc     = (IRQn_Type)(((uint32_t)epInterrupt->intrSrc >> CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) & CY_SYSINT_INTRSRC_MASK);
         #else
             endpoint->pipeIntrSrc     = epInterrupt->intrSrc;
-        #endif /* CY_IP_M7CPUSS */
+        #endif
     }
 }
 #endif /* CY_IPC_INSTANCES */
@@ -413,6 +436,10 @@ void Cy_IPC_Pipe_EndpointInitExt(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr
 *
 * \param msgPtr
 * Pointer to the message structure to be sent.
+* msgPtr is a 32 bit value in RRRRDDCC format.
+* CC :   First 8 bits are for client id.
+* DD :   Next 8 bits are for user code.
+* RRRR : Next 16 bits are for Release masks for both pipe endpoints interrupt channels.
 *
 * \param callBackPtr
 * Pointer to the Release callback function.

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_sha_v1.c
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides the source code to the API for the SHA method
@@ -484,6 +484,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Sha_Finish(CRYPTO_Type *base,
             Cy_Crypto_Core_V1_MemSet(base, (void*)blockPtr, 0x00u, (uint16_t)hashBlockSize);
         }
 
+        blockPtr[hashBlockSize - 8U] = (uint8_t)((finalMessageSizeInBits) >> 56U);
+        blockPtr[hashBlockSize - 7U] = (uint8_t)((finalMessageSizeInBits) >> 48U);
+        blockPtr[hashBlockSize - 6U] = (uint8_t)((finalMessageSizeInBits) >> 40U);
+        blockPtr[hashBlockSize - 5U] = (uint8_t)((finalMessageSizeInBits) >> 32U);
         blockPtr[hashBlockSize - 4U] = (uint8_t)((finalMessageSizeInBits) >> 24U);
         blockPtr[hashBlockSize - 3U] = (uint8_t)((finalMessageSizeInBits) >> 16U);
         blockPtr[hashBlockSize - 2U] = (uint8_t)((finalMessageSizeInBits) >> 8U);

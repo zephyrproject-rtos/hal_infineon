@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_config.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides default configuration parameters
@@ -85,6 +85,9 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 2, \
 #define CY_CRYPTO_CFG_AES_C
 #define CY_CRYPTO_CFG_CMAC_C
 #define CY_CRYPTO_CFG_GCM_C
+#define CY_CRYPTO_CFG_CCM_C
+#define CY_CRYPTO_CFG_CBC_MAC_C
+
 
 /* AES Cipher modes */
 #define CY_CRYPTO_CFG_CIPHER_MODE_CBC
@@ -97,19 +100,20 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 2, \
 
 #define CY_CRYPTO_CFG_SHA_C
 #define CY_CRYPTO_CFG_HMAC_C
+#define CY_CRYPTO_CFG_HKDF_C
 
 #define CY_CRYPTO_CFG_SHA1_ENABLED
 #define CY_CRYPTO_CFG_SHA2_256_ENABLED
 #define CY_CRYPTO_CFG_SHA2_512_ENABLED
-
-/* Currently SHA3 is not implemented */
-// #define CY_CRYPTO_CFG_SHA3_C
-
+#define CY_CRYPTO_CFG_SHA3_ENABLED
 
 /* RSA functionality */
 #define CY_CRYPTO_CFG_RSA_C
 /* RSA PKCS 1.5 verification */
 #define CY_CRYPTO_CFG_RSA_VERIFY_ENABLED
+
+/* RSA PKCS 1.5 signing */
+#define CY_CRYPTO_CFG_RSA_SIGN_ENABLED
 
 /* Only NIST-P curves are currently supported */
 #define CY_CRYPTO_CFG_ECP_C
@@ -119,6 +123,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 2, \
 #define CY_CRYPTO_CFG_ECP_DP_SECP256R1_ENABLED
 #define CY_CRYPTO_CFG_ECP_DP_SECP384R1_ENABLED
 #define CY_CRYPTO_CFG_ECP_DP_SECP521R1_ENABLED
+#define CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED
 
 /* Currently CURVE25519 support is not implemented */
 // #define CY_CRYPTO_CFG_ECP_DP_CURVE25519_ENABLED
@@ -132,6 +137,14 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 2, \
 #define CY_CRYPTO_CFG_ECDSA_SIGN_C
 /* ECDSA verification */
 #define CY_CRYPTO_CFG_ECDSA_VERIFY_C
+/* EDDSA functionality */
+#define CY_CRYPTO_CFG_EDDSA_C
+/* EDDSA sign */
+#define CY_CRYPTO_CFG_EDDSA_SIGN_C
+/* EDDSA verify */
+#define CY_CRYPTO_CFG_EDDSA_VERIFY_C
+/* EDDSA key generation */
+#define CY_CRYPTO_CFG_EDDSA_GENKEY_C
 
 /* External memory use */
 //#define CY_CRYPTO_CFG_EXTERNAL_MEMORY_ENABLE
@@ -180,6 +193,11 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 2, \
 #error "CY_CRYPTO_CFG_AES_C is not defined to use CMAC calculation"
 #endif /* defined(CY_CRYPTO_CFG_CMAC_C) && !defined(CY_CRYPTO_CFG_AES_C) */
 
+/* Check CBC-MAC configuration */
+#if defined(CY_CRYPTO_CFG_CBC_MAC_C) && !defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC)
+#error "CY_CRYPTO_CFG_CIPHER_MODE_CBC is not defined to use CBC-MAC calculation"
+#endif /* defined(CY_CRYPTO_CFG_CBC_MAC_C) && !defined(CY_CRYPTO_CFG_CIPHER_MODE_CBC) */
+
 /* Check GCM configuration */
 #if defined(CY_CRYPTO_CFG_GCM_C) && !defined(CY_CRYPTO_CFG_AES_C)
 #error "CY_CRYPTO_CFG_AES_C is not defined to use GCM calculation"
@@ -188,13 +206,14 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 2, \
 /* Check SHA configuration */
 #if (defined(CY_CRYPTO_CFG_SHA1_ENABLED) || \
      defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) || \
-     defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)) \
+     defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) || \
+     defined(CY_CRYPTO_CFG_SHA3_ENABLED)) \
      && !defined(CY_CRYPTO_CFG_SHA_C)
 #error "CY_CRYPTO_CFG_SHA_C is not defined to use SHA digests"
 #endif
 
 #if defined(CY_CRYPTO_CFG_SHA_C) && (!defined(CY_CRYPTO_CFG_SHA1_ENABLED) && \
-     !defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) && \
+     !defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) && !defined(CY_CRYPTO_CFG_SHA3_ENABLED)  &&\
      !defined(CY_CRYPTO_CFG_SHA2_512_ENABLED))
 #error "CY_CRYPTO_CFG_SHA_C is defined but no SHA mode is selected"
 #endif
@@ -204,6 +223,11 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 2, \
 #if defined(CY_CRYPTO_CFG_HMAC_C) && !defined(CY_CRYPTO_CFG_SHA_C)
 #error "CY_CRYPTO_CFG_SHA_C is not defined to use HMAC calculation"
 #endif /* defined(CY_CRYPTO_CFG_HMAC_C) && !defined(CY_CRYPTO_CFG_SHA_C) */
+
+/* Check HKDF configuration */
+#if defined(CY_CRYPTO_CFG_HKDF_C) && (!defined(CY_CRYPTO_CFG_HMAC_C) || !defined(CY_CRYPTO_CFG_SHA_C))
+#error "CY_CRYPTO_CFG_HMAC_C & CY_CRYPTO_CFG_SHA_C is not defined to use HKDF calculation"
+#endif /* defined(CY_CRYPTO_CFG_HKDF_C) && (!defined(CY_CRYPTO_CFG_HMAC_C) || !defined(CY_CRYPTO_CFG_SHA_C)) */
 
 /* Check RSA verify configuration */
 #if defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) && !defined(CY_CRYPTO_CFG_RSA_C)

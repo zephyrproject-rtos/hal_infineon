@@ -269,6 +269,16 @@ cy_rslt_t cyhal_sdio_init(cyhal_sdio_t *obj, cyhal_gpio_t cmd, cyhal_gpio_t clk,
     obj->pin_data2 = CYHAL_NC_PIN_VALUE;
     obj->pin_data3 = CYHAL_NC_PIN_VALUE;
 
+    if ((cmd == NC) || 
+        (clk == NC) ||
+        (data0 == NC) ||
+        (data1 == NC) ||
+        (data2 == NC) ||
+        (data3 == NC))
+    {
+        return CYHAL_SDIO_RSLT_ERR_BAD_PARAM;
+    }
+
     cy_rslt_t retVal = SDIO_ReserveResources();
 
     /* Reserve the clk, cmd & 4 data pins */

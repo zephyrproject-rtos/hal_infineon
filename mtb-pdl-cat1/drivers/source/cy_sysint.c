@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file  cy_sysint.c
-* \version 1.90.1
+* \version 1.120
 *
 * \brief
 * Provides an API implementation of the SysInt driver.
@@ -31,9 +31,9 @@
 #include "cy_sysint.h"
 
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 8.4', 1, 'Intentionally, the prototype and definition are in the same place.')
-#if defined (CY_IP_M7CPUSS)
+#if defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u) && (CPUSS_SYSTEM_IRQ_PRESENT)) || defined (CY_DOXYGEN)
 __WEAK cy_israddress * Cy_SysInt_SystemIrqUserTableRamPointer = NULL;
-#endif
+#endif /* defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u) && (CPUSS_SYSTEM_IRQ_PRESENT)) || defined (CY_DOXYGEN) */
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 8.4')
 
 CY_MISRA_FP_BLOCK_START('MISRA C-2012 Rule 8.3', 1, 'Only one prototype will be picked for compilation')
@@ -114,30 +114,76 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
 
         #if defined (CY_IP_M4CPUSS)
             #if (CY_CPU_CORTEX_M0P)
+                (void)userIsr; /* Suppress a compiler warning about unused variables */
                 if (config->intrSrc > SysTick_IRQn)
                 {
                     Cy_SysInt_SetInterruptSource(config->intrSrc, config->cm0pSrc);
+                    NVIC_SetPriority((IRQn_Type)(config->intrSrc), config->intrPriority);
+
+#if (defined (CPUSS_SYSTEM_IRQ_PRESENT) && (CPUSS_SYSTEM_IRQ_PRESENT == 1u))
+                    (void)Cy_SysInt_SetSystemIrqVector(((cy_en_intr_t)config->cm0pSrc), userIsr);
+#else
+                    /* Set the new vector only if it was moved to __ramVectors */
+                    if (SCB->VTOR == (uint32_t)&__ramVectors)
+                    {
+                        (void)Cy_SysInt_SetVector(config->intrSrc, userIsr);
+                    }
+#endif
                 }
                 else
                 {
                     status = CY_SYSINT_BAD_PARAM;
+
+                    NVIC_SetPriority((IRQn_Type)(config->cm0pSrc), config->intrPriority);
+                    /* Set the new vector only if it was moved to __ramVectors */
+                    if (SCB->VTOR == (uint32_t)&__ramVectors)
+                    {
+                        (void)Cy_SysInt_SetVector(config->intrSrc, userIsr);
+                    }
                 }
-            #endif
+            #elif (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+               CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
+               IRQn_Type IRQn = (IRQn_Type)((uint32_t)config->intrSrc >> CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) ; /* Fetch bit 12-15 to get CPU IRQ value */
+               CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to cy_en_intr_t enum.');
+               cy_en_intr_t devIntrSrc = (cy_en_intr_t)((uint32_t)config->intrSrc & CY_SYSINT_INTRSRC_MASK); /* Fetch bit 0-11 to get system interrupt value */
+               CY_ASSERT_L3(CY_SYSINT_IS_PRIORITY_VALID(config->intrPriority));
+               if (IRQn > SysTick_IRQn && IRQn < Internal0_IRQn)
+               {
+                   Cy_SysInt_SetInterruptSource(IRQn, devIntrSrc);
 
-                NVIC_SetPriority(config->intrSrc, config->intrPriority);
+                   NVIC_SetPriority(IRQn, config->intrPriority);
 
-                /* Set the new vector only if it was moved to __ramVectors */
-                if (SCB->VTOR == (uint32_t)&__ramVectors)
-                {
-                    (void)Cy_SysInt_SetVector(config->intrSrc, userIsr);
-                 }
-        #endif
+                   (void)Cy_SysInt_SetSystemIrqVector(devIntrSrc, userIsr);
+               }
+               else
+               {
+                   status = CY_SYSINT_BAD_PARAM;
+
+                   /* Set the new vector only if it was moved to __ramVectors */
+                   if (SCB->VTOR == (uint32_t)&__ramVectors)
+                   {
+                       (void)Cy_SysInt_SetVector(config->intrSrc, userIsr);
+                   }
+               }
+           #else
+               {
+
+                   NVIC_SetPriority(config->intrSrc, config->intrPriority);
+
+                   /* Set the new vector only if it was moved to __ramVectors */
+                   if (SCB->VTOR == (uint32_t)&__ramVectors)
+                   {
+                       (void)Cy_SysInt_SetVector(config->intrSrc, userIsr);
+                    }
+              }
+           #endif /* (CY_CPU_CORTEX_M0P) */
+        #endif /* defined (CY_IP_M4CPUSS) */
 
         #if defined (CY_IP_M7CPUSS)
             CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
-            IRQn_Type IRQn = (IRQn_Type)(config->intrSrc >> 16) ; /* Fetch bit 16-31 to get CPU IRQ value */
+            IRQn_Type IRQn = (IRQn_Type)((uint32_t)config->intrSrc >> CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) ; /* Fetch bit 16-31 to get CPU IRQ value */
             CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to cy_en_intr_t enum.');
-            cy_en_intr_t devIntrSrc = (cy_en_intr_t)(config->intrSrc & 0xFFFFUL); /* Fetch bit 0-15 to get system interrupt value */
+            cy_en_intr_t devIntrSrc = (cy_en_intr_t)((uint32_t)config->intrSrc & CY_SYSINT_INTRSRC_MASK); /* Fetch bit 0-15 to get system interrupt value */
             CY_ASSERT_L3(CY_SYSINT_IS_PRIORITY_VALID(config->intrPriority));
         #if (CY_CPU_CORTEX_M0P)
             if (IRQn > NvicMux1_IRQn && IRQn < Internal0_IRQn) /* CPU IRQ0 and IRQ1 for CM0+ are used by ROM and not meant for user. */
@@ -154,7 +200,9 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
 
             NVIC_SetPriority(IRQn, config->intrPriority);
 
+#if (defined (CPUSS_SYSTEM_IRQ_PRESENT) && (CPUSS_SYSTEM_IRQ_PRESENT == 1u))
             (void)Cy_SysInt_SetSystemIrqVector(devIntrSrc, userIsr);
+#endif /* (defined (CPUSS_SYSTEM_IRQ_PRESENT) && (CPUSS_SYSTEM_IRQ_PRESENT == 1u)) */
         #endif
     }
     else
@@ -165,8 +213,7 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
     return(status);
 }
 
-
-#if (CY_CPU_CORTEX_M0P) || defined(CY_IP_M7CPUSS) || defined (CY_DOXYGEN)
+#if (((CY_CPU_CORTEX_M0P) || defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT)) || defined (CY_DOXYGEN)) && !defined(CY_IP_M0SECCPUSS))
 void Cy_SysInt_SetInterruptSource(IRQn_Type IRQn, cy_en_intr_t devIntrSrc)
 {
 #if defined (CY_IP_M4CPUSS)
@@ -184,9 +231,13 @@ void Cy_SysInt_SetInterruptSource(IRQn_Type IRQn, cy_en_intr_t devIntrSrc)
     else /* CPUSS_V2 */
     {
         CY_ASSERT_L1(CY_CPUSS_DISCONNECTED_IRQN != devIntrSrc); /* Disconnection feature doesn't work for CPUSS_V2 */
-
-        CPUSS_CM0_SYSTEM_INT_CTL[devIntrSrc] = _VAL2FLD(CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_IDX, IRQn)
-                                                      | CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
+        #if (CY_CPU_CORTEX_M0P)
+            CPUSS_CM0_SYSTEM_INT_CTL[devIntrSrc] = _VAL2FLD(CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_IDX, IRQn)
+                                                    | CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
+        #else
+            CPUSS_CM4_SYSTEM_INT_CTL[devIntrSrc] = _VAL2FLD(CPUSS_V2_CM4_SYSTEM_INT_CTL_CPU_INT_IDX, IRQn)
+                                                                | CPUSS_V2_CM4_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
+        #endif
     }
 #endif
 
@@ -249,10 +300,17 @@ IRQn_Type Cy_SysInt_GetNvicConnection(cy_en_intr_t devIntrSrc)
     uint32_t tempReg = CY_CPUSS_NOT_CONNECTED_IRQN;
 
 #if defined (CY_IP_M4CPUSS)
-    if ((!CY_CPUSS_V1) && (CY_SYSINT_ENABLE == _FLD2VAL(CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_VALID, CPUSS_CM0_SYSTEM_INT_CTL[devIntrSrc])))
+    #if (CY_CPU_CORTEX_M0P)
+    if (CY_SYSINT_ENABLE == _FLD2VAL(CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_VALID, CPUSS_CM0_SYSTEM_INT_CTL[devIntrSrc]))
     {
         tempReg = _FLD2VAL(CPUSS_V2_CM0_SYSTEM_INT_CTL_CPU_INT_IDX, CPUSS_CM0_SYSTEM_INT_CTL[devIntrSrc]);
     }
+    #else
+    if ((!CY_CPUSS_V1) && (CY_SYSINT_ENABLE == _FLD2VAL(CPUSS_V2_CM4_SYSTEM_INT_CTL_CPU_INT_VALID, CPUSS_CM4_SYSTEM_INT_CTL[devIntrSrc])))
+    {
+        tempReg = _FLD2VAL(CPUSS_V2_CM4_SYSTEM_INT_CTL_CPU_INT_IDX, CPUSS_CM4_SYSTEM_INT_CTL[devIntrSrc]);
+    }
+    #endif /* (CY_CPU_CORTEX_M0P) */
 #endif
 
 #if defined (CY_IP_M7CPUSS)
@@ -286,13 +344,20 @@ cy_en_intr_t Cy_SysInt_GetInterruptActive(IRQn_Type IRQn)
     uint32_t locIdx = (uint32_t)IRQn & CY_SYSINT_INT_STATUS_MSK;
 
 #if defined (CY_IP_M4CPUSS)
+    #if (CY_CPU_CORTEX_M0P)
+    if(CY_SYSINT_ENABLE == _FLD2VAL(CPUSS_V2_CM0_INT0_STATUS_SYSTEM_INT_VALID, CPUSS_CM0_INT_STATUS[locIdx]))
+    {
+        tempReg = _FLD2VAL(CPUSS_V2_CM0_INT0_STATUS_SYSTEM_INT_IDX, CPUSS_CM0_INT_STATUS[locIdx]);
+    }
+    #else
     if (!CY_CPUSS_V1)
     {
-        if(CY_SYSINT_ENABLE == _FLD2VAL(CPUSS_V2_CM0_INT0_STATUS_SYSTEM_INT_VALID, CPUSS_CM0_INT_STATUS[locIdx]))
+        if(CY_SYSINT_ENABLE == _FLD2VAL(CPUSS_V2_CM4_INT0_STATUS_SYSTEM_INT_VALID, CPUSS_CM4_INT_STATUS[locIdx]))
         {
-            tempReg = _FLD2VAL(CPUSS_V2_CM0_INT0_STATUS_SYSTEM_INT_IDX, CPUSS_CM0_INT_STATUS[locIdx]);
+            tempReg = _FLD2VAL(CPUSS_V2_CM4_INT0_STATUS_SYSTEM_INT_IDX, CPUSS_CM4_INT_STATUS[locIdx]);
         }
     }
+    #endif /* (CY_CPU_CORTEX_M0P) */
 #endif
 
 #if defined (CY_IP_M7CPUSS)
@@ -377,7 +442,8 @@ void Cy_SysInt_SoftwareTrig(IRQn_Type IRQn)
 #endif
 
 
-#if defined (CY_IP_M7CPUSS) || defined (CY_DOXYGEN)
+/* These functions are compatible with M7 and M4 CPUSSv2 that also have the CPUSS_SYSTEM_IRQ_PRESENT. */
+#if defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u) && (CPUSS_SYSTEM_IRQ_PRESENT)) || defined (CY_DOXYGEN)
 cy_en_sysint_status_t Cy_SysInt_InitExtIRQ(const cy_stc_sysint_t* config, cy_israddress userIsr)
 {
     cy_en_sysint_status_t status = CY_SYSINT_SUCCESS;
@@ -385,9 +451,9 @@ cy_en_sysint_status_t Cy_SysInt_InitExtIRQ(const cy_stc_sysint_t* config, cy_isr
     if(NULL != config)
     {
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
-        IRQn_Type IRQn = (IRQn_Type)(config->intrSrc >> 16U); // Fetch bit 16-31 to get CPU IRQ value
+        IRQn_Type IRQn = (IRQn_Type)((uint32_t) config->intrSrc >> CY_SYSINT_INTRSRC_MUXIRQ_SHIFT);
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to cy_en_intr_t enum.');
-        cy_en_intr_t devIntrSrc = (cy_en_intr_t)(config->intrSrc & 0xFFFFUL); // Fetch bit 0-15 to get system interrupt value
+        cy_en_intr_t devIntrSrc = (cy_en_intr_t)((uint32_t) config->intrSrc & CY_SYSINT_INTRSRC_MASK);
         CY_ASSERT_L3(CY_SYSINT_IS_PRIORITY_VALID(config->intrPriority));
 
     #if (CY_CPU_CORTEX_M0P)
@@ -428,7 +494,7 @@ cy_en_sysint_status_t Cy_SysInt_InitIntIRQ(const cy_stc_sysint_t* config, cy_isr
     {
         CY_ASSERT_L3(CY_SYSINT_IS_PRIORITY_VALID(config->intrPriority));
 
-        if (config->intrSrc >= ((uint32_t)Internal0_IRQn) && config->intrSrc <= ((uint32_t)Internal7_IRQn))
+        if (((uint32_t)config->intrSrc >= (uint32_t)Internal0_IRQn) && ((uint32_t)config->intrSrc <= (uint32_t)Internal7_IRQn))
         {
 
             NVIC_SetPriority((IRQn_Type)config->intrSrc, config->intrPriority);
@@ -452,7 +518,6 @@ cy_en_sysint_status_t Cy_SysInt_InitIntIRQ(const cy_stc_sysint_t* config, cy_isr
 
     return(status);
 }
-
 
 void  Cy_SysInt_SetSystemIrqVector(cy_en_intr_t sysIntSrc, cy_israddress userIsr)
 {
@@ -481,6 +546,7 @@ void Cy_SysInt_EnableSystemInt(cy_en_intr_t sysIntSrc)
     {
         CPUSS_CM0_SYSTEM_INT_CTL[sysIntSrc] |= CPUSS_CM0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
     }
+    #if defined (CY_IP_M7CPUSS)
     else if (CY_IS_CM7_CORE_0)
     {
         CPUSS_CM7_0_SYSTEM_INT_CTL[sysIntSrc] |= CPUSS_CM7_0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
@@ -489,6 +555,14 @@ void Cy_SysInt_EnableSystemInt(cy_en_intr_t sysIntSrc)
     {
         CPUSS_CM7_1_SYSTEM_INT_CTL[sysIntSrc] |= CPUSS_CM7_1_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
     }
+    #elif (CY_IP_M4CPUSS)
+    else
+    {
+        CPUSS_CM4_SYSTEM_INT_CTL[sysIntSrc] |= CPUSS_V2_CM4_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
+    }
+    #else
+        #error This version of the sysint driver only supports CM4 and CM7 devices.
+    #endif
 }
 
 
@@ -498,6 +572,7 @@ void Cy_SysInt_DisableSystemInt(cy_en_intr_t sysIntSrc)
     {
         CPUSS->CM0_SYSTEM_INT_CTL[sysIntSrc] &= (uint32_t) ~CPUSS_CM0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
     }
+    #if defined (CY_IP_M7CPUSS)
     else if (CY_IS_CM7_CORE_0)
     {
         CPUSS->CM7_0_SYSTEM_INT_CTL[sysIntSrc] &= (uint32_t) ~CPUSS_CM7_0_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
@@ -506,11 +581,19 @@ void Cy_SysInt_DisableSystemInt(cy_en_intr_t sysIntSrc)
     {
         CPUSS->CM7_1_SYSTEM_INT_CTL[sysIntSrc] &= (uint32_t) ~CPUSS_CM7_1_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
     }
+    #elif (CY_IP_M4CPUSS)
+    else
+    {
+        CPUSS->CM4_SYSTEM_INT_CTL[sysIntSrc] &= (uint32_t) ~CPUSS_CM4_SYSTEM_INT_CTL_CPU_INT_VALID_Msk;
+    }
+    #else
+        #error This version of the sysint driver only supports CM4 and CM7 devices.
+    #endif
 }
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 14.3')
 
-#endif
+#endif  /* defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2u) && (CPUSS_SYSTEM_IRQ_PRESENT)) || defined (CY_DOXYGEN) */
 
-#endif
+#endif  /* defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) */
 
 /* [] END OF FILE */

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_bt.c
-* \version 1.91
+* \version 1.130
 *
 * \brief
 *  This driver provides the source code for BT IPC.
@@ -26,9 +26,10 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXIPC)
+#if defined (CY_IP_MXS40BLE52SS) && defined (CY_IP_MXIPC)
 
 #include "cy_ipc_bt.h"
+#include "cy_syspm_btss.h"
 
 /* Should not include this. To be removed */
 #include <string.h>
@@ -71,6 +72,7 @@ CY_MISRA_DEVIATE_BLOCK_START('ARRAY_VS_SINGLETON', 1, \
 /* local functions prototype */
 cy_en_btipcdrv_status_t Cy_bt_handle_hpclong_msg(cy_stc_ipc_bt_context_t *btIpcContext, uint32_t * msgPtr);
 cy_en_btipcdrv_status_t Cy_bt_handle_buf_add(cy_stc_ipc_bt_context_t *btIpcContext, uint32_t * msgPtr);
+cy_en_btipcdrv_status_t Cy_bt_handle_buf_remove(cy_stc_ipc_bt_context_t *btIpcContext, uint32_t * msgPtr);
 static cy_en_btipc_buftype_t Cy_bt_get_buf_type(cy_en_btipc_hcipti_t pti);
 static uint32_t Cy_bt_getPLLegnth(cy_en_btipc_hcipti_t pti, uint8_t* bufAddr);
 static bool Cy_bt_isOffsetNeeded(cy_en_btipc_hcipti_t pti);
@@ -120,16 +122,22 @@ void Cy_BTIPC_IRQ_Handler(cy_stc_ipc_bt_context_t *btIpcContext)
         BTIPC_LOG_L1("Release int\n");
         /* Clear the release interrupt  */
         Cy_IPC_Drv_ClearInterrupt(ipcIntrPtr, release, CY_IPC_NO_NOTIFICATION);
-#ifdef CY_BTIPC_STATS
+
         if ((release & (uint32_t)(0x1UL << contextPtr->ulChannelHPC)) != 0UL)
         {
+#ifdef CY_BTIPC_STATS
             contextPtr->ipc_hpc_release_count++;
+#endif
+            (void)Cy_BTSS_PowerDep(false);
         }
         if ((release & (uint32_t)(0x1UL << contextPtr->ulChannelHCI)) != 0UL)
         {
+#ifdef CY_BTIPC_STATS
             contextPtr->ipc_hci_release_count++;
-        }
 #endif
+            (void)Cy_BTSS_PowerDep(false);
+        }
+
         /* release callback can be added here. */
         if ((contextPtr->ulReleaseCallbackPtr) != NULL )
         {
@@ -198,7 +206,16 @@ void Cy_BTIPC_IRQ_Handler(cy_stc_ipc_bt_context_t *btIpcContext)
 #endif
             if (0xFFUL == (0xFFUL & mesg[0]))
             {
-                (void)Cy_BTIPC_HPC_RelBuffer(contextPtr, backup); /* Suppress a compiler warning about unused return value */
+
+                    (void)Cy_BTIPC_HPC_RelBuffer(contextPtr, backup); /* Suppress a compiler warning about unused return value */
+
+            }
+            /*At boot config wait BT FW does not process HPC release buffer and hence fails to release IPC channel.
+            Since we want to lock PDCM at IPC write and release only after BT does IPC CH release, we need a count reset
+            to avoid PDCM use count mismatch, which will prevent BT from doing a DS*/
+            if((cy_en_btipc_boottype_t)contextPtr->bootType == CY_BT_IPC_BOOT_FULLY_UP)
+            {
+                Cy_BTSS_PowerDepResetCount();
             }
         }
 
@@ -410,6 +427,9 @@ void Cy_BTIPC_HPC_Notify(void *btIpcContext, uint32_t * msgPtr)
             break;
         case CY_BT_IPC_HPC_BUFPROVIDE:
             (void)Cy_bt_handle_buf_add(contextPtr, msgPtr);
+            break;
+        case CY_BT_IPC_HPC_BUFFER_REMOVE:
+            (void)Cy_bt_handle_buf_remove(contextPtr, msgPtr);
             break;
         default:
             /* default invalid pti */
@@ -813,6 +833,8 @@ cy_en_btipcdrv_status_t Cy_BTIPC_HCI_Write(cy_stc_ipc_bt_context_t *btIpcContext
 #ifdef CY_BTIPC_STATS
         contextPtr->ipc_hci_cmd_count++;
 #endif
+        (void)Cy_BTSS_PowerDep(true);
+
         return CY_BT_IPC_DRV_SUCCESS;
     }
     else
@@ -875,6 +897,8 @@ cy_en_btipcdrv_status_t Cy_BTIPC_HPC_Write(cy_stc_ipc_bt_context_t *btIpcContext
 #ifdef CY_BTIPC_STATS
         contextPtr->ipc_hpc_cmd_count++;
 #endif
+        (void)Cy_BTSS_PowerDep(true);
+
         return CY_BT_IPC_DRV_SUCCESS;
     }
     else
@@ -1132,6 +1156,75 @@ static cy_en_btipcdrv_status_t Cy_bt_PutBuffer(cy_stc_ipc_bt_context_t *btIpcCon
     return status;
 }
 
+static cy_en_btipcdrv_status_t Cy_bt_RemoveBuffer(cy_stc_ipc_bt_context_t *btIpcContext, cy_en_btipc_buftype_t buftype)
+{
+    cy_stc_ipc_bt_context_t *contextPtr = btIpcContext;
+    uint8_t idx;
+    uint32_t interruptState;
+    cy_en_btipcdrv_status_t status = CY_BT_IPC_DRV_ERROR_BUF_GET;
+
+    BTIPC_LOG_L2("Remove buffer+\n");
+
+    if ((NULL == contextPtr))
+    {
+        BTIPC_LOG_L2("Remove buffer-\n");
+        return CY_BT_IPC_DRV_ERROR_BAD_HANDLE;
+    }
+
+    interruptState = Cy_SysLib_EnterCriticalSection();
+
+    for (idx = 0U; idx < ((uint8_t)MAX_BUF_COUNT); idx++)
+    {
+        if (contextPtr->buffPool[idx].bufType == buftype)
+        {
+            BTIPC_LOG_L2("Buffer removed from the pool at %d\n",idx);
+            contextPtr->buffPool[idx].bufPtr = NULL;
+            contextPtr->buffPool[idx].bufType = CY_BT_IPC_HCI_INVALID_BUF;
+            status = CY_BT_IPC_DRV_SUCCESS;
+            break;
+        }
+        else
+        {
+            /* This is just to keep coverity happy */
+        }
+    }
+
+    Cy_SysLib_ExitCriticalSection(interruptState);
+
+    BTIPC_LOG_L2("Remove buffer-\n");
+    return status;
+}
+
+cy_en_btipcdrv_status_t Cy_bt_handle_buf_remove(cy_stc_ipc_bt_context_t *btIpcContext, uint32_t * msgPtr)
+{
+    cy_stc_ipc_msg_buf_remove_t remBuf;
+    cy_stc_ipc_bt_context_t *contextPtr = btIpcContext;
+    cy_en_btipcdrv_status_t status;
+
+    BTIPC_LOG_L2("Removing buf\n");
+
+    if ((NULL == contextPtr) || (NULL == msgPtr))
+    {
+        return CY_BT_IPC_DRV_ERROR_BAD_HANDLE;
+    }
+
+    remBuf = *(cy_stc_ipc_msg_buf_remove_t*)((void*)msgPtr);
+
+    BTIPC_LOG_L2("bufType 0x%x\n",remBuf.bufType);
+#ifdef CY_BTIPC_STATS
+    if ((cy_en_btipc_buftype_t)remBuf.bufType == CY_BT_IPC_HCI_CMD_BUF)
+    {
+        contextPtr->ipc_hci_cmd_self_outbuf_count++;
+    }
+#endif
+    status = Cy_bt_RemoveBuffer(contextPtr, (cy_en_btipc_buftype_t)remBuf.bufType);
+    if (((uint32_t)status) != 0UL)
+    {
+        /* Need to check if some cleaning needed for error condition */
+        BTIPC_LOG_L0("Error: 0x%x in removing the buffer from pool\n",status);
+    }
+    return status;
+}
 
 /* Local function implementation */
 cy_en_btipcdrv_status_t Cy_bt_handle_hpclong_msg(cy_stc_ipc_bt_context_t *btIpcContext, uint32_t * msgPtr)

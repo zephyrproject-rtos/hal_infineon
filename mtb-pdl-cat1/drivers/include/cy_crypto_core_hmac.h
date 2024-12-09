@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hmac.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -124,6 +124,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hmac(CRYPTO_Type *base,
 ****************************************************************************//**
 *
 * The function to initialize the HMAC operation.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters hmacState and hmacBuffer must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -174,6 +175,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hmac_Init(CRYPTO_Type *base
 ****************************************************************************//**
 *
 * Initializes the HMAC key.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters key & hmacState (m0Key) must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.
@@ -322,6 +324,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hmac_Finish(CRYPTO_Type *ba
 ****************************************************************************//**
 *
 * Frees the internally stored buffers in hmac context.
+* For CAT1C & CAT1D(CM55) devices when D-Cache is enabled parameters hmacState must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to the CRYPTO instance.

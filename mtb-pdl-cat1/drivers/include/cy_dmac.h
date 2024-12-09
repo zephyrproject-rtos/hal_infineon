@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_dmac.h
-* \version 1.30.1
+* \version 1.40
 *
 * \brief
 * The header file of the DMAC driver.
@@ -103,6 +103,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.40</td>
+*     <td>Added new API \ref Cy_DMAC_Channel_IsEnabled.</td>
+*     <td>New devices support.</td>
+*   </tr>
+*   <tr>
 *     <td>1.30.1</td>
 *     <td>Minor Documentation update for cache usage on CM7.</td>
 *     <td>Documentation enhancement.</td>
@@ -178,7 +183,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.8', 13, \
 #define CY_DMAC_DRV_VERSION_MAJOR       1
 
 /** The driver minor version */
-#define CY_DMAC_DRV_VERSION_MINOR       30
+#define CY_DMAC_DRV_VERSION_MINOR       40
 
 /** The DMAC driver identifier */
 #define CY_DMAC_ID                      (CY_PDL_DRV_ID(0x3FU))
@@ -479,6 +484,7 @@ __STATIC_INLINE uint32_t Cy_DMAC_GetActiveChannel   (DMAC_Type const * base);
 __STATIC_INLINE void     Cy_DMAC_Channel_SetDescriptor           (DMAC_Type       * base, uint32_t channel, cy_stc_dmac_descriptor_t const * descriptor);
 __STATIC_INLINE void     Cy_DMAC_Channel_Enable                  (DMAC_Type       * base, uint32_t channel);
 __STATIC_INLINE void     Cy_DMAC_Channel_Disable                 (DMAC_Type       * base, uint32_t channel);
+__STATIC_INLINE bool     Cy_DMAC_Channel_IsEnabled               (DMAC_Type       * base, uint32_t channel);
 __STATIC_INLINE void     Cy_DMAC_Channel_SetPriority             (DMAC_Type       * base, uint32_t channel, uint32_t priority);
 __STATIC_INLINE uint32_t Cy_DMAC_Channel_GetPriority             (DMAC_Type const * base, uint32_t channel);
 __STATIC_INLINE   void * Cy_DMAC_Channel_GetCurrentSrcAddress    (DMAC_Type           const * base, uint32_t channel);
@@ -1448,6 +1454,30 @@ __STATIC_INLINE void Cy_DMAC_Channel_Disable(DMAC_Type * base, uint32_t channel)
     CY_ASSERT_L1(CY_DMAC_IS_CH_NR_VALID(channel));
 
     DMAC_CH_CTL(base, channel) &= (uint32_t) ~DMAC_CH_V2_CTL_ENABLED_Msk;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_DMAC_Channel_IsEnabled
+****************************************************************************//**
+*
+* Check whether a DMAC channel is in the enabled state.
+*
+* \param base
+* The pointer to the hardware DMAC block.
+*
+* \param channel
+* The channel number.
+*
+* \funcusage
+* \snippet dmac/snippet/main.c snippet_Cy_DMAC_Enable
+*
+*******************************************************************************/
+__STATIC_INLINE bool Cy_DMAC_Channel_IsEnabled(DMAC_Type * base, uint32_t channel)
+{
+    CY_ASSERT_L1(CY_DMAC_IS_CH_NR_VALID(channel));
+
+    return((bool)((DMAC_CH_CTL(base, channel) & DMAC_CH_V2_CTL_ENABLED_Msk) != 0u));
 }
 
 

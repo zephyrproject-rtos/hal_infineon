@@ -95,7 +95,14 @@ extern "C" {
 /**
 * \cond INTERNAL
 */
+#if defined(CY_IP_MXS40SSRSS)
+// (2^_CYHAL_WDT_MATCH_BITS * 3) * 0.030518 ms
+#define _CYHAL_WDT_MAX_TIMEOUT_MS 384000
 
+// ignore_bits range: 0 -> (_CYHAL_WDT_MATCH_BITS - 4) (Bottom four bits cannot be ignored)
+#define _CYHAL_WDT_MAX_IGNORE_BITS (_CYHAL_WDT_MATCH_BITS - 4)
+
+#else
 // (2^16 * 3) * .030518 ms
 /** Maximum WDT timeout in milliseconds */
 #define _CYHAL_WDT_MAX_TIMEOUT_MS 6000
@@ -103,6 +110,7 @@ extern "C" {
 /** Maximum number of ignore bits */
 #define _CYHAL_WDT_MAX_IGNORE_BITS 12
 
+#endif
 /** \endcond */
 
 #if defined(__cplusplus)

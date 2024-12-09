@@ -82,20 +82,25 @@ cy_rslt_t cyhal_syspm_tickless_sleep_deepsleep(cyhal_lptimer_t *obj, uint32_t de
 
 #define cyhal_syspm_tickless_sleep(obj, desired_ms, actual_ms) cyhal_syspm_tickless_sleep_deepsleep(obj, desired_ms, actual_ms, false)
 
-
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
-#define cyhal_syspm_sleep()              Cy_SysPm_CpuEnterSleep(CY_SYSPM_WAIT_FOR_INTERRUPT)
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1D)
-#define cyhal_syspm_get_system_state()   (Cy_SysPm_IsSystemUlp() ? CYHAL_SYSPM_SYSTEM_LOW : CYHAL_SYSPM_SYSTEM_NORMAL)
-#elif defined(COMPONENT_CAT1B)
-#define cyhal_syspm_get_system_state()   (Cy_SysPm_IsSystemLpActiveEnabled() ? CYHAL_SYSPM_SYSTEM_LOW : CYHAL_SYSPM_SYSTEM_NORMAL)
-#elif defined(COMPONENT_CAT1C)
-#define cyhal_syspm_get_system_state()   (CYHAL_SYSPM_SYSTEM_NORMAL)
-#endif
-#elif defined(COMPONENT_CAT2) /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) */
-#define cyhal_syspm_sleep()              Cy_SysPm_CpuEnterSleep()
-#define cyhal_syspm_get_system_state()   (CYHAL_SYSPM_SYSTEM_NORMAL)
-#endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) */
+    #define cyhal_syspm_sleep()              Cy_SysPm_CpuEnterSleep(CY_SYSPM_WAIT_FOR_INTERRUPT)
+    #if defined(COMPONENT_CAT1A)
+        #if ((defined (SRSS_ULP_VARIANT)) && (SRSS_ULP_VARIANT == 0u))
+            #define cyhal_syspm_get_system_state()   (CYHAL_SYSPM_SYSTEM_NORMAL)
+        #else
+            #define cyhal_syspm_get_system_state()   (Cy_SysPm_IsSystemUlp() ? CYHAL_SYSPM_SYSTEM_LOW : CYHAL_SYSPM_SYSTEM_NORMAL)
+        #endif
+    #elif defined(COMPONENT_CAT1B)
+        #define cyhal_syspm_get_system_state()   (Cy_SysPm_IsSystemLpActiveEnabled() ? CYHAL_SYSPM_SYSTEM_LOW : CYHAL_SYSPM_SYSTEM_NORMAL)
+    #elif defined(COMPONENT_CAT1C)
+        #define cyhal_syspm_get_system_state()   (CYHAL_SYSPM_SYSTEM_NORMAL)
+    #elif defined(COMPONENT_CAT1D)
+        #define cyhal_syspm_get_system_state()   (Cy_SysPm_IsSystemUlp() ? CYHAL_SYSPM_SYSTEM_LOW : CYHAL_SYSPM_SYSTEM_NORMAL)
+    #endif
+#elif defined(COMPONENT_CAT2)   /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) */
+    #define cyhal_syspm_sleep()              Cy_SysPm_CpuEnterSleep()
+    #define cyhal_syspm_get_system_state()   (CYHAL_SYSPM_SYSTEM_NORMAL)
+#endif /* defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) */
 
 /** \endcond */
 

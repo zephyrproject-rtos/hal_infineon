@@ -51,6 +51,8 @@ Some HAL driver's may have slightly different behavior when run in an RTOS envir
 
 When using HAL in an RTOS environment with the `RTOS_AWARE` component enabled, initialization of the HAL drivers must be done after the RTOS has been initialized in order to ensure that the RTOS modules such as semaphores used by the HAL drivers are initialized properly. A temporary exception to this is the SDIO HAL driver that is initialized as a part of cybsp_init() and will be addressed in future releases.
 
+## Data Cache Management
+Devices such as those in the XMC72 series contain a data cache (DCACHE). When working with DCACHE, it is important to be aware of issues related to cache coherency. The HAL contains code to perform cache management, but it also requires the application to be suitably structured. Refer to [DCACHE Management](docs/html/md_source_hal_dcache.html) for more information on this topic.
 
 ## More information
 * [API Reference Guide](https://infineon.github.io/mtb-hal-cat1/html/modules.html)

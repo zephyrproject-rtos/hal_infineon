@@ -6,35 +6,35 @@ blobs:
 #cat1cm0p
   #COMPONENT_CM0P_SLEEP
   - path: img/cat1cm0p/COMPONENT_CM0P_SLEEP/psoc6_01_cm0p_sleep.bin
-    sha256: 7b1ac91f157ee7004c9175d471dd29d0edbbcea5a3d53c8da634cceffb5694e6
+    sha256: b6da2c09f38668034a95f42e5e0cea9f1ffcc64f03633f7cf5131a6122e34363
     type: img
-    version: '1.0.0'
+    version: '1.7.0'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.0.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_01_cm0p_sleep.bin
+    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.7.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_01_cm0p_sleep.bin
     description: "PSoC 6 Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
     doc-url: https://github.com/Infineon/cat1cm0p
   - path: img/cat1cm0p/COMPONENT_CM0P_SLEEP/psoc6_02_cm0p_sleep.bin
-    sha256: 5ec09f8b725051ed429f2214e3ee57ae29a097fb6152ad1ac3f53d47a7476057
+    sha256: c8a8bf5d2c7bb9e7250fb56b2dc4db3c8b93567826de6ca5ff1fae1683e71001
     type: img
-    version: '1.0.0'
+    version: '1.7.0'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.0.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_02_cm0p_sleep.bin
+    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.7.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_02_cm0p_sleep.bin
     description: "PSoC 6 Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
     doc-url: https://github.com/Infineon/cat1cm0p
   - path: img/cat1cm0p/COMPONENT_CM0P_SLEEP/psoc6_03_cm0p_sleep.bin
-    sha256: b909aceaa28ce15d58c0b57bd08adb62ed3f91ca318cbc7cf6d1c8895201e7c1
+    sha256: ea078cce581930fcef313b3252c3530d6e6a5b4894433e8d46f26b0f15353917
     type: img
-    version: '1.0.0'
+    version: '1.7.0'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.0.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_03_cm0p_sleep.bin
+    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.7.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_03_cm0p_sleep.bin
     description: "PSoC 6 Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
     doc-url: https://github.com/Infineon/cat1cm0p
   - path: img/cat1cm0p/COMPONENT_CM0P_SLEEP/psoc6_04_cm0p_sleep.bin
-    sha256: 544b92e5a927ac7090a67ee327b9cc39d1a91f93e689877489f0e8a7d27238dc
+    sha256: 575d8ec20476b9374f3529c770ffd788dc6ec80332990529a54764dfb0012511
     type: img
-    version: '1.0.0'
+    version: '1.7.0'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.0.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_04_cm0p_sleep.bin
+    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.7.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_04_cm0p_sleep.bin
     description: "PSoC 6 Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
     doc-url: https://github.com/Infineon/cat1cm0p
 

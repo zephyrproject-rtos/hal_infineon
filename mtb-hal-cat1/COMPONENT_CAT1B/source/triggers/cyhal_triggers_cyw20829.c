@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -27,7 +27,7 @@
 #include "cy_device_headers.h"
 #include "cyhal_hw_types.h"
 
-#if (defined(CY_DEVICE_CYW20829) && (CY_SYSLIB_GET_SILICON_REV_ID == CY_SYSLIB_20829B0_SILICON_REV))
+#ifdef CY_DEVICE_CYW20829
 #include "triggers/cyhal_triggers_cyw20829.h"
 
 const uint16_t cyhal_sources_per_mux[15] =

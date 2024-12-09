@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sysfault.h
-* \version 1.20
+* \version 1.30
 *
 * \brief
 * Provides an API declaration of the SysFault driver.
@@ -86,6 +86,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.30</td>
+*     <td>Added enum \ref en_sysfault_source_t and new macros.</td>
+*     <td>Support added for CAT1D and enabled sysfault compilation for PSoC C3 (CAT1B).</td>
+*   </tr>
+*   <tr>
 *     <td>1.20</td>
 *     <td>Updated \ref Cy_SysFault_GetErrorSource API and added new macro</td>
 *     <td>MISRA 10.8 fix and code enhancement</td>
@@ -140,7 +145,7 @@ extern "C" {
 #define CY_SYSFAULT_DRV_VERSION_MAJOR    1
 
 /** Driver minor version */
-#define CY_SYSFAULT_DRV_VERSION_MINOR    20
+#define CY_SYSFAULT_DRV_VERSION_MINOR    30
 
 /** Driver ID */
 #define CY_SYSFAULT_ID CY_PDL_DRV_ID     (0x76U)
@@ -157,6 +162,11 @@ extern "C" {
 #define CY_SYSFAULT_IS_FAULT_SET_VALID(pendingFault)  (((pendingFault) == CY_SYSFAULT_SET0) || \
                                                        ((pendingFault) == CY_SYSFAULT_SET1) || \
                                                        ((pendingFault) == CY_SYSFAULT_SET2))
+#if defined (CY_IP_MXS40SSRSS)
+#define cy_en_SysFault_source_t en_sysfault_source_t
+#define CY_SYSFAULT_NO_FAULT (((uint8_t)SRSS_FAULT_SSV) + 1U)
+#endif
+
 /** \endcond */
 
 
@@ -198,6 +208,71 @@ typedef enum
     CY_SYSFAULT_DATA3=  3UL, /**< Used to get the Fault data for DATA3 register */
 } cy_en_SysFault_Data_t;
 
+/** \cond INTERNAL */
+/* Enumeration below is only for documentation purpose.
+ * Actual enumeration values come from generated headers. */
+/** \endcond */
+
+#if defined(CY_DOXYGEN)
+/**
+* SysFault sources for CAT1D Family of devices.
+*/
+typedef enum
+{   PERI_0_PERI_MS0_PPC_VIO         = 0x0000u, /**< PERI0 master interface PPC violation */
+    PERI_0_PERI_MS1_PPC_VIO         = 0x0001u, /**< PERI0 master interface PPC violation */
+    PERI_0_PERI_PPC_PC_MASK_VIO     = 0x0002u, /**< PERI0 peripheral PPC PC mask violation */
+    PERI_0_PERI_GP1_TIMEOUT_VIO     = 0x0003u, /**< PERI0 peripheral group 1 AHB timeout */
+    PERI_0_PERI_GP2_TIMEOUT_VIO     = 0x0004u, /**< PERI0 peripheral group 2 AHB timeout */
+    PERI_0_PERI_GP3_TIMEOUT_VIO     = 0x0005u, /**< PERI0 peripheral group 3 AHB timeout */
+    PERI_0_PERI_GP4_TIMEOUT_VIO     = 0x0006u, /**<    PERI0 peripheral group 4 AHB timeout */
+    PERI_0_PERI_GP5_TIMEOUT_VIO     = 0x0007u, /**<    PERI0 peripheral group 5 AHB timeout */
+    PERI_0_PERI_GP0_AHB_VIO         = 0x0008u, /**< PERI0 peripheral group 0 AHB violation */
+    PERI_0_PERI_GP1_AHB_VIO         = 0x0009u, /**< PERI0 peripheral group 1 AHB violation */
+    PERI_0_PERI_GP2_AHB_VIO         = 0x000Au, /**< PERI0 peripheral group 2 AHB violation */
+    PERI_0_PERI_GP3_AHB_VIO         = 0x000Bu, /**< PERI0 peripheral group 3 AHB violation */
+    PERI_0_PERI_GP4_AHB_VIO         = 0x000Cu, /**< PERI0 peripheral group 4 AHB violation */
+    PERI_0_PERI_GP5_AHB_VIO         = 0x000Du, /**< PERI0 peripheral group 5 AHB violation */
+    PERI_1_PERI_MS0_PPC_VIO         = 0x000Eu, /**< PERI1 master interface PPC violation */
+    PERI_1_PERI_MS1_PPC_VIO         = 0x000Fu, /**< PERI1 master interface PPC violation */
+    PERI_1_PERI_PPC_PC_MASK_VIO     = 0x0010u, /**< PERI1 peripheral PPC PC mask violation */
+    PERI_1_PERI_GP1_TIMEOUT_VIO     = 0x0011u, /**< PERI1 peripheral group 1 AHB timeout */
+    PERI_1_PERI_GP2_TIMEOUT_VIO     = 0x0012u, /**< PERI1 peripheral group 2 AHB timeout */
+    PERI_1_PERI_GP3_TIMEOUT_VIO     = 0x0013u, /**< PERI1 peripheral group 3 AHB timeout */
+    PERI_1_PERI_GP4_TIMEOUT_VIO     = 0x0014u, /**<    PERI1 peripheral group 4 AHB timeout */
+    PERI_1_PERI_GP0_AHB_VIO         = 0x0015u, /**< PERI1 peripheral group 0 AHB violation */
+    PERI_1_PERI_GP1_AHB_VIO         = 0x0016u, /**< PERI1 peripheral group 1 AHB violation */
+    PERI_1_PERI_GP2_AHB_VIO         = 0x0017u, /**< PERI1 peripheral group 2 AHB violation */
+    PERI_1_PERI_GP3_AHB_VIO         = 0x0018u, /**< PERI1 peripheral group 3 AHB violation */
+    PERI_1_PERI_GP4_AHB_VIO         = 0x0019u, /**< PERI1 peripheral group 4 AHB violation */
+    M33SYSCPUSS_RAMC0_MPC_FAULT_MMIO = 0x001Au, /**< RAMC-0 MPC Fault */
+    M33SYSCPUSS_RAMC1_MPC_FAULT_MMIO = 0x001Bu, /**< RAMC-1 MPC Fault */
+    M33SYSCPUSS_RRAMC_HOST_IF_MPC_FAULT = 0x001Cu, /**< RRAM Controller Host interface MPC Fault */
+    M33SYSCPUSS_RRAMC_HOST_IF_OTP_WR_TAG_ERROR_FAULT = 0x001Du, /**<     RRAMC OTP tag bit violation*/
+    M33SYSCPUSS_RRAMC_POST_READ_TAG_MISMATCH_FAULT = 0x001Eu, /**< RRAMC post-read tag bit violation */
+    M33SYSCPUSS_RRAMC_POST_READ_ADDR_CHECKER_ALARM_FAULT = 0x001Fu, /**< RRAMC post-read address violation */
+    M33SYSCPUSS_RRAMC_INCOMPLETE_WRITE_FAULT = 0x0020u, /**<     RRAMC NVM indirect sequence incomplete */
+    M33SYSCPUSS_RRAMC_NVM_ADDRESS_MISMATCH_FAULT = 0x0021u, /**< RRAMC SFR NVM address mismatch */
+    M33SYSCPUSS_RRAMC_MMIO_PROTECTED_LOCKABLE_FAULT = 0x0022u, /**< RRAMC protected NVM lock fault */
+    M33SYSCPUSS_RRAMC_MMIO_UDS_CTRL_FAULT = 0x0023u, /**< RRAMC invalid unique device secret lock */
+    M33SYSCPUSS_RRAMC_NVM_TRAP_FAULT = 0x0024u, /**< Trap signal from RRAM */
+    M33SYSCPUSS_RRAMC_NVM_IR_ECCLOG_FAULT = 0x0025u, /**< RRAM ECC failure threshold exceeded */
+    M33SYSCPUSS_EXP_MS_AHB_ERROR_MMIO = 0x0026u, /**< Fault generated due to AHB error on EXP bridge*/
+    M55APPCPUSS_APP_SYS_BR_ERROR_MMIO = 0x0027u, /**< sys to app bridge error fault interface */
+    M55APPCPUSS_SYS_APP_BR_ERROR_MMIO = 0x0028u, /**< app to sys bridge error fault interface */
+    M0SECCPUSS_FAULT_M0SEC          = 0x0029u, /**< Secure Enclave Fault Interface */
+    SRSS_FAULT_CSV                  = 0x002Au, /**< SRSS clock supervision fault */
+    SMIF_FAULT_MXSMIF_TOP           = 0x002Du, /**< SMIF MPC violation */
+    SOCMEM_SOCMEM_MPC               = 0x002Eu, /**< SOCMEM MPC violation */
+    SOCMEM_SOCMEM_AHB_ERROR         = 0x002Fu, /**< SocMEM AHB error */
+    M33SYSCPUSS_RRAMC_INVALID_LCS_FAULT = 0x0030u, /**< RRAMC invalid life cycle state */
+    M33SYSCPUSS_RRAMC_MMIO_RECLAIMED_REGION_SIZE_FAULT = 0x0031u, /**< RRAMC invalid reclaimed size */
+    M33SYSCPUSS_RRAMC_RRAM_SFR_NVM_HRESP_FAULT = 0x0032u, /**< RRAMC AHB bus error*/
+    M33SYSCPUSS_RRAMC_BANK_MAPPING_FAULT = 0x0033u, /**< RRAMC invalid bank mapping */
+    M33SYSCPUSS_RRAMC_MMIO_TB_GATING_CTL_FAULT = 0x0034u, /**< RRAMC invalid turn-off tag bit gating control */
+    M33SYSCPUSS_RRAMC_MMIO_PC_LOCK_FAULT = 0x0035u /**< RRAMC invalid protection context lock */
+} en_sysfault_source_t;
+#endif
+
 /** \} group_sysfault_enums */
 
 
@@ -218,7 +293,6 @@ typedef struct {
     bool       OutputEnable;    /**< Enables the output signal when it is True */
     bool       ResetEnable;     /**< Enables the Reset request  when it is True */
 } cy_stc_SysFault_t;
-
 
 /** \} group_sysfault_data_structures */
 

@@ -161,6 +161,7 @@ cy_en_syspm_status_t cybsp_dsram_smif_power_up_callback(
             // Put external memory to low power mode
             retVal = (cy_en_syspm_status_t)Cy_SMIF_MemCmdPowerDown(SMIF0, smifConfigLocal[0],
                                                                    &cybsp_smif_context);
+            cybsp_smif_disable();
             break;
         }
 
@@ -168,6 +169,7 @@ cy_en_syspm_status_t cybsp_dsram_smif_power_up_callback(
         {
             if (!Cy_SysLib_IsDSRAMWarmBootEntry())
             {
+                cybsp_smif_enable();
                 // Return external memory to normal operation from low power modes
                 cy_en_smif_status_t smif_functions_status = Cy_SMIF_MemCmdReleasePowerDown(SMIF0,
                                                                                            smifConfigLocal[
@@ -225,8 +227,8 @@ cy_en_syspm_status_t cybsp_deepsleep_ram_callback(cy_stc_syspm_callback_params_t
 
         case CY_SYSPM_AFTER_TRANSITION:
         {
-            /* Currently only GCC_ARM compiler is supported for DS-RAM Warmboot Re-entry*/
-            #if defined(__GNUC__) && !defined(__ARMCC_VERSION)
+            /* Currently GCC and ARMCC supported */
+            #if defined(__GNUC__) || defined(__ARMCC_VERSION)
             Cy_Syslib_SetWarmBootEntryPoint((uint32_t*)&syspmBspDeepSleepEntryPoint, true);
             #endif
 
@@ -241,6 +243,69 @@ cy_en_syspm_status_t cybsp_deepsleep_ram_callback(cy_stc_syspm_callback_params_t
     return retVal;
 }
 
+
+//--------------------------------------------------------------------------------------------------
+// cybsp_hibernate_callback
+//--------------------------------------------------------------------------------------------------
+#if defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
+CY_SECTION_RAMFUNC_BEGIN
+cy_en_syspm_status_t cybsp_hibernate_callback(cy_stc_syspm_callback_params_t* callbackParams,
+                                              cy_en_syspm_callback_mode_t mode)
+{
+    cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
+    CY_UNUSED_PARAMETER(callbackParams);
+    extern cy_stc_smif_context_t cybsp_smif_context;
+
+    switch (mode)
+    {
+        case CY_SYSPM_CHECK_READY:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+            break;
+        }
+
+        case CY_SYSPM_CHECK_FAIL:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+            break;
+        }
+
+        case CY_SYSPM_BEFORE_TRANSITION:
+        {
+            // Put external memory to low power mode
+            retVal = (cy_en_syspm_status_t)Cy_SMIF_MemCmdPowerDown(SMIF0, smifConfigLocal[0],
+                                                                   &cybsp_smif_context);
+            break;
+        }
+
+        case CY_SYSPM_AFTER_TRANSITION:
+        {
+            // Return external memory to normal operation from low power modes
+            cy_en_smif_status_t smif_functions_status = Cy_SMIF_MemCmdReleasePowerDown(SMIF0,
+                                                                                       smifConfigLocal[
+                                                                                           0],
+                                                                                       &cybsp_smif_context);
+            if (CY_SMIF_SUCCESS == smif_functions_status)
+            {
+                smif_functions_status = cybsp_is_memory_ready(smifConfigLocal[0]);
+                if (CY_SMIF_SUCCESS == smif_functions_status)
+                {
+                    retVal = CY_SYSPM_SUCCESS;
+                }
+            }
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return retVal;
+}
+
+
+CY_SECTION_RAMFUNC_END
+#endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////// BSP PM callbacks config structures ////////////////////////////////////
@@ -278,6 +343,15 @@ static cy_stc_syspm_callback_t        cybsp_dsram_smif_pu_callback       =
     .callbackParams = &cybsp_dsram_smif_pu_callback_param,
     .order          = CYBSP_EXT_MEMORY_PM_CALLBACK_ORDER
 };
+
+static cy_stc_syspm_callback_params_t cybsp_hibernate_pm_callback_param = { NULL, NULL };
+static cy_stc_syspm_callback_t        cybsp_hibernate_pm_callback       =
+{
+    .callback       = &cybsp_hibernate_callback,
+    .type           = CY_SYSPM_HIBERNATE,
+    .callbackParams = &cybsp_hibernate_pm_callback_param,
+    .order          = CYBSP_EXT_MEMORY_PM_CALLBACK_ORDER
+};
 #endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
 
 static cy_stc_syspm_callback_params_t cybsp_ds_ram_pm_callback_param = { NULL, NULL };
@@ -300,6 +374,7 @@ cy_stc_syspm_callback_t* _cybsp_callbacks_array[] =
     #if defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
     &cybsp_smif_pu_callback,
     &cybsp_dsram_smif_pu_callback,
+    &cybsp_hibernate_pm_callback,
     #endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
     &cybsp_ds_ram_pm_callback
 };

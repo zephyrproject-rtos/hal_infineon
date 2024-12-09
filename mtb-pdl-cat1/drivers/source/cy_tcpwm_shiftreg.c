@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_tcpwm_shiftreg.c
-* \version 1.60
+* \version 1.70
 *
 * \brief
 *  The source file of the tcpwm driver.
@@ -67,7 +67,7 @@ cy_en_tcpwm_status_t Cy_TCPWM_ShiftReg_Init(TCPWM_Type const *base, uint32_t cnt
                 _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_QUAD_ENCODING_MODE,
                     (config->invertShiftRegOut | (config->invertShiftRegOutN << 1U))) |
                 _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_PWM_DISABLE_MODE, config->shiftRegOnDisable) |
-#if (CY_IP_MXTCPWM_VERSION >= 3U)
+#if defined (CY_IP_MXS40TCPWM)
                 _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED, config->buffer_swap_enable) |
 #endif
                 (enabled_bit ? TCPWM_GRP_CNT_V2_CTRL_ENABLED_Msk : 0UL));

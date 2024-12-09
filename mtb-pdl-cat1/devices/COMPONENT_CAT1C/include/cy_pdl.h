@@ -30,6 +30,7 @@
 #include "cy_device.h"
 #include "cy_device_headers.h"
 
+#include "cy_axidmac.h"
 #include "cy_adcmic.h"
 #include "cy_crypto.h"
 #include "cy_crypto_core.h"
@@ -56,7 +57,6 @@
 #include "cy_tcpwm_counter.h"
 #include "cy_tcpwm_quaddec.h"
 #include "cy_tcpwm_shiftreg.h"
-#include "cy_tdm.h"
 #include "cy_i2s.h"
 #include "cy_pdm_pcm_v2.h"
 #include "cy_rtc.h"

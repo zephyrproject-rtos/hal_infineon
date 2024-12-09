@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_csd.c
-* \version 1.20.1
+* \version 1.20.2
 *
 * The source file of the CSD driver.
 *
@@ -279,7 +279,7 @@ cy_en_csd_status_t Cy_CSD_Configure(CSD_Type * base, const cy_stc_csd_config_t *
 ****************************************************************************//**
 *
 * Adjusts the provided reference voltage based on factory trimmed 
-* SFALSH Vref trim registers.
+* SFLASH Vref trim registers.
 * 
 * This function is mainly used by CSDADC middleware only to get the most
 * accurate reference voltage possible.

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_sema.c
-* \version 1.91
+* \version 1.130
 *
 *  Description:
 *   IPC Semaphore Driver - This source file contains the source code for the
@@ -25,7 +25,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) || (defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U))
+#if defined (CY_IP_M4CPUSS) || defined (CY_IP_M7CPUSS) || defined (CY_IP_MXIPC)
 
 #include "cy_ipc_drv.h"
 #include "cy_ipc_sema.h"
@@ -274,6 +274,9 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Set(uint32_t semaNumber, bool preemptable)
     #if defined(CY_IPC_SECURE_SEMA_DEVICE)
         semaNum = CY_IPC_SEMA_GET_NUM(semaNumber);
         semaStruct = (cy_stc_ipc_sema_t *)(GET_ALIAS_ADDRESS(Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct)));
+    #elif defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==1)
+        semaNum = semaNumber;
+        semaStruct = (cy_stc_ipc_sema_t *)(GET_ALIAS_ADDRESS(Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct)));
     #else
         semaNum = semaNumber;
         semaStruct = (cy_stc_ipc_sema_t *)Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct);
@@ -289,6 +292,8 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Set(uint32_t semaNumber, bool preemptable)
         semaMask = (uint32_t)(1UL << (semaNum - (semaIndex * CY_IPC_SEMA_PER_WORD) ));
     #if defined(CY_IPC_SECURE_SEMA_DEVICE)
         ptrArray = CY_IPC_SEMA_IS_SEC(semaNumber) ? semaStruct->arrayPtr_sec : (uint32_t*)GET_ALIAS_ADDRESS(semaStruct->arrayPtr);
+    #elif defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==1)
+        ptrArray = (uint32_t*)GET_ALIAS_ADDRESS(semaStruct->arrayPtr);
     #else
         ptrArray = semaStruct->arrayPtr;
     #endif
@@ -396,6 +401,9 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Clear(uint32_t semaNumber, bool preemptable)
     #if defined(CY_IPC_SECURE_SEMA_DEVICE)
         semaNum = CY_IPC_SEMA_GET_NUM(semaNumber);
         semaStruct = (cy_stc_ipc_sema_t *)(GET_ALIAS_ADDRESS(Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct)));
+    #elif defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==1)
+        semaNum = semaNumber;
+        semaStruct = (cy_stc_ipc_sema_t *)(GET_ALIAS_ADDRESS(Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct)));
     #else
         semaNum = semaNumber;
         semaStruct = (cy_stc_ipc_sema_t *)Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct);
@@ -411,6 +419,8 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Clear(uint32_t semaNumber, bool preemptable)
         semaMask = (uint32_t)(1UL << (semaNum - (semaIndex * CY_IPC_SEMA_PER_WORD) ));
     #if defined(CY_IPC_SECURE_SEMA_DEVICE)
         ptrArray = CY_IPC_SEMA_IS_SEC(semaNumber) ? semaStruct->arrayPtr_sec : (uint32_t*)GET_ALIAS_ADDRESS(semaStruct->arrayPtr);
+    #elif defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==1)
+        ptrArray = (uint32_t*)GET_ALIAS_ADDRESS(semaStruct->arrayPtr);
     #else
         ptrArray = semaStruct->arrayPtr;
     #endif
@@ -499,6 +509,9 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Status(uint32_t semaNumber)
     #if defined(CY_IPC_SECURE_SEMA_DEVICE)
         semaNum = CY_IPC_SEMA_GET_NUM(semaNumber);
         semaStruct = (cy_stc_ipc_sema_t *)(GET_ALIAS_ADDRESS(Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct)));
+    #elif defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==1)
+        semaNum = semaNumber;
+        semaStruct = (cy_stc_ipc_sema_t *)(GET_ALIAS_ADDRESS(Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct)));
     #else
         semaNum = semaNumber;
         semaStruct = (cy_stc_ipc_sema_t *)Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct);
@@ -515,6 +528,8 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Status(uint32_t semaNumber)
         semaMask = (uint32_t)(1UL << (semaNum - (semaIndex * CY_IPC_SEMA_PER_WORD) ));
     #if defined(CY_IPC_SECURE_SEMA_DEVICE)
         ptrArray = CY_IPC_SEMA_IS_SEC(semaNumber) ? semaStruct->arrayPtr_sec : (uint32_t*)GET_ALIAS_ADDRESS(semaStruct->arrayPtr);
+    #elif defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==1)
+        ptrArray = (uint32_t*)GET_ALIAS_ADDRESS(semaStruct->arrayPtr);
     #else
         ptrArray = semaStruct->arrayPtr;
     #endif
@@ -558,7 +573,7 @@ uint32_t Cy_IPC_Sema_GetMaxSems(void)
     cy_stc_ipc_sema_t      *semaStruct;
 
     /* Get pointer to structure */
-    #if defined(CY_IPC_SECURE_SEMA_DEVICE)
+    #if defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==1)
         semaStruct = (cy_stc_ipc_sema_t *)(GET_ALIAS_ADDRESS(Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct)));
     #else
         semaStruct = (cy_stc_ipc_sema_t *)Cy_IPC_Drv_ReadDataValue(cy_semaIpcStruct);

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite.h
-* \version 2.30
+* \version 2.50
 *
 * \brief
 *  This file provides interface header
@@ -57,8 +57,6 @@
 * operations. The Cryptolite driver header file declare all the required structures
 * for context.
 *
-* Note: Cryptolite works only with SAHB mapped address, User must map any CBUS mapped
-*       address to SAHB address before using the API.
 *
 * \section group_cryptolite_sha256_definitions Definitions
 *
@@ -182,6 +180,22 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.50</td>
+*     <td>
+*         <ul>
+*         <li>Support for AES-CCM, AES-CMAC, AES-CBC-MAC & AES multistage for modes ECB, CBC, CFB, CTR added.</li>
+*         <li>Support for HKDF added.</li>
+*         <li>Support for ECC key pair generation & ECDSA Sign added .</li>
+*         </ul>
+*     </td>
+*     <td></td>
+*   </tr>
+*   <tr>
+*     <td>2.40</td>
+*     <td>Updated value of CY_CRYPTOLITE_DEF_TRNG_GARO macro.</td>
+*     <td>Usability enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>2.30</td>
 *     <td>Updated APIs \ref Cy_Cryptolite_ECC_VerifyHash and \ref Cy_Cryptolite_Aes_Ctr.</td>
 *     <td>Support for ECDSA verify for HASHZERO message added and MISRA 2012 violation fix</td>
@@ -222,17 +236,25 @@
 *   \{
 *     \defgroup group_cryptolite_lld_sha_functions Functions
 *   \}
-*   \defgroup group_cryptolite_lld_hmac Message Authentication Code (HMAC)
+*   \defgroup group_cryptolite_lld_mac Message Authentication Code (HMAC, CMAC)
 *   \{
-*     \defgroup group_cryptolite_lld_hmac_functions Functions
+*     \defgroup group_cryptolite_lld_mac_functions Functions
 *   \}
 *   \defgroup group_cryptolite_lld_aes Symmetric Key Algorithm (AES)
 *   \{
 *     \defgroup group_cryptolite_lld_aes_functions Functions
 *   \}
+*   \defgroup group_cryptolite_lld_kdf Key Derivative Function (HKDF)
+*   \{
+*     \defgroup group_cryptolite_lld_kdf_functions Functions
+*   \}
 *   \defgroup group_cryptolite_lld_asymmetric Asymmetric Key Algorithm (RSA,ECP,ECDSA)
 *   \{
 *     \defgroup group_cryptolite_lld_asymmetric_functions Functions
+*   \}
+*   \defgroup group_cryptolite_lld_keygen  Key Generation (ECP)
+*   \{
+*     \defgroup group_cryptolite_lld_keygen_functions Functions
 *   \}
 *   \defgroup group_cryptolite_lld_random_number Random Number Generation(TRNG)
 *   \{
@@ -260,7 +282,10 @@
 #include "cy_cryptolite_rsa.h"
 #include "cy_cryptolite_trng.h"
 #include "cy_cryptolite_aes.h"
-
+#include "cy_cryptolite_aes_ccm.h"
+#include "cy_cryptolite_ecc_key_gen.h"
+#include "cy_cryptolite_hkdf.h"
+#include "cy_cryptolite_cmac.h"
 
 #endif /* CY_IP_MXCRYPTOLITE */
 

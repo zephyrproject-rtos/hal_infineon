@@ -357,11 +357,15 @@ extern "C" {
 /** Pin: WIFI Host Wakeup \def CYBSP_WIFI_HOST_WAKE
  */
 
+#ifndef CYBSP_WIFI_HOST_WAKE_GPIO_DM
 /** WiFi host-wake GPIO drive mode */
 #define CYBSP_WIFI_HOST_WAKE_GPIO_DM (CYHAL_GPIO_DRIVE_ANALOG)
+#endif
+#ifndef CYBSP_WIFI_HOST_WAKE_IRQ_EVENT
 /** WiFi host-wake IRQ event */
 #define CYBSP_WIFI_HOST_WAKE_IRQ_EVENT (CYHAL_GPIO_IRQ_RISE)
 #endif
+#endif // ifdef CYBSP_WIFI_HOST_WAKE
 #ifdef CYBSP_BT_UART_RX
 /** Pin: BT UART RX \def CYBSP_BT_UART_RX
  */

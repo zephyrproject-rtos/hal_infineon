@@ -359,8 +359,15 @@ uint32_t _cyhal_utils_get_clock_count(cyhal_clock_block_t block)
             return PERI_DIV_16_5_NR;
         case CYHAL_CLOCK_BLOCK_PERIPHERAL_24_5BIT:
             return PERI_DIV_24_5_NR;
+        #if defined(SRSS_HT_VARIANT) && (SRSS_HT_VARIANT > 0)
+        case CYHAL_CLOCK_BLOCK_PLL200:
+            return SRSS_NUM_PLL200M;
+        case CYHAL_CLOCK_BLOCK_PLL400:
+            return SRSS_NUM_PLL400M;
+        #else
         case CYHAL_CLOCK_BLOCK_PLL:
             return SRSS_NUM_PLL;
+        #endif
         #elif defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C)
         #if (PERI_PERI_PCLK_PCLK_GROUP_NR > 0)
         _CYHAL_MXSPERI_PCLK_DIV_CNT(0);
@@ -533,12 +540,17 @@ cy_rslt_t _cyhal_utils_allocate_clock(cyhal_clock_t *clock, const cyhal_resource
             break;
 #endif
         case CYHAL_RSC_CLOCK:
+            CY_UNUSED_PARAMETER(clock_rsc);
             CY_ASSERT(false); /* Use APIs provided by the clock driver */
             return CYHAL_CLOCK_RSLT_ERR_NOT_SUPPORTED;
         default:
+            CY_UNUSED_PARAMETER(clock_rsc);
             return _cyhal_utils_allocate_peri(clock, 0, div, accept_larger);
     }
+#if defined(CY_DEVICE_PSOC6ABLE2) || defined(CY_DEVICE_PSOC6A2M) || defined(CY_DEVICE_PSOC6A512K) || defined(CY_DEVICE_PSOC6A256K)
+    /* These devices don't return their value in the above switch statement - return the value here. */
     return cyhal_clock_reserve(clock, &clock_rsc);
+#endif
 }
 #elif defined(COMPONENT_CAT1C)
 cy_rslt_t _cyhal_utils_allocate_clock(cyhal_clock_t *clock, const cyhal_resource_inst_t *clocked_item, cyhal_clock_block_t div, bool accept_larger)

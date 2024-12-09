@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hmac_v2.h
-* \version 2.90
+* \version 2.120
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -48,6 +48,9 @@ extern "C" {
 
 /** \cond INTERNAL */
 
+#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
+CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
+#endif
 typedef struct
 {
     /* Allocates CY_CRYPTO_HMAC_MAX_PAD_SIZE Bytes for the inner padding. */

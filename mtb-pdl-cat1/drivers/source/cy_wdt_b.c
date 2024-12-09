@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_wdt_b.c
-* \version 1.60
+* \version 1.80
 *
 *  This file provides the source code to the API for the WDT version B driver.
 *
@@ -24,7 +24,7 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)
+#if defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)
 
 #include "cy_wdt.h"
 

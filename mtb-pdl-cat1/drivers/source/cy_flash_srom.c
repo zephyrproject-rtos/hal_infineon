@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash_srom.c
-* \version 3.70
+* \version 3.110
 *
 * \brief
 * Provides functions for controlling the SROM APIs.
@@ -13,7 +13,7 @@
 * the software package with which this file was provided.
 *******************************************************************************/
 #include "cy_device.h"
-#if defined (CY_IP_M7CPUSS)
+#if defined (CY_IP_MXFLASHC_VERSION_ECT)
 #include "cy_flash_srom.h"
 #include "cy_ipc_drv.h"
 
@@ -491,7 +491,18 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.1', 3, \
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.4', 1, \
 'Checked manually. Intentional  expression "NvicMux3_IRQn" of type enum is used as an operand to the arithmetic operator "<<".')
     const cy_stc_sysint_t irq_cfg = {
-        .intrSrc = ((NvicMux3_IRQn << 16UL) | CY_SROM_DR_IPC_INTR_NO),
+#if defined (CY_IP_M7CPUSS)
+        /* Shift the interrupt source to the upper INTRSRC bits. */
+        .intrSrc = ((NvicMux3_IRQn << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | CY_SROM_DR_IPC_INTR_NO),
+#elif (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+        /* Shift the interrupt source to the upper INTRSRC bits. */
+        .intrSrc = (IRQn_Type)((NvicMux3_IRQn << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | CY_SROM_DR_IPC_INTR_NO),
+#else
+        .intrSrc = (IRQn_Type)(CY_SROM_DR_IPC_INTR_NO),
+        #if (CY_CPU_CORTEX_M0P) && defined (CY_IP_M4CPUSS)
+        .cm0pSrc = (uint32_t) NvicMux3_IRQn,
+        #endif
+#endif
         .intrPriority = 2UL,
     };
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.4')
