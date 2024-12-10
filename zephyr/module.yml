@@ -353,3 +353,13 @@ blobs:
     url: https://github.com/Infineon/bless/raw/latest-v3.X/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_manager.a
     description: "BLESS Bluetooth Controller FW"
     doc-url: https://github.com/Infineon/bless
+
+# flashloader
+  - path: flashloader/TARGET_CYW920829M2EVK-02/CYW208xx_SMIF_64K.FLM
+    sha256: 30e64d11e7c1087c46d5691b71943a2d9fac9249928222a1a9946172a9954d3f
+    type: img
+    version: '1.1.0.250'
+    license-path: ./LICENSE.txt
+    url: https://github.com/npal-cy/TARGET_CYW920829M2EVK-02/raw/refs/heads/master/config/GeneratedSource/CYW208xx_SMIF.FLM
+    description: "CYW20829 flashloader for openocd"
+    doc-url: https://github.com/npal-cy/TARGET_CYW920829M2EVK-02/blob/master/README.md
