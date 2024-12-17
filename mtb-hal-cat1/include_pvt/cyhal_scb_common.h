@@ -92,6 +92,8 @@ typedef enum
 
 /** The mask of available SCB blocks */
 extern const uint32_t _CYHAL_SCB_AVAILABLE_BLOCKS_MASK;
+/** The SCB block based on internal array index */
+extern const uint8_t _CYHAL_SCB_BASE_ADDRESS_INDEX[_SCB_ARRAY_SIZE];
 /** The start address of the SCB blocks */
 extern CySCB_Type* const _CYHAL_SCB_BASE_ADDRESSES[_SCB_ARRAY_SIZE];
 /** The interrupt number of the SCB blocks. */
