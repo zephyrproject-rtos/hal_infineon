@@ -70,7 +70,7 @@ extern void cybt_platform_exception_handler(cybt_exception_t error, uint8_t *inf
  *                           Function Definitions
  ******************************************************************************/
 BTSTACK_PORTING_SECTION_BEGIN
-static uint8_t task_queue_utilization(void)
+uint8_t task_queue_utilization(void)
 {
     size_t item_cnt_in_queue = 0;
     cy_rslt_t result;
@@ -310,4 +310,3 @@ void cybt_bttask_deinit(void)
      * Below call will wait on internal semaphore and it will set on cy_rtos_exit_thread() */
     cy_rtos_join_thread(&bt_task);
 }
-
