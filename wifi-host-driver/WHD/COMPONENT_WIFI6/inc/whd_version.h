@@ -1,0 +1,3 @@
+#define WHD_VERSION "4.2.1.25171"
+#define WHD_BRANCH "11ax v4.2.1"
+#define WHD_DATE "2024-12-05 09:29:03 -0600"
