@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hkdf.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -79,7 +79,7 @@ extern "C" {
 * \ref cy_en_crypto_status_t
 *
 *******************************************************************************/
-__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf_Extract(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf_Extract(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t  const *salt,
                                           uint32_t saltLength,
                                           uint8_t  const *ikm,
@@ -110,7 +110,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf_Extract(CRYPTO_Type *b
 
 
     return tmpResult;
-}   
+}
 
 
 
@@ -148,7 +148,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf_Extract(CRYPTO_Type *b
 * \ref cy_en_crypto_status_t
 *
 *******************************************************************************/
-__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf_Expand(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf_Expand(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t  const *prk,
                                           uint32_t prkLength,
                                           uint8_t  const *info,
@@ -222,7 +222,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf_Expand(CRYPTO_Type *ba
 * \ref cy_en_crypto_status_t
 *
 *******************************************************************************/
-__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+__STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t  const *salt,
                                           uint32_t saltLength,
                                           uint8_t  const *ikm,
@@ -242,7 +242,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf(CRYPTO_Type *base, cy_
         (void)base; /* Suppress a compiler warning about unused variables */
         (void)mode; /* Suppress a compiler warning about unused variables */
         (void)salt; /* Suppress a compiler warning about unused variables */
-        (void)saltLength; /* Suppress a compiler warning about unused variables */    
+        (void)saltLength; /* Suppress a compiler warning about unused variables */
         (void)ikm; /* Suppress a compiler warning about unused variables */
         (void)ikmLength; /* Suppress a compiler warning about unused variables */
         (void)info; /* Suppress a compiler warning about unused variables */
@@ -261,7 +261,7 @@ __STATIC_INLINE cy_en_crypto_status_t Cy_Crypto_Core_Hkdf(CRYPTO_Type *base, cy_
 
     return tmpResult;
 
-}                                          
+}
 
 /** \} group_crypto_lld_kdf_functions */
 

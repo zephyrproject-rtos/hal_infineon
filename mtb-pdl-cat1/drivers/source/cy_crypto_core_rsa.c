@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_rsa.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the source code to the API to calculate
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *

@@ -108,6 +108,12 @@ extern "C" {
 /** No channels available */
 #define CYHAL_ADC_RSLT_NO_CHANNELS                      \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_ADC, 3))
+/** Hardware/Operation is busy */
+#define CYHAL_ADC_RSLT_ERR_BUSY                         \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_ADC, 4))
+/** Unsupported by this device */
+#define CYHAL_ADC_RSLT_ERR_UNSUPPORTED                  \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_ADC, 5))
 
 /**
  * \}

@@ -348,7 +348,7 @@ cy_rslt_t cyhal_pwm_init_adv(cyhal_pwm_t *obj, cyhal_gpio_t pin, cyhal_gpio_t co
     else
     {
         _CYHAL_UTILS_ASSIGN_RESOURCE(obj->tcpwm.resource, CYHAL_RSC_TCPWM, map);
-        obj->tcpwm.base     = _CYHAL_TCPWM_DATA[_CYHAL_TCPWM_ADJUST_BLOCK_INDEX(obj->tcpwm.resource.block_num)].base;
+        obj->tcpwm.base = _CYHAL_TCPWM_DATA[_CYHAL_TCPWM_ADJUST_BLOCK_INDEX(obj->tcpwm.resource.block_num)].base;
     }
 
     if(CY_RSLT_SUCCESS == result)
@@ -475,7 +475,7 @@ cy_rslt_t cyhal_pwm_set_period(cyhal_pwm_t *obj, uint32_t period_us, uint32_t pu
     return result;
 }
 
-cy_rslt_t cyhal_pwm_set_duty_cycle(cyhal_pwm_t *obj, float duty_cycle, uint32_t frequencyhal_hz)
+cy_rslt_t cyhal_pwm_set_duty_cycle(cyhal_pwm_t *obj, cy_float32_t duty_cycle, uint32_t frequencyhal_hz)
 {
     CY_ASSERT(NULL != obj);
     if (duty_cycle < 0.0f || duty_cycle > 100.0f || frequencyhal_hz < 1)

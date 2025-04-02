@@ -30,11 +30,14 @@
 #if defined(COMPONENT_CAT1B)
 #include "cy_syslib.h"
 #endif
+#if defined(COMPONENT_CAT1E)
+#include "system_cat1e.h"
+#endif
 
 void vPortSetupTimerInterrupt(void);
 void Cy_SysPm_StoreDSContext_Wfi(void);
 
-#if defined(COMPONENT_CAT1B)
+#if defined (COMPONENT_CAT1B) || defined (COMPONENT_CAT1E)
 //--------------------------------------------------------------------------------------------------
 // vStoreDSRAMContextWithWFI
 //--------------------------------------------------------------------------------------------------

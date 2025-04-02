@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smif_memslot.c
-* \version 2.100
+* \version 2.130
 *
 * \brief
 *  This file provides the source code for the memory-level APIs of the SMIF driver.
@@ -9,7 +9,8 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2022 Cypress Semiconductor Corporation
+* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,10 +28,11 @@
 
 #include "cy_device.h"
 
-#if defined (CY_IP_MXSMIF) && (CY_IP_MXSMIF_VERSION <= 5)
+#if defined (CY_IP_MXSMIF)
 
 #include "cy_smif_memslot.h"
 #include "cy_gpio.h"
+#include <string.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -61,17 +63,17 @@ extern "C" {
 * Note that this function performs SFDP on all the external memories whereas
 * \ref Cy_SMIF_MemSfdpDetect performs it only on one memory that is specified
 * through the arguments. This function configures the SMIF device slot registers
-* with the configuration from \ref cy_stc_smif_mem_config_t structure which is 
+* with the configuration from \ref cy_stc_smif_mem_config_t structure which is
 * a member of the \ref cy_stc_smif_block_config_t structure. If SFDP discovery
 * is enabled in the configuration structure through autoDetectSfdp field,
 * this function calls \ref Cy_SMIF_MemSfdpDetect function for each memory,
 * fills the structures with the discovered parameters, and configures the
-* SMIF device slot registers accordingly. \ref Cy_SMIF_Init must have been 
+* SMIF device slot registers accordingly. \ref Cy_SMIF_Init must have been
 * called prior to calling this function.
 * The \ref cy_stc_smif_context_t context structure returned from \ref Cy_SMIF_Init
 * is passed as a parameter to this function.
 *
-* \note 4-byte addressing mode is set when the memory device supports 
+* \note 4-byte addressing mode is set when the memory device supports
 *       3- or 4-byte addressing mode.
 *
 * \param base
@@ -106,7 +108,7 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
     uint32_t sfdpRes =(uint32_t)CY_SMIF_SUCCESS;
     uint32_t idx;
 
-    if ((NULL != base) && (NULL != blockConfig) && (NULL != blockConfig->memConfig) 
+    if ((NULL != base) && (NULL != blockConfig) && (NULL != blockConfig->memConfig)
         && (NULL != context) && (0U != blockConfig->memCount))
     {
         uint32_t size = blockConfig->memCount;
@@ -137,6 +139,8 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
                    In case of power consumption impact we have to optimize this setting */
                 SMIF_CLK_DRIVE_STRENGTH(base) = ((CY_GPIO_DRIVE_FULL) | (CY_GPIO_DRIVE_FULL << 8U));
                 SMIF_RWDS_DRIVE_STRENGTH(base) = CY_GPIO_DRIVE_FULL;
+                SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_NEG_SDL_TAP_SEL, 1U);
+                SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_POS_SDL_TAP_SEL, 1U);
 #endif
 
                 /* SPI(deviceCfg) and Hyperbus(hbdeviceCfg) are mutually exclusive and if both are initialized, priority would be for SPI(deviceCfg) */
@@ -175,9 +179,9 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
                             /* Check valid parameters for XIP */
                             CY_ASSERT_L3(MEM_ADDR_VALID( memCfg->baseAddress, memCfg->memMappedSize));
                             CY_ASSERT_L3(MEM_MAPPED_SIZE_VALID( memCfg->memMappedSize));
-                            
+
                             XipRegInit(device, memCfg);
-                            
+
     #if(CY_IP_MXSMIF_VERSION>=2)
                             context->preXIPDataRate = memCfg->deviceCfg->readCmd->dataRate;
     #endif /* CY_IP_MXSMIF_VERSION */
@@ -309,14 +313,14 @@ cy_en_smif_status_t Cy_SMIF_MemCmdWriteEnable(SMIF_Type *base,
 {
     /* The memory Write Enable */
     cy_stc_smif_mem_cmd_t* writeEn = memDevice->deviceCfg->writeEnCmd;
-    
+
     cy_en_smif_status_t result = CY_SMIF_CMD_NOT_FOUND;
-    
+
     if(NULL != writeEn)
     {
 #if (CY_IP_MXSMIF_VERSION>=2)
         result = Cy_SMIF_TransmitCommand_Ext( base,
-                                (uint16_t)(writeEn->command | writeEn->command << 8),
+                                (uint16_t)(writeEn->command | writeEn->commandH << 8),
                                 (writeEn->cmdWidth == CY_SMIF_WIDTH_OCTAL) ? true : false,
                                 writeEn->cmdWidth,
                                 writeEn->cmdRate,
@@ -378,12 +382,12 @@ cy_en_smif_status_t Cy_SMIF_MemCmdWriteDisable(SMIF_Type *base,
     cy_stc_smif_mem_cmd_t* writeDis = memDevice->deviceCfg->writeDisCmd;
 
     cy_en_smif_status_t result = CY_SMIF_CMD_NOT_FOUND;
-    
+
     if(NULL != writeDis)
     {
 #if (CY_IP_MXSMIF_VERSION>=2)
         result = Cy_SMIF_TransmitCommand_Ext( base,
-                                (uint16_t)(writeDis->command | writeDis->command << 8),
+                                (uint16_t)(writeDis->command | writeDis->commandH << 8),
                                 (writeDis->cmdWidth == CY_SMIF_WIDTH_OCTAL) ? true : false,
                                 writeDis->cmdWidth,
                                 writeDis->cmdRate,
@@ -406,7 +410,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdWriteDisable(SMIF_Type *base,
                                           context);
 #endif
     }
-    
+
     return result;
 }
 
@@ -438,7 +442,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdWriteDisable(SMIF_Type *base,
 *       - True - The device is busy or a timeout occurs.
 *       - False - The device is not busy.
 *
-* \note Check \ref group_smif_usage_rules for any usage restriction 
+* \note Check \ref group_smif_usage_rules for any usage restriction
 *
 *******************************************************************************/
 bool Cy_SMIF_MemIsBusy(SMIF_Type *base, cy_stc_smif_mem_config_t const *memDevice,
@@ -456,7 +460,7 @@ bool Cy_SMIF_MemIsBusy(SMIF_Type *base, cy_stc_smif_mem_config_t const *memDevic
             uint8_t addr_param[4] = {0};
             /* Read the memory status register */
             readStsResult = Cy_SMIF_TransmitCommand_Ext( base,
-                        (uint16_t)(device->readStsRegWipCmd->command | (device->readStsRegWipCmd->command << 8)),
+                        (uint16_t)(device->readStsRegWipCmd->command | (device->readStsRegWipCmd->commandH << 8)),
                         true,
                         device->readStsRegWipCmd->cmdWidth,
                         device->readStsRegWipCmd->cmdRate,
@@ -534,7 +538,7 @@ bool Cy_SMIF_MemIsBusy(SMIF_Type *base, cy_stc_smif_mem_config_t const *memDevic
 *   - \ref CY_SMIF_BAD_PARAM
 *   - \ref CY_SMIF_CMD_NOT_FOUND
 *
-* \note Check \ref group_smif_usage_rules for any usage restriction 
+* \note Check \ref group_smif_usage_rules for any usage restriction
 *
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_MemQuadEnable(SMIF_Type *base,
@@ -542,7 +546,7 @@ cy_en_smif_status_t Cy_SMIF_MemQuadEnable(SMIF_Type *base,
                                     cy_stc_smif_context_t const *context)
 {
     cy_en_smif_status_t result= CY_SMIF_CMD_NOT_FOUND;
-    uint8_t statusReg[CY_SMIF_QE_BIT_STATUS_REG2_T1] = {0U};  
+    uint8_t statusReg[CY_SMIF_QE_BIT_STATUS_REG2_T1] = {0U};
     cy_stc_smif_mem_device_cfg_t* device =  memDevice->deviceCfg;
 
     /* Check that command exists */
@@ -769,7 +773,7 @@ cy_en_smif_status_t Cy_SMIF_MemOctalEnable(SMIF_Type *base,
 *       - \ref CY_SMIF_EXCEED_TIMEOUT
 *       - \ref CY_SMIF_CMD_NOT_FOUND
 *
-* \note Check \ref group_smif_usage_rules for any usage restriction 
+* \note Check \ref group_smif_usage_rules for any usage restriction
 *
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_MemCmdReadStatus(SMIF_Type *base,
@@ -783,7 +787,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdReadStatus(SMIF_Type *base,
     /* Read the memory status register */
     result = Cy_SMIF_TransmitCommand( base, command, CY_SMIF_WIDTH_SINGLE,
                 NULL, CY_SMIF_CMD_WITHOUT_PARAM,
-                CY_SMIF_WIDTH_NA, memDevice->slaveSelect, 
+                CY_SMIF_WIDTH_NA, memDevice->slaveSelect,
                 CY_SMIF_TX_NOT_LAST_BYTE, context);
 
     if (CY_SMIF_SUCCESS == result)
@@ -960,6 +964,9 @@ cy_en_smif_status_t Cy_SMIF_MemCmdSectorErase(SMIF_Type *base,
         {
             uint16_t eraseCommand = (uint16_t)((result == CY_SMIF_SUCCESS) ? (hybrInfo->eraseCmd) : (cmdErase->command));
 #if (CY_IP_MXSMIF_VERSION>=2)
+            uint16_t eraseCommandH = (uint16_t)((result == CY_SMIF_SUCCESS) ? (hybrInfo->eraseCmd) : (cmdErase->commandH));
+#endif
+#if (CY_IP_MXSMIF_VERSION>=2)
             if (device->eraseCmd->cmdWidth != CY_SMIF_WIDTH_OCTAL)
             {
 #endif
@@ -972,7 +979,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdSectorErase(SMIF_Type *base,
             }
             else
             {
-                result = Cy_SMIF_TransmitCommand_Ext( base, (eraseCommand | ((uint16_t)eraseCommand << 8)),
+                result = Cy_SMIF_TransmitCommand_Ext( base, (eraseCommand | ((uint16_t)eraseCommandH << 8)),
                     true,cmdErase->cmdWidth, cmdErase->cmdRate, sectorAddr, device->numOfAddrBytes,
                     cmdErase->cmdWidth, cmdErase->addrRate, memDevice->slaveSelect,
                     CY_SMIF_TX_LAST_BYTE, context);
@@ -993,7 +1000,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdSectorErase(SMIF_Type *base,
 * Function Name: Cy_SMIF_MemCmdProgram
 ****************************************************************************//**
 *
-* This function performs the Program operation. 
+* This function performs the Program operation.
 *
 * \note This function uses the  Cy_SMIF_TransmitCommand() API.
 * The Cy_SMIF_TransmitCommand() API works in the blocking mode. In the dual quad mode,
@@ -1011,11 +1018,11 @@ cy_en_smif_status_t Cy_SMIF_MemCmdSectorErase(SMIF_Type *base,
 * \param writeBuff
 * The pointer to the data to program. If this pointer is a NULL, then the
 * function does not enable the interrupt. This use case is  typically used when
-* the FIFO is handled outside the interrupt and is managed in either a 
-* polling-based code or a DMA. The user would handle the FIFO management 
-* in a DMA or a polling-based code. 
-* If the user provides a NULL pointer in this function and does not handle 
-* the FIFO transaction, this could either stall or timeout the operation 
+* the FIFO is handled outside the interrupt and is managed in either a
+* polling-based code or a DMA. The user would handle the FIFO management
+* in a DMA or a polling-based code.
+* If the user provides a NULL pointer in this function and does not handle
+* the FIFO transaction, this could either stall or timeout the operation
 * \ref Cy_SMIF_TransmitData().
 *
 * \param size
@@ -1053,7 +1060,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdProgram(SMIF_Type *base,
 
     cy_stc_smif_mem_device_cfg_t *device = memDevice->deviceCfg;
     cy_stc_smif_mem_cmd_t *cmdProg = device->programCmd;
-    
+
     if(NULL == cmdProg)
     {
         result = CY_SMIF_CMD_NOT_FOUND;
@@ -1071,7 +1078,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdProgram(SMIF_Type *base,
         if(cmdProg->cmdWidth == CY_SMIF_WIDTH_OCTAL)
         {
             /* The page program command */
-            result = Cy_SMIF_TransmitCommand_Ext( base, (uint16_t)(cmdProg->command | cmdProg->command << 8),
+            result = Cy_SMIF_TransmitCommand_Ext( base, (uint16_t)(cmdProg->command | cmdProg->commandH << 8),
                     true,
                     cmdProg->cmdWidth, cmdProg->cmdRate,
                     addr, device->numOfAddrBytes,
@@ -1156,13 +1163,13 @@ cy_en_smif_status_t Cy_SMIF_MemCmdProgram(SMIF_Type *base,
 * The address to read.
 *
 * \param readBuff
-* The pointer to the variable where the read data is stored. If this pointer is 
-* a NULL, then the function does not enable the interrupt. This use case is 
+* The pointer to the variable where the read data is stored. If this pointer is
+* a NULL, then the function does not enable the interrupt. This use case is
 * typically used when the FIFO is handled outside the interrupt and is managed
 * in either a  polling-based code or a DMA. The user would handle the FIFO
-* management in a DMA or a polling-based code. 
-* If the user provides a NULL pointer in this function and does not handle 
-* the FIFO transaction, this could either stall or timeout the operation 
+* management in a DMA or a polling-based code.
+* If the user provides a NULL pointer in this function and does not handle
+* the FIFO transaction, this could either stall or timeout the operation
 * \ref Cy_SMIF_TransmitData().
 *
 * \param size
@@ -1185,7 +1192,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdProgram(SMIF_Type *base,
 *       - \ref CY_SMIF_EXCEED_TIMEOUT
 *       - \ref CY_SMIF_CMD_NOT_FOUND
 *
-* \note Check \ref group_smif_usage_rules for any usage restriction 
+* \note Check \ref group_smif_usage_rules for any usage restriction
 *
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_MemCmdRead(SMIF_Type *base,
@@ -1213,7 +1220,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdRead(SMIF_Type *base,
     {
         slaveSelected = (0U == memDevice->dualQuadSlots)?  memDevice->slaveSelect :
                                (cy_en_smif_slave_select_t)memDevice->dualQuadSlots;
-                               
+
         result = Cy_SMIF_TransmitCommand( base, (uint8_t)cmdRead->command,
                     cmdRead->cmdWidth, addr, device->numOfAddrBytes,
                     cmdRead->addrWidth, slaveSelected, CY_SMIF_TX_NOT_LAST_BYTE,
@@ -1256,7 +1263,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdRead(SMIF_Type *base,
 * The memory device configuration.
 *
 * \param regionInfo
-* Places a hybrid region configuration structure that contains the region 
+* Places a hybrid region configuration structure that contains the region
 * specific parameters. See \ref cy_stc_smif_hybrid_region_info_t for
 * reference.
 *
@@ -1268,7 +1275,7 @@ cy_en_smif_status_t Cy_SMIF_MemCmdRead(SMIF_Type *base,
 *       - \ref CY_SMIF_NOT_HYBRID_MEM
 *       - \ref CY_SMIF_BAD_PARAM
 *
-* \funcusage 
+* \funcusage
 * \snippet smif/snippet/main.c snippet_Cy_SMIF_MemLocateHybridRegion
 *
 *******************************************************************************/
@@ -1340,7 +1347,7 @@ void Cy_SMIF_SetReadyPollingDelay(uint16_t pollTimeoutUs,
 ****************************************************************************//**
 *
 * Polls the memory device to check whether it is ready to accept new commands or
-* not until either it is ready or the retries have exceeded the limit. 
+* not until either it is ready or the retries have exceeded the limit.
 * This is a blocking function, it will block the execution flow until
 * the command transmission is completed.
 *
@@ -1351,7 +1358,7 @@ void Cy_SMIF_SetReadyPollingDelay(uint16_t pollTimeoutUs,
 * The memory device configuration.
 *
 * \param timeoutUs
-*  The timeout value in microseconds to apply while polling the memory. 
+*  The timeout value in microseconds to apply while polling the memory.
 *
 * \param context
 * This is the pointer to the context structure \ref cy_stc_smif_context_t
@@ -1363,19 +1370,19 @@ void Cy_SMIF_SetReadyPollingDelay(uint16_t pollTimeoutUs,
 * \ref CY_SMIF_SUCCESS        - Memory is ready to accept new commands.
 * \ref CY_SMIF_EXCEED_TIMEOUT - Memory is busy.
 *
-* \funcusage 
+* \funcusage
 * \snippet smif/snippet/main.c snippet_Cy_SMIF_MemIsReady
 *
 *******************************************************************************/
-cy_en_smif_status_t Cy_SMIF_MemIsReady(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig, 
+cy_en_smif_status_t Cy_SMIF_MemIsReady(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig,
                                        uint32_t timeoutUs, cy_stc_smif_context_t const *context)
-{ 
+{
     bool isBusy = Cy_SMIF_Memslot_IsBusy(base, (cy_stc_smif_mem_config_t* )memConfig, context);
 
     CY_ASSERT_L1(NULL != context);
 
     if (context->memReadyPollDelay > 0U)
-    {    
+    {
         if (isBusy)
         {
             uint16_t pollingDelay = (timeoutUs > context->memReadyPollDelay) ? context->memReadyPollDelay : (uint16_t)timeoutUs;
@@ -1402,20 +1409,20 @@ cy_en_smif_status_t Cy_SMIF_MemIsReady(SMIF_Type *base, cy_stc_smif_mem_config_t
             uint32_t delayMs = 0UL;
             uint32_t timeoutSlice = 0UL;
             uint16_t delayUs = 0U;
-        
+
             /* Calculate the slice of time to split the timeoutUs delay into TIMEOUT_SLICE_DIV times */
-            timeoutSlice = timeoutUs / TIMEOUT_SLICE_DIV; 
-            
+            timeoutSlice = timeoutUs / TIMEOUT_SLICE_DIV;
+
             /* Reduce the slice if needed to avoid too big idle period between checking the busy state */
             if (timeoutSlice > TIMEOUT_SLICE_MAX)
             {
                 timeoutSlice = TIMEOUT_SLICE_MAX;
             }
-            if(timeoutSlice == 0UL) 
+            if(timeoutSlice == 0UL)
             {
                 timeoutSlice = 1UL;
             }
-        
+
             do
             {
                 delayMs = timeoutSlice / 1000UL;
@@ -1434,9 +1441,9 @@ cy_en_smif_status_t Cy_SMIF_MemIsReady(SMIF_Type *base, cy_stc_smif_mem_config_t
                 }
 
                 isBusy = Cy_SMIF_Memslot_IsBusy(base, (cy_stc_smif_mem_config_t* )memConfig, context);
-        
+
                 timeoutUs = (timeoutUs > timeoutSlice) ? (timeoutUs - timeoutSlice) : 0UL;
-    
+
             } while(isBusy && (timeoutUs > 0UL));
         }
     }
@@ -1473,7 +1480,7 @@ cy_en_smif_status_t Cy_SMIF_MemIsReady(SMIF_Type *base, cy_stc_smif_mem_config_t
 *
 * \return The status of the operation. See \ref cy_en_smif_status_t.
 *
-* \funcusage 
+* \funcusage
 * \snippet smif/snippet/main.c snippet_Cy_SMIF_MemIsQuadEnabled
 *
 *******************************************************************************/
@@ -1515,7 +1522,7 @@ cy_en_smif_status_t Cy_SMIF_MemIsQuadEnabled(SMIF_Type *base, cy_stc_smif_mem_co
 * The memory device configuration.
 *
 * \param timeoutUs
-*  The timeout value in microseconds to apply while polling the memory. 
+*  The timeout value in microseconds to apply while polling the memory.
 *
 * \param context
 * This is the pointer to the context structure \ref cy_stc_smif_context_t
@@ -1525,11 +1532,11 @@ cy_en_smif_status_t Cy_SMIF_MemIsQuadEnabled(SMIF_Type *base, cy_stc_smif_mem_co
 *
 * \return The status of the operation. See \ref cy_en_smif_status_t.
 *
-* \funcusage 
+* \funcusage
 * See \ref Cy_SMIF_MemIsQuadEnabled usage.
 *
 *******************************************************************************/
-cy_en_smif_status_t Cy_SMIF_MemEnableQuadMode(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig, 
+cy_en_smif_status_t Cy_SMIF_MemEnableQuadMode(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig,
                                               uint32_t timeoutUs, cy_stc_smif_context_t const *context)
 {
     cy_en_smif_status_t status;
@@ -1585,12 +1592,12 @@ cy_en_smif_status_t Cy_SMIF_MemEnableQuadMode(SMIF_Type *base, cy_stc_smif_mem_c
 *
 * \return The status of the operation. See \ref cy_en_smif_status_t.
 *
-* \funcusage 
+* \funcusage
 * \snippet smif/snippet/main.c snippet_Cy_SMIF_MemRead
 *
 *******************************************************************************/
-cy_en_smif_status_t Cy_SMIF_MemRead(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig, 
-                                    uint32_t address, uint8_t rxBuffer[], 
+cy_en_smif_status_t Cy_SMIF_MemRead(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig,
+                                    uint32_t address, uint8_t rxBuffer[],
                                     uint32_t length, cy_stc_smif_context_t const *context)
 {
     cy_en_smif_status_t status = CY_SMIF_BAD_PARAM;
@@ -1724,9 +1731,9 @@ cy_en_smif_status_t Cy_SMIF_MemRead(SMIF_Type *base, cy_stc_smif_mem_config_t co
 
             if(CY_SMIF_SUCCESS != status)
             {
-                break;  
+                break;
             }
-   
+
             /* Recalculate the next rxBuffer offset */
             length -= chunk;
             address += chunk;
@@ -1774,18 +1781,18 @@ cy_en_smif_status_t Cy_SMIF_MemRead(SMIF_Type *base, cy_stc_smif_mem_config_t co
 *
 * \return The status of the operation. See \ref cy_en_smif_status_t.
 *
-* \funcusage 
+* \funcusage
 * \snippet smif/snippet/main.c snippet_Cy_SMIF_MemWrite
 *
 *******************************************************************************/
-cy_en_smif_status_t Cy_SMIF_MemWrite(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig, 
-                                     uint32_t address, uint8_t const txBuffer[], 
+cy_en_smif_status_t Cy_SMIF_MemWrite(SMIF_Type *base, cy_stc_smif_mem_config_t const *memConfig,
+                                     uint32_t address, uint8_t const txBuffer[],
                                      uint32_t length, cy_stc_smif_context_t const *context)
 {
     cy_en_smif_status_t status = CY_SMIF_BAD_PARAM;
     uint32_t offset = 0UL;
     uint32_t chunk = 0UL;
-    uint32_t pageSize; 
+    uint32_t pageSize;
     uint8_t addrArray[CY_SMIF_FOUR_BYTES_ADDR] = {0U};
     cy_stc_smif_mem_cmd_t *cmdProgram;
 
@@ -1808,12 +1815,12 @@ cy_en_smif_status_t Cy_SMIF_MemWrite(SMIF_Type *base, cy_stc_smif_mem_config_t c
         while (length > 0UL)
         {
             /* Get the number of bytes which can be written during one operation */
-            offset = address % pageSize; 
+            offset = address % pageSize;
             chunk = ((offset + length) < pageSize) ? length : (pageSize - offset);
 
             /* The Write Enable bit may be cleared by the memory after every successful
              * operation of write or erase operations. Therefore, must be set for
-             * every loop. 
+             * every loop.
              */
             status = Cy_SMIF_MemCmdWriteEnable(base, memConfig, context);
 
@@ -1916,7 +1923,7 @@ cy_en_smif_status_t Cy_SMIF_MemWrite(SMIF_Type *base, cy_stc_smif_mem_config_t c
 
             if(CY_SMIF_SUCCESS != status)
             {
-                break;  
+                break;
             }
 
             /* Recalculate the next rxBuffer offset */
@@ -1969,7 +1976,7 @@ cy_en_smif_status_t Cy_SMIF_MemWrite(SMIF_Type *base, cy_stc_smif_mem_config_t c
 * \note Memories like hybrid have sectors of different sizes. \n
 * Check the address and length parameters before calling this function.
 *
-* \funcusage 
+* \funcusage
 * \snippet smif/snippet/main.c snippet_Cy_SMIF_MemEraseSector
 *
 *******************************************************************************/
@@ -2158,7 +2165,7 @@ cy_en_smif_status_t Cy_SMIF_MemEraseSector(SMIF_Type *base, cy_stc_smif_mem_conf
 *
 * \return The status of the operation. See \ref cy_en_smif_status_t.
 *
-* \funcusage 
+* \funcusage
 * \snippet smif/snippet/main.c snippet_Cy_SMIF_MemEraseChip
 *
 *******************************************************************************/
@@ -2171,7 +2178,7 @@ cy_en_smif_status_t Cy_SMIF_MemEraseChip(SMIF_Type *base, cy_stc_smif_mem_config
 
     /* The Write Enable bit may be cleared by the memory after every successful
     * operation of write/erase operations. Therefore, it must be set for
-    * every loop 
+    * every loop
     */
     status = Cy_SMIF_MemCmdWriteEnable(base, memConfig, context);
 
@@ -2179,12 +2186,12 @@ cy_en_smif_status_t Cy_SMIF_MemEraseChip(SMIF_Type *base, cy_stc_smif_mem_config
     {
         /* Send the command to erase the entire chip */
         status = Cy_SMIF_MemCmdChipErase(base, memConfig, context);
-        
+
         if(CY_SMIF_SUCCESS == status)
         {
             /* Wait until the erase operation is completed or a timeout occurs. chipEraseTime is in milliseconds */
-            status = Cy_SMIF_MemIsReady(base, memConfig, 
-                     (memConfig->deviceCfg->chipEraseTime * ONE_MILLI_IN_MICRO), context);   
+            status = Cy_SMIF_MemIsReady(base, memConfig,
+                     (memConfig->deviceCfg->chipEraseTime * ONE_MILLI_IN_MICRO), context);
         }
     }
 
@@ -2288,6 +2295,527 @@ cy_en_smif_status_t Cy_SMIF_MemCmdReleasePowerDown(SMIF_Type *base,
 
     return result;
 }
+
+#if (CY_IP_MXSMIF_VERSION >= 5) || defined (CY_DOXYGEN)
+/*******************************************************************************
+* Function Name: Cy_SMIF_MemEnableFWCalibration
+****************************************************************************//**
+*
+* This function enables Firmware Calibration mode for the device. Once firmware calibration
+* mode is enabled, user can add delay taps for selected data line using \ref Cy_SMIF_GetSelectedDelayTapSel
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param slave
+* Holds the slave select line for which delay tap setting should be applied for.
+*
+* \note This API is supported on CAT1D devices.
+*
+*******************************************************************************/
+
+void Cy_SMIF_MemEnableFWCalibration(SMIF_Type *base, cy_en_smif_slave_select_t slave)
+{
+    SMIF_DEVICE_Type volatile * device = Cy_SMIF_GetDeviceBySlot(base, slave);
+    SMIF_DEVICE_RX_CAPTURE_CONFIG(device) |= SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_FW_CALIBRATION_MODE_Msk;
+}
+
+/*******************************************************************************
+* Function Name: Cy_SMIF_MemDisableFWCalibration
+****************************************************************************//**
+*
+* This function disables Firmware Calibration mode for the device.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param slave
+* Holds the slave select line for which delay tap setting should be applied for.
+*
+* \note This API is supported on CAT1D devices.
+*
+*******************************************************************************/
+void Cy_SMIF_MemDisableFWCalibration(SMIF_Type *base, cy_en_smif_slave_select_t slave)
+{
+    SMIF_DEVICE_Type volatile * device = Cy_SMIF_GetDeviceBySlot(base, slave);
+    SMIF_DEVICE_RX_CAPTURE_CONFIG(device) &= ~SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_FW_CALIBRATION_MODE_Msk;
+}
+
+/*******************************************************************************
+* Function Name: Cy_SMIF_MemSetDataLineDelayTap
+****************************************************************************//**
+*
+* This function sets delay tap for a particular data line. \ref Cy_SMIF_MemEnableFWCalibration
+* should be called to get this setting into effect.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param slave
+* Holds the slave select line for which delay tap setting should be applied for.
+*
+* \param data_line
+* Holds the data line for which delay tap setting should be applied for.
+*
+* \param tapSel
+* tap selection value (0-15) where lower nibble indicates the delay tap setting for positive clock phase
+* and higher nibble indicates the setting for negative clock phase delay tap selection.
+*
+* \return \ref cy_en_smif_status_t
+*         CY_SMIF_SUCCESS - If delay tap is set.
+*         CY_SMIF_BAD_PARAM - If user tries to set delay tap without enabling FW Calibration mode.
+*
+* \note This API is supported on CAT1D devices.
+*
+*******************************************************************************/
+cy_en_smif_status_t Cy_SMIF_SetSelectedDelayTapSel(SMIF_Type *base,
+                                                cy_en_smif_slave_select_t slave,
+                                                cy_en_smif_mem_data_line_t data_line,
+                                                uint8_t tapSel)
+{
+    cy_en_smif_status_t result = CY_SMIF_GENERAL_ERROR;
+
+    SMIF_DEVICE_Type volatile * device = Cy_SMIF_GetDeviceBySlot(base, slave);
+
+    /* Check if DEVICE is in FW CALIBRATION MODE */
+    if ((SMIF_DEVICE_RX_CAPTURE_CONFIG(device) & SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_FW_CALIBRATION_MODE_Msk) != 0UL)
+    {
+        result = CY_SMIF_SUCCESS;
+
+        switch(data_line)
+        {
+           case CY_SMIF_DATA_BIT0_TAP_SEL:
+               {
+                   SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT0_TAP_SEL_POS, tapSel);
+                   break;
+               }
+           case CY_SMIF_DATA_BIT1_TAP_SEL:
+               {
+                   SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT1_TAP_SEL_POS, tapSel);
+                   break;
+               }
+           case CY_SMIF_DATA_BIT2_TAP_SEL:
+               {
+                   SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT2_TAP_SEL_POS, tapSel);
+                   break;
+               }
+           case CY_SMIF_DATA_BIT3_TAP_SEL:
+               {
+                  SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT3_TAP_SEL_POS, tapSel);
+                  break;
+               }
+           case CY_SMIF_DATA_BIT4_TAP_SEL:
+               {
+                   SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT4_TAP_SEL_POS, tapSel);
+                   break;
+               }
+           case CY_SMIF_DATA_BIT5_TAP_SEL:
+               {
+                   SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT5_TAP_SEL_POS, tapSel);
+                   break;
+               }
+           case CY_SMIF_DATA_BIT6_TAP_SEL:
+               {
+                   SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT6_TAP_SEL_POS, tapSel);
+                   break;
+               }
+           case CY_SMIF_DATA_BIT7_TAP_SEL:
+               {
+                   SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device) = _VAL2FLD(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT7_TAP_SEL_POS, tapSel);
+                   break;
+               }
+            default:
+            {
+                /* Unsupported data line index */
+                break;
+            }
+        }
+    }
+    else
+    {
+       result = CY_SMIF_BAD_PARAM;
+    }
+
+    return result;
+}
+/*******************************************************************************
+* Function Name: Cy_SMIF_GetSelectedDelayTapSel
+****************************************************************************//**
+*
+* This function gets delay tap set for a particular data line.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param slave
+* Holds the slave select line for which delay tap setting should be retrieved.
+*
+* \param data_line
+* Holds the data line for which delay tap setting should be retrieved.
+*
+* \return uint8_t
+* tap selection value where lower nibble indicates the delay tap setting for positive clock phase
+* and higher nibble indicates the setting for negative clock phase delay tap selection.
+*
+* \note This API is supported on CAT1D devices.
+*
+*******************************************************************************/
+uint8_t Cy_SMIF_GetSelectedDelayTapSel(SMIF_Type *base, cy_en_smif_slave_select_t slave, cy_en_smif_mem_data_line_t data_line)
+{
+    SMIF_DEVICE_Type volatile * device = Cy_SMIF_GetDeviceBySlot(base, slave);
+    uint8_t delay_tap = 0;
+
+    switch(data_line)
+    {
+       case CY_SMIF_DATA_BIT0_TAP_SEL:
+           {
+               delay_tap =(uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT0_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device)));
+               break;
+           }
+       case CY_SMIF_DATA_BIT1_TAP_SEL:
+           {
+               delay_tap = (uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT1_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device)));
+               break;
+           }
+       case CY_SMIF_DATA_BIT2_TAP_SEL:
+           {
+               delay_tap = (uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT2_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device)));
+               break;
+           }
+       case CY_SMIF_DATA_BIT3_TAP_SEL:
+           {
+               delay_tap = (uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_0_DATA_BIT3_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_0(device)));
+               break;
+           }
+       case CY_SMIF_DATA_BIT4_TAP_SEL:
+           {
+               delay_tap = (uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT4_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device)));
+               break;
+           }
+       case CY_SMIF_DATA_BIT5_TAP_SEL:
+           {
+               delay_tap = (uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT5_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device)));
+               break;
+           }
+       case CY_SMIF_DATA_BIT6_TAP_SEL:
+           {
+               delay_tap = (uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT6_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device)));
+               break;
+           }
+       case CY_SMIF_DATA_BIT7_TAP_SEL:
+           {
+               delay_tap = (uint8_t)(_FLD2VAL(SMIF_CORE_DEVICE_HB_FW_DEL_TAP_SEL_1_DATA_BIT7_TAP_SEL_POS, SMIF_DEVICE_HB_FW_DEL_TAP_SEL_1(device)));
+               break;
+           }
+       default:
+        {
+            /* Unsupported data line index */
+            break;
+        }
+    }
+    return delay_tap;
+}
+
+/*******************************************************************************
+* Function Name: Cy_SMIF_MemGetSDLTap
+****************************************************************************//**
+*
+* This function retrieves the Slave Delay Line (SDL) Tap in use.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param memConfig
+* The device for which SDL tap value has to be retrieved.
+*
+* \param posTap
+* Returns positive delay tap value set.
+*
+* \param negTap
+* Returns negative delay tap value set.
+*
+* \return A status of the command transmission.
+*        - \ref CY_SMIF_SUCCESS
+*        - \ref CY_SMIF_BAD_PARAM
+*
+*******************************************************************************/
+cy_en_smif_status_t Cy_SMIF_MemGetSDLTap(SMIF_Type *base, const cy_stc_smif_mem_config_t *memConfig, uint8_t* posTap, uint8_t* negTap)
+{
+    cy_en_smif_status_t SMIF_Status = CY_SMIF_SUCCESS;
+    uint32_t device_index = 0U;
+
+    if ((posTap == NULL) || (negTap == NULL))
+    {
+        SMIF_Status = CY_SMIF_BAD_PARAM;
+    }
+
+    if (SMIF_Status == CY_SMIF_SUCCESS)
+    {
+        SMIF_Status = Cy_SMIF_ConvertSlaveSlotToIndex(memConfig->slaveSelect , &device_index);
+    }
+
+    if (SMIF_Status == CY_SMIF_SUCCESS)
+    {
+        *posTap = (uint8_t)_FLD2VAL(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_NEG_SDL_TAP_SEL, SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, device_index));
+        *negTap = (uint8_t)_FLD2VAL(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_POS_SDL_TAP_SEL, SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, device_index));
+    }
+
+    return SMIF_Status;
+}
+/*******************************************************************************
+* Function Name: Cy_SMIF_MemSetSDLTap
+****************************************************************************//**
+*
+* This function sets the Slave Delay Line (SDL) tap ranging from 0 to 15.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param memConfig
+* The device for which SDL tap value has to be set.
+*
+* \param posTap
+* Positive delay tap value to be set.
+*
+* \param negTap
+* Negative delay tap value to be set.
+
+* modify anything in this structure.
+*
+* \return A status of the command transmission.
+*        - \ref CY_SMIF_SUCCESS
+*        - \ref CY_SMIF_BAD_PARAM
+*
+*******************************************************************************/
+cy_en_smif_status_t Cy_SMIF_MemSetSDLTap(SMIF_Type *base, const cy_stc_smif_mem_config_t *memConfig, uint8_t posTap, uint8_t negTap)
+{
+    cy_en_smif_status_t SMIF_Status = CY_SMIF_SUCCESS;
+    uint32_t device_index = 0U;
+
+    if ((posTap > (SMIF_DELAY_TAPS_NR - 1U)) || (negTap > (SMIF_DELAY_TAPS_NR - 1U)) || (memConfig == NULL))
+    {
+        return CY_SMIF_BAD_PARAM;
+    }
+
+    SMIF_Status = Cy_SMIF_ConvertSlaveSlotToIndex(memConfig->slaveSelect , &device_index);
+
+    if (SMIF_Status != CY_SMIF_SUCCESS)
+    {
+        return SMIF_Status;
+    }
+
+    SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, device_index) &= ~SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_NEG_SDL_TAP_SEL_Msk;
+    SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, device_index) &= ~SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_POS_SDL_TAP_SEL_Msk;
+
+    SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, device_index) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_NEG_SDL_TAP_SEL, posTap);
+    SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, device_index) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_POS_SDL_TAP_SEL, negTap);
+
+    return SMIF_Status;
+}
+/*******************************************************************************
+* Function Name: Cy_SMIF_MemCalibrateSDL
+****************************************************************************//**
+*
+* This function takes an offset address as input to perform read/write test and
+* assign best possible Slave Delay Line (SDL) tap. In case of flash memory, the
+* sector where the address falls in would be erased to perform write operation
+* of calibration pattern.
+*
+* \param base
+* Holds the base address of the SMIF block registers.
+*
+* \param memConfig
+* The device to which calibration of SDL tap
+*
+* \param calibrationDataOffsetAddress
+* Offset address in the memory to which calibration pattern would be written and
+* read back to identify the best possible SDL tap.
+*
+* \param context
+* This is the pointer to the context structure \ref cy_stc_smif_context_t
+* allocated by the user. The structure is used during the SMIF
+* operation for internal configuration and data retention. The user must not
+* modify anything in this structure.
+*
+* \return A status of the command transmission.
+*        - \ref CY_SMIF_SUCCESS
+*        - \ref CY_SMIF_EXCEED_TIMEOUT
+*******************************************************************************/
+cy_en_smif_status_t Cy_SMIF_MemCalibrateSDL(SMIF_Type *base, const cy_stc_smif_mem_config_t *memConfig, uint32_t calibrationDataOffsetAddress, cy_stc_smif_context_t *context)
+{
+    uint8_t                  tapNum;
+    cy_en_smif_status_t       SMIF_Status     = CY_SMIF_SUCCESS;
+    uint16_t dataRead[CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH];
+    uint16_t memoryCalibrationDataPattern[CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH];
+    bool isMatch[SMIF_DELAY_TAPS_NR];
+
+    for(uint16_t i = 0; i < CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH; i++)
+    {
+        memoryCalibrationDataPattern[i] = i;
+    }
+
+    for(uint16_t i = 0; i < SMIF_DELAY_TAPS_NR; i++)
+    {
+        isMatch[i] = false;
+    }
+
+    /* Hyper Bus Part */
+    if (memConfig->hbdeviceCfg != NULL)
+    {
+        /* If it is Hyper Flash memory - Erase before writing */
+        if(memConfig->hbdeviceCfg->hbDevType == CY_SMIF_HB_FLASH)
+        {
+            SMIF_Status = Cy_SMIF_HyperBus_EraseSector(base, memConfig, calibrationDataOffsetAddress, context);
+        }
+
+        if (SMIF_Status == CY_SMIF_SUCCESS)
+        {
+            SMIF_Status = Cy_SMIF_HyperBus_Write(base,
+                                     memConfig,
+                                     CY_SMIF_HB_COUTINUOUS_BURST,
+                                     calibrationDataOffsetAddress, // address
+                                     CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH,             // size in half word
+                                     memoryCalibrationDataPattern,
+                                     memConfig->hbdeviceCfg->hbDevType,
+                                     memConfig->hbdeviceCfg->dummyCycles,
+                                     true,                                // Blocking mode
+                                     context
+                                     );
+        }
+        else
+        {
+            return SMIF_Status;
+        }
+
+        for(tapNum = 0U; tapNum < SMIF_DELAY_TAPS_NR; tapNum++)
+        {
+            uint32_t timeout = ONE_MILLI_IN_MICRO;
+            while(Cy_SMIF_BusyCheck(base) && (timeout > 0UL))
+            {
+                timeout--;
+                Cy_SysLib_DelayUs(1U);
+                /* Wait for the device to be ready */
+            }
+            if(timeout == 0U)
+            {
+                return CY_SMIF_EXCEED_TIMEOUT;
+            }
+
+            (void)Cy_SMIF_MemSetSDLTap(base, memConfig, tapNum, tapNum);
+
+            (void)memset(dataRead, 0, CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH * 2U);
+            SMIF_Status = Cy_SMIF_HyperBus_Read(base,
+                                                  memConfig,
+                                                  CY_SMIF_HB_COUTINUOUS_BURST,
+                                                  calibrationDataOffsetAddress,                      // address
+                                                  CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH,  // size in half word
+                                                  dataRead,
+                                                  memConfig->hbdeviceCfg->dummyCycles,
+                                                  false,                                           // single initial latency
+                                                  true,                                              // blocking mode
+                                                  context
+                                                 );
+             if(SMIF_Status == CY_SMIF_SUCCESS)
+             {
+                 // Record whether the current tap read data matches the reference data
+                 isMatch[tapNum] = (memcmp((uint8_t*)&dataRead, (uint8_t*)memoryCalibrationDataPattern, CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH) == 0) ? true : false;
+             }
+         }
+    }
+    else if (memConfig->deviceCfg != NULL)
+    {
+        /* Serial Flash Memory */
+
+        /* Erase sector used for calibration */
+        SMIF_Status = Cy_SMIF_MemEraseSector(base, (cy_stc_smif_mem_config_t* )memConfig, calibrationDataOffsetAddress,
+                                        memConfig->deviceCfg->eraseSize, context);
+
+
+        /* Write the calibration pattern */
+        SMIF_Status = Cy_SMIF_MemWrite(base, memConfig, calibrationDataOffsetAddress,
+                                  (uint8_t *)memoryCalibrationDataPattern,
+                                  CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH * 2U, context);
+
+
+        for(tapNum = 0U; tapNum < SMIF_DELAY_TAPS_NR; tapNum++)
+        {
+            uint32_t timeout = ONE_MILLI_IN_MICRO;
+            while(Cy_SMIF_BusyCheck(base) && (timeout > 0UL))
+            {
+                timeout--;
+                Cy_SysLib_DelayUs(1U);
+                /* Wait for the device to be ready */
+            }
+            if(timeout == 0U)
+            {
+                return CY_SMIF_EXCEED_TIMEOUT;
+            }
+
+            (void)Cy_SMIF_MemSetSDLTap(base, memConfig, tapNum, tapNum);
+
+            (void)memset(dataRead, 0, CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH * 2U);
+
+            SMIF_Status = Cy_SMIF_MemRead(base, memConfig, calibrationDataOffsetAddress,
+                                        (uint8_t *)dataRead, CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH * 2U, context);
+
+             if (SMIF_Status == CY_SMIF_SUCCESS)
+             {
+                 // Record whether the current tap read data matches the reference data
+                 isMatch[tapNum] = (memcmp((uint8_t*)&dataRead, (uint8_t*)memoryCalibrationDataPattern, CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH * 2U) == 0) ? true : false;
+             }
+         }
+    }
+    else
+    {
+        SMIF_Status = CY_SMIF_BAD_PARAM;
+    }
+
+    if (SMIF_Status == CY_SMIF_SUCCESS)
+    {
+        uint8_t bestTapNum             = CY_SMIF_TAP_NOT_FOUND; /* Unique number to identify failure case */
+        uint8_t consecutiveMatchNum    = 0u;
+        uint8_t maxConsecutiveMatchNum = 0u;
+
+        // Determine the longest consecutive match
+        for(tapNum = 0u; tapNum < SMIF_DELAY_TAPS_NR; tapNum++)
+        {
+            if(isMatch[tapNum] == true)
+            {
+                consecutiveMatchNum += 1u;
+            }
+            else
+            {
+                if(maxConsecutiveMatchNum < consecutiveMatchNum)
+                {
+                    // Sequence of matches ended and it is a new longest sequence -> update the best tap number and prepare vars for next run
+                    maxConsecutiveMatchNum = consecutiveMatchNum;
+                    bestTapNum               = tapNum - ((maxConsecutiveMatchNum + 1u) / 2u);
+                    consecutiveMatchNum    = 0u;
+                }
+            }
+        }
+
+        // Special case: All taps had a match -> use the center tap of the total taps number
+        if(maxConsecutiveMatchNum < consecutiveMatchNum)
+        {
+            bestTapNum = (uint8_t)(SMIF_DELAY_TAPS_NR / 2U);
+        }
+
+        // If a match has been found, apply the best tap
+        if(bestTapNum != CY_SMIF_TAP_NOT_FOUND)
+        {
+           (void)Cy_SMIF_MemSetSDLTap(base, memConfig, bestTapNum, bestTapNum);
+        }
+        else
+        {
+            // No match has been found
+            SMIF_Status = CY_SMIF_GENERAL_ERROR;
+        }
+    }
+
+    return SMIF_Status;
+}
+#endif /*(CY_IP_MXSMIF_VERSION >= 5)*/
 
 #if defined(__cplusplus)
 }

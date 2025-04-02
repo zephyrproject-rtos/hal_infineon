@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_ecdsa.c
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides constant and parameters
@@ -479,20 +479,228 @@ cy_stc_cryptolite_ecc_dp_type *Cy_Cryptolite_ECC_GetCurveParams(cy_en_cryptolite
             eccP521BasePointX,
             /* base point y: "11839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650" */
             eccP521BasePointY
-        }
+        },
 #endif
+#if defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED)
+        /* This is a NULL entry to fix coverity */
+        {
+            CY_CRYPTOLITE_ECC_ECP_NONE,
+            0u,
+            NULL,
+            CY_CRYPTOLITE_NIST_P_CURVE_SPECIFIC_RED_ALG,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL
+        },
+#endif /* defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED) */
+#if defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED)
+        /* This is a NULL entry to fix coverity */
+        {
+            CY_CRYPTOLITE_ECC_ECP_NONE,
+            0u,
+            NULL,
+            CY_CRYPTOLITE_NIST_P_CURVE_SPECIFIC_RED_ALG,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL
+        }
+#endif /* defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED) */
+
     };
 
     cy_stc_cryptolite_ecc_dp_type *tmpResult = NULL;
 
     if ((curveId > CY_CRYPTOLITE_ECC_ECP_NONE) && (curveId < CY_CRYPTOLITE_ECC_ECP_CURVES_CNT))
     {
+#if defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED)
+        if (CY_CRYPTOLITE_ECC_ECP_ED25519 == curveId)
+        {
+            return tmpResult;
+        }
+#endif /* defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED) */
+
+#if defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED)
+        if (CY_CRYPTOLITE_ECC_ECP_EC25519 == curveId)
+        {
+            return tmpResult;
+        }
+#endif /* defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED) */
         tmpResult = (cy_stc_cryptolite_ecc_dp_type *)&eccDomainParams[curveId];
     }
 
     return tmpResult;
 }
 
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_EC25519_GetCurveParams
+****************************************************************************//**
+*
+* Get curve domain parameters if this curve is supported.
+*
+* \param curveId
+* See \ref cy_en_cryptolite_ecc_curve_id_t.
+*
+* \return
+* Pointer to curve domain parameters. See \ref cy_stc_cryptolite_ec25519_dp_type.
+*
+*******************************************************************************/
+cy_stc_cryptolite_ec25519_dp_type *Cy_Cryptolite_EC25519_GetCurveParams(cy_en_cryptolite_ecc_curve_id_t curveId)
+{
+#if defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED) || defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED)
+    /* ED25519 CURVE PARAMETERS */
+    /* prime: "2^255 - 19" */
+    /* prime: "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED" */
+    CY_ALIGN(4) static const uint8_t  ed25519Prime[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE] =
+    {
+        0xedu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0x7fu
+    };
+
+    /* barrett_p: "2000000000000000000000000000000000000000000000000000000000000004C" */
+    CY_ALIGN(4) static const uint8_t  ed25519PrimeBarrett[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE + 1u] =
+    {  /* pre-calculated! */
+        0x4cu, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x02u,
+    };
+#endif /* defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED) || defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED) */
+
+#if defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED)
+    /* order: "2^252 + 0x14def9dea2f79cd65812631a5cf5d3ed" */
+    /* order: "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED" */
+    CY_ALIGN(4) static const uint8_t  ed25519Order[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE] =
+    {
+        0xedu, 0xd3u, 0xf5u, 0x5cu, 0x1au, 0x63u, 0x12u, 0x58u,
+        0xd6u, 0x9cu, 0xf7u, 0xa2u, 0xdeu, 0xf9u, 0xdeu, 0x14u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x10u
+    };
+
+    /* barrett_o: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEB2106215D086329A7ED9CE5A30A2C131B" */
+    CY_ALIGN(4) static const uint8_t  ed25519OrderBarrett[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE + 1u] =
+    {   /* pre-calculated */
+        0x1bu, 0x13u, 0x2cu, 0x0au, 0xa3u, 0xe5u, 0x9cu, 0xedu,
+        0xa7u, 0x29u, 0x63u, 0x08u, 0x5du, 0x21u, 0x06u, 0x21u,
+        0xebu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0x0fu,
+    };
+
+    /*A: "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC" */
+    CY_ALIGN(4) static const uint8_t  ed25519A[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE] =
+    {
+        0xecu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0x7fu
+    };
+    /*D: "52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3" */
+    CY_ALIGN(4) static const uint8_t  ed25519D[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE] =
+    {
+        0xa3u, 0x78u, 0x59u, 0x13u, 0xcau, 0x4du, 0xebu, 0x75u,
+        0xabu, 0xd8u, 0x41u, 0x41u, 0x4du, 0x0au, 0x70u, 0x00u,
+        0x98u, 0xe8u, 0x79u, 0x77u, 0x79u, 0x40u, 0xc7u, 0x8cu,
+        0x73u, 0xfeu, 0x6fu, 0x2bu, 0xeeu, 0x6cu, 0x03u, 0x52u
+    };
+
+    /*(X(P),Y(P)) of edwards25519 in RFC7748*/
+    /* base point x: "151122213495354007725011514095885315114540126930418572060461132
+      83949847762202" */
+    CY_ALIGN(4) static const uint8_t  ed25519BasePointX[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE] =
+    {
+        0x1au, 0xd5u, 0x25u, 0x8fu, 0x60u, 0x2du, 0x56u, 0xc9u,
+        0xb2u, 0xa7u, 0x25u, 0x95u, 0x60u, 0xc7u, 0x2cu, 0x69u,
+        0x5cu, 0xdcu, 0xd6u, 0xfdu, 0x31u, 0xe2u, 0xa4u, 0xc0u,
+        0xfeu, 0x53u, 0x6eu, 0xcdu, 0xd3u, 0x36u, 0x69u, 0x21u,
+    };
+
+    /* base point y: "463168356949264781694283940034751631413079938662562256157830336
+      03165251855960" */
+    CY_ALIGN(4) static const uint8_t  ed25519BasePointY[CY_CRYPTOLITE_ECC_ED25519_BYTE_SIZE] =
+    {
+        0x58u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u,
+        0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u,
+        0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u,
+        0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u, 0x66u,
+    };
+
+    if (curveId == CY_CRYPTOLITE_ECC_ECP_ED25519)
+    {
+        static cy_stc_cryptolite_ec25519_dp_type g_dp;
+        cy_stc_cryptolite_ec25519_dp_type *dp = &g_dp;
+        dp->id          = CY_CRYPTOLITE_ECC_ECP_ED25519;
+        dp->size        = CY_CRYPTOLITE_ECC_ED25519_SIZE;
+        dp->name        = "Edward's ED25519";
+        dp->algo        = CY_CRYPTOLITE_NIST_P_BARRETT_RED_ALG;
+        dp->prime       = ed25519Prime;
+        dp->barrett_p   = ed25519PrimeBarrett;
+        dp->order       = ed25519Order;
+        dp->barrett_o   = ed25519OrderBarrett;
+        dp->d           = ed25519D;
+        dp->a           = ed25519A;
+        dp->Gx          = ed25519BasePointX;
+        dp->Gy          = ed25519BasePointY;
+        dp->barret_osize = 260u;                     /* barret_o = (2^512(513 bits)/ed25519Order(253 bits) */
+        dp->barret_psize = 258u;                     /* barret_p = (2^512(513 bits)/ed25519Prime(255 bits) */
+
+        return dp;
+    }
+
+#endif /* defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED) */
+
+#if defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED)
+    /*A24: "(486662 + 2)/4 = 121665" */
+    CY_ALIGN(4) static const uint8_t  ec25519A[3] =
+    {
+        0x41u, 0xDBu, 0x01u
+    };
+    /* base point x: "9" */
+    CY_ALIGN(4) static const uint8_t  ec25519BasePointX[CY_CRYPTOLITE_ECC_EC25519_BYTE_SIZE] =
+    {
+        0x09u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u
+    };
+
+    if (curveId == CY_CRYPTOLITE_ECC_ECP_EC25519)
+    {
+        static cy_stc_cryptolite_ec25519_dp_type g_dp;
+        cy_stc_cryptolite_ec25519_dp_type *dp = &g_dp;
+        dp->id          = CY_CRYPTOLITE_ECC_ECP_EC25519;
+        dp->size        = CY_CRYPTOLITE_ECC_EC25519_SIZE;
+        dp->name        = "ECC EC25519";
+        dp->algo        = CY_CRYPTOLITE_NIST_P_BARRETT_RED_ALG;
+        dp->prime       = ed25519Prime;
+        dp->barrett_p   = ed25519PrimeBarrett;
+        dp->order       = NULL;
+        dp->barrett_o   = NULL;
+        dp->d           = NULL;
+        dp->a           = ec25519A;
+        dp->Gx          = ec25519BasePointX;
+        dp->Gy          = NULL;
+        dp->barret_osize = 0;
+        dp->barret_psize = 258u;                   /* barret_p = (2^512(513 bits)/ed25519Prime(255 bits) */
+
+        return dp;
+    }
+
+#endif /*defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED)*/
+
+    (void)curveId;
+    return NULL;
+}
 
 /*******************************************************************************
 * Function Name: Cy_Cryptolite_ECC_Init
@@ -629,6 +837,93 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_Free(CRYPTOLITE_Type *base,
     return CY_CRYPTOLITE_SUCCESS;
 }
 
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_ECC_SharedSecret
+****************************************************************************//**
+*
+* Generate a Shared Secret key from one private key and others public key.
+*
+* \param base
+* The pointer to a Cryptolite instance.
+*
+* \param cfContext
+* The pointer to the cy_stc_cryptolite_context_ecdsa_t.
+*
+* \param curveID
+* The ECC curve id.
+*
+* \param privateKey
+* The pointer to the ECC private key.
+*
+* \param key
+* The generated public ECC key. See \ref cy_stc_cryptolite_ecc_key.
+*
+* \param sharedSecret
+* The pointer to store the generated shared Secret.
+*
+* \return status code. See \ref cy_en_cryptolite_status_t.
+*
+****************************************************************************/
+cy_en_cryptolite_status_t Cy_Cryptolite_ECC_SharedSecret(CRYPTOLITE_Type *base,
+                            cy_stc_cryptolite_context_ecdsa_t *cfContext,
+                            cy_en_cryptolite_ecc_curve_id_t curveID,const uint8_t *privateKey,
+                            const cy_stc_cryptolite_ecc_key *key,
+                            uint8_t const *sharedSecret)
+{
+
+    cy_en_cryptolite_status_t result = CY_CRYPTOLITE_BAD_PARAMS;
+    const cy_stc_cryptolite_ecc_dp_type *eccDp;
+
+    /* NULL parameters checking */
+     if ((base != NULL) && (cfContext != NULL) && (privateKey != NULL) && (key != NULL) &&
+        (key->pubkey.x != NULL) && (key->pubkey.y != NULL) && (sharedSecret != NULL))
+    {
+
+        result = CY_CRYPTOLITE_NOT_SUPPORTED;
+        eccDp = Cy_Cryptolite_ECC_GetCurveParams(curveID);
+
+        if (eccDp != NULL)
+        {
+            uint8_t *p_u1 = cfContext->p_u1;
+            uint8_t *p_o = cfContext->p_o;
+            uint8_t *p_gx = cfContext->p_gx;
+            uint8_t *p_gy = cfContext->p_gy;
+            uint8_t *my_P = cfContext->my_P;
+            uint8_t *my_BARRETT_U = cfContext->my_BARRETT_U;
+
+            uint32_t bitsize  = eccDp->size;
+            uint32_t bytesize = VU_BITS_TO_BYTES(eccDp->size);
+
+            cfContext->bitsize = bitsize;
+
+
+            // Initialize point multiplication
+            // load prime, order and barrett coefficient
+            Cy_Cryptolite_Setnumber(my_P, (uint8_t *) eccDp->prime, bytesize);
+            Cy_Cryptolite_Setnumber(p_o, (uint8_t *) eccDp->order, bytesize);
+            Cy_Cryptolite_Setnumber(my_BARRETT_U, (uint8_t *) eccDp->barrett_p, VU_BITS_TO_BYTES(bitsize+1U));
+
+            // load base Point G
+            Cy_Cryptolite_Setnumber(p_gx, (uint8_t *) key->pubkey.x, bytesize);
+            Cy_Cryptolite_Setnumber(p_gy, (uint8_t *) key->pubkey.y, bytesize);
+            Cy_Cryptolite_Setnumber(p_u1, (uint8_t *)privateKey, bytesize);
+
+
+            Cy_Cryptolite_EC_NistP_PointMul(base, cfContext, p_gx, p_gy, p_u1, p_o, (int)bitsize);
+
+            Cy_Cryptolite_Setnumber((uint8_t *)sharedSecret, (uint8_t *) p_gx, bytesize);
+            result = CY_CRYPTOLITE_SUCCESS;
+
+        }
+        else
+        {
+            result = CY_CRYPTOLITE_NOT_SUPPORTED;
+        }
+    }
+    return result;
+}
+
 #if defined(CY_CRYPTOLITE_CFG_ECDSA_SIGN_C)
 /*******************************************************************************
 * Function Name: Cy_Cryptolite_ECC_SignHash
@@ -695,10 +990,10 @@ cy_stc_cryptolite_context_ecdsa_t *cfContext, const uint8_t *hash, uint32_t hash
             publicKey.pubkey.x = pubkey;
             publicKey.pubkey.y = &pubkey[bytesize];
 
-            //Generate the public key 
+            //Generate the public key
             result = Cy_Cryptolite_ECC_MakePublicKey(base, cfContext, key->curveID,  //(x1, y1) = k * G.
                 messageKey, &publicKey);
-            
+
             if(CY_CRYPTOLITE_SUCCESS != result)
             {
                 return result;
@@ -757,7 +1052,7 @@ cy_stc_cryptolite_context_ecdsa_t *cfContext, const uint8_t *hash, uint32_t hash
             Cy_Cryptolite_Setnumber(p_u1, (uint8_t *)messageKey, bytesize);
 
             // (e + d*r)/k  mod n
-            Cy_Cryptolite_EC_DivMod(base, cfContext, p_s, temp, p_u1, (int)bitsize); 
+            Cy_Cryptolite_EC_DivMod(base, cfContext, p_s, temp, p_u1, (int)bitsize);
 
             if (Cy_Cryptolite_Vu_test_zero(base, vu_struct0, p_s, (uint16_t)bitsize) == true)
             {
@@ -819,7 +1114,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_VerifyHash(CRYPTOLITE_Type *base,
     const cy_stc_cryptolite_ecc_dp_type *eccDp;
     (void)siglen;
 
-    
+
     /* NULL parameters checking */
     if ((sig != NULL) && (hash != NULL) && (0u != hashlen) && (stat != NULL) && (key != NULL) && (cfContext != NULL))
     {
@@ -857,7 +1152,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_VerifyHash(CRYPTOLITE_Type *base,
             /* check that R and S are within the valid range, i.e. 0 < R < n and 0 < S < n */
             Cy_Cryptolite_Setnumber(p_r, (uint8_t *)sig, bytesize);
             Cy_Cryptolite_Setnumber(p_s, (uint8_t *)&sig[VU_BITS_TO_BYTES(bitsize)], bytesize);
- 
+
             if (Cy_Cryptolite_Vu_test_zero(base, vu_struct0, p_r, (uint16_t)bitsize) == true) {
                 return CY_CRYPTOLITE_BAD_PARAMS;
             }

@@ -68,7 +68,8 @@ typedef struct {
         IPC_STRUCT_Type STRUCT[16];             /*!< 0x00000000 IPC structure */
    __IM uint32_t RESERVED[896];
         IPC_INTR_STRUCT_Type INTR_STRUCT[16];   /*!< 0x00001000 IPC interrupt structure */
-} IPC_Type;                                     /*!< Size = 4608 (0x1200) */
+   __IM uint32_t RESERVED1[15232];
+} IPC_Type;                                     /*!< Size = 65536 (0x10000) */
 
 
 /* IPC_STRUCT.ACQUIRE */

@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syspm.c
-* \version 5.150
+* \version 5.180
 *
 * This driver provides the source code for API power management.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -428,6 +428,7 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterSleep(cy_en_syspm_waitfor_t waitFor)
 
         /* The CPU enters the Sleep power mode upon execution of WFI/WFE */
         SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
+        __DSB();                   /* Ensure completion of memory access */
 
         if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
         {
@@ -453,6 +454,10 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterSleep(cy_en_syspm_waitfor_t waitFor)
             }
         #endif /* (CY_CPU_CORTEX_M4) */
         }
+
+        /* Clear SCB_SCR_SLEEPDEEP flag */
+        SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
+
         Cy_SysLib_ExitCriticalSection(interruptState);
 
         /* Call the registered callback functions with the
@@ -605,6 +610,7 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
 
                     /* The CPU enters Deep Sleep mode upon execution of WFI/WFE */
                     SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
+                    __DSB();                   /* Ensure completion of memory access */
 
                     if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
                     {
@@ -614,6 +620,9 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
                     {
                         __WFE();
                     }
+
+                    /* Clear SCB_SCR_SLEEPDEEP flag */
+                    SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
 
             #if (CY_CPU_CORTEX_M4)
                 } while (_FLD2VAL(CPUSS_CM4_PWR_CTL_PWR_MODE, CPUSS_CM4_PWR_CTL) == CM4_PWR_STS_RETAINED);
@@ -1992,6 +2001,7 @@ static void EnterDeepSleepRam(cy_en_syspm_waitfor_t waitFor)
 
         /* The CPU enters Deep Sleep mode upon execution of WFI/WFE */
         SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
+        __DSB();                   /* Ensure completion of memory access */
 
         if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
         {
@@ -2012,6 +2022,9 @@ static void EnterDeepSleepRam(cy_en_syspm_waitfor_t waitFor)
             wasEventSent = true;
         #endif /* (CY_CPU_CORTEX_M4) */
         }
+
+        /* Clear SCB_SCR_SLEEPDEEP flag */
+        SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
 
 #if (CY_CPU_CORTEX_M4)
     } while (_FLD2VAL(CPUSS_CM4_PWR_CTL_PWR_MODE, (*cpussCm4PwrCtlAddr)) == CM4_PWR_STS_RETAINED);

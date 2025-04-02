@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_cmac.c
-* \version 2.30
+* \version 2.80
 *
 * \brief
 *  This file provides the source code to the API for the CMAC method
@@ -188,6 +188,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Cmac_Update(CRYPTOLITE_Type *base,
     uint32_t cnt=0u;
     cy_en_cryptolite_status_t status = CY_CRYPTOLITE_BAD_PARAMS;
     uint8_t *messageRemap;
+    uint32_t processBytesCount = 0u;
 
     if(messageSize == 0u)
     {
@@ -216,15 +217,16 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Cmac_Update(CRYPTOLITE_Type *base,
 
     if(cmacState->unProcessedBytes > 0u && messageSize > CY_CRYPTOLITE_AES_BLOCK_SIZE-cmacState->unProcessedBytes)
     {
-        status = Cy_Cryptolite_Aes_CbcMac_Update(base, CY_CRYPTOLITE_AES_BLOCK_SIZE-cmacState->unProcessedBytes, messageRemap, cmacState);
+        processBytesCount = CY_CRYPTOLITE_AES_BLOCK_SIZE-cmacState->unProcessedBytes;
+        status = Cy_Cryptolite_Aes_CbcMac_Update(base, processBytesCount, messageRemap, cmacState);
 
         if(CY_CRYPTOLITE_SUCCESS != status)
         {
             return status;
         }
 
-        messageSize -= CY_CRYPTOLITE_AES_BLOCK_SIZE-cmacState->unProcessedBytes;
-        messageRemap += CY_CRYPTOLITE_AES_BLOCK_SIZE-cmacState->unProcessedBytes;
+        messageSize -= processBytesCount;
+        messageRemap += processBytesCount;
     }
         
     cnt = (uint32_t)((messageSize + CY_CRYPTOLITE_AES_BLOCK_SIZE -1u) / CY_CRYPTOLITE_AES_BLOCK_SIZE);

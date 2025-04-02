@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_ecc_key_gen.c
-* \version 2.30
+* \version 2.80
 *
 * \brief
 *  This file provides API for generating ECC key.

@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -37,48 +37,48 @@
 #define BTSS_SECTION_SIZE                       0x01000000UL
 
 /**
-  * \brief N/A (BTSS_DATA_RAM_IPC)
+  * \brief BTSS_DATA_RAM_IPC
   */
 typedef struct {
    __IM uint32_t RESERVED[131072];
-  __IOM uint32_t MXIPC_0_ACQUIRE;               /*!< 0x00080000 N/A */
-  __IOM uint32_t MXIPC_0_RELEASE;               /*!< 0x00080004 N/A */
-  __IOM uint32_t MXIPC_0_NOTIFY;                /*!< 0x00080008 N/A */
-  __IOM uint32_t MXIPC_0_DATA0;                 /*!< 0x0008000C N/A */
-  __IOM uint32_t MXIPC_0_DATA1;                 /*!< 0x00080010 N/A */
+  __IOM uint32_t MXIPC_0_ACQUIRE;               /*!< 0x00080000  */
+  __IOM uint32_t MXIPC_0_RELEASE;               /*!< 0x00080004  */
+  __IOM uint32_t MXIPC_0_NOTIFY;                /*!< 0x00080008  */
+  __IOM uint32_t MXIPC_0_DATA0;                 /*!< 0x0008000C  */
+  __IOM uint32_t MXIPC_0_DATA1;                 /*!< 0x00080010  */
    __IM uint32_t RESERVED1[2];
-   __IM uint32_t MXIPC_0_LOCK_STATUS;           /*!< 0x0008001C N/A */
-  __IOM uint32_t MXIPC_1_ACQUIRE;               /*!< 0x00080020 N/A */
-  __IOM uint32_t MXIPC_1_RELEASE;               /*!< 0x00080024 N/A */
-  __IOM uint32_t MXIPC_1_NOTIFY;                /*!< 0x00080028 N/A */
-  __IOM uint32_t MXIPC_1_DATA0;                 /*!< 0x0008002C N/A */
-  __IOM uint32_t MXIPC_1_DATA1;                 /*!< 0x00080030 N/A */
+   __IM uint32_t MXIPC_0_LOCK_STATUS;           /*!< 0x0008001C  */
+  __IOM uint32_t MXIPC_1_ACQUIRE;               /*!< 0x00080020  */
+  __IOM uint32_t MXIPC_1_RELEASE;               /*!< 0x00080024  */
+  __IOM uint32_t MXIPC_1_NOTIFY;                /*!< 0x00080028  */
+  __IOM uint32_t MXIPC_1_DATA0;                 /*!< 0x0008002C  */
+  __IOM uint32_t MXIPC_1_DATA1;                 /*!< 0x00080030  */
    __IM uint32_t RESERVED2[2];
-   __IM uint32_t MXIPC_1_LOCK_STATUS;           /*!< 0x0008003C N/A */
-  __IOM uint32_t MXIPC_2_ACQUIRE;               /*!< 0x00080040 N/A */
-  __IOM uint32_t MXIPC_2_RELEASE;               /*!< 0x00080044 N/A */
-  __IOM uint32_t MXIPC_2_NOTIFY;                /*!< 0x00080048 N/A */
-  __IOM uint32_t MXIPC_2_DATA0;                 /*!< 0x0008004C N/A */
-  __IOM uint32_t MXIPC_2_DATA1;                 /*!< 0x00080050 N/A */
+   __IM uint32_t MXIPC_1_LOCK_STATUS;           /*!< 0x0008003C  */
+  __IOM uint32_t MXIPC_2_ACQUIRE;               /*!< 0x00080040  */
+  __IOM uint32_t MXIPC_2_RELEASE;               /*!< 0x00080044  */
+  __IOM uint32_t MXIPC_2_NOTIFY;                /*!< 0x00080048  */
+  __IOM uint32_t MXIPC_2_DATA0;                 /*!< 0x0008004C  */
+  __IOM uint32_t MXIPC_2_DATA1;                 /*!< 0x00080050  */
    __IM uint32_t RESERVED3[2];
-   __IM uint32_t MXIPC_2_LOCK_STATUS;           /*!< 0x0008005C N/A */
-  __IOM uint32_t MXIPC_3_ACQUIRE;               /*!< 0x00080060 N/A */
-  __IOM uint32_t MXIPC_3_RELEASE;               /*!< 0x00080064 N/A */
-  __IOM uint32_t MXIPC_3_NOTIFY;                /*!< 0x00080068 N/A */
-  __IOM uint32_t MXIPC_3_DATA0;                 /*!< 0x0008006C N/A */
-  __IOM uint32_t MXIPC_3_DATA1;                 /*!< 0x00080070 N/A */
+   __IM uint32_t MXIPC_2_LOCK_STATUS;           /*!< 0x0008005C  */
+  __IOM uint32_t MXIPC_3_ACQUIRE;               /*!< 0x00080060  */
+  __IOM uint32_t MXIPC_3_RELEASE;               /*!< 0x00080064  */
+  __IOM uint32_t MXIPC_3_NOTIFY;                /*!< 0x00080068  */
+  __IOM uint32_t MXIPC_3_DATA0;                 /*!< 0x0008006C  */
+  __IOM uint32_t MXIPC_3_DATA1;                 /*!< 0x00080070  */
    __IM uint32_t RESERVED4[2];
-   __IM uint32_t MXIPC_3_LOCK_STATUS;           /*!< 0x0008007C N/A */
+   __IM uint32_t MXIPC_3_LOCK_STATUS;           /*!< 0x0008007C  */
    __IM uint32_t RESERVED5[992];
-  __IOM uint32_t MXIPC_INTR_0;                  /*!< 0x00081000 N/A */
-  __IOM uint32_t MXIPC_INTR_0_SET;              /*!< 0x00081004 N/A */
-  __IOM uint32_t MXIPC_INTR_0_MASK;             /*!< 0x00081008 N/A */
-   __IM uint32_t MXIPC_INTR_0_MASKED;           /*!< 0x0008100C N/A */
+  __IOM uint32_t MXIPC_INTR_0;                  /*!< 0x00081000  */
+  __IOM uint32_t MXIPC_INTR_0_SET;              /*!< 0x00081004  */
+  __IOM uint32_t MXIPC_INTR_0_MASK;             /*!< 0x00081008  */
+   __IM uint32_t MXIPC_INTR_0_MASKED;           /*!< 0x0008100C  */
    __IM uint32_t RESERVED6[4];
-  __IOM uint32_t MXIPC_INTR_1;                  /*!< 0x00081020 N/A */
-  __IOM uint32_t MXIPC_INTR_1_SET;              /*!< 0x00081024 N/A */
-  __IOM uint32_t MXIPC_INTR_1_MASK;             /*!< 0x00081028 N/A */
-   __IM uint32_t MXIPC_INTR_1_MASKED;           /*!< 0x0008102C N/A */
+  __IOM uint32_t MXIPC_INTR_1;                  /*!< 0x00081020  */
+  __IOM uint32_t MXIPC_INTR_1_SET;              /*!< 0x00081024  */
+  __IOM uint32_t MXIPC_INTR_1_MASK;             /*!< 0x00081028  */
+   __IM uint32_t MXIPC_INTR_1_MASKED;           /*!< 0x0008102C  */
 } BTSS_DATA_RAM_IPC_Type;                       /*!< Size = 528432 (0x81030) */
 
 /**
@@ -86,7 +86,7 @@ typedef struct {
   */
 typedef struct {
    __IM uint32_t RESERVED[1572864];
-        BTSS_DATA_RAM_IPC_Type DATA_RAM_IPC;    /*!< 0x00600000 N/A */
+        BTSS_DATA_RAM_IPC_Type DATA_RAM_IPC;    /*!< 0x00600000  */
 } BTSS_Type;                                    /*!< Size = 6391456 (0x6186A0) */
 
 

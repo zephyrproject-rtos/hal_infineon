@@ -38,6 +38,7 @@
   <Parameters>
     <ParamDoc id="doc" name="Configuration Help" group="Overview" default="https://Infineon.github.io/lpa/api_reference_manual/html/index.html" linkText="Open Low Power Assistant Documentation" visible="true" desc="Open the Low Power Assistant Documentation." />
     <ParamBool id="lpa_enable_43022" name="lpa_enable_43022" group="Test" default="`${lookupExpression(&quot;LPA_OFFLOADS_ENABLED_BY_DEFAULT&quot;,0) == 1 ? true : false}`" visible="false" editable="false" desc="" />
+    <ParamBool id="lpa_enable_55500A1" name="lpa_enable_55500A1" group="Test" default="`${lookupExpression(&quot;LPA_OFFLOADS_ENABLED_BY_DEFAULT&quot;,0) == 1 ? true : false}`" visible="false" editable="false" desc="" />
 
     <!-- Host wake settings -->
     <ParamBool id="hostWake" name="Enable" group="Host Wake Configuration" default="true" visible="true" editable="true" desc="Enable host wake configuration." />
@@ -66,7 +67,7 @@
     <ParamRange id="ULPwaittime" name="Wait time to enter into ULP mode (ms)" group="ULP Support configuration" default="5000" min="5000" max="50000" resolution="1" visible="`${ULPmodesBool}`" editable="`${ULPmodesBool}`" desc="Indicates ulp_wait in ms to be set. If no network activity for this time, device will enter into DS2." />
 
     <!-- ARP Offload settings -->
-    <ParamBool id="arpOffload" name="Enable" group="ARP Offload" default="false" visible="`${!lpa_enable_43022}`" editable="true" desc="Enable ARP offload feature." />
+    <ParamBool id="arpOffload" name="Enable" group="ARP Offload" default="false" visible="`${!lpa_enable_43022 &amp;&amp; !lpa_enable_55500A1}`" editable="true" desc="Enable ARP offload feature." />
     <ParamChoice id="arpResponse" name="ARP Offload Feature(s)" group="ARP Offload" default="0u" visible="`${arpOffload}`" editable="`${arpOffload}`" desc="Select ARP offload feature.">
       <Entry name="Disabled" value="0u" visible="true" />
       <Entry name="Host Auto Reply" value="CY_ARP_OL_HOST_AUTO_REPLY_ENABLE" visible="true" />
@@ -81,7 +82,7 @@
     <ParamRange id="peerAge" name="ARP Offload Cache Entries Expire After (s)" group="ARP Offload" default="1200" min="1" max="4294967295" resolution="1" visible="`${arpOffload}`" editable="`${arpOffload}`" desc="When the ARP cache table is offloaded from the host to the device, table entries are subject to an aging value called peer age." />
 
     <!-- MQTT Offload settings -->
-    <ParamBool id="mqttOffload" name="Enable" group="MQTT Offload Configuration" default="false" visible="`${lpa_enable_43022}`" editable="true" desc="Enable MQTT offload feature." />
+    <ParamBool id="mqttOffload" name="Enable" group="MQTT Offload Configuration" default="false" visible="`${lpa_enable_43022 || lpa_enable_55500A1}`" editable="true" desc="Enable MQTT offload feature." />
     <ParamString id="mqtt_wakepattern" name="MQTT wake pattern" group="MQTT Offload Configuration" default="0" visible="`${mqttOffload}`" editable="true" desc="Set the MQTT wake pattern to the WLAN." />
 
     <!-- AWS MQTT Filters -->
@@ -176,16 +177,16 @@
     </Repeat>
 
     <!-- Wake On Wireless Packet Filter Configurations -->
-    <ParamBool id="wakeonlan" name="Enable" group="WakeOnWireless LAN (WOWL)" default="false" visible="`${lpa_enable_43022}`" editable="true" desc="Enable WOL magic and net pattern settings for 43022." />
-    <ParamBool id="magicpattern" name="Enable Magic Pattern" group="WakeOnWireless LAN (WOWL)" default="false" visible="`${wakeonlan}`" editable="true" desc="Enable WOL magic pattern settings for 43022." />
-    <ParamBool id="netpattern" name="Enable Net Pattern" group="WakeOnWireless LAN (WOWL)" default="false" visible="`${wakeonlan}`" editable="true" desc="Enable WOL net pattern settings for 43022." />
+    <ParamBool id="wakeonlan" name="Enable" group="WakeOnWireless LAN (WOWL)" default="false" visible="`${lpa_enable_43022 || lpa_enable_55500A1}`" editable="true" desc="Enable WOL magic and net pattern settings for 43022/55500A1." />
+    <ParamBool id="magicpattern" name="Enable Magic Pattern" group="WakeOnWireless LAN (WOWL)" default="false" visible="`${wakeonlan}`" editable="true" desc="Enable WOL magic pattern settings for 43022 or 55500A1." />
+    <ParamBool id="netpattern" name="Enable Net Pattern" group="WakeOnWireless LAN (WOWL)" default="false" visible="`${wakeonlan}`" editable="true" desc="Enable WOL net pattern settings for 43022 or 55500A1." />
     <ParamString id="pattern" name="pattern" group="WOWL Filter Configuration" default="0" visible="`${netpattern &amp;&amp; wakeonlan}`" editable="true" desc="wake pattern." />
     <ParamString id="mask" name="mask" group="WOWL Filter Configuration" default="0" visible="`${netpattern &amp;&amp; wakeonlan}`" editable="true" desc="mask." />
     <ParamRange id="offset" name="offset" group="WOWL Filter Configuration" default="0" min="0" max="1500" resolution="1" visible="`${netpattern &amp;&amp; wakeonlan}`" editable="true" desc="offset." />
-    <ParamBool id="wowl_enable" name="Enable WOWL" group="Internal" default="`${((netpattern || magicpattern) &amp;&amp; wakeonlan)}`" visible="false" editable="false" desc="Enable WOL net pattern settings for 43022." />
+    <ParamBool id="wowl_enable" name="Enable WOWL" group="Internal" default="`${((netpattern || magicpattern) &amp;&amp; wakeonlan)}`" visible="false" editable="false" desc="Enable WOL net pattern settings for 43022 or 55500A1." />
 
    <!-- TCPKA Offload settings -->
-    <ParamBool id="tcpkaOffload" name="Enable" group="TCP Keep Alive Offload" default="false" visible="true" editable="true" desc="Enable TCP Keep Alive offload feature." />
+    <ParamBool id="tcpkaOffload" name="Enable" group="TCP Keep Alive Offload" default="false" visible="`${!lpa_enable_43022 &amp;&amp; !lpa_enable_55500A1}`" editable="true" desc="Enable TCP Keep Alive offload feature." />
     <ParamRange id="tcpkaInterval" name="Interval (s)" group="TCP Keep Alive Offload" default="20" min="0" max="65535" resolution="1" visible="`${tcpkaOffload}`" editable="`${tcpkaOffload}`" desc="Interval in seconds between keep alive transmissions." />
     <ParamRange id="tcpkaRetryInterval" name="Retry Interval (s)" group="TCP Keep Alive Offload" default="3" min="0" max="65535" resolution="1" visible="`${tcpkaOffload}`" editable="`${tcpkaOffload}`" desc="Interval in seconds to retry a transmission if no keep alive ACK is received." />
     <ParamRange id="tcpkaRetryCount" name="Retry Count" group="TCP Keep Alive Offload" default="3" min="0" max="65535" resolution="1" visible="`${tcpkaOffload}`" editable="`${tcpkaOffload}`" desc="Number of retries to send a keep alive if no ACK is received." />
@@ -197,11 +198,11 @@
     </Repeat>
 
     <!-- Null Keep-alive Offload settings -->
-    <ParamBool id="NullkoOffload" name="Configure Interval" group="NULL Keep Alive Offload" default="false" visible="`${lpa_enable_43022}`" editable="true" desc="NULL keep alive offlaod is enabled by default for 43022." />
+    <ParamBool id="NullkoOffload" name="Configure Interval" group="NULL Keep Alive Offload" default="false" visible="`${lpa_enable_43022 || lpa_enable_55500A1}`" editable="true" desc="NULL keep alive offlaod is enabled by default for 43022/55500A1." />
     <ParamRange id="nullkovalue" name="Interval (s)" group="NULL Keep Alive Offload" default="110" min="1" max="4200" resolution="1" visible="`${NullkoOffload}`" editable="`${NullkoOffload}`" desc="Configure NULL keep-alive interval in seconds and resolution of 1 second." />
 
     <!-- NAT KA Offload settings -->
-    <ParamBool id="natkaOffload" name="Enable" group="NAT Keep Alive Offload" default="false" visible="`${lpa_enable_43022}`" editable="true" desc="Enable NAT Keep Alive offload feature." />
+    <ParamBool id="natkaOffload" name="Enable" group="NAT Keep Alive Offload" default="false" visible="`${lpa_enable_43022 || lpa_enable_55500A1}`" editable="true" desc="Enable NAT Keep Alive offload feature." />
     <ParamRange id="natkaInterval" name="Interval (s)" group="NAT Keep Alive Offload" default="60" min="1" max="600" resolution="1" visible="`${natkaOffload}`" editable="`${natkaOffload}`" desc="Interval in seconds between keep alive transmissions." />
     <ParamRange id="natkaSrcPort" name="Source Port" group="NAT Keep Alive Offload" default="49152" min="0" max="65535" resolution="1" visible="`${natkaOffload}`" editable="`${natkaOffload}`" desc="Source port." />
     <ParamRange id="natkaDstPort" name="Destination Port" group="NAT Keep Alive Offload" default="50007" min="0" max="65535" resolution="1" visible="`${natkaOffload}`" editable="`${natkaOffload}`" desc="Destination port." />
@@ -244,11 +245,11 @@
     <ConfigInclude value="cy_lpa_wifi_ol_common.h" include="`${offload_enabled}`" guard="defined(COMPONENT_MW_LPA)" />
     <ConfigInclude value="cy_lpa_wifi_arp_ol.h" include="`${arpOffload}`" guard="defined(COMPONENT_MW_LPA)" />
     <ConfigInclude value="cy_lpa_wifi_pf_ol.h" include="`${pktFilterEn}`" guard="defined(COMPONENT_MW_LPA)" />
-    <ConfigInclude value="cy_lpa_wifi_wowlpf_ol.h" include="`${wowl_enable &amp;&amp; lpa_enable_43022}`" guard="defined(COMPONENT_MW_LPA)" />
+    <ConfigInclude value="cy_lpa_wifi_wowlpf_ol.h" include="`${wowl_enable &amp;&amp; (lpa_enable_43022 || lpa_enable_55500A1)}`" guard="defined(COMPONENT_MW_LPA)" />
     <ConfigInclude value="cy_lpa_wifi_tko_ol.h" include="`${tcpkaOffload}`" guard="defined(COMPONENT_MW_LPA)" />
-    <ConfigInclude value="cy_lpa_wifi_tls_ol.h" include="`${mqttOffload &amp;&amp; lpa_enable_43022}`" guard="defined(COMPONENT_MW_LPA)"/>
+    <ConfigInclude value="cy_lpa_wifi_tls_ol.h" include="`${mqttOffload &amp;&amp; (lpa_enable_43022 || lpa_enable_55500A1)}`" guard="defined(COMPONENT_MW_LPA)"/>
     <ConfigInclude value="cy_lpa_wifi_nko_ol.h" include="`${natkaOffload}`" guard="defined(COMPONENT_MW_LPA)"/>
-    <ConfigInclude value="cy_lpa_wifi_nullko_ol.h" include="`${NullkoOffload &amp;&amp; lpa_enable_43022}`" guard="defined(COMPONENT_MW_LPA)"/>
+    <ConfigInclude value="cy_lpa_wifi_nullko_ol.h" include="`${NullkoOffload &amp;&amp; (lpa_enable_43022 || lpa_enable_55500A1)}`" guard="defined(COMPONENT_MW_LPA)"/>
     <ConfigInclude value="cycfg_pins.h" include="`${hostWake}`" />
 
     <ConfigDefine name="CYCFG_WIFI_HOST_WAKE_ENABLED" public="true" value="(`${hostWake &amp;&amp; hostIRQConnected ? 1 : 0}`u)" include="`${!hostWake || (hostWake &amp;&amp; hostIRQConnected)}`" preventOverride="false" />

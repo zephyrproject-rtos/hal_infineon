@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_vu.h
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides provides constant and parameters
@@ -105,7 +105,7 @@ void Cy_Cryptolite_Vu_lsl (uint8_t* p_z, uint32_t word_size_z, uint8_t* p_a, uin
    while (p_z_uint32 < (((uint32_t *) (void *)p_z) + word_size_z)) {
       word = *p_a_uint32++;
       *p_z_uint32++ = (word <<  bit_offset) | saved;
-      saved = (word >> (32U-word_sh));
+      saved = (word >> (32U-bit_offset));
    }
 }
 

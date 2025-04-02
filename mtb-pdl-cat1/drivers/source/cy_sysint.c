@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file  cy_sysint.c
-* \version 1.120
+* \version 1.130
 *
 * \brief
 * Provides an API implementation of the SysInt driver.
@@ -400,7 +400,7 @@ cy_israddress Cy_SysInt_SetVector(IRQn_Type IRQn, cy_israddress userIsr)
         __ramVectors[CY_INT_IRQ_BASE + (uint32_t)IRQn] = userIsr;
 
         #if defined (CY_IP_M7CPUSS)
-            #if (CY_CPU_CORTEX_M7)
+            #if ((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE))
                 // Ensure that above change in the vector table is cleaned from Data Cache,
                 // and Instruction Cache is invalidated, so that CPU fetches the correct address
                 SCB_CleanDCache_by_Addr((uint32_t*)&__ramVectors[CY_INT_IRQ_BASE + (uint32_t)IRQn], 4);

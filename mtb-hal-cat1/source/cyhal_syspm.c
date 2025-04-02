@@ -102,8 +102,6 @@ static cyhal_syspm_callback_data_t* _cyhal_syspm_peripheral_callback_ptr = CYHAL
 
 static uint16_t _cyhal_deep_sleep_lock = 0;
 
-static uint32_t _cyhal_syspm_supply_voltages[((size_t)CYHAL_VOLTAGE_SUPPLY_MAX) + 1] = { 0 };
-
 static bool _cyhal_systick_disable = false;
 static bool _cyhal_disable_systick_before_sleep_deepsleep = false;
 
@@ -595,18 +593,6 @@ cyhal_syspm_system_deep_sleep_mode_t cyhal_syspm_get_deepsleep_mode (void)
     return deep_sleep_mode;
 }
 
-
-void cyhal_syspm_set_supply_voltage(cyhal_syspm_voltage_supply_t supply, uint32_t mvolts)
-{
-    CY_ASSERT((size_t)supply <= CYHAL_VOLTAGE_SUPPLY_MAX);
-    _cyhal_syspm_supply_voltages[(size_t)supply] = mvolts;
-}
-
-uint32_t cyhal_syspm_get_supply_voltage(cyhal_syspm_voltage_supply_t supply)
-{
-    CY_ASSERT((size_t)supply <= CYHAL_VOLTAGE_SUPPLY_MAX);
-    return _cyhal_syspm_supply_voltages[(size_t)supply];
-}
 
 #if defined(__cplusplus)
 }

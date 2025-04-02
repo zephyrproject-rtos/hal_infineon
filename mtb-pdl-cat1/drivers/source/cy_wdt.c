@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_wdt.c
-* \version 1.80
+* \version 1.90
 *
 *  This file provides the source code to the API for the WDT driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -41,14 +41,20 @@ extern "C" {
 *
 * Initializes the Watchdog timer to its default state.
 *
-* The given default setting of the WDT:
-* The WDT is unlocked and disabled.
-* The WDT match value is 4096.
-* None of ignore bits are set: the whole WDT counter bits are checked against
-* the match value.
+* \note On WDT driver version A the given default setting of the WDT:
+* * The WDT is unlocked and disabled.
+* * The WDT match value is 4096.
+* * None of ignore bits are set: the whole WDT counter bits are checked against
+*   the match value.
+* * Side Effects: This function clears the WDT interrupt.
 *
-* \sideeffect
-* This function clears the WDT interrupt.
+* \note
+* On WDT driver version B the given default setting of the WDT:
+* * The WDT is unlocked and disabled.
+* * The WDT Lower Limit value is set to 0 and Lower action to None.
+* * The WDT Warn Limit value is set to 0 and Warn action to None.
+* * The WDT Upper Limit value is set to 32000 (1 second) and Upper action to Reset.
+* * The WDT is locked again.
 *
 *******************************************************************************/
 void Cy_WDT_Init(void)
@@ -91,8 +97,8 @@ void Cy_WDT_Lock(void)
 * Returns the WDT lock state.
 *
 * \return
-* True - if WDT is locked.
-* False - if WDT is unlocked.
+*  True - if WDT is locked.
+*  False - if WDT is unlocked.
 *
 *******************************************************************************/
 bool Cy_WDT_Locked(void)
@@ -220,9 +226,16 @@ void Cy_WDT_SetMatchBits(uint32_t bitPos)
 * Function Name: Cy_WDT_ClearInterrupt
 ****************************************************************************//**
 *
-* Clears the WDT match flag which is set every time the WDT counter reaches a
-* WDT match value. Two unserviced interrupts lead to a system reset
-* (i.e. at the third match).
+* Clears the WDT interrupt.
+*
+* \note
+* On WDT driver version A it clears the WDT match flag which is set every time
+* the WDT counter reaches a WDT match value.
+* Unservised interrupts lead to a system reset (i.e. at the third match).
+*
+* \note
+* On WDT driver version B it clears the WDT match flag which is set as
+* configured by WDT action and limits.
 *
 *******************************************************************************/
 void Cy_WDT_ClearInterrupt(void)
@@ -245,7 +258,12 @@ void Cy_WDT_ClearInterrupt(void)
 ****************************************************************************//**
 *
 * Clears ("feeds") the watchdog, to prevent a XRES device reset.
-* This function simply call Cy_WDT_ClearInterrupt() function.
+*
+* \note
+* On WDT driver version A this function simply call Cy_WDT_ClearInterrupt() function.
+*
+* \note
+* On WDT driver version B this function simply call Cy_WDT_SetService() function.
 *
 *******************************************************************************/
 void Cy_WDT_ClearWatchdog(void)

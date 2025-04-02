@@ -48,7 +48,7 @@ extern "C" {
 /** Macro that, given a gpio, will extract the port number */
 #define CYHAL_GET_PORT(pin)         ((uint8_t)(((uint8_t)pin) >> 3U))
 
-/** Definitions for all of the pins that are bonded out on in the 64-TQFP-EPAD package for the PSoC6_04 series. */
+/** Definitions for all of the pins that are bonded out on in the 64-TQFP package for the PSoC6_04 series. */
 typedef enum {
     NC = 0xFF, //!< No Connect/Invalid Pin
 

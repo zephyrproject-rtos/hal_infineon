@@ -2322,6 +2322,14 @@ static cy_rslt_t _cyhal_audioss_dma_perform_rx(_cyhal_audioss_t *obj)
         // Only want the user callback to be call on the last dma transfer.
         cyhal_dma_enable_event(&(obj->rx_dma), CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, true);
     }
+#if defined (COMPONENT_CAT5)
+    else
+    {
+        //On CAT5,DMA status is cleared only when the interrupt is enabled. This is needed for
+        //further DMA transfers to work.
+        cyhal_dma_enable_event(&(obj->rx_dma), CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, true);
+    }
+#endif
 
     cyhal_dma_cfg_t dma_cfg =
     {
@@ -2335,7 +2343,11 @@ static cy_rslt_t _cyhal_audioss_dma_perform_rx(_cyhal_audioss_t *obj)
         .dst_increment = 1,
         .transfer_width = _cyhal_audioss_rounded_word_length(obj, false),
         .length = transfer_size,
+#if defined(COMPONENT_CAT5)
+        .burst_size = 128,
+#else
         .burst_size = 0,
+#endif
         .action = CYHAL_DMA_TRANSFER_FULL,
     };
     cy_rslt_t result = cyhal_dma_configure(&(obj->rx_dma), &dma_cfg);
@@ -2385,6 +2397,14 @@ static cy_rslt_t _cyhal_audioss_dma_perform_tx(_cyhal_audioss_t *obj)
         // Only want the user callback to be call on the last dma transfer.
         cyhal_dma_enable_event(&(obj->tx_dma), CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, true);
     }
+#if defined (COMPONENT_CAT5)
+    else
+    {
+        //On CAT5,DMA status is cleared only when the interrupt is enabled. This is needed for
+        //further DMA transfers to work.
+        cyhal_dma_enable_event(&(obj->tx_dma), CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, true);
+    }
+#endif
 
     cyhal_dma_cfg_t dma_cfg =
     {
@@ -2398,7 +2418,11 @@ static cy_rslt_t _cyhal_audioss_dma_perform_tx(_cyhal_audioss_t *obj)
         .dst_increment = 0,
         .transfer_width = _cyhal_audioss_rounded_word_length(obj, true),
         .length = transfer_size,
+#if defined(COMPONENT_CAT5)
+        .burst_size = 128,
+#else
         .burst_size = 0,
+#endif
         .action = CYHAL_DMA_TRANSFER_FULL,
     };
     cy_rslt_t result = cyhal_dma_configure(&(obj->tx_dma), &dma_cfg);
@@ -2478,9 +2502,20 @@ static void _cyhal_audioss_dma_handler_rx(void *callback_arg, cyhal_dma_event_t 
     CY_ASSERT(CYHAL_DMA_TRANSFER_COMPLETE == event);
 
     _cyhal_audioss_t *obj = (_cyhal_audioss_t*)callback_arg;
-    obj->async_rx_buff = NULL;
-    cyhal_dma_enable_event(&obj->rx_dma, CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, false);
-    _cyhal_audioss_process_event(obj, obj->interface->event_rx_complete);
+#if defined (COMPONENT_CAT5)
+    if( 0 != obj->async_rx_length )
+    {
+        cyhal_dma_enable_event(&obj->rx_dma, CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, false);
+        //Receive of subsequent packets will be triggered from the IRQ
+        return;
+    }
+    else
+#endif
+    {
+        obj->async_rx_buff = NULL;
+        cyhal_dma_enable_event(&obj->rx_dma, CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, false);
+        _cyhal_audioss_process_event(obj, obj->interface->event_rx_complete);
+    }
 }
 #endif /* defined(_CYHAL_AUDIOSS_RX_ENABLED) && (CYHAL_DRIVER_AVAILABLE_DMA) */
 
@@ -2493,9 +2528,20 @@ static void _cyhal_audioss_dma_handler_tx(void *callback_arg, cyhal_dma_event_t 
     CY_ASSERT(CYHAL_DMA_TRANSFER_COMPLETE == event);
 
     _cyhal_audioss_t *obj = (_cyhal_audioss_t*)callback_arg;
-    obj->async_tx_buff = NULL;
-    cyhal_dma_enable_event(&obj->tx_dma, CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, false);
-    _cyhal_audioss_process_event(obj, obj->interface->event_tx_complete);
+#if defined (COMPONENT_CAT5)
+    if( 0 != obj->async_tx_length )
+    {
+        cyhal_dma_enable_event(&obj->tx_dma, CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, false);
+        //Transfer of subsequent packets will be triggered from the IRQ
+        return;
+    }
+    else
+#endif
+    {
+        obj->async_tx_buff = NULL;
+        cyhal_dma_enable_event(&obj->tx_dma, CYHAL_DMA_TRANSFER_COMPLETE, obj->async_dma_priority, false);
+        _cyhal_audioss_process_event(obj, obj->interface->event_tx_complete);
+    }
 }
 #endif /* (CYHAL_DRIVER_AVAILABLE_DMA) */
 

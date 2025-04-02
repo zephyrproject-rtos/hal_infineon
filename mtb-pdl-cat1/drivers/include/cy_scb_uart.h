@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_uart.h
-* \version 3.20
+* \version 3.30
 *
 * Provides UART API declarations of the SCB driver.
 *
@@ -606,10 +606,10 @@ __STATIC_INLINE uint32_t Cy_SCB_UART_GetRtsFifoLevel(CySCB_Type const *base);
 
 __STATIC_INLINE void Cy_SCB_UART_EnableSkipStart (CySCB_Type *base);
 __STATIC_INLINE void Cy_SCB_UART_DisableSkipStart(CySCB_Type *base);
-#if ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4))
+#if (CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED)
 __STATIC_INLINE void Cy_SCB_UART_EnableSingleWireHalfDuplex(CySCB_Type *base);
 __STATIC_INLINE void Cy_SCB_UART_DisableSingleWireHalfDuplex(CySCB_Type *base);
-#endif/* ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) */
+#endif /* (CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED) */
 /** \} group_scb_uart_general_functions */
 
 /**
@@ -912,6 +912,7 @@ cy_en_syspm_status_t Cy_SCB_UART_HibernateCallback(cy_stc_syspm_callback_params_
 *******************************************************************************/
 
 /** \cond INTERNAL */
+
 #define CY_SCB_UART_TX_INTR_MASK    (CY_SCB_UART_TX_TRIGGER  | CY_SCB_UART_TX_NOT_FULL  | CY_SCB_UART_TX_EMPTY | \
                                      CY_SCB_UART_TX_OVERFLOW | CY_SCB_UART_TX_UNDERFLOW | CY_SCB_UART_TX_DONE  | \
                                      CY_SCB_UART_TX_NACK     | CY_SCB_UART_TX_ARB_LOST)
@@ -972,6 +973,7 @@ cy_en_syspm_status_t Cy_SCB_UART_HibernateCallback(cy_stc_syspm_callback_params_
 
 #define CY_SCB_UART_IS_MUTLI_PROC_VALID(mp, mode, width, parity)    ( (mp) ? ((CY_SCB_UART_STANDARD  == (mode)) && ((width) == 9UL) && \
                                                                               (CY_SCB_UART_PARITY_NONE == (parity))) : true)
+
 /** \endcond */
 
 /** \} group_scb_uart_macros */
@@ -1124,7 +1126,7 @@ __STATIC_INLINE void Cy_SCB_UART_DisableSkipStart(CySCB_Type *base)
     SCB_UART_RX_CTRL(base) &= (uint32_t) ~SCB_UART_RX_CTRL_SKIP_START_Msk;
 }
 
-#if ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) || defined (CY_DOXYGEN)
+#if (CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_SCB_UART_EnableSingleWireHalfDuplex
 ****************************************************************************//**
@@ -1163,7 +1165,7 @@ __STATIC_INLINE void Cy_SCB_UART_DisableSingleWireHalfDuplex(CySCB_Type *base)
 {
     SCB_UART_RX_CTRL(base) &= (uint32_t) ~SCB_UART_RX_CTRL_HDRXEN_Msk;
 }
-#endif /* ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) */
+#endif /* (CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED) || defined (CY_DOXYGEN) */
 
 /** \} group_scb_uart_general_functions */
 

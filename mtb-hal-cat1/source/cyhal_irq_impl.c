@@ -61,6 +61,12 @@ static const uint8_t _CYHAL_IRQ_COUNT_M0 = 32; /* Fixed in the IP definition */
 #include "cyhal_hwmgr.h" // TODO: This is a temporary workaround to assign 1:1 CPU to system mapping.
 #endif
 
+#if !defined(CY_SYSINT_INTRSRC_MUXIRQ_SHIFT)
+// On older PDL versions, this macro isn't defined, and the interpretation
+// of cy_stc_sysint_t:intrSrc is such that a value of 16 is always applicable
+#define CY_SYSINT_INTRSRC_MUXIRQ_SHIFT (16u)
+#endif
+
 static uint8_t _cyhal_system_irq_priority[((_CYHAL_IRQ_PRIO_BITS * _CYHAL_IRQ_COUNT) + 7) / 8]; /* Round up to nearest byte */
 
 uint8_t _cyhal_system_irq_lookup_priority(cy_en_intr_t system_irq)

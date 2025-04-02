@@ -160,6 +160,32 @@ typedef uint16_t cyhal_gpio_mapping_cfg_t; // 8bit hsiom, 8bit mode
 #include "pin_packages/cyhal_xmc7200_176_teqfp.h"
 #elif defined(_GPIO_XMC7200_272_BGA_H_)
 #include "pin_packages/cyhal_xmc7200_272_bga.h"
+#elif defined(_GPIO_PSE84_BGA_220_H_)
+#include "pin_packages/cyhal_pse84_bga_220.h"
+#elif defined(_GPIO_PSE84_EWLB_235_H_)
+#include "pin_packages/cyhal_pse84_ewlb_235.h"
+#elif defined(_GPIO_PSE84_LQFP_144_H_)
+#include "pin_packages/cyhal_pse84_lqfp_144.h"
+#elif defined(_GPIO_PSE84_WLB_154_H_)
+#include "pin_packages/cyhal_pse84_wlb_154.h"
+#elif defined(_GPIO_PSE84_A0_BGA_220_H_)
+#include "pin_packages/cyhal_pse84_a0_bga_220.h"
+#elif defined(_GPIO_PSE84_A0_EWLB_235_H_)
+#include "pin_packages/cyhal_pse84_a0_ewlb_235.h"
+#elif defined(_GPIO_PSE84_A0_LQFP_144_H_)
+#include "pin_packages/cyhal_pse84_a0_lqfp_144.h"
+#elif defined(_GPIO_PSE84_A0_WLB_154_H_)
+#include "pin_packages/cyhal_pse84_a0_wlb_154.h"
+#elif defined(_GPIO_PSC3_VQFN_64_H_) || defined(_GPIO_BOY2_VQFN_64_H_)
+#include "pin_packages/cyhal_psc3_vqfn_64.h"
+#elif defined(_GPIO_PSC3_VQFN_48_H_) || defined(_GPIO_BOY2_VQFN_48_H_)
+#include "pin_packages/cyhal_psc3_vqfn_48.h"
+#elif defined(_GPIO_PSC3_E_LQFP_80_H_) || defined(_GPIO_BOY2_E_LQFP_80_H_)
+#include "pin_packages/cyhal_psc3_e_lqfp_80.h"
+#elif defined(_GPIO_PSC3_E_LQFP_64_H_) || defined(_GPIO_BOY2_E_LQFP_64_H_)
+#include "pin_packages/cyhal_psc3_e_lqfp_64.h"
+#elif defined(_GPIO_PSC3_E_LQFP_48_H_) || defined(_GPIO_BOY2_E_LQFP_48_H_)
+#include "pin_packages/cyhal_psc3_e_lqfp_48.h"
 #elif defined(_GPIO_TVIIBE1M_100_LQFP_H_)
 #include "pin_packages/cyhal_tviibe1m_100_lqfp.h"
 #elif defined(_GPIO_TVIIBE1M_144_LQFP_H_)

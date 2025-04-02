@@ -82,6 +82,6 @@
     <ConfigDefine name="CY_CFG_SYSCLK_CLKALTSYSTICK_INTERVAL" value="`${interval}`" public="false" include="true" guard="`${guardStr}`" />
     <ConfigDefine name="CY_CFG_SYSCLK_CLKALTSYSTICK_FREQUENCY" value="`${frequency}`" public="false" include="true" guard="`${guardStr}`" />
     <ConfigDefine name="CY_CFG_SYSCLK_CLKALTSYSTICK_TICKS" value="((`${interval}`)/1000000.0)*`${frequency}`" public="false" include="true" guard="`${guardStr}`" />
-    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkAltSysTickInit()" body=" Cy_SysTick_Init(CY_CFG_SYSCLK_CLKALTSYSTICK_SOURCE, CY_CFG_SYSCLK_CLKALTSYSTICK_TICKS);" public="false" include="true" guard="`${guardStr}`" />
+    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkAltSysTickInit(void)" body=" Cy_SysTick_Init(CY_CFG_SYSCLK_CLKALTSYSTICK_SOURCE, CY_CFG_SYSCLK_CLKALTSYSTICK_TICKS);" public="false" include="true" guard="`${guardStr}`" />
   </ConfigFirmware>
 </Personality>

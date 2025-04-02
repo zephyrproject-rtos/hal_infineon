@@ -37,6 +37,16 @@
     <!-- PDL documentation -->
     <ParamDoc id="pdlDoc" name="Configuration Help" group="Overview" default="file:///`${cy_libs_path()}`/docs/pdl_api_reference_manual/html/group__group__mcwdt.html" linkText="Open MCWDT Documentation" visible="true" desc="Opens the Peripheral Driver Library Documentation" />
 
+    <!--Clock source-->
+    <ParamString id="sourceLfClk" name="Low Frequency Clock" group="Internal" default="srss[0].clock[0].lfclk[0]" visible="false" editable="false" desc="" />
+
+    <ParamBool id="srcLfUsed" name="Clock Source Enabled" group="Internal" default="`${isBlockUsed(sourceLfClk)}`" visible="false" editable="false" desc="" />
+    <ParamBool id="errorLf" name="Low Frequency Error" group="Internal" default="`${!srcLfUsed || getExposedMember(sourceLfClk, &quot;error&quot;)}`" visible="false" editable="false" desc="" />
+
+    <ParamRange id="sourceLowFreq" name="Source Low Frequency" group="Internal" default="`${!errorLf ? getExposedMember(sourceLfClk, &quot;frequency&quot;) : 0}`" min="0" max="100000" resolution="1" visible="false" editable="false" desc="" />
+    <ParamString id="accuracyLF"  name="Accuracy LF"  group="Internal" default="`${!errorLf ? getExposedMember(sourceLfClk, &quot;accuracy&quot;) : 0}`" visible="false" editable="false" desc="" />
+    <ParamString id="sourceLowFrequencyInfo" name="Low Frequency Clock" group="Counter" default="CLK_LF (`${formatFrequency(sourceLowFreq,accuracyLF)}`)" visible="true" editable="false" desc="Source clock frequency" />
+
     <!--Counter0-->
     <ParamChoice id="C0ClearOnMatch" name="Clear on Match" group="Counter0" default="FREE_RUNNING" visible="true" editable="true" desc="Controls whether the counter is free running, with a period of 65,536 counts, or clear on match, where the period equals the match value + 1.">
       <Entry name="Free Running" value="FREE_RUNNING" visible="true" />
@@ -93,6 +103,14 @@
     <!--Config-->
     <ParamBool id="inFlash" name="Store Config in Flash" group="Advanced" default="true" visible="true" editable="true" desc="Controls whether the configuration structure is stored in flash (const, true) or SRAM (not const, false)." />
   </Parameters>
+
+  <DRCs>  
+    <!--MCWDT DRCs-->
+    <DRC type="ERROR" text="Source low frequency clock for MCWDT is not enabled" condition="`${!srcLfUsed}`" >
+      <FixIt action="ENABLE_BLOCK" target="`${sourceLfClk}`" value="" valid="true" />
+    </DRC>
+  </DRCs>
+
   <ConfigFirmware>
     <ConfigInclude value="cy_mcwdt.h" include="true" />
     <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />

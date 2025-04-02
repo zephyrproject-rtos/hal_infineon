@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_sd_host.c
-* \version 2.20
+* \version 2.40
 *
 * \brief
 *  This file provides the driver code to the API for the SD Host Controller
@@ -8,7 +8,8 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2021 Cypress Semiconductor Corporation
+* Copyright 2018-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -419,7 +420,8 @@ __STATIC_INLINE cy_en_sd_host_status_t Cy_SD_Host_PollCmdLineFree(SDHC_Type cons
 __STATIC_INLINE cy_en_sd_host_status_t Cy_SD_Host_PollDataLineNotInhibit(SDHC_Type const *base);
 __STATIC_INLINE cy_en_sd_host_status_t Cy_SD_Host_PollDataLineFree(SDHC_Type const *base);
 
-#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) || (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
+
 static uint16_t clk_ctl_r;
 static uint32_t normal_mask;
 static uint32_t error_mask;
@@ -872,6 +874,7 @@ cy_en_sd_host_status_t Cy_SD_Host_InitCard(SDHC_Type *base,
             *config->rca = context->RCA;
             *config->cardType = context->cardType;
             *config->cardCapacity = context->cardCapacity;
+            context->busWidth = config->busWidth;
         }
         else
         {
@@ -969,15 +972,29 @@ cy_en_sd_host_status_t Cy_SD_Host_Read(SDHC_Type *base,
                                      (CY_SD_HOST_ADMA_TRAN << CY_SD_HOST_ADMA_ACT_POS) |
                                      (length << CY_SD_HOST_ADMA_LEN_POS);     /* Len */
 
+#if defined(CORE_NAME_CM55_0)
+                aDmaDescriptTbl[1] = (uint32_t)cy_DTCMRemapAddr(config->data);
+                dataConfig.data = (uint32_t*)cy_DTCMRemapAddr(&aDmaDescriptTbl[0]);  /* The address of the ADMA2 descriptor table. */
+#else
                 aDmaDescriptTbl[1] = (uint32_t)config->data;
-
-                /* The address of the ADMA2 descriptor table. */
-                dataConfig.data = (uint32_t*)&aDmaDescriptTbl[0];
+                dataConfig.data = (uint32_t*)&aDmaDescriptTbl[0];  /* The address of the ADMA2 descriptor table. */
+#endif
             }
             else
             {
                 /* SDMA mode. */
+#if defined(CORE_NAME_CM55_0)
+                if (dataConfig.enableDma)
+                {
+                    dataConfig.data = (uint32_t*)cy_DTCMRemapAddr(config->data);
+                }
+                else
+                {
+                    dataConfig.data = (uint32_t*)config->data;
+                }
+#else
                 dataConfig.data = (uint32_t*)config->data;
+#endif
             }
 
             ret = Cy_SD_Host_InitDataTransfer(base, &dataConfig);
@@ -1102,14 +1119,28 @@ cy_en_sd_host_status_t Cy_SD_Host_Write(SDHC_Type *base,
                                      (CY_SD_HOST_ADMA_TRAN << CY_SD_HOST_ADMA_ACT_POS) |
                                      (length << CY_SD_HOST_ADMA_LEN_POS);     /* Len */
 
+#if defined(CORE_NAME_CM55_0)
+                aDmaDescriptTbl[1] = (uint32_t)cy_DTCMRemapAddr(config->data);
+                dataConfig.data = (uint32_t*)cy_DTCMRemapAddr(&aDmaDescriptTbl[0]);  /* The address of the ADMA2 descriptor table. */
+#else
                 aDmaDescriptTbl[1] = (uint32_t)config->data;
-
-                /* The address of the ADMA descriptor table. */
-                dataConfig.data = (uint32_t*)&aDmaDescriptTbl[0];
+                dataConfig.data = (uint32_t*)&aDmaDescriptTbl[0];  /* The address of the ADMA2 descriptor table. */
+#endif
             }
             else
             {
+#if defined(CORE_NAME_CM55_0)
+                if (dataConfig.enableDma)
+                {
+                    dataConfig.data = (uint32_t*)cy_DTCMRemapAddr(config->data);
+                }
+                else
+                {
+                    dataConfig.data = (uint32_t*)config->data;
+                }
+#else
                 dataConfig.data = (uint32_t*)config->data;
+#endif
             }
 
             ret = Cy_SD_Host_InitDataTransfer(base, &dataConfig);
@@ -2962,10 +2993,12 @@ cy_en_sd_host_status_t Cy_SD_Host_Init(SDHC_Type *base,
         SDHC_CORE_HOST_CTRL2_R(base) = (uint16_t)_CLR_SET_FLD16U(SDHC_CORE_HOST_CTRL2_R(base),
                                       SDHC_CORE_HOST_CTRL2_R_HOST_VER4_ENABLE,
                                       1U);
+
 #if !(defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
         /* Wait for the Host stable voltage. */
         Cy_SysLib_Delay(CY_SD_HOST_SUPPLY_RAMP_UP_TIME_MS);
 #endif
+
         /* Reset normal events. */
         Cy_SD_Host_NormalReset(base);
     }
@@ -2982,7 +3015,8 @@ cy_en_sd_host_status_t Cy_SD_Host_Init(SDHC_Type *base,
 * Function Name: Cy_SD_Host_DeInit
 ****************************************************************************//**
 *
-* Restores the SD Host block registers back to default.
+* Restores the SD Host block registers back to default. This API also disables
+* SDHC block and user is expect to enable it back using \ref Cy_SD_Host_Enable
 *
 * \param *base
 *     The SD host registers structure pointer.
@@ -3115,7 +3149,7 @@ cy_en_sd_host_status_t  Cy_SD_Host_AbortTransfer(SDHC_Type *base,
             {
                 return ret;
             }
-            
+
             Cy_SysLib_DelayUs(CY_SD_HOST_NCC_MIN_US);
 
             /* Get R1 */
@@ -3187,7 +3221,7 @@ cy_en_sd_host_status_t  Cy_SD_Host_AbortTransfer(SDHC_Type *base,
                     (void)Cy_SD_Host_GetResponse(base, (uint32_t *)&response, false);
 
                     /* Check if the card is in the transition state. */
-                    if ((CY_SD_HOST_CARD_TRAN << CY_SD_HOST_CMD13_CURRENT_STATE) != 
+                    if ((CY_SD_HOST_CARD_TRAN << CY_SD_HOST_CMD13_CURRENT_STATE) !=
                         (response & CY_SD_HOST_CMD13_CURRENT_STATE_MSK))
                     {
                        ret = CY_SD_HOST_ERROR;
@@ -4332,6 +4366,9 @@ cy_en_sd_host_status_t Cy_SD_Host_SetSdClkDiv(SDHC_Type *base, uint16_t clkDiv)
 * \param *base
 *     The SD host registers structure pointer.
 *
+* \note If user is using a custom pin to control write protection,
+* user must implement weak Cy_SD_Host_IsWpSet() and read the pin status.
+*
 * \return bool
 *     true - the write protect is set, false - the write protect is not set.
 *
@@ -4892,6 +4929,9 @@ cy_en_sd_host_status_t Cy_SD_Host_SelBusVoltage(SDHC_Type *base,
 *  Sets the card_if_pwr_en pin high.
 *  This pin can be used to enable a voltage regulator used to power the card.
 *
+* \note If user is using a custom pin/regulator to enable card voltage,
+* user must implement weak Cy_SD_Host_EnableCardVoltage().
+*
 * \param *base
 *     The SD host registers structure pointer.
 *
@@ -4908,6 +4948,9 @@ __WEAK void Cy_SD_Host_EnableCardVoltage(SDHC_Type *base)
 *
 *  Sets the card_if_pwr_en pin low.
 *  This pin can be used to disable a voltage regulator used to power the card.
+*
+* \note If user is using a custom pin/regulator to disable card voltage,
+* user must implement weak Cy_SD_Host_DisableCardVoltage().
 *
 * \param *base
 *     The SD host registers structure pointer.
@@ -5327,7 +5370,7 @@ cy_en_syspm_status_t Cy_SD_Host_DeepSleepCallback(cy_stc_syspm_callback_params_t
 {
     cy_en_syspm_status_t ret = CY_SYSPM_FAIL;
     SDHC_Type *locBase = (SDHC_Type *) (callbackParams->base);
-#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) || (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
     cy_stc_sd_host_context_t *locContext = (cy_stc_sd_host_context_t *) callbackParams->context;
 #endif /* (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) */
     switch(mode)
@@ -5352,16 +5395,24 @@ cy_en_syspm_status_t Cy_SD_Host_DeepSleepCallback(cy_stc_syspm_callback_params_t
 
         case CY_SYSPM_BEFORE_TRANSITION:
         {
-            /* Disable SD CLK before going to Deep Sleep mode */
-#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) || (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
+/* for multi instance we need to check for non hw retention instance */
+#if (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
+        if (locBase ==  SDHC1)
+        {
+#endif
             clk_ctl_r = SDHC_CORE_CLK_CTRL_R(locBase);
             normal_mask = Cy_SD_Host_GetNormalInterruptMask(locBase);
             error_mask = Cy_SD_Host_GetErrorInterruptMask(locBase);
             ctrl1 = SDHC_CORE_HOST_CTRL1_R(locBase);
             ctrl2 = SDHC_CORE_HOST_CTRL2_R(locBase);
             gp_out = SDHC_CORE_GP_OUT_R(locBase);
+#if (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
+          }
+#endif
 
 #endif
+          /* Disable SD CLK before going to Deep Sleep mode */
             Cy_SD_Host_DisableSdClk(locBase);
 
             ret = CY_SYSPM_SUCCESS;
@@ -5375,31 +5426,56 @@ cy_en_syspm_status_t Cy_SD_Host_DeepSleepCallback(cy_stc_syspm_callback_params_t
 
             /* Wait for the stable CLK */
             Cy_SysLib_DelayUs(CY_SD_HOST_CLK_RAMP_UP_TIME_US_WAKEUP);
-#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0))
-
-            /* Enable the SDHC block */
+#if (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) || (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
+/* for multi instance we need to check for non hw retention instance */
+#if (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
+        if (locBase ==  SDHC1)
+        {
+#endif
+           /* Enable the SDHC block */
             Cy_SD_Host_Enable(locBase);
             cy_stc_sd_host_init_config_t local_config;
             local_config.emmc             = false;
             local_config.dmaType          = locContext->dmaType;
             local_config.enableLedControl = false;
 
-            cy_en_sd_host_status_t result = Cy_SD_Host_Init(locBase, &local_config, locContext);
+            cy_en_sd_host_status_t result;
+            result = Cy_SD_Host_Init(locBase, &local_config, locContext);
             if(result == CY_SD_HOST_SUCCESS)
             {
                 ret = CY_SYSPM_SUCCESS;
             }
+            /* valid card was present before DS, re init card */
+            if (locContext->RCA != 0U)
+            {
+                cy_stc_sd_host_sd_card_config_t cardConfig;
+                cardConfig.rca = &locContext->RCA;
+                cardConfig.cardType = &locContext->cardType;
+                cardConfig.cardCapacity = &locContext->cardCapacity;
+                cardConfig.busWidth = locContext->busWidth;
+                result = Cy_SD_Host_InitCard(locBase, &cardConfig, locContext);
+                if(result == CY_SD_HOST_SUCCESS)
+                {
+                  ret = CY_SYSPM_SUCCESS;
+                }
+            }
+            else
+            {
+                SDHC_CORE_CLK_CTRL_R(locBase) = clk_ctl_r;
+                Cy_SD_Host_SetNormalInterruptMask(locBase, normal_mask);
+                Cy_SD_Host_SetErrorInterruptMask(locBase, error_mask);
+                SDHC_CORE_HOST_CTRL1_R(locBase) = ctrl1;
+                SDHC_CORE_HOST_CTRL2_R(locBase) = ctrl2;
+                SDHC_CORE_GP_OUT_R(locBase) = gp_out;
+            }
 
-            SDHC_CORE_CLK_CTRL_R(locBase) = clk_ctl_r;
+#if (defined SDHC1_RETENTION_PRESENT && (SDHC1_RETENTION_PRESENT == 0))
+        }
+#endif
 
-            Cy_SD_Host_SetNormalInterruptMask(locBase, normal_mask);
-            Cy_SD_Host_SetErrorInterruptMask(locBase, error_mask);
-            SDHC_CORE_HOST_CTRL1_R(locBase) = ctrl1;
-            SDHC_CORE_HOST_CTRL2_R(locBase) = ctrl2;
-            SDHC_CORE_GP_OUT_R(locBase) = gp_out;
-#else
-            ret = CY_SYSPM_SUCCESS;
 #endif /* (defined SDHC_RETENTION_PRESENT && (SDHC_RETENTION_PRESENT == 0)) */
+
+        ret = CY_SYSPM_SUCCESS;
         }
         break;
 

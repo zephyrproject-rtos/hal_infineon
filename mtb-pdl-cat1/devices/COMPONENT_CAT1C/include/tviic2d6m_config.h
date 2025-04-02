@@ -2101,7 +2101,7 @@ typedef enum
 #include "ip/cyip_dmac.h"
 #include "ip/cyip_axi_dmac.h"
 #include "ip/cyip_efuse_v2.h"
-#include "ip/cyip_efuse_data_v2_tviic2d6m.h"
+#include "ip/cyip_efuse_data_tviic2d6m.h"
 #include "ip/cyip_hsiom_v5.h"
 #include "ip/cyip_gpio_v5.h"
 #include "ip/cyip_smartio_v5.h"
@@ -2110,14 +2110,15 @@ typedef enum
 #include "ip/cyip_smif_v4.h"
 #include "ip/cyip_eth_v2.h"
 #include "ip/cyip_lin.h"
+#include "ip/cyip_cxpi.h"
 #include "ip/cyip_canfd.h"
 #include "ip/cyip_scb_v2.h"
 #include "ip/cyip_tdm.h"
 #include "ip/cyip_sg.h"
 #include "ip/cyip_pwm.h"
 #include "ip/cyip_dac.h"
+#include "ip/cyip_mixer.h"
 #include "ip/cyip_pass.h"
-#include "ip/cyip_pd.h"
 
 /* IP type definitions */
 typedef CRYPTO_V2_Type CRYPTO_Type;
@@ -2405,12 +2406,8 @@ typedef CRYPTO_V2_Type CRYPTO_Type;
    256, 512, 1024, 2048, 4096], to allow for a 256 B, 512 B, 1 kB, 2 kB, 4 kB, 8
    kB and 16 kB memory buffer) */
 #define CPUSS_CRYPTO_BUFF_SIZE          2048u
-/* Number of DMA controller channels ([1, 8]) */
-#define CPUSS_DMAC_CH_NR                8u
 /* Number of DataWire controllers present (max 2) */
 #define CPUSS_DW_NR                     2u
-/* DataWire SRAMs ECC present or not ('0': no, '1': yes) */
-#define CPUSS_DW_ECC_PRESENT            1u
 /* Number of fault structures. Legal range [1, 4] */
 #define CPUSS_FAULT_FAULT_NR            4u
 /* Number of Flash BIST_DATA registers */

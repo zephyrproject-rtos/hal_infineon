@@ -105,9 +105,18 @@ extern "C" {
  * See the implementation specific documentation for valid range */
 #define CYHAL_PDM_PCM_RSLT_ERR_INVALID_CONFIG_PARAM     \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_PDMPCM, 1))
-/** An async read operation is already progres */
+/** An async read operation is already progress */
 #define CYHAL_PDM_PCM_RSLT_ERR_ASYNC_IN_PROGRESS        \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_PDMPCM, 2))
+/** Incorrect parameter value */
+#define CYHAL_PDM_PCM_RSLT_ERR_BAD_PARAM                   \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_PDMPCM, 3))
+/** Requested feature is not supported on this hardware */
+#define CYHAL_PDM_PCM_RSLT_ERR_UNSUPPORTED              \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_PDMPCM, 4))
+/** The operation cannot be performed as the hardware is busy */
+#define CYHAL_PDM_PCM_RSLT_ERR_BUSY_OPERATION           \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_PDMPCM, 5))
 
 /**
  * \}
@@ -133,11 +142,11 @@ typedef enum {
 typedef struct
 {
     uint32_t sample_rate;       /**< Sample rate in Hz */
-    uint8_t decimation_rate;    /**< PDM decimation rate */
+    uint16_t decimation_rate;   /**< PDM decimation rate */
     cyhal_pdm_pcm_mode_t mode;  /**< left, right, or stereo */
     uint8_t word_length;        /**< PCM word length in bits, see the implementation specific documentation for valid range */
-    int16_t left_gain;           /**< PGA in 0.5 dB increment, for example a value of 5 would mean +2.5 dB. The closest fit value will be used, see the implementation specific documentation for valid ranges. This may be negative if the implementation supports it. */
-    int16_t right_gain;          /**< PGA in 0.5 dB increment, for example a value of 5 would mean +2.5 dB. The closest fit value will be used, see the implementation specific documentation for valid ranges. This may be negative if the implementation supports it. */
+    int16_t left_gain;          /**< PGA in 0.5 dB increment, for example a value of 5 would mean +2.5 dB. The closest fit value will be used, see the implementation specific documentation for valid ranges. This may be negative if the implementation supports it. */
+    int16_t right_gain;         /**< PGA in 0.5 dB increment, for example a value of 5 would mean +2.5 dB. The closest fit value will be used, see the implementation specific documentation for valid ranges. This may be negative if the implementation supports it. */
 } cyhal_pdm_pcm_cfg_t;
 
 /** Handler for PDM/PCM interrupts */

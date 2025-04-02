@@ -1,0 +1,27 @@
+# System files
+files/templates/cat1a/COMPONENT_MTB/system_psoc6.h:system_psoc6.h
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/system_psoc6_cm4.c:COMPONENT_CM4/system_psoc6_cm4.c
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM0P/system_psoc6_cm0plus.c:COMPONENT_CM0P/system_psoc6_cm0plus.c
+
+# Flash partition
+files/templates/cat1a/COMPONENT_MTB/HEADER_FILES/tviibe_partition.h:tviibe_partition.h
+
+# Startup files
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_ARM/startup_tviibe4m_cm4.s:COMPONENT_CM4/TOOLCHAIN_ARM/startup_tviibe4m_cm4.s
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_ARM/startup_tviibe4m_cm0plus.s:COMPONENT_CM0P/TOOLCHAIN_ARM/startup_tviibe4m_cm0plus.s
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_GCC_ARM/startup_tviibe4m_cm4.S:COMPONENT_CM4/TOOLCHAIN_GCC_ARM/startup_tviibe4m_cm4.S
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/startup_tviibe4m_cm0plus.S:COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/startup_tviibe4m_cm0plus.S
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_IAR/startup_tviibe4m_cm4.s:COMPONENT_CM4/TOOLCHAIN_IAR/startup_tviibe4m_cm4.s
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_IAR/startup_tviibe4m_cm0plus.s:COMPONENT_CM0P/TOOLCHAIN_IAR/startup_tviibe4m_cm0plus.s
+
+# CM4 linkers for each compiler
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_ARM/cyt2bl_cm4_dual.sct:COMPONENT_CM4/TOOLCHAIN_ARM/linker.sct
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_GCC_ARM/cyt2bl_cm4_dual.ld:COMPONENT_CM4/TOOLCHAIN_GCC_ARM/linker.ld
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_IAR/cyt2bl_cm4_dual.icf:COMPONENT_CM4/TOOLCHAIN_IAR/linker.icf
+
+# CM0P linkers for each compiler
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_ARM/cyt2bl_cm0plus.sct:COMPONENT_CM0P/TOOLCHAIN_ARM/linker.sct
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/cyt2bl_cm0plus.ld:COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/linker.ld
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_IAR/cyt2bl_cm0plus.icf:COMPONENT_CM0P/TOOLCHAIN_IAR/linker.icf
+
+

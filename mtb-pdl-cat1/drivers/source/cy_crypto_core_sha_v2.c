@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_sha_v2.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the source code to the API for the SHA method
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -336,7 +336,6 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Sha_Start(CRYPTO_Type *base, cy_stc_cryp
 
     if (hashState != NULL)
     {
-
         hashRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(hashState->hash);
         initialHashRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(hashState->initialHash);
 
@@ -537,7 +536,6 @@ static cy_en_crypto_status_t Cy_Crypto_Sha3_Finish(CRYPTO_Type *base,
     
     if ((hashState != NULL) && (digest != NULL))
     {
-    
 #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
         /* Flush the cache */
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
@@ -577,7 +575,7 @@ static cy_en_crypto_status_t Cy_Crypto_Sha3_Finish(CRYPTO_Type *base,
         Cy_Crypto_Core_V2_FFStoreSync(base);
 
         tmpResult = CY_CRYPTO_SUCCESS;
-     
+        
     }
   
     return (tmpResult);
@@ -1063,7 +1061,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Sha_Free(CRYPTO_Type *base, cy_stc_crypt
         if(CY_CRYPTO_SUCCESS == tmpResult)
         {
             /* Clears the hash state */
-            Cy_Crypto_Core_V2_MemSet(base, (void*)stateRemap, 0x00U, (uint16_t)sizeof(cy_stc_crypto_sha_state_t));
+            Cy_Crypto_Core_V2_MemSet(base, (void*)stateRemap, 0x00U, (uint16_t)(sizeof(cy_stc_crypto_sha_state_t) - CY_CRYPTO_DCAHCE_PADDING_SIZE));
 
             /* Clears the memory buffer. */
             Cy_Crypto_Core_V2_RBClear(base);
@@ -1109,44 +1107,37 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Sha(CRYPTO_Type *base,
                                 cy_en_crypto_sha_mode_t mode)
 {
     cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
-
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
     /* Allocate maximal space for the structure which stores the SHA buffers */
-    
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE) static cy_stc_crypto_v2_sha_buffers_t shaBuffers;
+    uint8_t shaBuffers_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_v2_sha_buffers_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
     /* Allocate space for the structure which stores the SHA context */
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE) static cy_stc_crypto_sha_state_t hashState;
+    uint8_t hashState_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_sha_state_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
 
-#else
-    /* Allocate maximal space for the structure which stores the SHA buffers */
-    cy_stc_crypto_v2_sha_buffers_t shaBuffers = {{0,},{0,}};
-    /* Allocate space for the structure which stores the SHA context */
-    cy_stc_crypto_sha_state_t hashState = { 0 };
-#endif
+    cy_stc_crypto_v2_sha_buffers_t *shaBuffers = (cy_stc_crypto_v2_sha_buffers_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(shaBuffers_t);
+    cy_stc_crypto_sha_state_t *hashState = (cy_stc_crypto_sha_state_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(hashState_t);
 
-    Cy_Crypto_Core_V2_MemSet(base, (void*)&shaBuffers, 0x00U, (uint16_t)sizeof(cy_stc_crypto_v2_sha_buffers_t));
-    Cy_Crypto_Core_V2_MemSet(base, (void*)&hashState, 0x00U, (uint16_t)sizeof(cy_stc_crypto_sha_state_t));
+    Cy_Crypto_Core_V2_MemSet(base, (void*)shaBuffers, 0x00U, (uint16_t)sizeof(cy_stc_crypto_v2_sha_buffers_t));
+    Cy_Crypto_Core_V2_MemSet(base, (void*)hashState, 0x00U, (uint16_t)sizeof(cy_stc_crypto_sha_state_t));
 
     /* No buffers are needed for the Crypto_ver2 IP block. */
-    tmpResult = Cy_Crypto_Core_V2_Sha_Init   (base, &hashState, mode, &shaBuffers);
+    tmpResult = Cy_Crypto_Core_V2_Sha_Init   (base, hashState, mode, shaBuffers);
 
     if (CY_CRYPTO_SUCCESS == tmpResult)
     {
-        tmpResult = Cy_Crypto_Core_V2_Sha_Start  (base, &hashState);
+        tmpResult = Cy_Crypto_Core_V2_Sha_Start  (base, hashState);
     }
     if (CY_CRYPTO_SUCCESS == tmpResult)
     {
-        tmpResult = Cy_Crypto_Core_V2_Sha_Update (base, &hashState, message, messageSize);
-    }
-
-    if (CY_CRYPTO_SUCCESS == tmpResult)
-    {
-        tmpResult = Cy_Crypto_Core_V2_Sha_Finish (base, &hashState, digest);
+        tmpResult = Cy_Crypto_Core_V2_Sha_Update (base, hashState, message, messageSize);
     }
 
     if (CY_CRYPTO_SUCCESS == tmpResult)
     {
-        tmpResult = Cy_Crypto_Core_V2_Sha_Free   (base, &hashState);
+        tmpResult = Cy_Crypto_Core_V2_Sha_Finish (base, hashState, digest);
+    }
+
+    if (CY_CRYPTO_SUCCESS == tmpResult)
+    {
+        tmpResult = Cy_Crypto_Core_V2_Sha_Free   (base, hashState);
     }
 
     return (tmpResult);

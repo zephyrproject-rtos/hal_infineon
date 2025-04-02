@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file system_cm7.c
-* \version 1.0
+* \version 1.2
 *
 * The device system-source file.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2021 Cypress Semiconductor Corporation
+* Copyright 2021-2024 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,6 @@
 *******************************************************************************/
 
 #include <stdbool.h>
-#include "system_cat1c.h"
 #include "cy_device.h"
 #include "cy_device_headers.h"
 #include "cy_syslib.h"
@@ -56,7 +55,7 @@ CY_NOINIT cy_israddress * Cy_SysInt_SystemIrqUserTableRamPointer ;
 /** Holds the CLK_SLOW(Cortex-M0+) or CLK_FAST0(Cortex-M7_0) or CLK_FAST(Cortex-M7_1) system core clock */
 CY_NOINIT uint32_t SystemCoreClock ;
 
-/** Holds the HFClk0 clock frequency. Updated by \ref SystemCoreClockUpdate(). */
+/** Holds the HFClk0 clock frequency. Updated by \ref SystemCoreClockUpdate().  Note that the HfClk0 does not source any CPU core directly. */
 CY_NOINIT uint32_t cy_Hfclk0FreqHz ;
 
 /** Holds the PeriClk clock frequency. Updated by \ref SystemCoreClockUpdate(). */
@@ -167,24 +166,18 @@ __WEAK void Cy_SystemInit(void)
 *******************************************************************************/
 void SystemCoreClockUpdate (void)
 {
-    uint32_t pathFreqHz;
-    uint32_t clkHfPath;
+    /* Get frequency for the fast clock source of the core we are currently building for. */
+    #if defined (CORE_NAME_CM7_0) && (CORE_NAME_CM7_0 == 1)
+    SystemCoreClock = Cy_SysClk_ClkFastSrcGetFrequency(0);
+    #else
+    SystemCoreClock = Cy_SysClk_ClkFastSrcGetFrequency(1);
+    #endif
 
-    /* Get frequency for the high-frequency clock # 0 */
-    clkHfPath = CY_SYSCLK_CLK_CORE_HF_PATH_NUM;
+    /* This is part of the clock tree for the CM0+; do not use for CM7 clock calculations. */
+    cy_Hfclk0FreqHz = Cy_SysClk_ClkHfGetFrequency(CY_SYSCLK_CLK_CORE_HF_PATH_NUM);
 
-    pathFreqHz = Cy_SysClk_ClkHfGetFrequency(clkHfPath);
-
-    SystemCoreClock = pathFreqHz;
-
-    cy_Hfclk0FreqHz = SystemCoreClock;
-
-    /* Get frequency for the high-frequency clock # 2 , whcih is used for PERI PCLK*/
-    clkHfPath = CY_SYSCLK_CLK_PERI_HF_PATH_NUM;
-
-    pathFreqHz = Cy_SysClk_ClkHfGetFrequency(clkHfPath);
-
-    cy_PeriClkFreqHz = pathFreqHz;
+    /* Get frequency for the high-frequency clock # 2 , which is used for PERI PCLK. */
+    cy_PeriClkFreqHz = Cy_SysClk_ClkHfGetFrequency(CY_SYSCLK_CLK_PERI_HF_PATH_NUM);
 
     /* Sets clock frequency for Delay API */
     cy_delayFreqHz = SystemCoreClock;

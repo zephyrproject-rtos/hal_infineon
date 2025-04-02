@@ -158,7 +158,7 @@ extern "C" {
 /** Invalid src or dst addr alignment error */
 #define CYHAL_DMA_RSLT_ERR_INVALID_ALIGNMENT            \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_DMA, 3))
-/** Invalid burst_size paramenter error */
+/** Invalid burst_size parameter error */
 #define CYHAL_DMA_RSLT_ERR_INVALID_BURST_SIZE           \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, CYHAL_RSLT_MODULE_DMA, 4))
 /** Channel busy error */
@@ -203,6 +203,8 @@ typedef enum
     CYHAL_DMA_CURR_PTR_NULL       = 1 << 6, //!< Indicates that the current descriptor pointer is null
     CYHAL_DMA_ACTIVE_CH_DISABLED  = 1 << 7, //!< Indicates that the active channel is disabled
     CYHAL_DMA_DESCR_BUS_ERROR     = 1 << 8, //!< Indicates that there has been a descriptor bus error
+    CYHAL_DMA_GENERIC_ERROR       = 1 << 9, /**< Indicates that there has been a generic error during
+                                                the DMA transfer */
 } cyhal_dma_event_t;
 
 /** Specifies the transfer type to trigger when an input signal is received. */

@@ -124,7 +124,7 @@ extern "C" {
  * @param[in]  clk  An optional, pre-allocated clock to use, if NULL a new clock will be allocated
  * @return The status of the init request.
  */
-#define cyhal_pwm_init(obj, pin, clk) (cyhal_pwm_init_adv(obj, pin, NC, CYHAL_PWM_LEFT_ALIGN, true, 0u, false, clk))
+#define cyhal_pwm_init(obj, pin, clk) (cyhal_pwm_init_adv((obj), (pin), NC, CYHAL_PWM_LEFT_ALIGN, true, 0u, false, (clk)))
 
 /** PWM interrupt triggers */
 typedef enum {
@@ -222,7 +222,7 @@ cy_rslt_t cyhal_pwm_set_period(cyhal_pwm_t *obj, uint32_t period_us, uint32_t pu
  * @param[in] frequencyhal_hz The frequency of the PWM in Hz
  * @return                    The status of the duty cycle request
  */
-cy_rslt_t cyhal_pwm_set_duty_cycle(cyhal_pwm_t *obj, float duty_cycle, uint32_t frequencyhal_hz);
+cy_rslt_t cyhal_pwm_set_duty_cycle(cyhal_pwm_t *obj, cy_float32_t duty_cycle, uint32_t frequencyhal_hz);
 
 /** Starts the PWM generation and outputs on <b>pin</b> and <b>compl_pin</b>.
  *

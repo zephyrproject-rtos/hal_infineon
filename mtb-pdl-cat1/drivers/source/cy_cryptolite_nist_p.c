@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_cryptolite_nist_p.c
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides Elliptic Curve (EC) Scalar Multiplication using (X,Y)-only,

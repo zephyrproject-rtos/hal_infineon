@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -579,16 +579,16 @@ typedef enum
 #include "ip/cyip_peri.h"
 #include "ip/cyip_ppc.h"
 #include "ip/cyip_peri_pclk.h"
-#include "ip/cyip_ramc_ppu.h"
-#include "ip/cyip_icache.h"
-#include "ip/cyip_cpuss_ppu.h"
-#include "ip/cyip_ramc.h"
+#include "ip/cyip_ramc_ppu_v1_2.h"
+#include "ip/cyip_icache_v1_2.h"
+#include "ip/cyip_cpuss_ppu_v1_2.h"
+#include "ip/cyip_ramc_v1_1.h"
 #include "ip/cyip_promc.h"
-#include "ip/cyip_mxcm33.h"
+#include "ip/cyip_mxcm33_v1_1.h"
 #include "ip/cyip_dw.h"
-#include "ip/cyip_cpuss.h"
-#include "ip/cyip_ms_ctl_1_2.h"
-#include "ip/cyip_cpuss_sl_ctl.h"
+#include "ip/cyip_cpuss_v1_2.h"
+#include "ip/cyip_ms_ctl_1_2_v1_2.h"
+#include "ip/cyip_cpuss_sl_ctl_v1_2.h"
 #include "ip/cyip_ipc.h"
 #include "ip/cyip_srss.h"
 #include "ip/cyip_pwrmode.h"
@@ -601,14 +601,15 @@ typedef enum
 #include "ip/cyip_canfd_v3.h"
 #include "ip/cyip_tcpwm_v2.h"
 #include "ip/cyip_mxs40adcmic.h"
-#include "ip/cyip_scb_v4.h"
-#include "ip/cyip_efuse_v3.h"
-#include "ip/cyip_efuse_data_v3_cyw20829.h"
-#include "ip/cyip_smif_v3.h"
+#include "ip/cyip_scb_v4_2.h"
+#include "ip/cyip_efuse_v3_1.h"
+#include "ip/cyip_efuse_data_cyw20829.h"
+#include "ip/cyip_smif_v3_1.h"
 #include "ip/cyip_tdm.h"
 #include "ip/cyip_pdm.h"
 #include "ip/cyip_mxkeyscan.h"
 #include "ip/cyip_btss.h"
+#include "ip/cyip_cm33.h"
 
 /* Parameter Defines */
 /* Number of TTCAN instances */
@@ -2717,12 +2718,12 @@ typedef enum
     PROT_EFUSE_DATA_BOOT1           = 131,      /* Address 0x40810800, size 0x00000020 */
     PROT_EFUSE_DATA_BOOT2           = 132,      /* Address 0x40810820, size 0x00000010 */
     PROT_EFUSE_DATA_BOOT3           = 133,      /* Address 0x40810830, size 0x00000004 */
-    PROT_EFUSE_DATA_BLESS1          = 134,      /* Address 0x40810834, size 0x00000004 */
-    PROT_EFUSE_DATA_BLESS2          = 135,      /* Address 0x40810838, size 0x00000004 */
-    PROT_EFUSE_DATA_BLESS3          = 136,      /* Address 0x4081083c, size 0x00000004 */
-    PROT_EFUSE_DATA_APP1            = 137,      /* Address 0x40810840, size 0x00000010 */
-    PROT_EFUSE_DATA_APP2            = 138,      /* Address 0x40810850, size 0x00000010 */
-    PROT_EFUSE_DATA_APP3            = 139,      /* Address 0x40810860, size 0x00000010 */
+    PROT_EFUSE_DATA_APP1            = 134,      /* Address 0x40810834, size 0x00000004 */
+    PROT_EFUSE_DATA_APP2            = 135,      /* Address 0x40810838, size 0x00000004 */
+    PROT_EFUSE_DATA_BLESS1          = 136,      /* Address 0x4081083c, size 0x00000004 */
+    PROT_EFUSE_DATA_APP3            = 137,      /* Address 0x40810840, size 0x00000010 */
+    PROT_EFUSE_DATA_APP4            = 138,      /* Address 0x40810850, size 0x00000010 */
+    PROT_EFUSE_DATA_BLESS2          = 139,      /* Address 0x40810860, size 0x00000010 */
     PROT_EFUSE_DATA_ALL             = 140,      /* Address 0x40810870, size 0x00000010 */
     PROT_SMIF0_MAIN                 = 141,      /* Address 0x40890000, size 0x00001000 */
     PROT_SMIF0_MPC0_PPC_MPC_MAIN    = 142,      /* Address 0x40891000, size 0x00000040 */

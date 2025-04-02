@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_drv.h
-* \version 1.130
+* \version 1.140
 * Provides an API declaration of the IPC driver.
 *
 ********************************************************************************
@@ -321,6 +321,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.140</td>
+*     <td>Updated condition to handle devices with Data Cache.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.130</td>
 *     <td>Updated APIs \ref Cy_IPC_Pipe_Init.</td>
 *     <td>Improving interrupt configuration logic.</td>
@@ -345,7 +350,7 @@
 *   </tr>
 *   <tr>
 *     <td>1.91</td>
-*     <td>Updated \ref Cy_IPC_Sema_Set, \ref Cy_IPC_Sema_Clear, \ref Cy_IPC_Sema_Status, \ref Cy_IPC_Sema_GetMaxSems APIs 
+*     <td>Updated \ref Cy_IPC_Sema_Set, \ref Cy_IPC_Sema_Clear, \ref Cy_IPC_Sema_Status, \ref Cy_IPC_Sema_GetMaxSems APIs
 *      \n Added new macros</td>
 *     <td>Support for CAT1D devices added.</td>
 *   </tr>
@@ -534,7 +539,7 @@
 #define CY_IPC_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_IPC_DRV_VERSION_MINOR       130
+#define CY_IPC_DRV_VERSION_MINOR       140
 
 /** Defines a value to indicate that no notification events are needed */
 #define CY_IPC_NO_NOTIFICATION         (uint32_t)(0x00000000UL)
@@ -564,6 +569,14 @@
 #else
     #define CY_IPC_CHAN_SYSCALL         CY_IPC_CHAN_SYSCALL_CM4
 #endif  /* (CY_CPU_CORTEX_M0P) */
+
+#if (((CY_CPU_CORTEX_M7) && defined(ENABLE_CM7_DATA_CACHE)) || \
+    ((CY_CPU_CORTEX_M55) && defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)))
+    #define CY_IPC_DRV_CACHE_PRESENT   1u
+#else
+    #define CY_IPC_DRV_CACHE_PRESENT   0u
+#endif
+
 /** \endcond */
 
 /**
@@ -1003,7 +1016,7 @@ __STATIC_INLINE void     Cy_IPC_Drv_WriteDataValue (IPC_STRUCT_Type* base, uint3
 *
 *******************************************************************************/
 #if (defined (CY_IP_M33SYSCPUSS_VERSION) || defined (CY_IP_M7CPUSS) || (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION > 1)))
-__STATIC_INLINE void Cy_IPC_Drv_WriteDDataValue (IPC_STRUCT_Type* base, uint32_t *pDataValue)
+__STATIC_INLINE void Cy_IPC_Drv_WriteDDataValue (IPC_STRUCT_Type* base, const uint32_t *pDataValue)
 {
     REG_IPC_STRUCT_DATA(base) = *pDataValue++;
     REG_IPC_STRUCT_DATA1(base) = *pDataValue;

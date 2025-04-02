@@ -34,6 +34,7 @@
 #include "cy_dma.h"
 #include "cy_dmac.h"
 #include "cy_gpio.h"
+#include "cy_hppass.h"
 #include "cy_scb_ezi2c.h"
 #include "cy_scb_i2c.h"
 #include "cy_scb_spi.h"
@@ -51,6 +52,7 @@
 #include "cy_tcpwm_counter.h"
 #include "cy_tcpwm_quaddec.h"
 #include "cy_tcpwm_shiftreg.h"
+#include "cy_tcpwm_motif.h"
 #include "cy_tdm.h"
 #include "cy_pdm_pcm_v2.h"
 #include "cy_rtc.h"
@@ -65,5 +67,6 @@
 #include "cy_lpcomp.h"
 #include "cy_syspm_pdcm.h"
 #include "cy_flash.h"
+#include "cy_cordic.h"
 
 #endif /* CY_PDL_H */

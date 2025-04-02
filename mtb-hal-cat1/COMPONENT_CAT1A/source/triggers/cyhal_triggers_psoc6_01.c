@@ -769,21 +769,21 @@ const _cyhal_trigger_source_psoc6_01_t cyhal_mux14_sources[38] =
 
 const _cyhal_trigger_source_psoc6_01_t* cyhal_mux_to_sources[15] =
 {
-    cyhal_mux0_sources, 
-    cyhal_mux1_sources, 
-    cyhal_mux2_sources, 
-    cyhal_mux3_sources, 
-    cyhal_mux4_sources, 
-    cyhal_mux5_sources, 
-    cyhal_mux6_sources, 
-    cyhal_mux7_sources, 
-    cyhal_mux8_sources, 
-    cyhal_mux9_sources, 
-    cyhal_mux10_sources, 
-    cyhal_mux11_sources, 
-    cyhal_mux12_sources, 
-    cyhal_mux13_sources, 
-    cyhal_mux14_sources, 
+    cyhal_mux0_sources,
+    cyhal_mux1_sources,
+    cyhal_mux2_sources,
+    cyhal_mux3_sources,
+    cyhal_mux4_sources,
+    cyhal_mux5_sources,
+    cyhal_mux6_sources,
+    cyhal_mux7_sources,
+    cyhal_mux8_sources,
+    cyhal_mux9_sources,
+    cyhal_mux10_sources,
+    cyhal_mux11_sources,
+    cyhal_mux12_sources,
+    cyhal_mux13_sources,
+    cyhal_mux14_sources,
 };
 
 const uint8_t cyhal_dest_to_mux[479] =

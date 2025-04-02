@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_ephy.h
-* \version 1.20
+* \version 1.30
 *
 * Provides an API declaration of the Ethernet Generic PHY driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2020 Cypress Semiconductor Corporation
+* Copyright 2020-2024 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,6 +55,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.30</td>
+*     <td>Updated \ref Cy_EPHY_getLinkPartnerCapabilities function.  </td>
+*     <td>Bug fixes and code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.20</td>
 *     <td>Changed naming conventions as per standard.</td>
 *     <td>Code Enhancement.</td>
@@ -99,7 +104,7 @@ extern "C" {
 #define CY_EPHY_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_EPHY_DRV_VERSION_MINOR       20
+#define CY_EPHY_DRV_VERSION_MINOR       30
 
 /** EPHY driver ID */
 #define CY_EPHY_ID CY_PDL_DRV_ID(0x70U)
@@ -219,6 +224,9 @@ extern "C" {
 #define MSSR_1000BASE_T_HALFDUPLEX_Pos          (10UL)          /**< 1000BASE-T Half-Duplex bit position */
 #define MSSR_1000BASE_T_FULLDUPLEX_Msk          (0x00000800UL)  /**< 1000BASE-T Full-Duplex Capable */
 #define MSSR_1000BASE_T_FULLDUPLEX_Pos          (11UL)          /**< 1000BASE-T Full-Duplex bit position */
+
+/* Invalid PHY Reg Value - 16 bits */
+#define PHYREG_INVALID_VALUE                    (0x0000FFFFUL)  /**< Invalid PHY register value */
 
 
 /******************************************************************************

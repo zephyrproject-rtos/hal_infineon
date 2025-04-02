@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_sha256.c
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  Provides API implementation of the Cryptolite SHA256 PDL driver.
@@ -65,11 +65,6 @@ static const uint32_t sha256InitHash[] =
 static cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Process(CRYPTOLITE_Type *base,
                                         cy_stc_cryptolite_context_sha256_t *cfContext)
 {
-    if((REG_CRYPTOLITE_STATUS(base) & CRYPTOLITE_STATUS_BUSY_Msk) != 0UL)
-    {
-        return CY_CRYPTOLITE_HW_BUSY;
-    }
-
     /*write to SHA DESCR REG starts process
       IP will block another write to SHA DESCR REG until its busy
       We poll for busy state and check for error before posting next
@@ -77,16 +72,12 @@ static cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Process(CRYPTOLITE_Type *b
 
     /*start message schedule*/
     REG_CRYPTOLITE_SHA_DESCR(base) = (uint32_t)&(cfContext->message_schedule_struct);
-    while((REG_CRYPTOLITE_STATUS(base) & CRYPTOLITE_STATUS_BUSY_Msk) != 0UL){};
-    if((REG_CRYPTOLITE_SHA_INTR_ERROR(base) & CRYPTOLITE_INTR_ERROR_BUS_ERROR_Msk) != 0UL)
-    {
-        REG_CRYPTOLITE_SHA_INTR_ERROR(base) = CRYPTOLITE_INTR_ERROR_BUS_ERROR_Msk;
-        return CY_CRYPTOLITE_BUS_ERROR;
-    }
+    while((REG_CRYPTOLITE_STATUS(base) & CRYPTOLITE_STATUS_BUSY_Msk) != 0UL) {};
 
     /*start process*/
     REG_CRYPTOLITE_SHA_DESCR(base) = (uint32_t)&(cfContext->message_process_struct);
-    while((REG_CRYPTOLITE_STATUS(base) & CRYPTOLITE_STATUS_BUSY_Msk) != 0UL){};
+    while((REG_CRYPTOLITE_STATUS(base) & CRYPTOLITE_STATUS_BUSY_Msk) != 0UL) {};
+
     if((REG_CRYPTOLITE_SHA_INTR_ERROR(base) & CRYPTOLITE_INTR_ERROR_BUS_ERROR_Msk) != 0UL)
     {
         REG_CRYPTOLITE_SHA_INTR_ERROR(base) = CRYPTOLITE_INTR_ERROR_BUS_ERROR_Msk;
@@ -127,6 +118,7 @@ static cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Process_aligned(CRYPTOLITE
                                         uint32_t  *messageSize)
 {
     cy_en_cryptolite_status_t err;
+    uint32_t processed;
 
     /*point descriptor to message buffer*/
     cfContext->message_schedule_struct.data1 = (uint32_t)message;
@@ -139,10 +131,13 @@ static cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Process_aligned(CRYPTOLITE
             cfContext->message_schedule_struct.data1 = (uint32_t)cfContext->message;
             return err;
         }
-        *messageSize-=CY_CRYPTOLITE_SHA256_BLOCK_SIZE;
-        cfContext->messageSize+= CY_CRYPTOLITE_SHA256_BLOCK_SIZE;
-        cfContext->message_schedule_struct.data1+= CY_CRYPTOLITE_SHA256_BLOCK_SIZE;
+        *messageSize -= CY_CRYPTOLITE_SHA256_BLOCK_SIZE;
+        cfContext->message_schedule_struct.data1 += CY_CRYPTOLITE_SHA256_BLOCK_SIZE;
     }
+
+    processed = cfContext->message_schedule_struct.data1 - (uint32_t)message;
+    cfContext->messageSize += processed;
+
     /*restore descriptor to context buffer*/
     cfContext->message_schedule_struct.data1 = (uint32_t)cfContext->message;
 
@@ -207,14 +202,13 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Init(CRYPTOLITE_Type *base,
 cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Start(CRYPTOLITE_Type *base,
                                         cy_stc_cryptolite_context_sha256_t *cfContext)
 {
-    uint32_t i;
     /* Input parameters verification */
     if ((NULL == base) || (NULL == cfContext))
     {
         return CY_CRYPTOLITE_BAD_PARAMS;
     }
 
-    /*check if IP is busy*/
+    /* Check if IP is busy */
     if ((REG_CRYPTOLITE_STATUS(base) & CRYPTOLITE_STATUS_BUSY_Msk) != 0UL)
     {
         return CY_CRYPTOLITE_HW_BUSY;
@@ -223,8 +217,8 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Start(CRYPTOLITE_Type *base,
     cfContext->msgIdx = 0U;
     cfContext->messageSize = 0U;
 
-    /*copy initial hash*/
-    for (i=0U; i < CY_CRYPTOLITE_SHA256_HASH_SIZE/4U; i++)
+    /* Copy initial hash */
+    for (uint32_t i = 0UL; i < CY_CRYPTOLITE_SHA256_HASH_SIZE / 4UL; i++)
     {
         cfContext->hash[i] = sha256InitHash[i];
     }
@@ -278,7 +272,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
         return err;
     }
 
-    /*check if IP is busy*/
+    /* Check if IP is busy */
     if ((REG_CRYPTOLITE_STATUS(base) & CRYPTOLITE_STATUS_BUSY_Msk) != 0UL)
     {
         return CY_CRYPTOLITE_HW_BUSY;
@@ -287,11 +281,11 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
     messageRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(message);
     lmessageSize = messageSize;
 
-    /*Check for 4 byte aligned buffer and process*/
+    /* Check for 4 byte aligned buffer and process */
     if((msg_add & 0x3UL) == 0UL)
     {
-        /*Check for fragmented message and size*/
-        if (cfContext->msgIdx == 0UL && messageSize >= CY_CRYPTOLITE_SHA256_BLOCK_SIZE)
+        /* Check for fragmented message and size */
+        if ((cfContext->msgIdx == 0UL) && (messageSize >= CY_CRYPTOLITE_SHA256_BLOCK_SIZE))
         {
             err = Cy_Cryptolite_Sha256_Process_aligned(base, cfContext, messageRemap, &lmessageSize);
             if(CY_CRYPTOLITE_SUCCESS != err)
@@ -305,16 +299,16 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
     while((cfContext->msgIdx + lmessageSize) >= CY_CRYPTOLITE_SHA256_BLOCK_SIZE)
     {
         uint32_t tocopy = CY_CRYPTOLITE_SHA256_BLOCK_SIZE - cfContext->msgIdx;
-        
-        err = Cy_Cryptolite_Memcpy(base, &cfContext->message[cfContext->msgIdx], (uint8_t *)&messageRemap[readIdx], tocopy); 
+
+        err = Cy_Cryptolite_Memcpy(base, &cfContext->message[cfContext->msgIdx], (uint8_t *)&messageRemap[readIdx], tocopy);
 
         if(CY_CRYPTOLITE_SUCCESS != err)
         {
             return err;
-        }     
+        }
         readIdx += tocopy;
         cfContext->msgIdx += tocopy;
-        
+
         /* calculate message schedule and process */
         err = Cy_Cryptolite_Sha256_Process(base, cfContext);
         if(CY_CRYPTOLITE_SUCCESS != err)
@@ -331,7 +325,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Sha256_Update(CRYPTOLITE_Type *base,
     if(CY_CRYPTOLITE_SUCCESS != err)
     {
         return err;
-    }     
+    }
     cfContext->msgIdx += lmessageSize;
 
     return CY_CRYPTOLITE_SUCCESS;

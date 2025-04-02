@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_ecc_domain_params.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides constant and parameters for the API for the ECC
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -43,18 +43,18 @@ extern "C" {
 *
 * Get edward's curve domain parameters.
 *
+* \param dp
+* Pointer to curve domain parameters. See \ref cy_stc_crypto_edw_dp_type.
+*
 * \param curveId
 * See \ref cy_en_crypto_ecc_curve_id_t.
-*
-* \param cy_stc_crypto_edw_dp_type
-* Pointer to curve domain parameters. See \ref cy_stc_crypto_edw_dp_type.
 *
 * \return status code. See \ref cy_en_crypto_status_t.
 *
 *******************************************************************************/
 cy_en_crypto_status_t Cy_Crypto_Core_EDW_GetCurveParams(cy_stc_crypto_edw_dp_type *dp, cy_en_crypto_ecc_curve_id_t curveId)
 {
-#if defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED)
+#if defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED) || defined(CY_CRYPTO_CFG_ECP_DP_EC25519_ENABLED)
     /* ED25519 CURVE PARAMETERS */
     /* prime: "2^255 - 19" */
     /* prime: "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED" */
@@ -65,6 +65,39 @@ cy_en_crypto_status_t Cy_Crypto_Core_EDW_GetCurveParams(cy_stc_crypto_edw_dp_typ
         0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
         0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0x7fu
     };
+
+    /* barrett_p: "2000000000000000000000000000000000000000000000000000000000000004C" */
+    CY_ALIGN(4) static const uint8_t  ed25519PrimeBarrett[CY_CRYPTO_ECC_ED25519_BYTE_SIZE + 1u] =
+    {  /* pre-calculated! */
+        0x4cu, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x02u,
+    };
+#endif /* defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED) || defined(CY_CRYPTO_CFG_ECP_DP_EC25519_ENABLED) */
+
+#if defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED)
+    /* order: "2^252 + 0x14def9dea2f79cd65812631a5cf5d3ed" */
+    /* order: "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED" */
+    CY_ALIGN(4) static const uint8_t  ed25519Order[CY_CRYPTO_ECC_ED25519_BYTE_SIZE] =
+    {
+        0xedu, 0xd3u, 0xf5u, 0x5cu, 0x1au, 0x63u, 0x12u, 0x58u,
+        0xd6u, 0x9cu, 0xf7u, 0xa2u, 0xdeu, 0xf9u, 0xdeu, 0x14u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x10u
+    };
+
+    /* barrett_o: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEB2106215D086329A7ED9CE5A30A2C131B" */
+    CY_ALIGN(4) static const uint8_t  ed25519OrderBarrett[CY_CRYPTO_ECC_ED25519_BYTE_SIZE + 1u] =
+    {   /* pre-calculated */
+        0x1bu, 0x13u, 0x2cu, 0x0au, 0xa3u, 0xe5u, 0x9cu, 0xedu,
+        0xa7u, 0x29u, 0x63u, 0x08u, 0x5du, 0x21u, 0x06u, 0x21u,
+        0xebu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
+        0x0fu,
+    };
+
     /*A: "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC" */
     CY_ALIGN(4) static const uint8_t  ed25519A[CY_CRYPTO_ECC_ED25519_BYTE_SIZE] =
     {
@@ -82,33 +115,6 @@ cy_en_crypto_status_t Cy_Crypto_Core_EDW_GetCurveParams(cy_stc_crypto_edw_dp_typ
         0x73u, 0xfeu, 0x6fu, 0x2bu, 0xeeu, 0x6cu, 0x03u, 0x52u
     };
 
-    /* order: "2^252 + 0x14def9dea2f79cd65812631a5cf5d3ed" */
-    /* order: "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED" */
-    CY_ALIGN(4) static const uint8_t  ed25519Order[CY_CRYPTO_ECC_ED25519_BYTE_SIZE] =
-    {
-        0xedu, 0xd3u, 0xf5u, 0x5cu, 0x1au, 0x63u, 0x12u, 0x58u,
-        0xd6u, 0x9cu, 0xf7u, 0xa2u, 0xdeu, 0xf9u, 0xdeu, 0x14u,
-        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
-        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x10u
-    };
-    /* barrett_p: "2000000000000000000000000000000000000000000000000000000000000004C" */
-    CY_ALIGN(4) static const uint8_t  ed25519PrimeBarrett[CY_CRYPTO_ECC_ED25519_BYTE_SIZE + 1u] =
-    {  /* pre-calculated! */
-        0x4cu, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
-        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
-        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
-        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
-        0x02u,
-    };
-    /* barrett_o: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEB2106215D086329A7ED9CE5A30A2C131B" */
-    CY_ALIGN(4) static const uint8_t  ed25519OrderBarrett[CY_CRYPTO_ECC_ED25519_BYTE_SIZE + 1u] =
-    {   /* pre-calculated */
-        0x1bu, 0x13u, 0x2cu, 0x0au, 0xa3u, 0xe5u, 0x9cu, 0xedu,
-        0xa7u, 0x29u, 0x63u, 0x08u, 0x5du, 0x21u, 0x06u, 0x21u,
-        0xebu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
-        0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu, 0xffu,
-        0x0fu,
-    };
     /*(X(P),Y(P)) of edwards25519 in RFC7748*/
     /* base point x: "151122213495354007725011514095885315114540126930418572060461132
       83949847762202" */
@@ -144,12 +150,47 @@ cy_en_crypto_status_t Cy_Crypto_Core_EDW_GetCurveParams(cy_stc_crypto_edw_dp_typ
         dp->a           = ed25519A;
         dp->Gx          = ed25519BasePointX;
         dp->Gy          = ed25519BasePointY;
-        dp->barret_osize = 260;                     /* barret_o = (2^512(513 bits)/ed25519Order(253 bits) */
-        dp->barret_psize = 258;                     /* barret_p = (2^512(513 bits)/ed25519Prime(255 bits) */
+        dp->barret_osize = 260u;                     /* barret_o = (2^512(513 bits)/ed25519Order(253 bits) */
+        dp->barret_psize = 258u;                     /* barret_p = (2^512(513 bits)/ed25519Prime(255 bits) */
 
         return CY_CRYPTO_SUCCESS;
     }
 #endif /* defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED) */
+
+#if defined(CY_CRYPTO_CFG_ECP_DP_EC25519_ENABLED)
+    /*A24: "(486662 + 2)/4 = 121665" */
+    CY_ALIGN(4) static const uint8_t  ec25519A[3] =
+    {
+        0x41u, 0xDBu, 0x01u
+    };
+    /* base point x: "9" */
+    CY_ALIGN(4) static const uint8_t  ec25519BasePointX[CY_CRYPTO_ECC_EC25519_BYTE_SIZE] =
+    {
+        0x09u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
+        0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u
+    };
+    if (curveId == CY_CRYPTO_ECC_ECP_EC25519)
+    {
+        dp->id          = CY_CRYPTO_ECC_ECP_EC25519;
+        dp->size        = CY_CRYPTO_ECC_EC25519_SIZE;
+        dp->name        = "ECC EC25519";
+        dp->algo        = CY_CRYPTO_NIST_P_BARRETT_RED_ALG;
+        dp->prime       = ed25519Prime;
+        dp->barrett_p   = ed25519PrimeBarrett;
+        dp->order       = NULL;
+        dp->barrett_o   = NULL;
+        dp->d           = NULL;
+        dp->a           = ec25519A;
+        dp->Gx          = ec25519BasePointX;
+        dp->Gy          = NULL;
+        dp->barret_osize = 0;
+        dp->barret_psize = 258u;                   /* barret_p = (2^512(513 bits)/ed25519Prime(255 bits) */
+
+        return CY_CRYPTO_SUCCESS;
+    }
+#endif /*defined(CY_CRYPTO_CFG_ECP_DP_EC25519_ENABLED)*/
 
     return CY_CRYPTO_NOT_SUPPORTED;
 }
@@ -612,6 +653,20 @@ cy_stc_crypto_ecc_dp_type *Cy_Crypto_Core_ECC_GetCurveParams(cy_en_crypto_ecc_cu
 
     if ((curveId > CY_CRYPTO_ECC_ECP_NONE) && (curveId < CY_CRYPTO_ECC_ECP_CURVES_CNT))
     {
+    /* Edward's and ECC 25519 curves are not defined here */
+#if defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED)
+    if (curveId == CY_CRYPTO_ECC_ECP_ED25519)
+    {
+        return tmpResult;
+    }
+#endif /* defined(CY_CRYPTO_CFG_ECP_DP_ED25519_ENABLED) */
+#if defined(CY_CRYPTO_CFG_ECP_DP_EC25519_ENABLED)
+    if (curveId == CY_CRYPTO_ECC_ECP_EC25519)
+    {
+        return tmpResult;
+    }
+#endif /* defined(CY_CRYPTO_CFG_ECP_DP_EC25519_ENABLED) */
+
         tmpResult = (cy_stc_crypto_ecc_dp_type *)&eccDomainParams[curveId];
     }
 

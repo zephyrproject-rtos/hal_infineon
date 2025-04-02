@@ -154,6 +154,7 @@
 #include "cy_result.h"
 #include "cyhal_general_types.h"
 #include "cyhal_hw_types.h"
+#include "cyhal_system.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -238,18 +239,6 @@ typedef enum
     CYHAL_SYSPM_HIBERNATE_PINB_HIGH     = 0x200U    /**< Configure a high logic level for the second wakeup-pin.
                                                         See device datasheet for specific pin. */
 } cyhal_syspm_hibernate_source_t;
-
-/** Supply voltages whose levels can be specified and queried via \ref cyhal_syspm_set_supply_voltage and
-  * \ref cyhal_syspm_get_supply_voltage, respectively.
-  *
-  * \note Not all supplies which are present are included here. This enum only contains the voltage supplies
-  * whose values are relevant to the operation of one or more HAL drivers.
-  */
-typedef enum
-{
-    CYHAL_VOLTAGE_SUPPLY_VDDA = 0u,                       //!< VDDA - Analog supply voltage
-    CYHAL_VOLTAGE_SUPPLY_MAX  = CYHAL_VOLTAGE_SUPPLY_VDDA //!< Alias for the highest value in this enum
-} cyhal_syspm_voltage_supply_t;
 
 /**
  * Performs any system wide power management initialization that is needed for future operations.
@@ -432,28 +421,14 @@ cy_rslt_t cyhal_syspm_tickless_sleep(cyhal_lptimer_t *lptimer_obj, uint32_t desi
 cyhal_syspm_system_deep_sleep_mode_t cyhal_syspm_get_deepsleep_mode(void);
 
 /** Informs the system of the current voltage level on the specified supply.
-  *
-  * This is generally expected to be set once at system startup, but it may be set repeatedly during
-  * runtime if operating conditions change.
-  * Once set, this value can be queried via \ref cyhal_syspm_get_supply_voltage.
-  *
-  * \note This only informs the system of the voltage level. It does not alter any of the device operating conditions.
-  *
-  * @param supply The supply whose voltage is being specified.
-  * @param mvolts The voltage level on the specified supply, in millivolts.
-  */
-void cyhal_syspm_set_supply_voltage(cyhal_syspm_voltage_supply_t supply, uint32_t mvolts);
+ *  Deprecated, see cyhal_system_set_supply_voltage
+ */
+#define cyhal_syspm_set_supply_voltage(supply, mvolts) cyhal_system_set_supply_voltage((supply), (mvolts))
 
-/** Retrieves the current voltage level on the specified supply, as set in \ref cyhal_syspm_set_supply_voltage.
-  *
-  * \note This only returns the value provided to \ref cyhal_syspm_set_supply_voltage. It does not perform any
-  * measurements of the current supply level.
-  *
-  * @param supply The supply whose voltage is being specified.
-  * @return The voltage level on the specified supply, in millivolts. If the voltage has not been specified,
-  * returns 0.
-  */
-uint32_t cyhal_syspm_get_supply_voltage(cyhal_syspm_voltage_supply_t supply);
+/** Retrieves the current voltage level on the specified supply, as set in \ref cyhal_system_set_supply_voltage.
+ *  Deprecated, see cyhal_system_get_supply_voltage
+ */
+#define cyhal_syspm_get_supply_voltage(supply) cyhal_system_get_supply_voltage((supply))
 
 #if defined(__cplusplus)
 }

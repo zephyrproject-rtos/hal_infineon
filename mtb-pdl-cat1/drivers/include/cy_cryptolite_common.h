@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_common.h
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides common constants and parameters
@@ -51,7 +51,7 @@ extern "C" {
 #define CY_CRYPTOLITE_DRV_VERSION_MAJOR         2
 
 /** Driver minor version */
-#define CY_CRYPTOLITE_DRV_VERSION_MINOR         50
+#define CY_CRYPTOLITE_DRV_VERSION_MINOR         80
 
 /** Cryptolite Driver PDL ID */
 #define CY_CRYPTOLITE_ID                        CY_PDL_DRV_ID(0x74u)
@@ -65,7 +65,7 @@ extern "C" {
 #define CY_CRYPTOLITE_BYTE_SIZE_OF_BITS(x)      (uint32_t)(((uint32_t)(x) + 7U) >> 3U)
 
 /* Calculates the word siz of the nearest byte size */
-#define CY_CRYPTOLITE_WORD_SIZE_OF_BYTES(x)      (uint32_t)(((uint32_t)(x) + 3U) >> 2U) 
+#define CY_CRYPTOLITE_WORD_SIZE_OF_BYTES(x)      (uint32_t)(((uint32_t)(x) + 3U) >> 2U)
 
 
 /** \endcond */
@@ -198,6 +198,11 @@ typedef enum
 
 
 /** \cond INTERNAL */
+/** Internal hash size for the SHA512 mode (in bytes) */
+#define CY_CRYPTOLITE_SHA512_HASH_SIZE          (64u)
+/** Internal round mem size for the SHA512 mode (in bytes) */
+#define CY_CRYPTOLITE_SHA512_ROUND_MEM_SIZE     (640uL)
+
 #define CY_REMAP_ADDRESS_CRYPTOLITE(addr)   (CY_PLATFORM_REMAP_ADDRESS_CRYPTOLITE(addr))
 /** \endcond */
 

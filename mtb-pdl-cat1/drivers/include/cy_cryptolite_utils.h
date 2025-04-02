@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_utils.h
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides provides helper functions
@@ -91,7 +91,7 @@ void Cy_Cryptolite_Setnumber (
 * Function Name: Cy_Cryptolite_Memcpy
 ****************************************************************************//**
 *
-* The function to copy the data 
+* The function to copy the data
 * \note  The functions does 32 bit word copy for 4 byte aligned src and dst. This is required for OTP memory access where non-word access is restricted.
 *        For non-aligned pointers byte copy is used.
 *
@@ -149,6 +149,22 @@ void Cy_Cryptolite_Memset (void  *dest, uint8_t data, uint32_t size);
 *******************************************************************************/
 void Cy_Cryptolite_InvertEndianness(void *inArrPtr, uint32_t byteSize);
 
+
+/*******************************************************************************
+* Function Name: Cy_Cryptolite_GetCLSAME
+****************************************************************************//**
+*
+* The function returns number of leading zeros in the data.
+*
+* \param src
+* The pointer to buffer containing the data.
+*
+* \param byteSize
+*  The size of the src buffer.
+*
+*
+*******************************************************************************/
+uint32_t Cy_Cryptolite_GetCLSAME(uint8_t* src, uint32_t bytesize);
 
 #if defined(__cplusplus)
 }

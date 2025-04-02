@@ -104,6 +104,8 @@
 */
 /** Macro specifying whether the DMA driver is available for the current device \def CYHAL_DRIVER_AVAILABLE_DMA
 */
+/** Macro specifying whether the Ethernet driver is available for the current device \def CYHAL_DRIVER_AVAILABLE_ETHERNET
+*/
 /** Macro specifying whether the EzI2C driver is available for the current device \def CYHAL_DRIVER_AVAILABLE_EZI2C
 */
 /** Macro specifying whether the NVM driver is available for the current device \def CYHAL_DRIVER_AVAILABLE_NVM

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_config.h
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides default configuration parameters
@@ -77,6 +77,8 @@
 #define CY_CRYPTOLITE_CFG_ECP_DP_SECP256R1_ENABLED
 #define CY_CRYPTOLITE_CFG_ECP_DP_SECP384R1_ENABLED
 //#define CY_CRYPTOLITE_CFG_ECP_DP_SECP521R1_ENABLED
+#define CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED
+#define CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED
 
 /* ECDSA functionality */
 #define CY_CRYPTOLITE_CFG_ECDSA_C
@@ -84,6 +86,20 @@
 #define CY_CRYPTOLITE_CFG_ECDSA_SIGN_C
 /* ECDSA verification */
 #define CY_CRYPTOLITE_CFG_ECDSA_VERIFY_C
+
+/* EC25519 functionality */
+#define CY_CRYPTOLITE_CFG_EC25519_C
+/* EC25519 key generation */
+#define CY_CRYPTOLITE_CFG_EC25519_GENKEY_C
+
+/* EDDSA functionality */
+#define CY_CRYPTOLITE_CFG_EDDSA_C
+/* EDDSA sign */
+#define CY_CRYPTOLITE_CFG_EDDSA_SIGN_C
+/* EDDSA verify */
+#define CY_CRYPTOLITE_CFG_EDDSA_VERIFY_C
+/* EDDSA key generation */
+#define CY_CRYPTOLITE_CFG_EDDSA_GENKEY_C
 
 #endif
 
@@ -168,6 +184,31 @@
      defined(CY_CRYPTOLITE_CFG_ECP_DP_SECP521R1_ENABLED)) \
      && !defined(CY_CRYPTOLITE_CFG_ECP_C)
 #error "CY_CRYPTOLITE_CFG_ECP_C is not defined to use ECP functionality"
+#endif
+
+#if !(defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED)) \
+     && defined(CY_CRYPTOLITE_CFG_EDDSA_C)
+#error "CY_CRYPTOLITE_CFG_EDDSA_C is defined but no curve is selected"
+#endif
+
+#if (defined(CY_CRYPTOLITE_CFG_ECP_DP_ED25519_ENABLED)) \
+     && !defined(CY_CRYPTOLITE_CFG_EDDSA_C)
+#error "CY_CRYPTOLITE_CFG_EDDSA_C is not defined to use EDDSA functionality"
+#endif
+
+#if !(defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED)) \
+     && defined(CY_CRYPTOLITE_CFG_EC25519_C)
+#error "CY_CRYPTOLITE_CFG_EC25519_C is defined but no curve is selected"
+#endif
+
+#if (defined(CY_CRYPTOLITE_CFG_ECP_DP_EC25519_ENABLED)) \
+     && !defined(CY_CRYPTOLITE_CFG_EC25519_C)
+#error "CY_CRYPTOLITE_CFG_EC25519_C is not defined to use EC25519 functionality"
+#endif
+
+#if (defined(CY_CRYPTOLITE_CFG_EC25519_GENKEY_C)) \
+     && !defined(CY_CRYPTOLITE_CFG_EC25519_C)
+#error "CY_CRYPTOLITE_CFG_EC25519_C is not defined to use EC25519 functionality"
 #endif
 
 #endif /* #if !defined(CY_CRYPTOLITE_CONFIG_H) */

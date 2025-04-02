@@ -49,7 +49,7 @@
       <Entry name="2-bit Parallel Trace" value="2" visible="`${traceClockExists}`" />
       <Entry name="4-bit Parallel Trace" value="4" visible="`${traceClockExists}`" />
     </ParamChoice>
-    <ParamBool id="traceModeSerial" name="Trace Mode - Serial" group="General" default="false" visible="`${dbgMode ne JTAG}`" editable="true" desc="Enables Serial Trace Mode." />
+    <ParamBool id="traceModeSerial" name="Trace Mode - Serial" group="General" default="false" visible="`${dbgMode ne JTAG}`" editable="`${hasMatch(getIpBlockName(), &quot;mxdebug600&quot;) ? (hasBlock(&quot;srss[0].clock[0].hfclk[13]&quot;) &amp;&amp; hasBlock(&quot;gfxss[0]&quot;)) : true}`" desc="Enables Serial Trace Mode." />
     <ParamString id="dbgGroup" name="dbgGroup" group="Internal" default="`${dbgMode eq SWD ? &quot;SWD&quot; : &quot;JTAG&quot;}` Pins" visible="false" editable="false" desc="" />
     <ParamSignal port="clock_trace_in[0]" name="Clock" group="Trace Clock" visible="`${hasVisibleOption(&quot;clock_trace_in[0]&quot;) &amp;&amp; (((dbgMode ne JTAG) &amp;&amp; traceModeSerial) || traceModeParallel)}`" desc="Clock that operates this block." canBeEmpty="`${!traceModeSerial &amp;&amp; !traceModeParallel}`" >
       <Constraint type="ACCEPT" targetLocation="peri\[\d+\](\.group\[\d+\])?\.div_.*" valid="true" >

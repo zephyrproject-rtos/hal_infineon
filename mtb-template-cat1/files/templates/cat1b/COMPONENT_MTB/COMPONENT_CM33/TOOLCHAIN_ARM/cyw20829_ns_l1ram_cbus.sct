@@ -1,4 +1,4 @@
-#! armclang -E  --target=arm-arm-none-eabi -x c -mcpu=cortex-m33 -march=armv8-m.main
+#! armclang -E  --target=arm-arm-none-eabi -x c -mcpu=cortex-m33
 
 ; The size of the stack section at the end of CM33 SRAM
 #define STACK_SIZE              0x00001000

@@ -353,14 +353,14 @@ cy_rslt_t _cyhal_tcpwm_disable_output(cyhal_tcpwm_t *obj, cyhal_tcpwm_output_t s
  * @param[in]  trig_index   The trigger index to get the destination for
  * @return A destination that a signal can be connected to for the specified TCPWM block
  * */
-cyhal_dest_t _cyhal_tpwm_calculate_dest(uint8_t block, uint8_t trig_index);
+cyhal_dest_t _cyhal_tcpwm_calculate_dest(uint8_t block, uint8_t trig_index);
 #endif
+
+#endif /* defined(CY_IP_MXTCPWM_INSTANCES) || defined(CY_IP_M0S8TCPWM_INSTANCES) */
 
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */
-
-#endif /* defined(CY_IP_MXTCPWM_INSTANCES) || defined(CY_IP_M0S8TCPWM_INSTANCES) */
 
 /** \} group_hal_impl_tcpwm_common */
 /** \endcond */

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smartio.c
-* \version 1.0.3
+* \version 1.0.4
 *
 * \brief
 * Provides an API implementation of the Smart I/O driver
@@ -26,6 +26,7 @@
 #include "cy_device.h"
 
 #if (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS))
+#if (defined(IOSS_SMARTIO_SMARTIO_MASK) && (IOSS_SMARTIO_SMARTIO_MASK != 0))
 
 #include "cy_smartio.h"
 
@@ -1008,6 +1009,7 @@ CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 }
 #endif
 
+#endif /* (defined(IOSS_SMARTIO_SMARTIO_MASK) && (IOSS_SMARTIO_SMARTIO_MASK != 0)) */
 #endif /* (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS)) */
 
 /* [] END OF FILE */

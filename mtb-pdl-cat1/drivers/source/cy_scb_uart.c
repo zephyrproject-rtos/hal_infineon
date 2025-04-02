@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_uart.c
-* \version 3.20
+* \version 3.30
 *
 * Provides UART API implementation of the SCB driver.
 *
@@ -329,9 +329,9 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Init(CySCB_Type *base, cy_stc_scb_uart_confi
     SCB_UART_RX_CTRL(base)|=_BOOL2FLD(SCB_UART_RX_CTRL_BREAK_LEVEL, config->breaklevel);
 #endif /* CY_IP_MXSCB_VERSION */
 
-#if ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4))
+#if (CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED)
     SCB_UART_RX_CTRL(base)|=_BOOL2FLD(SCB_UART_RX_CTRL_HDRXEN, config->halfDuplexMode);
-#endif /* ((defined(CY_IP_MXSCB_VERSION)) && (CY_IP_MXSCB_VERSION >= 4)) */
+#endif /* (CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED) */
 
     SCB_RX_CTRL(base) = _BOOL2FLD(SCB_RX_CTRL_MSB_FIRST, config->enableMsbFirst)          |
                     _BOOL2FLD(SCB_RX_CTRL_MEDIAN, ((config->enableInputFilter) || \
@@ -378,6 +378,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Init(CySCB_Type *base, cy_stc_scb_uart_confi
         context->rxRingBufSize = 0UL;
 
         context->rxBufIdx  = 0UL;
+        context->rxBufSize = 0UL;
         context->txLeftToTransmit = 0UL;
 
         context->cbEvents = NULL;

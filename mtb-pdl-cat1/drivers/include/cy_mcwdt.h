@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_mcwdt.h
-* \version 1.80
+* \version 1.90
 *
 * Provides an API declaration of the Cypress PDL 3.0 MCWDT driver
 *
@@ -110,6 +110,10 @@
 * \section group_mcwdt_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.90</td>
+*     <td>Documentation update</td>
+*   </tr>
 *   <tr>
 *     <td>1.80</td>
 *     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
@@ -249,7 +253,7 @@ extern "C" {
 #define CY_MCWDT_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_MCWDT_DRV_VERSION_MINOR       80
+#define CY_MCWDT_DRV_VERSION_MINOR       90
 
 /** \cond INTERNAL_MACROS */
 
@@ -1384,6 +1388,9 @@ __STATIC_INLINE uint32_t Cy_MCWDT_GetCount(MCWDT_STRUCT_Type const *base, cy_en_
 *  \note
 *  For CAT1C and TVIIBE devices, only CY_MCWDT_CTR0 and CY_MCWDT_CTR1 can be Reset.
 *
+* \funcusage
+* \snippet mcwdt_b/snippet/main.c snippet_Cy_MCWDT_ResetCounters
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_MCWDT_ResetCounters(MCWDT_STRUCT_Type *base, uint32_t counters, uint16_t waitUs)
 {
@@ -1522,6 +1529,9 @@ __STATIC_INLINE uint32_t Cy_MCWDT_GetInterruptMask(MCWDT_STRUCT_Type const *base
 *  \param counters
 *  OR of all interrupt masks to set. See \ref CY_MCWDT_CTR0, CY_MCWDT_CTR1, and
 *  CY_MCWDT_CTR2  macros.
+*
+* \funcusage
+* \snippet mcwdt_b/snippet/main.c snippet_Cy_MCWDT_SetInterruptMask
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_MCWDT_SetInterruptMask(MCWDT_STRUCT_Type *base, uint32_t counters)

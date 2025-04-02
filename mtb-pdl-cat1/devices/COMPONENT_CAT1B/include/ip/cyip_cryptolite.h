@@ -36,7 +36,7 @@
 #define CRYPTOLITE_SECTION_SIZE                 0x00010000UL
 
 /**
-  * \brief N/A (CRYPTOLITE)
+  * \brief CRYPTOLITE
   */
 typedef struct {
    __IM uint32_t CTL;                           /*!< 0x00000000 Control */

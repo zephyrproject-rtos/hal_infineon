@@ -76,7 +76,16 @@
     <ParamRange id="frequency" name="Frequency" group="Internal" default="`${!error ? getExposedMember(sourceClockRsc, &quot;frequency&quot;) : 0}`" min="0" max="100000" resolution="1" visible="false" editable="false" desc="" />
     <ParamString id="accuracy" name="accuracy" group="General" default="`${!error ? getExposedMember(sourceClockRsc, &quot;accuracy&quot;) : 0}`" visible="false" editable="false" desc="" />
     <ParamString id="frequencyInfo" name="Frequency" group="General" default="`${formatFrequency(frequency,accuracy)}`" visible="true" editable="false" desc="The CLK_LF frequency provided by the chosen clock source" />
-  </Parameters>
+    
+    <ParamBool id="ClkLfCsv" name="CSV" group="CSV" default="false" visible="`${&quot;mxs40ssrss&quot; eq getIpBlockName() &amp;&amp; (CSV_PRESENT eq 1)}`" editable="true" desc="Enables/Disables CSV configuration." />
+    <ParamRange id="accuracyCsv" name="Accuracy" group="CSV" default="99" min="1" max="100" resolution="1" visible="`${ClkLfCsv}`" editable="true" desc="Accuracy of the source clock." />
+    <ParamChoice id="sourceClockCsv" name="Reference Clock" group="CSV" default="IMO" visible="`${ClkLfCsv}`" editable="true" desc="The reference clock source selection">
+      <Entry name="IMO" value="IMO" visible="true"/>
+      <Entry name="EXT" value="EXT" visible="true"/>
+      <Entry name="ECO" value="ECO" visible="`${&quot;m0seccpuss&quot; ne getIpBlockName() ? hasBlock(&quot;srss[0].clock[0].eco[0]&quot;) : &quot;false&quot;}`"/>
+      <Entry name="IHO" value="IHO" visible="true"/>
+     </ParamChoice>
+</Parameters>
   <DRCs>
     <DRC type="ERROR" text="Source clock for CLK_LF is not enabled" condition="`${error}`" >
       <FixIt action="ENABLE_BLOCK" target="`${sourceClockRsc}`" value="" valid="true" />
@@ -87,8 +96,11 @@
     <ConfigDefine name="CY_CFG_SYSCLK_CLKLF_ENABLED" value="1" public="false" include="true" />
     <ConfigDefine name="CY_CFG_SYSCLK_CLKLF_FREQ_HZ" value="`${frequency}`" public="true" include="true" />
     <ConfigDefine name="CY_CFG_SYSCLK_CLKLF_SOURCE" value="CY_SYSCLK_CLKLF_IN_`${sourceClockApiName}`" public="true" include="true" />
-    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkLfInit()" body="    /* The WDT is unlocked in the default startup code */&#xA;    Cy_SysClk_ClkLfSetSource(CY_SYSCLK_CLKLF_IN_`${sourceClockApiName}`);" public="false" include="`${is40srssAvailable || is40ssrssAvailable}`" guard="(!defined(CY_DEVICE_SECURE))" />
-    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkLfInit()" body="    /* The WDT is unlocked in the default startup code */&#xA;    Cy_SysClk_ClkLfSetSource(CY_CFG_SYSCLK_CLKLF_SOURCE);" public="false" include="`${(is40srss_ver2or3Available)}`" />
-    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkLfInit()" body="    /* The WDT is unlocked in the default startup code */&#xA;    Cy_SysClk_ClkLfSetSource(CY_CFG_SYSCLK_CLKLF_SOURCE);" public="false" include="`${(is22srssAvailable)}`" guard="defined(CORE_NAME_CM33_0)" />
+    <ConfigDefine name="CY_CFG_SYSCLK_CLKLF_CSV_ACCURACY" public="true" value="`${accuracyCsv}`UL" include="`${ClkLfCsv}`" />
+    <ConfigDefine name="CY_CFG_SYSCLK_CLKLF_CSV_ENABLED" public="false" value="`${ClkLfCsv}`" include="`${ClkLfCsv}`" />
+    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkLfInit(void)" body="    /* The WDT is unlocked in the default startup code */&#xA;    Cy_SysClk_ClkLfSetSource(CY_SYSCLK_CLKLF_IN_`${sourceClockApiName}`);" public="false" include="`${is40srssAvailable || is40ssrssAvailable}`" guard="(!defined(CY_DEVICE_SECURE))" />
+    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkLfInit(void)" body="    /* The WDT is unlocked in the default startup code */&#xA;    Cy_SysClk_ClkLfSetSource(CY_CFG_SYSCLK_CLKLF_SOURCE);" public="false" include="`${(is40srss_ver2or3Available)}`" />
+    <ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkLfInit(void)" body="    /* The WDT is unlocked in the default startup code */&#xA;    Cy_SysClk_ClkLfSetSource(CY_CFG_SYSCLK_CLKLF_SOURCE);" public="false" include="`${(is22srssAvailable)}`" guard="defined(CORE_NAME_CM33_0)" />
+<ConfigFunction signature="__STATIC_INLINE void Cy_SysClk_ClkLfCsvInit()" body="    Cy_SysClk_ClkLfCsvConfigure(CY_SYSCLK_CLKLF_CSV_REF_`${sourceClockCsv}`, CY_CFG_SYSCLK_CLKLF_CSV_ACCURACY);&#xA;    Cy_SysClk_ClkLfCsvEnable(); " public="false" include="`${ClkLfCsv}`" />
   </ConfigFirmware>
 </Personality>

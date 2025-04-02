@@ -112,6 +112,18 @@ typedef enum
 	CYHAL_SYSTEM_RESET_WARMBOOT        = 1 << 8, /**< A reset has occurred due wake up from DSRAM, which is a Warm Boot */
 } cyhal_reset_reason_t;
 
+/** Supply voltages whose levels can be specified and queried via \ref cyhal_system_set_supply_voltage and
+  * \ref cyhal_system_get_supply_voltage, respectively.
+  *
+  * \note Not all supplies which are present are included here. This enum only contains the voltage supplies
+  * whose values are relevant to the operation of one or more HAL drivers.
+  */
+typedef enum
+{
+    CYHAL_VOLTAGE_SUPPLY_VDDA = 0u,                       //!< VDDA - Analog supply voltage
+    CYHAL_VOLTAGE_SUPPLY_MAX  = CYHAL_VOLTAGE_SUPPLY_VDDA //!< Alias for the highest value in this enum
+} cyhal_system_voltage_supply_t;
+
 /** Function pointer for IRQ handlers ( \ref cyhal_system_set_isr). */
 typedef void (* cyhal_irq_handler)(void);
 
@@ -199,6 +211,30 @@ cy_rslt_t cyhal_system_reset_device(void);
  * @return Returns CY_RSLT_SUCCESS if the set_isr request was successful, otherwise an error
  */
 cy_rslt_t cyhal_system_set_isr(int32_t irq_num, int32_t irq_src, uint8_t priority, cyhal_irq_handler handler);
+
+/** Informs the system of the current voltage level on the specified supply.
+  *
+  * This is generally expected to be set once at system startup, but it may be set repeatedly during
+  * runtime if operating conditions change.
+  * Once set, this value can be queried via \ref cyhal_system_get_supply_voltage.
+  *
+  * \note This only informs the system of the voltage level. It does not alter any of the device operating conditions.
+  *
+  * @param supply The supply whose voltage is being specified.
+  * @param mvolts The voltage level on the specified supply, in millivolts.
+  */
+void cyhal_system_set_supply_voltage(cyhal_system_voltage_supply_t supply, uint32_t mvolts);
+
+/** Retrieves the current voltage level on the specified supply, as set in \ref cyhal_system_set_supply_voltage.
+  *
+  * \note This only returns the value provided to \ref cyhal_system_set_supply_voltage. It does not perform any
+  * measurements of the current supply level.
+  *
+  * @param supply The supply whose voltage is being specified.
+  * @return The voltage level on the specified supply, in millivolts. If the voltage has not been specified,
+  * returns 0.
+  */
+uint32_t cyhal_system_get_supply_voltage(cyhal_system_voltage_supply_t supply);
 
 #if defined(__cplusplus)
 }

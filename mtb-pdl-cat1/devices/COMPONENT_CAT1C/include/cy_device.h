@@ -227,6 +227,38 @@ extern const cy_stc_device_t* cy_device;
 #define SRSS_TST_XRES_SECURE                (((SRSS_Type *) SRSS)->TST_XRES_SECURE)
 #define SRSS_RES_PXRES_CTL                  (((SRSS_Type *) SRSS)->RES_PXRES_CTL)
 
+#define SRSS_CSV_HF_CSV_REF_CTL(hf)         (((SRSS_Type *) SRSS)->CSV_HF_STRUCT.CSV[hf].REF_CTL)
+#define SRSS_CSV_HF_CSV_REF_LIMIT(hf)       (((SRSS_Type *) SRSS)->CSV_HF_STRUCT.CSV[hf].REF_LIMIT)
+#define SRSS_CSV_HF_CSV_MON_CTL(hf)         (((SRSS_Type *) SRSS)->CSV_HF_STRUCT.CSV[hf].MON_CTL)
+#define CSV_HF_CSV_REF_CTL_CSV_STARTUP      CSV_HF_CSV_REF_CTL_STARTUP
+#define CSV_HF_CSV_REF_LIMIT_CSV_LOWER      CSV_HF_CSV_REF_LIMIT_LOWER
+#define CSV_HF_CSV_REF_LIMIT_CSV_UPPER      CSV_HF_CSV_REF_LIMIT_UPPER
+#define CSV_HF_CSV_MON_CTL_CSV_PERIOD       CSV_HF_CSV_MON_CTL_PERIOD
+
+#define SRSS_CSV_LF_CSV_REF_CTL             (((SRSS_Type *) SRSS)->CSV_LF_STRUCT.CSV.REF_CTL)
+#define SRSS_CSV_LF_CSV_REF_LIMIT           (((SRSS_Type *) SRSS)->CSV_LF_STRUCT.CSV.REF_LIMIT)
+#define SRSS_CSV_LF_CSV_MON_CTL             (((SRSS_Type *) SRSS)->CSV_LF_STRUCT.CSV.MON_CTL)
+#define CSV_LF_CSV_REF_CTL_CSV_STARTUP      CSV_LF_CSV_REF_CTL_STARTUP
+#define CSV_LF_CSV_REF_LIMIT_CSV_LOWER      CSV_LF_CSV_REF_LIMIT_LOWER
+#define CSV_LF_CSV_REF_LIMIT_CSV_UPPER      CSV_LF_CSV_REF_LIMIT_UPPER
+#define CSV_LF_CSV_MON_CTL_CSV_PERIOD       CSV_LF_CSV_MON_CTL_PERIOD
+
+#define SRSS_CSV_REF_CSV_REF_CTL            (((SRSS_Type *) SRSS)->CSV_REF_STRUCT.CSV.REF_CTL)
+#define SRSS_CSV_REF_CSV_REF_LIMIT          (((SRSS_Type *) SRSS)->CSV_REF_STRUCT.CSV.REF_LIMIT)
+#define SRSS_CSV_REF_CSV_MON_CTL            (((SRSS_Type *) SRSS)->CSV_REF_STRUCT.CSV.MON_CTL)
+#define CSV_REF_CSV_REF_CTL_CSV_STARTUP     CSV_REF_CSV_REF_CTL_STARTUP
+#define CSV_REF_CSV_REF_LIMIT_CSV_LOWER     CSV_REF_CSV_REF_LIMIT_LOWER
+#define CSV_REF_CSV_REF_LIMIT_CSV_UPPER     CSV_REF_CSV_REF_LIMIT_UPPER
+#define CSV_REF_CSV_MON_CTL_CSV_PERIOD      CSV_REF_CSV_MON_CTL_PERIOD
+
+#define SRSS_CSV_ILO_CSV_REF_CTL            (((SRSS_Type *) SRSS)->CSV_ILO_STRUCT.CSV.REF_CTL)
+#define SRSS_CSV_ILO_CSV_REF_LIMIT          (((SRSS_Type *) SRSS)->CSV_ILO_STRUCT.CSV.REF_LIMIT)
+#define SRSS_CSV_ILO_CSV_MON_CTL            (((SRSS_Type *) SRSS)->CSV_ILO_STRUCT.CSV.MON_CTL)
+#define CSV_ILO_CSV_REF_CTL_CSV_STARTUP     CSV_ILO_CSV_REF_CTL_STARTUP
+#define CSV_ILO_CSV_REF_LIMIT_CSV_LOWER     CSV_ILO_CSV_REF_LIMIT_LOWER
+#define CSV_ILO_CSV_REF_LIMIT_CSV_UPPER     CSV_ILO_CSV_REF_LIMIT_UPPER
+#define CSV_ILO_CSV_MON_CTL_CSV_PERIOD      CSV_ILO_CSV_MON_CTL_PERIOD
+
 #define SRSS_CLK_FLL_CONFIG                 (((SRSS_Type *) SRSS)->CLK_FLL_CONFIG)
 #define SRSS_CLK_FLL_CONFIG2                (((SRSS_Type *) SRSS)->CLK_FLL_CONFIG2)
 #define SRSS_CLK_FLL_CONFIG3                (((SRSS_Type *) SRSS)->CLK_FLL_CONFIG3)
@@ -828,6 +860,88 @@ we need to define this for version 2 only. */
 
 
 /*******************************************************************************
+*               TDM
+*******************************************************************************/
+#define TDM_STRUCT_Type                             TDM_TDM_STRUCT_Type
+#define TDM_TX_STRUCT_Type                          TDM_TDM_STRUCT_TDM_TX_STRUCT_Type
+#define TDM_RX_STRUCT_Type                          TDM_TDM_STRUCT_TDM_RX_STRUCT_Type
+#define TDM_STRUCT0                                 TDM0_TDM_STRUCT0
+#define TDM_STRUCT1                                 TDM0_TDM_STRUCT1
+#define TDM_STRUCT0_TX                              TDM0_TDM_STRUCT0_TDM_TX_STRUCT
+#define TDM_STRUCT1_TX                              TDM0_TDM_STRUCT1_TDM_TX_STRUCT
+#define TDM_STRUCT0_RX                              TDM0_TDM_STRUCT0_TDM_RX_STRUCT
+#define TDM_STRUCT1_RX                              TDM0_TDM_STRUCT1_TDM_RX_STRUCT
+#define TDM_STRUCT_TX_CTL(base)                     (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_CTL)
+#define TDM_STRUCT_TX_IF_CTL(base)                  (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_IF_CTL)
+#define TDM_STRUCT_TX_CH_CTL(base)                  (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_CH_CTL)
+#define TDM_STRUCT_TX_TEST_CTL(base)                (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_TEST_CTL)
+#define TDM_STRUCT_TX_ROUTE_CTL(base)               (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_ROUTE_CTL)
+#define TDM_STRUCT_TX_FIFO_CTL(base)                (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_FIFO_CTL)
+#define TDM_STRUCT_TX_FIFO_STATUS(base)             (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_FIFO_STATUS)
+#define TDM_STRUCT_TX_FIFO_WR(base)                 (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->TX_FIFO_WR)
+#define TDM_STRUCT_TX_INTR_TX(base)                 (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->INTR_TX)
+#define TDM_STRUCT_TX_INTR_TX_SET(base)             (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->INTR_TX_SET)
+#define TDM_STRUCT_TX_INTR_TX_MASK(base)            (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->INTR_TX_MASK)
+#define TDM_STRUCT_TX_INTR_TX_MASKED(base)          (((TDM_TDM_STRUCT_TDM_TX_STRUCT_Type *)(base))->INTR_TX_MASKED)
+
+#define TDM_STRUCT_RX_CTL(base)                     (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_CTL)
+#define TDM_STRUCT_RX_IF_CTL(base)                  (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_IF_CTL)
+#define TDM_STRUCT_RX_CH_CTL(base)                  (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_CH_CTL)
+#define TDM_STRUCT_RX_TEST_CTL(base)                (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_TEST_CTL)
+#define TDM_STRUCT_RX_ROUTE_CTL(base)               (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_ROUTE_CTL)
+#define TDM_STRUCT_RX_FIFO_CTL(base)                (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_FIFO_CTL)
+#define TDM_STRUCT_RX_FIFO_STATUS(base)             (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_FIFO_STATUS)
+#define TDM_STRUCT_RX_FIFO_RD(base)                 (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_FIFO_RD)
+#define TDM_STRUCT_RX_FIFO_RD_SILENT(base)          (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->RX_FIFO_RD_SILENT)
+#define TDM_STRUCT_RX_INTR_RX(base)                 (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->INTR_RX)
+#define TDM_STRUCT_RX_INTR_RX_SET(base)             (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->INTR_RX_SET)
+#define TDM_STRUCT_RX_INTR_RX_MASK(base)            (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->INTR_RX_MASK)
+#define TDM_STRUCT_RX_INTR_RX_MASKED(base)          (((TDM_TDM_STRUCT_TDM_RX_STRUCT_Type *)(base))->INTR_RX_MASKED)
+
+/*******************************************************************************
+*                                    MIXER
+*******************************************************************************/
+#define MIXER_SRC_STRUCT_Type                            MIXER_MIXER_SRC_STRUCT_Type
+#define MIXER_DST_STRUCT_Type                            MIXER_MIXER_DST_STRUCT_Type
+#define MIXER_TX_STRUCT_Type                             MIXER_MIXER_TX_STRUCT_Type
+
+#define MIXER_SRC_STRUCT_SRC_CTL(base)                   (((MIXER_SRC_STRUCT_Type *)(base))->SRC_CTL)
+#define MIXER_SRC_STRUCT_SRC_STATUS(base)                (((MIXER_SRC_STRUCT_Type *)(base))->SRC_STATUS)
+#define MIXER_SRC_STRUCT_SRC_FADE_CTL(base)              (((MIXER_SRC_STRUCT_Type *)(base))->SRC_FADE_CTL)
+#define MIXER_SRC_STRUCT_SRC_FADE_STATUS(base)           (((MIXER_SRC_STRUCT_Type *)(base))->SRC_FADE_STATUS)
+#define MIXER_SRC_STRUCT_SRC_FADE_CMD(base)              (((MIXER_SRC_STRUCT_Type *)(base))->SRC_FADE_CMD)
+#define MIXER_SRC_STRUCT_SRC_GAIN_CTL(base)              (((MIXER_SRC_STRUCT_Type *)(base))->SRC_GAIN_CTL)
+#define MIXER_SRC_STRUCT_SRC_FIFO_CTL(base)              (((MIXER_SRC_STRUCT_Type *)(base))->SRC_FIFO_CTL)
+#define MIXER_SRC_STRUCT_SRC_FIFO_STATUS(base)           (((MIXER_SRC_STRUCT_Type *)(base))->SRC_FIFO_STATUS)
+#define MIXER_SRC_STRUCT_SRC_FIFO_WR(base)               (((MIXER_SRC_STRUCT_Type *)(base))->SRC_FIFO_WR)
+#define MIXER_SRC_STRUCT_INTR_SRC(base)                  (((MIXER_SRC_STRUCT_Type *)(base))->INTR_SRC)
+#define MIXER_SRC_STRUCT_INTR_SRC_SET(base)              (((MIXER_SRC_STRUCT_Type *)(base))->INTR_SRC_SET)
+#define MIXER_SRC_STRUCT_INTR_SRC_MASK(base)             (((MIXER_SRC_STRUCT_Type *)(base))->INTR_SRC_MASK)
+#define MIXER_SRC_STRUCT_INTR_SRC_MASKED(base)           (((MIXER_SRC_STRUCT_Type *)(base))->INTR_SRC_MASKED)
+
+#define MIXER_DST_STRUCT_DST_CTL(base)                   (((MIXER_DST_STRUCT_Type *)(base))->DST_CTL)
+#define MIXER_DST_STRUCT_DST_FADE_CTL(base)              (((MIXER_DST_STRUCT_Type *)(base))->DST_FADE_CTL)
+#define MIXER_DST_STRUCT_DST_FADE_STATUS(base)           (((MIXER_DST_STRUCT_Type *)(base))->DST_FADE_STATUS)
+#define MIXER_DST_STRUCT_DST_FADE_CMD(base)              (((MIXER_DST_STRUCT_Type *)(base))->DST_FADE_CMD)
+#define MIXER_DST_STRUCT_DST_GAIN_CTL(base)              (((MIXER_DST_STRUCT_Type *)(base))->DST_GAIN_CTL)
+#define MIXER_DST_STRUCT_DST_FIFO_CTL(base)              (((MIXER_DST_STRUCT_Type *)(base))->DST_FIFO_CTL)
+#define MIXER_DST_STRUCT_DST_FIFO_STATUS(base)           (((MIXER_DST_STRUCT_Type *)(base))->DST_FIFO_STATUS)
+#define MIXER_DST_STRUCT_DST_FIFO_RD(base)               (((MIXER_DST_STRUCT_Type *)(base))->DST_FIFO_RD)
+#define MIXER_DST_STRUCT_DST_FIFO_RD_SILENT(base)        (((MIXER_DST_STRUCT_Type *)(base))->DST_FIFO_RD_SILENT)
+#define MIXER_DST_STRUCT_INTR_DST(base)                  (((MIXER_DST_STRUCT_Type *)(base))->INTR_DST)
+#define MIXER_DST_STRUCT_INTR_DST_SET(base)              (((MIXER_DST_STRUCT_Type *)(base))->INTR_DST_SET)
+#define MIXER_DST_STRUCT_INTR_DST_MASK(base)             (((MIXER_DST_STRUCT_Type *)(base))->INTR_DST_MASK)
+#define MIXER_DST_STRUCT_INTR_DST_MASKED(base)           (((MIXER_DST_STRUCT_Type *)(base))->INTR_DST_MASKED)
+
+#define MIXER_TX_STRUCT_TX_CTL(base)                     (((MIXER_TX_STRUCT_Type *)(base))->TX_CTL)
+#define MIXER_TX_STRUCT_TX_IF_CTL(base)                  (((MIXER_TX_STRUCT_Type *)(base))->TX_IF_CTL)
+#define MIXER_TX_STRUCT_TX_FIFO_CTL(base)                (((MIXER_TX_STRUCT_Type *)(base))->TX_FIFO_CTL)
+#define MIXER_TX_STRUCT_INTR_TX(base)                    (((MIXER_TX_STRUCT_Type *)(base))->INTR_TX)
+#define MIXER_TX_STRUCT_INTR_TX_SET(base)                (((MIXER_TX_STRUCT_Type *)(base))->INTR_TX_SET)
+#define MIXER_TX_STRUCT_INTR_TX_MASK(base)               (((MIXER_TX_STRUCT_Type *)(base))->INTR_TX_MASK)
+#define MIXER_TX_STRUCT_INTR_TX_MASKED(base)             (((MIXER_TX_STRUCT_Type *)(base))->INTR_TX_MASKED)
+
+/*******************************************************************************
 *                SAR
 *******************************************************************************/
 
@@ -1295,7 +1409,11 @@ we need to define this for version 2 only. */
 #endif
 
 #if !defined (SMIF_DELAY_TAPS_NR)
+#if defined (CY_IP_MXSMIF_VERSION) && (CY_IP_MXSMIF_VERSION == 4)
+#define SMIF_DELAY_TAPS_NR 16u
+#else
 #define SMIF_DELAY_TAPS_NR 32u
+#endif
 
 #define SMIF_CORE0_SS0_PORT           (GPIO_PRT5)
 #define SMIF_CORE0_SS0_PIN            (0U)
@@ -1989,6 +2107,7 @@ we need to define this for version 2 only. */
 #define GPIO_PRT_CFG(base)                 (((GPIO_PRT_Type*)(base))->CFG)
 #define GPIO_PRT_CFG_IN(base)              (((GPIO_PRT_Type*)(base))->CFG_IN)
 #define GPIO_PRT_CFG_OUT(base)             (((GPIO_PRT_Type*)(base))->CFG_OUT)
+#define GPIO_PRT_CFG_OUT2(base)            (((GPIO_PRT_Type*)(base))->CFG_OUT2)
 #define GPIO_PRT_CFG_SIO(base)             (((GPIO_PRT_Type*)(base))->CFG_SIO)
 #define GPIO_PRT_CFG_IN_AUTOLVL(base)      (((GPIO_PRT_Type*)(base))->CFG_IN_AUTOLVL)
 

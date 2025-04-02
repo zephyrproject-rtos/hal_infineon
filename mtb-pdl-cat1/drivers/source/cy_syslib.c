@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syslib.c
-* \version 3.60
+* \version 3.80
 *
 *  Description:
 *   Provides system API implementation for the SysLib driver.
 *
 ********************************************************************************
-* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -110,9 +110,9 @@ bool cy_WakeupFromWarmBootStatus = false;
 
 #if defined(__ARMCC_VERSION)
         #if (__ARMCC_VERSION >= 6010050)
-            static void Cy_SysLib_AsmInfiniteLoop(void) { __ASM (" b . "); };
+            static void Cy_SysLib_AsmInfiniteLoop(void) { __ASM (" b . "); }
         #else
-            static __ASM void Cy_SysLib_AsmInfiniteLoop(void) { b . };
+            static __ASM void Cy_SysLib_AsmInfiniteLoop(void) { b . }
         #endif /* (__ARMCC_VERSION >= 6010050) */
 #endif  /* (__ARMCC_VERSION) */
 
@@ -358,6 +358,37 @@ uint64_t Cy_SysLib_GetUniqueId(void)
 #endif
 
 
+#if ((defined (CY_IP_M33SYSCPUSS) || defined (CY_IP_M55APPCPUSS)) && defined(CY_IP_MXS22RRAMC))
+#define _CY_DIE_REG_COUNT       (3U)
+
+uint64_t Cy_SysLib_GetUniqueId(void)
+{
+    uint32_t uniqueIdHi = 0;
+    uint32_t uniqueIdLo = 0;
+    uint32_t revId = 0;
+    uint32_t dieRead[_CY_DIE_REG_COUNT];
+
+    for (uint32_t i = 0; i < _CY_DIE_REG_COUNT; i++)
+    {
+        dieRead[i] = CY_GET_REG32(CY_RRAM_PROTECTED_NS_SFLASH_DIE + (uint32_t)(i * sizeof(uint32_t)));
+    }
+    revId = CY_GET_REG32(CY_RRAM_PROTECTED_NS_SFLASH_SI_REV);
+
+    uniqueIdLo = (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_LOT0,  dieRead[0])) << CY_UNIQUE_ID_DIE_LOT_0_Pos |
+                 (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_LOT1,  dieRead[0])) << CY_UNIQUE_ID_DIE_LOT_1_Pos |
+                 (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_LOT2,  dieRead[0])) << CY_UNIQUE_ID_DIE_LOT_2_Pos |
+                 (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_WAFER, dieRead[0])) << CY_UNIQUE_ID_DIE_WAFER_Pos;
+
+    uniqueIdHi = (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_X,    dieRead[1])) << (CY_UNIQUE_ID_DIE_X_Pos     - CY_UNIQUE_ID_DIE_X_Pos) |
+                 (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_Y,    dieRead[1])) << (CY_UNIQUE_ID_DIE_Y_Pos     - CY_UNIQUE_ID_DIE_X_Pos) |
+                 (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_SORT, dieRead[1])) << (CY_UNIQUE_ID_DIE_SORT_Pos  - CY_UNIQUE_ID_DIE_X_Pos) |
+                 (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_SI_REV_MINOR,  revId)) << (CY_UNIQUE_ID_DIE_MINOR_Pos - CY_UNIQUE_ID_DIE_X_Pos) |
+                 (_FLD2VAL(CY_RRAM_PROTECTED_NS_SFLASH_DIE_YEAR, dieRead[2])) << (CY_UNIQUE_ID_DIE_YEAR_Pos  - CY_UNIQUE_ID_DIE_X_Pos);
+
+    return (((uint64_t) uniqueIdHi << CY_UNIQUE_ID_DIE_X_Pos) | uniqueIdLo);
+}
+#endif
+
 #if defined(CY_INIT_CODECOPY_ENABLE)
 CY_SECTION_INIT_CODECOPY_END
 #endif
@@ -510,9 +541,23 @@ void Cy_SysLib_SetWaitStates(bool ulpMode, uint32_t clkHfMHz)
     (void) clkHfMHz;
 #endif /* !((CY_CPU_CORTEX_M4) && (defined(CY_DEVICE_SECURE))) || defined(CY_IP_M7CPUSS) */
 #endif /* defined(CY_IP_M4CPUSS) || defined(CY_IP_M7CPUSS) */
+#if (defined(CY_PDL_TZ_ENABLED) && defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL))
+    uint32_t waitStates;
 
+    if (ulpMode)
+    {
+        waitStates =  ((CY_SYSLIB_COEFFICIENT_ULP*clkHfMHz)/1000U)+1U;
+    }
+    else
+    {
+        waitStates =  ((CY_SYSLIB_COEFFICIENT*clkHfMHz)/1000U)+1U;
+    }
+
+    FLASHC_FLASH_CTL =_CLR_SET_FLD32U(FLASHC_FLASH_CTL, FLASHC_FLASH_CTL_RBUS_WS, waitStates);
+#else
     (void) ulpMode;
     (void) clkHfMHz;
+#endif
 }
 
 
@@ -556,12 +601,20 @@ void Cy_SysLib_ClearDSRAMWarmBootEntryStatus(void)
 #endif
 
 
-#if defined(CY_IP_MXS22SRSS)
-cy_en_syslib_lcs_mode_t Cy_SysLib_GetDeviceLCS(void)
+#if defined(CY_IP_MXS22SRSS) || defined(CY_IP_MXS40SSRSS)
+cy_en_syslib_lcs_mode_t Cy_SysLib_GetDeviceLCS(cy_syslib_lcs_data_t *base)
 {
+    CY_ASSERT_L2(base);
+
     cy_en_syslib_lcs_mode_t lcsMode;
 
-    lcsMode = (cy_en_syslib_lcs_mode_t)CY_GET_REG32(SRSS_DECODED_LCS_DATA);
+#if defined(CY_IP_MXS40SSRSS)
+    lcsMode = (cy_en_syslib_lcs_mode_t)(base->BOOTROW);
+#elif defined(CY_IP_MXS22SRSS)
+    lcsMode = (cy_en_syslib_lcs_mode_t)(base->DECODED_LCS_DATA);
+#else
+    lcsMode = (cy_en_syslib_lcs_mode_t)(CY_GET_REG32(base));
+#endif
 
     switch (lcsMode)
     {
@@ -581,7 +634,100 @@ cy_en_syslib_lcs_mode_t Cy_SysLib_GetDeviceLCS(void)
 
     return lcsMode;
 }
+#endif /* defined(CY_IP_MXS22SRSS) || defined(CY_IP_MXS40SSRSS) */
+
+#if (((defined (CY_CPU_CORTEX_M7) && CY_CPU_CORTEX_M7) || (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55)) && (defined (__MPU_PRESENT) && (__MPU_PRESENT == 1U)))
+bool Cy_Syslib_IsMemCacheable(MPU_Type* mpu, uint32_t addr, uint32_t size)
+{
+    uint32_t maxRegions;
+    uint32_t en;
+    uint8_t idx;
+    uint32_t startAddr;
+    bool ret = true;
+#if (CY_CPU_CORTEX_M55)
+    uint32_t endAddr;
+    uint32_t attrIdx;
+    uint32_t attribute;
+    uint8_t reg;
+    uint32_t pos;
+    uint32_t mask;
+#elif (CY_CPU_CORTEX_M7)
+    uint32_t SIZE;
+    uint32_t TEX;
+    uint32_t C;
+    uint32_t B;
 #endif
+
+    if ((NULL == mpu) || (size == (uint32_t)0))
+    {
+        return ret;
+    }
+
+    maxRegions = _FLD2VAL(MPU_TYPE_DREGION, mpu->TYPE);
+
+    for (idx = 0; idx < maxRegions; idx++)
+    {
+        mpu->RNR = idx;
+#if (CY_CPU_CORTEX_M55)
+        en = _FLD2VAL(MPU_RLAR_EN, mpu->RLAR);
+#elif (CY_CPU_CORTEX_M7)
+        en = _FLD2VAL(MPU_RASR_ENABLE, mpu->RASR);
+#endif
+
+        if (en == 1U)
+        {
+#if (CY_CPU_CORTEX_M55)
+            attrIdx = _FLD2VAL(MPU_RLAR_AttrIndx, mpu->RLAR);
+
+            reg = (uint8_t)(attrIdx / 4U);
+            pos = ((attrIdx % 4U) * 8U);
+            mask = (uint32_t)((uint32_t)0x000000FFU << pos);
+
+            if (reg >= (sizeof(mpu->MAIR) / sizeof(mpu->MAIR[0]))) {
+                return ret; // invalid index
+            }
+            attribute = (uint8_t)((mpu->MAIR[reg] & mask) >> pos);
+            startAddr = (uint32_t)(mpu->RBAR & MPU_RBAR_BASE_Msk);
+            endAddr =  (uint32_t)(mpu->RLAR & MPU_RLAR_LIMIT_Msk);
+
+            /*
+                Check bit7:4 of outer attribute for non-cacheable region (0b0100 or 0x4)
+                Check bit3:0 of inner attribute for non-cacheable region (0b0100 or 0x4)
+                Thus the attribute is checked for 0x44
+            */
+            if ((attribute == (uint32_t)0x44) && (addr >= startAddr) && ((addr+size) <= endAddr))
+            {
+                ret = false;
+                break;
+            }
+#elif (CY_CPU_CORTEX_M7)
+            TEX = _FLD2VAL(MPU_RASR_TEX, mpu->RASR);
+            C = _FLD2VAL(MPU_RASR_C, mpu->RASR);
+            B = _FLD2VAL(MPU_RASR_B, mpu->RASR);
+            startAddr = (uint32_t)(mpu->RBAR & MPU_RBAR_ADDR_Msk);
+            SIZE = _FLD2VAL(MPU_RASR_SIZE, mpu->RASR);
+
+            /*
+                Check Type Extension field (TEX) bit21:19 for 0b001
+                Check Cacheable bit17 for 0b0
+                Check Bufferable bit16 for 0b0
+            */
+            if ((TEX == 1U) && (C == 0U) && (B == 0U) && (addr >= startAddr) && \
+                ((addr+size) <= (startAddr + (1UL << (SIZE+1UL)))))
+            {
+                ret = false;
+                break;
+            }
+#endif
+        }
+        else
+        {
+            // Nothing to be done
+        }
+    }
+    return ret;
+}
+#endif // (((defined (CY_CPU_CORTEX_M7) && CY_CPU_CORTEX_M7) || (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55)) && (defined (__MPU_PRESENT) && (__MPU_PRESENT == 1U)))
 
 #if defined(CY_INIT_CODECOPY_ENABLE)
 CY_SECTION_INIT_CODECOPY_END

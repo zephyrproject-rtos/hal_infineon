@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -207,7 +207,7 @@ typedef struct {
   __IOM uint32_t CLK_PATH_SELECT[16];           /*!< 0x00001200 Clock Path Select Register */
   __IOM uint32_t CLK_ROOT_SELECT[16];           /*!< 0x00001240 Clock Root Select Register */
    __IM uint32_t RESERVED7[96];
-        CSV_HF_V2_Type CSV_HF;                  /*!< 0x00001400 Clock Supervisor (CSV) registers for Root clocks */
+        CSV_HF_V2_Type CSV_HF_STRUCT;           /*!< 0x00001400 Clock Supervisor (CSV) registers for Root clocks */
   __IOM uint32_t CLK_SELECT;                    /*!< 0x00001500 Clock selection register */
   __IOM uint32_t CLK_TIMER_CTL;                 /*!< 0x00001504 Timer Clock Control Register */
   __IOM uint32_t CLK_ILO0_CONFIG;               /*!< 0x00001508 ILO0 Configuration */
@@ -232,9 +232,9 @@ typedef struct {
    __IM uint32_t RESERVED12[33];
   __IOM uint32_t CSV_REF_SEL;                   /*!< 0x00001700 Select CSV Reference clock for Active domain */
    __IM uint32_t RESERVED13[3];
-        CSV_REF_V2_Type CSV_REF;                /*!< 0x00001710 CSV registers for the CSV Reference clock */
-        CSV_LF_V2_Type CSV_LF;                  /*!< 0x00001720 CSV registers for LF clock */
-        CSV_ILO_V2_Type CSV_ILO;                /*!< 0x00001730 CSV registers for HVILO clock */
+        CSV_REF_V2_Type CSV_REF_STRUCT;         /*!< 0x00001710 CSV registers for the CSV Reference clock */
+        CSV_LF_V2_Type CSV_LF_STRUCT;           /*!< 0x00001720 CSV registers for LF clock */
+        CSV_ILO_V2_Type CSV_ILO_STRUCT;         /*!< 0x00001730 CSV registers for HVILO clock */
    __IM uint32_t RESERVED14[48];
   __IOM uint32_t RES_CAUSE;                     /*!< 0x00001800 Reset Cause Observation Register */
   __IOM uint32_t RES_CAUSE2;                    /*!< 0x00001804 Reset Cause Observation Register 2 */

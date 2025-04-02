@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_common.h
-* \version 3.20
+* \version 3.30
 *
 * Provides common API declarations of the SCB driver.
 *
@@ -56,6 +56,11 @@
 *******************************************************************************
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>3.30</td>
+*     <td>Updated internal macro to enable UART Half Duplex APIs only on supported devices.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
 *   <tr>
 *     <td rowspan="2">3.20</td>
 *     <td>Added APIs \ref Cy_SCB_UART_EnableSingleWireHalfDuplex, \ref Cy_SCB_UART_DisableSingleWireHalfDuplex.
@@ -473,7 +478,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 #define CY_SCB_DRV_VERSION_MAJOR    (3)
 
 /** Driver minor version */
-#define CY_SCB_DRV_VERSION_MINOR    (20)
+#define CY_SCB_DRV_VERSION_MINOR    (30)
 
 /** SCB driver identifier */
 #define CY_SCB_ID           CY_PDL_DRV_ID(0x2AU)
@@ -782,6 +787,14 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 #define CY_SCB_UART_TX_CTRL_SET_PARITY_Msk      (SCB_UART_TX_CTRL_PARITY_ENABLED_Msk | \
                                                  SCB_UART_TX_CTRL_PARITY_Msk)
 #define CY_SCB_UART_TX_CTRL_SET_PARITY_Pos      SCB_UART_TX_CTRL_PARITY_Pos
+
+/* UART half-duplex mode*/
+#if  ((defined(CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION > 4)) || \
+    ((defined(CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION == 4)) && (defined(CY_IP_MXSCB_VERSION_MINOR) && (CY_IP_MXSCB_VERSION_MINOR >= 2))))
+    #define CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED    (1u)
+#else
+    #define CY_SCB_UART_RX_HALF_DUPLEX_SUPPORTED    (0u)
+#endif
 
 /* Max number of bits for byte mode */
 #define CY_SCB_BYTE_WIDTH   (8UL)

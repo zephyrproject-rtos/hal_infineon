@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hmac_v2.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -48,19 +48,16 @@ extern "C" {
 
 /** \cond INTERNAL */
 
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-#endif
 typedef struct
 {
     /* Allocates CY_CRYPTO_HMAC_MAX_PAD_SIZE Bytes for the inner padding. */
-    uint8_t ipad[CY_CRYPTO_HMAC_MAX_PAD_SIZE];
+    uint8_t ipad[CY_CRYPTO_ALIGN_CACHE_LINE(CY_CRYPTO_HMAC_MAX_PAD_SIZE)];
 
     /* Allocates CY_CRYPTO_HMAC_MAX_PAD_SIZE Bytes for the outer padding. */
-    uint8_t opad[CY_CRYPTO_HMAC_MAX_PAD_SIZE];
+    uint8_t opad[CY_CRYPTO_ALIGN_CACHE_LINE(CY_CRYPTO_HMAC_MAX_PAD_SIZE)];
 
     /* Allocates CY_CRYPTO_SHA_MAX_BLOCK_SIZE Bytes for the HMAC keys. */
-    uint8_t m0Key[CY_CRYPTO_SHA_MAX_BLOCK_SIZE];
+    uint8_t m0Key[CY_CRYPTO_ALIGN_CACHE_LINE(CY_CRYPTO_SHA_MAX_BLOCK_SIZE)];
 
     /* SHA buffers for storing and processing the data */
     cy_stc_crypto_v2_sha512_buffers_t shaBuffers;

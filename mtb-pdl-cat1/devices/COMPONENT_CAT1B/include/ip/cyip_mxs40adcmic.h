@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -56,7 +56,9 @@ typedef struct {
                                                                 interrupts for dc measurement in the block */
   __IOM uint32_t ADCMIC_TP;                     /*!< 0x00000034 Data used for DFT test for setting and observing test points */
    __IM uint32_t RESERVED[2];
-   __IM uint32_t ADCMIC_DATA;                   /*!< 0x00000040 N/A */
+   __IM uint32_t ADCMIC_DATA;                   /*!< 0x00000040 Data from the fifo after the PDM samples have been processed.
+                                                                Access is limited to a single word access at a time but a burst
+                                                                size of 8 words of address 0x0040-0x005C is reserved for future */
    __IM uint32_t RESERVED1[47];
   __IOM uint32_t ADC_CLK_CTRL;                  /*!< 0x00000100 Control the clocks in the ADC block */
   __IOM uint32_t ADC_GPIO_CTRL;                 /*!< 0x00000104 GPIO control for ADC */

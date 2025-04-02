@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_sysclk.c
-* \version 3.110
+* \version 3.140
 *
 * Provides an API implementation of the sysclk driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -831,7 +831,7 @@ cy_en_sysclk_status_t Cy_SysClk_WcoEnable(uint32_t timeoutus)
     BACKUP_CTL |= BACKUP_CTL_WCO_EN_Msk;
 
     /* now do the timeout wait for STATUS, bit WCO_OK */
-    while((Cy_SysClk_WcoOkay() == false) && (0UL != timeoutus)) 
+    while((Cy_SysClk_WcoOkay() == false) && (0UL != timeoutus))
     {
         Cy_SysLib_DelayUs(1U);
         timeoutus--;

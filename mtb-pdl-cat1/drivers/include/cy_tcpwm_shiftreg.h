@@ -1,13 +1,14 @@
 /***************************************************************************//**
 * \file cy_tcpwm_shiftreg.h
-* \version 1.70
+* \version 1.80
 *
 * \brief
 * The header file of the TCPWM Shift Register driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -308,6 +309,8 @@ __STATIC_INLINE void Cy_TCPWM_ShiftReg_Disable(TCPWM_Type *base, uint32_t cntNum
 * \return
 * The status. See \ref group_tcpwm_shiftreg_status
 *
+* \note The status value is not the same as in TCPWM status register.
+*
 * \snippet tcpwm/shiftreg/snippet/main.c snippet_Cy_TCPWM_ShiftReg_GetStatus
 *
 *******************************************************************************/
@@ -509,7 +512,7 @@ __STATIC_INLINE uint32_t Cy_TCPWM_ShiftReg_GetCompare1BufVal(TCPWM_Type const *b
 * Function Name: Cy_TCPWM_ShiftReg_EnableCompare0Swap
 ****************************************************************************//**
 *
-* Enables the comparison swap of compare 0 and compareBuf 0 on 
+* Enables the comparison swap of compare 0 and compareBuf 0 on
 * corresponding command or external trigger.
 *
 * \param base
@@ -534,7 +537,7 @@ __STATIC_INLINE void Cy_TCPWM_ShiftReg_EnableCompare0Swap(TCPWM_Type *base, uint
 * Function Name: Cy_TCPWM_ShiftReg_EnableCompare1Swap
 ****************************************************************************//**
 *
-* Enables the comparison swap of compare 1 and compareBuf 1 on 
+* Enables the comparison swap of compare 1 and compareBuf 1 on
 * corresponding command or external trigger.
 *
 * \param base

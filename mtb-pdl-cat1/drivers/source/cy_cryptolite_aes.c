@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_aes.c
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  Provides API implementation of the Cryptolite AES PDL driver.
@@ -366,7 +366,12 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ecb_Update(CRYPTOLITE_Type *base,
     }
 
         /* Input parameters verification */
-    if ((NULL == base) || (NULL == aesState) || (NULL == dst) || (NULL == src))
+    if ((NULL == base) || (NULL == aesState) || (NULL == src))
+    {
+        return CY_CRYPTOLITE_BAD_PARAMS;
+    }
+    
+    if(((aesState->unProcessedBytes + srcSize) >= CY_CRYPTOLITE_AES_BLOCK_SIZE) && (NULL == dst))
     {
         return CY_CRYPTOLITE_BAD_PARAMS;
     }
@@ -706,11 +711,16 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Cbc_Update(CRYPTOLITE_Type *base,
     }
 
         /* Input parameters verification */
-    if ((NULL == base) || (NULL == aesState) || (NULL == dst) || (NULL == src))
+    if ((NULL == base) || (NULL == aesState) || (NULL == src))
     {
         return CY_CRYPTOLITE_BAD_PARAMS;
     }
-    
+
+    if(((aesState->unProcessedBytes + srcSize) >= CY_CRYPTOLITE_AES_BLOCK_SIZE) && (NULL == dst))
+    {
+        return CY_CRYPTOLITE_BAD_PARAMS;
+    }
+
     srcRemap =  (uint8_t *)CY_REMAP_ADDRESS_CRYPTOLITE(src);
 
     if(aesState->unProcessedBytes + srcSize < CY_CRYPTOLITE_AES_BLOCK_SIZE)

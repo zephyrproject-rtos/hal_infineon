@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_ethif.h
-* \version 1.20
+* \version 1.30
 *
 * Provides an API declaration of the Ethernet Interface driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2020 Cypress Semiconductor Corporation
+* Copyright 2020-2024 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,8 +80,13 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.30</td>
+*     <td>Added an internal low power callback.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.20</td>
-*     <td>updated documentation and pre-processor check for CM55.</td>
+*     <td>Documentation update and updated pre-processor check for CM55.</td>
 *     <td>Code enhancement.</td>
 *   </tr>
 *   <tr>
@@ -129,7 +134,7 @@ extern "C" {
 #define CY_ETHIF_DRV_VERSION_MAJOR        1
 
 /** Driver minor version */
-#define CY_ETHIF_DRV_VERSION_MINOR        20
+#define CY_ETHIF_DRV_VERSION_MINOR        30
 
 /** Eth driver ID */
 #define CY_ETHIF_ID                     CY_PDL_DRV_ID(0x71U)

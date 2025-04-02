@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_ecc_key_gen.h
-* \version 2.30
+* \version 2.80
 *
 * \brief
 *  This file provides API for generating ECC key.
@@ -41,9 +41,6 @@ extern "C" {
 #if defined(CY_CRYPTOLITE_CFG_ECP_C)
 
 
-
-/** Pointer to a random number supplier function */
-typedef int (*cy_func_get_random_data_t)(void *rndInfo, uint8_t *rndData, size_t rndSize);
 
 /**
 * \addtogroup group_cryptolite_lld_keygen_functions

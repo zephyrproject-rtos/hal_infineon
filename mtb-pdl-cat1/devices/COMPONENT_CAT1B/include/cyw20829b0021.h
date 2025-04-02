@@ -181,95 +181,119 @@ typedef enum {
 #define CY_XIP_NS_CBUS_BASE             0x08000000UL
 #define CY_XIP_S_SBUS_BASE              0x70000000UL
 #define CY_XIP_S_CBUS_BASE              0x18000000UL
-#define CY_SRAM0_BASE                   0x20000000UL
-#define CY_SRAM0_CBUS_BASE              0x04000000UL
-#define CY_SRAM0_SIZE                   0x00040000UL
-#define CY_SRAM0_NS_SBUS_BASE           0x20000000UL
-#define CY_SRAM0_NS_CBUS_BASE           0x04000000UL
-#define CY_SRAM0_S_SBUS_BASE            0x30000000UL
-#define CY_SRAM0_S_CBUS_BASE            0x14000000UL
+#define CY_SRAM_BASE                    0x20000000UL
+#define CY_SRAM_CBUS_BASE               0x04000000UL
+#define CY_SRAM_SIZE                    0x00040000UL
+#define CY_SRAM_NS_SBUS_BASE            0x20000000UL
+#define CY_SRAM_NS_CBUS_BASE            0x04000000UL
+#define CY_SRAM_S_SBUS_BASE             0x30000000UL
+#define CY_SRAM_S_CBUS_BASE             0x14000000UL
 
-#include "system_cat1b.h"                       /*!< Category 1B System */
 
 /* IP List */
 #define CY_IP_MXS40ADCMIC               1u
 #define CY_IP_MXS40ADCMIC_INSTANCES     1u
 #define CY_IP_MXS40ADCMIC_VERSION       1u
+#define CY_IP_MXS40ADCMIC_VERSION_MINOR 0u
 #define CY_IP_MXS40BLE52SS              1u
 #define CY_IP_MXS40BLE52SS_INSTANCES    1u
 #define CY_IP_MXS40BLE52SS_VERSION      1u
+#define CY_IP_MXS40BLE52SS_VERSION_MINOR 0u
 #define CY_IP_MXTTCANFD                 1u
 #define CY_IP_MXTTCANFD_INSTANCES       1u
 #define CY_IP_MXTTCANFD_VERSION         3u
+#define CY_IP_MXTTCANFD_VERSION_MINOR   0u
 #define CY_IP_M33SYSCPUSS               1u
 #define CY_IP_M33SYSCPUSS_INSTANCES     1u
 #define CY_IP_M33SYSCPUSS_VERSION       1u
+#define CY_IP_M33SYSCPUSS_VERSION_MINOR 2u
 #define CY_IP_MXCRYPTOLITE              1u
 #define CY_IP_MXCRYPTOLITE_INSTANCES    1u
 #define CY_IP_MXCRYPTOLITE_VERSION      1u
+#define CY_IP_MXCRYPTOLITE_VERSION_MINOR 0u
 #define CY_IP_MXDFT                     1u
 #define CY_IP_MXDFT_INSTANCES           1u
 #define CY_IP_MXDFT_VERSION             2u
+#define CY_IP_MXDFT_VERSION_MINOR       1u
 #define CY_IP_MXEFUSE                   1u
 #define CY_IP_MXEFUSE_INSTANCES         1u
 #define CY_IP_MXEFUSE_VERSION           3u
+#define CY_IP_MXEFUSE_VERSION_MINOR     1u
 #define CY_IP_MXS40SIOSS                1u
 #define CY_IP_MXS40SIOSS_INSTANCES      1u
 #define CY_IP_MXS40SIOSS_VERSION        1u
+#define CY_IP_MXS40SIOSS_VERSION_MINOR  0u
 #define CY_IP_MXKEYSCAN                 1u
 #define CY_IP_MXKEYSCAN_INSTANCES       1u
 #define CY_IP_MXKEYSCAN_VERSION         1u
+#define CY_IP_MXKEYSCAN_VERSION_MINOR   0u
 #define CY_IP_MXLIN                     1u
 #define CY_IP_MXLIN_INSTANCES           1u
 #define CY_IP_MXLIN_VERSION             1u
+#define CY_IP_MXLIN_VERSION_MINOR       0u
 #define CY_IP_MXCM33                    1u
 #define CY_IP_MXCM33_INSTANCES          1u
 #define CY_IP_MXCM33_VERSION            1u
+#define CY_IP_MXCM33_VERSION_MINOR      1u
 #define CY_IP_MXDW                      1u
 #define CY_IP_MXDW_INSTANCES            1u
 #define CY_IP_MXDW_VERSION              1u
+#define CY_IP_MXDW_VERSION_MINOR        0u
 #define CY_IP_MXIPC                     1u
 #define CY_IP_MXIPC_INSTANCES           1u
 #define CY_IP_MXIPC_VERSION             1u
+#define CY_IP_MXIPC_VERSION_MINOR       0u
 #define CY_IP_MXPROMC                   1u
 #define CY_IP_MXPROMC_INSTANCES         1u
 #define CY_IP_MXPROMC_VERSION           1u
+#define CY_IP_MXPROMC_VERSION_MINOR     0u
 #define CY_IP_MXSRAMC                   1u
 #define CY_IP_MXSRAMC_INSTANCES         1u
 #define CY_IP_MXSRAMC_VERSION           1u
+#define CY_IP_MXSRAMC_VERSION_MINOR     1u
 #define CY_IP_MXPDM                     1u
 #define CY_IP_MXPDM_INSTANCES           1u
 #define CY_IP_MXPDM_VERSION             1u
+#define CY_IP_MXPDM_VERSION_MINOR       0u
 #define CY_IP_MXSPERI                   1u
 #define CY_IP_MXSPERI_INSTANCES         1u
 #define CY_IP_MXSPERI_VERSION           1u
+#define CY_IP_MXSPERI_VERSION_MINOR     0u
 #define CY_IP_MXSPERI_TR                1u
 #define CY_IP_MXSPERI_TR_INSTANCES      1u
 #define CY_IP_MXSPERI_TR_VERSION        1u
+#define CY_IP_MXSPERI_TR_VERSION_MINOR  0u
 #define CY_IP_MXSCB                     1u
 #define CY_IP_MXSCB_INSTANCES           3u
 #define CY_IP_MXSCB_VERSION             4u
+#define CY_IP_MXSCB_VERSION_MINOR       0u
 #define CY_IP_MXSMIF                    1u
 #define CY_IP_MXSMIF_INSTANCES          1u
 #define CY_IP_MXSMIF_VERSION            3u
+#define CY_IP_MXSMIF_VERSION_MINOR      1u
 #define CY_IP_MXS40SSRSS                1u
 #define CY_IP_MXS40SSRSS_INSTANCES      1u
 #define CY_IP_MXS40SSRSS_VERSION        1u
+#define CY_IP_MXS40SSRSS_VERSION_MINOR  0u
 #define CY_IP_MXTCPWM                   1u
 #define CY_IP_MXTCPWM_INSTANCES         1u
 #define CY_IP_MXTCPWM_VERSION           2u
+#define CY_IP_MXTCPWM_VERSION_MINOR     0u
 #define CY_IP_MXTDM                     1u
 #define CY_IP_MXTDM_INSTANCES           1u
 #define CY_IP_MXTDM_VERSION             1u
-
-#include "cyw20829_config.h"
-#include "gpio_cyw20829_40_qfn.h"
+#define CY_IP_MXTDM_VERSION_MINOR       0u
 
 #define CY_DEVICE_CYW20829
 #define CY_DEVICE_SERIES_20829
 #define CY_SILICON_ID                   0xEB462110UL
 #define CY_HF_CLK_MAX_FREQ              96000000UL
 
+
+#include "system_cat1b.h"
+
+#include "cyw20829_config.h"
+#include "gpio_cyw20829_40_qfn.h"
 
 /*******************************************************************************
 *                                     PERI
@@ -718,8 +742,16 @@ typedef enum {
 
 #define MS_CTL_1_2_BASE                         0x401C4000UL
 #define MS_CTL_1_2                              ((MS_CTL_1_2_Type*) MS_CTL_1_2_BASE)                              /* 0x401C4000 */
-#define MS5                                     ((MS_Type*) &MS_CTL_1_2->MS[5])                                   /* 0x401C4050 */
-#define MS_PC5                                  ((MS_PC_Type*) &MS_CTL_1_2->MS_PC[5])                             /* 0x401C5050 */
+#define MS0                                     ((MS_Type*) &MS_CTL_1_2->MS[0])                                   /* 0x401C4000 */
+#define MS4                                     ((MS_Type*) &MS_CTL_1_2->MS[4])                                   /* 0x401C4040 */
+#define MS7                                     ((MS_Type*) &MS_CTL_1_2->MS[7])                                   /* 0x401C4070 */
+#define MS9                                     ((MS_Type*) &MS_CTL_1_2->MS[9])                                   /* 0x401C4090 */
+#define MS31                                    ((MS_Type*) &MS_CTL_1_2->MS[31])                                  /* 0x401C41F0 */
+#define MS_PC0                                  ((MS_PC_Type*) &MS_CTL_1_2->MS_PC[0])                             /* 0x401C5000 */
+#define MS_PC4                                  ((MS_PC_Type*) &MS_CTL_1_2->MS_PC[4])                             /* 0x401C5040 */
+#define MS_PC7                                  ((MS_PC_Type*) &MS_CTL_1_2->MS_PC[7])                             /* 0x401C5070 */
+#define MS_PC9                                  ((MS_PC_Type*) &MS_CTL_1_2->MS_PC[9])                             /* 0x401C5090 */
+#define MS_PC31                                 ((MS_PC_Type*) &MS_CTL_1_2->MS_PC[31])                            /* 0x401C51F0 */
 
 /*******************************************************************************
 *                                 CPUSS_SL_CTL
@@ -927,6 +959,16 @@ typedef enum {
 #define BTSS_BASE                               0x42000000UL
 #define BTSS                                    ((BTSS_Type*) BTSS_BASE)                                          /* 0x42000000 */
 #define BTSS_DATA_RAM_IPC                       ((BTSS_DATA_RAM_IPC_Type*) &BTSS->DATA_RAM_IPC)                   /* 0x42600000 */
+
+/*******************************************************************************
+*                                     CM33
+*******************************************************************************/
+
+#define CM33_BASE                               0xE0000000UL
+#define CM33                                    ((CM33_Type*) CM33_BASE)                                          /* 0xE0000000 */
+#define CM33_CTI                                ((CM33_CTI_Type*) &CM33->CTI)                                     /* 0xE0042000 */
+#define CM33_TRC                                ((CM33_TRC_Type*) &CM33->TRC)                                     /* 0xE0080000 */
+#define CM33_TRC_CTI                            ((CM33_TRC_CTI_Type*) &CM33->TRC.CTI)                             /* 0xE0080000 */
 
 /** \} CYW20829B0021 */
 

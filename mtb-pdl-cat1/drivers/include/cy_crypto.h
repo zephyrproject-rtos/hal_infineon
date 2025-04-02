@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_crypto.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the public interface for the Crypto driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -250,8 +250,23 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td> 2.150</td>
+*     <td>Added new macro CY_CRYPTO_ALIGN_CACHE_LINE to Manually align memory allocation for DCache management in XMC devices.</td>
+*     <td>Removed Pragma align dependency.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.140</td>
+*     <td> Added new APIs \ref Cy_Crypto_Core_EC25519_MakePublicKey, \ref Cy_Crypto_Core_EC25519_MakePrivateKey, \ref Cy_Crypto_Core_EC25519_PointMultiplication. </td>
+*     <td>EC25519 curve support added for ECDH.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.130</td>
+*     <td>Updated API \ref Cy_Crypto_Core_Vu_RegMemPointer, \ref Cy_Crypto_Core_ED25519_PointDecode</td>
+*     <td>Bug Fixes</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="2">2.120</td>
-*     <td> 
+*     <td>
 *         <ul>
 *         <li>Added new enums \ref cy_en_eddsa_sig_type_t , updated enums \ref cy_en_crypto_ecc_curve_id_t and ED25519 macros.<br>
 *         <li>Added new APIs \ref Cy_Crypto_Core_ED25519_Sign, \ref Cy_Crypto_Core_ED25519_PointMultiplication,

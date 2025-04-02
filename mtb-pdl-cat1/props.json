@@ -15,6 +15,7 @@
             "COMPONENT_TVIIBE4M": "devices/COMPONENT_CAT1A/svd/tviibe4m.svd",
             "COMPONENT_FX3G2": "devices/COMPONENT_CAT1A/svd/fx3g2.svd",
             "COMPONENT_CYW20829": "devices/COMPONENT_CAT1B/svd/cyw20829.svd",
+            "COMPONENT_PSC3": "devices/COMPONENT_CAT1B/svd/psc3.svd",
             "COMPONENT_CAT1C4M": "devices/COMPONENT_CAT1C/svd/cat1c4m.svd",
             "COMPONENT_CAT1C8M": "devices/COMPONENT_CAT1C/svd/cat1c8m.svd",
             "COMPONENT_TVIIC2D6M": "devices/COMPONENT_CAT1C/svd/tviic2d6m.svd"
@@ -24,7 +25,7 @@
                 "type": "api-guide",
                 "title": "CAT1 PDL API reference",
                 "location": "docs/pdl_api_reference_manual.html",
-                "path": ["Reference Guides", "CAT1"]
+                "path": ["Reference Guides", "CAT1A"]
             }
         ]
     }

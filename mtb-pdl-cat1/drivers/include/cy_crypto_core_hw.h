@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hw.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the headers to the API for the utils
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -42,13 +42,16 @@ extern "C" {
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 1, \
 'Since CY_CRYPTO_V1 is decided by PDL device agnostic / hardware specific model, use of #undef will not make it ambiguous that which macros exist at a particular point within a translation unit.')
 
-
 #if (CY_IP_MXCRYPTO_VERSION == 1u)
 #include "ip/cyip_crypto.h"
 #endif
 
 #if (CY_IP_MXCRYPTO_VERSION == 2u)
+#if defined (CY_DEVICE_CAT1D)
+#include "ip/cyip_crypto_v2_1.h"
+#else
 #include "ip/cyip_crypto_v2.h"
+#endif
 
 /* CRYPTO.CTL */
 #if !defined(CRYPTO_CTL_ENABLED_Pos)
@@ -579,6 +582,18 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 1, \
 
 #endif /* !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC) */
 
+
+/* For Internal memory VU operation, Crypto CTL register should always point to Non-secure memory address
+for both Secure & Non-Secure execution */        
+#if defined(SECURE_ALIAS_OFFSET)
+#define SECURE_ALIAS_OFFSET_POS 28UL
+#define CY_CRYPTO_VU_MEM_ALIAS_ADDRESS(base)             (uint32_t)(((uint32_t)(REG_CRYPTO_VU_CTL1(base))) | ((uint32_t)((CRYPTO_V2_CTL_NS_Pos) & ~_FLD2VAL(CRYPTO_V2_CTL_NS, REG_CRYPTO_CTL(base))) << SECURE_ALIAS_OFFSET_POS))
+#define CY_CRYPTO_VU_MEM_NS_ALIAS_ADDRESS(base)             ((uint32_t)((uint32_t)(base) & ~(SECURE_ALIAS_OFFSET)))
+#else
+#define CY_CRYPTO_VU_MEM_ALIAS_ADDRESS(base) (REG_CRYPTO_VU_CTL1(base))
+#define CY_CRYPTO_VU_MEM_NS_ALIAS_ADDRESS(base) (base)
+#endif
+
 /* Old V1 registers in the regmap */
 #if defined(CY_CRYPTO_CFG_HW_V1_ENABLE)
 #define REG_CRYPTO_RAM_PWRUP_DELAY(base)   (((CRYPTO_V1_Type*)(base))->RAM_PWRUP_DELAY)
@@ -1050,11 +1065,11 @@ __STATIC_INLINE void  Cy_Crypto_Core_ClearInterrupt(CRYPTO_Type *base, uint32_t 
 *******************************************************************************/
 __STATIC_INLINE uint32_t * Cy_Crypto_Core_GetVuMemoryAddress(CRYPTO_Type *base)
 {
-#if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
-    return (cy_cryptoIP != NULL) ? (uint32_t *)REG_CRYPTO_VU_CTL1(base) : (uint32_t *)NULL;
-#else
-    return (uint32_t *)REG_CRYPTO_VU_CTL1(base);
-#endif
+    #if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
+    return (cy_cryptoIP != NULL) ? (uint32_t *)CY_CRYPTO_VU_MEM_ALIAS_ADDRESS(base) : (uint32_t *)NULL;
+    #else
+    return (uint32_t *)CY_CRYPTO_VU_MEM_ALIAS_ADDRESS(base);
+    #endif
 }
 
 /** \} group_crypto_lld_hw_functions */

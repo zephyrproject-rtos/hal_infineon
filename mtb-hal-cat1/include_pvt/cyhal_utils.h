@@ -44,12 +44,16 @@
 extern "C" {
 #endif
 
-#define _CYHAL_UTILS_NS_PER_SECOND   (1000000000)
-#define _CYHAL_UTILS_US_PER_MS       (1000)
-#define _CYHAL_UTILS_ONE_TIME_UNIT   (1)     /**< Used to do a delay in one time unit (1 ms, 1 us) */
+#define _CYHAL_UTILS_NS_PER_SECOND          (1000000000)
+#define _CYHAL_UTILS_US_PER_MS              (1000)
+#define _CYHAL_UTILS_ONE_TIME_UNIT          (1)     /**< Used to do a delay in one time unit (1 ms, 1 us) */
+#define _CYHAL_UTILS_KHZ_TO_HZ(khz)         ((uint32_t)((khz) * 1000UL))
+#define _CYHAL_UTILS_MHZ_TO_HZ(mhz)         ((uint32_t)((mhz) * 1000UL * 1000UL))
 
-#define _CYHAL_UTILS_IRQN_OFFSET           (16U) /**< Offset for implementation-defined ISR type numbers (IRQ0 = 16) */
-#define _CYHAL_UTILS_GET_CURRENT_IRQN()    ((IRQn_Type) (__get_IPSR() - _CYHAL_UTILS_IRQN_OFFSET)) /**< Macro to get the IRQn of the current ISR */
+#define _CYHAL_UTILS_IRQN_OFFSET            (16U) /**< Offset for implementation-defined ISR type numbers (IRQ0 = 16) */
+#define _CYHAL_UTILS_GET_CURRENT_IRQN()     ((IRQn_Type) (__get_IPSR() - _CYHAL_UTILS_IRQN_OFFSET)) /**< Macro to get the IRQn of the current ISR */
+/* Get array elements number */
+#define _CYHAL_UTILS_GET_ARR_EL_NUM(arr)    (sizeof(arr) / sizeof(arr[0]))
 
 /** Assigns the specified resource with the provided type, block_num, and channel_num
  */

@@ -375,7 +375,7 @@
 *
 * For PASS_ver2 the maximum clock frequency is 36 MHz.
 * Also, the SAR clock could be switched to the \ref group_sysanalog_dpslp to operate in 
-* the system Deep Sleed power mode using \ref cy_stc_sar_config_t::clock.
+* the system Deep Sleep power mode using \ref cy_stc_sar_config_t::clock.
 *
 * \snippet sar/snippet/main.c SAR_SNIPPET_CONFIGURE_CLOCK
 *

@@ -30,8 +30,14 @@
 #include "cy_worker_thread.h"
 #include "cy_utils.h"
 #include "cyabs_rtos_internal.h"
+#if defined(CY_USING_HAL) || defined(COMPONENT_MTB_HAL)
 #if defined(CY_USING_HAL)
-#include "cyhal_system.h"
+#include "cyhal.h"
+#elif defined(COMPONENT_MTB_HAL)
+#include "mtb_hal.h"
+#define cyhal_system_critical_section_enter() mtb_hal_system_critical_section_enter()
+#define cyhal_system_critical_section_exit(x) mtb_hal_system_critical_section_exit(x)
+#endif
 
 #if defined(__cplusplus)
 extern "C"
@@ -223,4 +229,4 @@ cy_rslt_t cy_worker_thread_enqueue(cy_worker_thread_info_t* worker_info,
 }
 #endif
 
-#endif // defined(CY_USING_HAL)
+#endif // defined(CY_USING_HAL) || defined(COMPONENT_MTB_HAL)

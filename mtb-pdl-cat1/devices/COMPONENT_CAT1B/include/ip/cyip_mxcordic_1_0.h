@@ -36,10 +36,10 @@
 #define MXCORDIC_1_0_SECTION_SIZE               0x00010000UL
 
 /**
-  * \brief N/A (MXCORDIC_1_0)
+  * \brief MXCORDIC_1_0
   */
 typedef struct {
-  __IOM uint32_t CTL;                           /*!< 0x00000000 N/A */
+  __IOM uint32_t CTL;                           /*!< 0x00000000  */
    __IM uint32_t RESERVED;
    __IM uint32_t ID;                            /*!< 0x00000008 Module Identification Register */
    __IM uint32_t RESERVED1;

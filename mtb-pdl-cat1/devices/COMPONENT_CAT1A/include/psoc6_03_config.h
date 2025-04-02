@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -1228,7 +1228,6 @@ typedef enum
 #include "ip/cyip_canfd.h"
 #include "ip/cyip_scb.h"
 #include "ip/cyip_ctbm.h"
-#include "ip/cyip_ctdac.h"
 #include "ip/cyip_sar.h"
 #include "ip/cyip_pass.h"
 
@@ -1288,7 +1287,6 @@ typedef CANFD_CH_V1_Type CANFD_CH_Type;
 typedef CANFD_V1_Type CANFD_Type;
 typedef CySCB_V1_Type CySCB_Type;
 typedef CTBM_V1_Type CTBM_Type;
-typedef CTDAC_V1_Type CTDAC_Type;
 typedef SAR_V1_Type SAR_Type;
 typedef PASS_AREF_V1_Type PASS_AREF_Type;
 typedef PASS_V1_Type PASS_Type;
@@ -1503,12 +1501,8 @@ typedef PASS_V1_Type PASS_Type;
    256, 512, 1024, 2048, 4096], to allow for a 256 B, 512 B, 1 kB, 2 kB, 4 kB, 8
    kB and 16 kB memory buffer) */
 #define CPUSS_CRYPTO_BUFF_SIZE          1024u
-/* Number of DMA controller channels ([1, 8]) */
-#define CPUSS_DMAC_CH_NR                2u
 /* Number of DataWire controllers present (max 2) */
 #define CPUSS_DW_NR                     2u
-/* DataWire SRAMs ECC present or not ('0': no, '1': yes) */
-#define CPUSS_DW_ECC_PRESENT            0u
 /* Number of fault structures. Legal range [1, 4] */
 #define CPUSS_FAULT_FAULT_NR            2u
 /* Number of Flash BIST_DATA registers */

@@ -1939,7 +1939,7 @@ typedef enum
 #include "ip/cyip_dw.h"
 #include "ip/cyip_dmac.h"
 #include "ip/cyip_efuse_v2.h"
-#include "ip/cyip_efuse_data_v2_xmc7100.h"
+#include "ip/cyip_efuse_data_xmc7100.h"
 #include "ip/cyip_hsiom_v3.h"
 #include "ip/cyip_gpio_v3.h"
 #include "ip/cyip_smartio_v3.h"
@@ -2254,12 +2254,8 @@ typedef CRYPTO_V2_Type CRYPTO_Type;
    256, 512, 1024, 2048, 4096], to allow for a 256 B, 512 B, 1 kB, 2 kB, 4 kB, 8
    kB and 16 kB memory buffer) */
 #define CPUSS_CRYPTO_BUFF_SIZE          2048u
-/* Number of DMA controller channels ([1, 8]) */
-#define CPUSS_DMAC_CH_NR                8u
 /* Number of DataWire controllers present (max 2) */
 #define CPUSS_DW_NR                     2u
-/* DataWire SRAMs ECC present or not ('0': no, '1': yes) */
-#define CPUSS_DW_ECC_PRESENT            1u
 /* Number of fault structures. Legal range [1, 4] */
 #define CPUSS_FAULT_FAULT_NR            4u
 /* Number of Flash BIST_DATA registers */

@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_tcpwm.h
-* \version 1.70
+* \version 1.80
 *
 * The header file of the TCPWM driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2022 Cypress Semiconductor Corporation
+* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +31,7 @@
 * \defgroup group_tcpwm_pwm     PWM (TCPWM)
 * \defgroup group_tcpwm_quaddec Quadrature Decoder (TCPWM)
 * \defgroup group_tcpwm_shiftreg Shift Register (TCPWM)
+* \defgroup group_tcpwm_motif Motion Interface (TCPWM)
 * \} */
 
 /**
@@ -37,10 +39,10 @@
 * \{
 *
 * The TCPWM driver is a multifunction driver that implements Timer Counter,
-* PWM, Quadrature Decoder and Shift Register functionality using the TCPWM block.
+* PWM, Quadrature Decoder, Shift Register and Motion Interface functionality using the TCPWM block.
 *
 * The functions and other declarations used in this driver are in cy_tcpwm_counter.h,
-* cy_tcpwm_pwm.h, cy_tcpwm_quaddec.h, cy_tcpwm_shiftreg.h respectively. Include cy_pdl.h
+* cy_tcpwm_pwm.h, cy_tcpwm_quaddec.h, cy_tcpwm_shiftreg.h, cy_tcpwm_motif.h respectively. Include cy_pdl.h
 * to get access to all functions and declarations in the PDL.
 *
 * Each TCPWM block is a collection of counters that can all be triggered
@@ -48,7 +50,7 @@
 * the TCPWM being used must be passed first, followed by the index of
 * the counter you want to touch next.
 *
-* The TCPWM supports seven function modes:
+* The TCPWM supports eight function modes:
 * * Timer
 * * Capture
 * * Quadrature Decoder
@@ -56,6 +58,7 @@
 * * PWM with dead time insertion (PWMDT)
 * * Pseudo random PWM (PWMPR)
 * * Shift Register
+* * Motion Interface (MOTIF)
 *
 * The TCPWM driver is structured to map these seven functional modes to four
 * high level operating modes:
@@ -63,6 +66,7 @@
 * * PWM (PWM, PWMDT, PWMPR)
 * * Quadrature Decoder
 * * Shift Register
+* * MOTIF
 *
 * A brief description on each of the operating modes:
 *
@@ -115,7 +119,7 @@
 * - The mxtcpwm.3.0 consists of up to 2048, 16-bit or 32-bit counters
 * - Counter groups up to 8*256
 * - Counter compare, period, line_sel and dead time registers are double buffered.
-* - Parallel data path support for CC0/CC1 register through dedicated data interface (only applicable to mxtcpwm 3.1, PSoC C3 (CAT1B) do not support this)
+* - Parallel data path support for CC0/CC1 register through dedicated data interface (only applicable to mxtcpwm 3.1, PSOC C3 do not support this)
 * - Glitch Filter with configurable depth supported on General-purpose triggers used by all counters and specific one-to-one triggers for each counter
 * - Shadow registers available for duty, period, dead time, signal and polarity
 * - Enhanced shadow update mechanism
@@ -129,9 +133,9 @@
 *     - Hall interface for direct connection to Hall sensors
 *     - HW look-up table for advance motor control feedback loop operation
 *     - Synchronous modulation support for multiple counters
-* - Support HRPWM (High resolution PWM generation) feature in both 16-bit and 32-bit TCPWM counters (Only applicable to mxtcpwm 3.1, PSoC C3 (CAT1B) only has 4 HRPWM blocks on the 32 bit PWMs.)
+* - Support HRPWM (High resolution PWM generation) feature in both 16-bit and 32-bit TCPWM counters (Only applicable to mxtcpwm 3.1, PSOC C3 only has 4 HRPWM blocks on the 32 bit PWMs.)
 *     - HRPWM enhancements are limited to PWM and PWM_DT mode only
-*     - HRPWM consists of an analog interpolator (also referred as delay element) 
+*     - HRPWM consists of an analog interpolator (also referred as delay element)
 *     - Analog interpolator consists of delay elements which uses the input clock to generate a set of delayed phases. These delayed phases are then used to delay the edges of the incoming PWM from tcpwm.
 *     - Analog interpolator is used to shift the edges of line_out and line_compl_out coming as output from the TCPWM to the analog interpolator.
 *     - The LSBs are used for fractional or micro ticks for delaying the line_out and line_compl_out outputs for  PERIOD/PERIOD_BUFF, CC0/CC0_BUFF, and CC1/CC1_BUFF and DT/DT_BUFF.
@@ -227,22 +231,41 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="2">1.80</td>
+*     <td>Newly added Motion Interface (MOTIF) functionality.</td>
+*     <td>Added the new Motion Interface for the PSOC C3 (CAT1B) device.</td>
+*   </tr>
+*   <tr>
+*     <td>Updated the following APIs:
+*          - \ref Cy_TCPWM_PWM_Init
+*          - \ref Cy_TCPWM_PWM_GetStatus
+*          - \ref Cy_TCPWM_QuadDec_GetStatus
+*          - \ref Cy_TCPWM_Counter_GetStatus
+*
+*         Newly added APIs:
+*          - \ref Cy_TCPWM_SetDebugSuspend</td>
+*     <td>Bug fixing and HRPWM enhancements.</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="2">1.70</td>
 *     <td> Newly added enum \ref cy_en_copy_swap_config_t.
 *        - Newly added API \ref Cy_TCPWM_Counter_SetDirection_Change_Mode and updated API \ref Cy_TCPWM_Block_EnableSwap.
-*   </td>
+*     </td>
 *     <td> Supported Glitch filter with configurable depth, HW look-up table for advance motor control, bug fixes and enhancement in reload and swap functionality.</td>
 *   </tr>
 *   <tr>
 *     <td>Newly added APIs :
-*          - \ref Cy_TCPWM_PWM_SetDT, \ref Cy_TCPWM_PWM_Configure_LineSelect, \ref Cy_TCPWM_PWM_Configure_LineSelectBuff, 
+*          - \ref Cy_TCPWM_PWM_SetDT, \ref Cy_TCPWM_PWM_Configure_LineSelect, \ref Cy_TCPWM_PWM_Configure_LineSelectBuff,
 *          - \ref Cy_TCPWM_PWM_EnableLineSelectSwap, \ref Cy_TCPWM_PWM_Set_KillLinePolarity, \ref Cy_TCPWM_PWM_PWMDeadTimeBuff
 *          - \ref Cy_TCPWM_PWM_PWMDeadTimeBuffN, \ref Cy_TCPWM_PWM_SetDTBuff. </td>
 *
 *         Updated the following APIs:
-*          - \ref Cy_TCPWM_PWM_Init 
+*          - \ref Cy_TCPWM_PWM_Init
 *          - \ref Cy_TCPWM_PWM_Configure_Dithering
-*        
+*          - \ref Cy_TCPWM_PWM_GetStatus
+*          - \ref Cy_TCPWM_QuadDec_GetStatus
+*          - \ref Cy_TCPWM_Counter_GetStatus
+*
 *         Newly added and updated enums:
 *          - \ref cy_en_hrpwm_operating_frequency_t
 *          - \ref cy_en_kill_line_polarity_t
@@ -374,8 +397,7 @@ extern "C" {
 #define CY_TCPWM_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_TCPWM_DRV_VERSION_MINOR       70
-
+#define CY_TCPWM_DRV_VERSION_MINOR       80
 
 /******************************************************************************
 * API Constants
@@ -383,6 +405,18 @@ extern "C" {
 
 /** TCPWM driver identifier */
 #define CY_TCPWM_ID                     (CY_PDL_DRV_ID(0x2DU))
+
+/** \cond INTERNAL */
+
+/* Macro to check if runtime check for CC1 presence is required */
+#if ( defined(CY_IP_MXS40TCPWM) && (defined(TCPWM_GRP_CC1_PRESENT_STATUS) && (TCPWM_GRP_CC1_PRESENT_STATUS > 0) && \
+    defined(TCPWM_GRP_NR) && ((TCPWM_GRP_CC1_PRESENT_STATUS) == ((1UL << TCPWM_GRP_NR) - 1UL))) )
+
+    #define CY_TCPWM_CC1_RUNTIME_CHECK      (0UL)
+#else
+    #define CY_TCPWM_CC1_RUNTIME_CHECK      (1UL)
+#endif /* (defined(TCPWM_GRP_CC1_PRESENT_STATUS) && (TCPWM_GRP_CC1_PRESENT_STATUS)) && (defined(CY_IP_MXTCPWM_VERSION) && ((CY_IP_MXTCPWM_VERSION) >= 3)) */
+/** \endcond INTERNAL */
 
 /** \defgroup group_tcpwm_input_selection  TCPWM Input Selection
 * \{
@@ -453,7 +487,7 @@ extern "C" {
 /** Output trigger generates the same signal as line_out */
 #define CY_TCPWM_CNT_TRIGGER_ON_LINE_OUT    (5U)
 #if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
-/** Output trigger generates signal on compare/capture 0 or  event */
+/** Output trigger generates signal on compare/capture 0 or 1 event */
 #define CY_TCPWM_CNT_TRIGGER_ON_CC0_OR_CC1_MATCH   (6U)
 #endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 /** Output trigger disabled */
@@ -512,7 +546,13 @@ extern "C" {
 /** \} group_tcpwm_reg_const */
 
 /** Position of Up counting counter status */
-#define CY_TCPWM_CNT_STATUS_UP_POS          (0x1U)
+#define CY_TCPWM_CNT_STATUS_UP_POS                     (0x1U)
+/** Position of missed read a past capture0 event status */
+#define CY_TCPWM_CNT_STATUS_CC0_READ_MISS_POS          (0x2U)
+/** Position of missed read a past capture1 event status */
+#define CY_TCPWM_CNT_STATUS_CC1_READ_MISS_POS          (0x3U)
+/** Position of active kill event status */
+#define CY_TCPWM_CNT_STATUS_KILL_POS                   (0x4U)
 /** Initial value for the counter in the Up counting mode */
 #define CY_TCPWM_CNT_UP_INIT_VAL            (0x0U)
 /** Initial value for the counter in the Up/Down counting modes */
@@ -634,6 +674,10 @@ __STATIC_INLINE void Cy_TCPWM_InputTriggerSetup (TCPWM_Type *base, uint32 cntNum
 __STATIC_INLINE void Cy_TCPWM_OutputTriggerSetup (TCPWM_Type *base, uint32 cntNum, cy_en_tcpwm_output_trigselect_t trigger0event, cy_en_tcpwm_output_trigselect_t trigger1event);
 __STATIC_INLINE cy_en_tcpwm_status_t Cy_TCPWM_SetDebugFreeze (TCPWM_Type *base, uint32 cntNum, bool enable);
 #endif
+#if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
+__STATIC_INLINE void Cy_TCPWM_SetDebugSuspend (TCPWM_Type *base, uint32 cntNum, bool enable);
+#endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
+
 /** \cond INTERNAL */
 __STATIC_INLINE uint32_t Cy_TCPWM_Block_GetCC0Val(TCPWM_Type const  *base, uint32_t cntNum);
 __STATIC_INLINE uint32_t Cy_TCPWM_Block_GetCC0BufVal(TCPWM_Type const  *base, uint32_t cntNum);
@@ -768,7 +812,9 @@ __STATIC_INLINE void Cy_TCPWM_Block_EnableCompare0Swap(TCPWM_Type *base, uint32_
 #if (CY_IP_MXTCPWM_VERSION >= 2U) || defined (CY_DOXYGEN)
 __STATIC_INLINE void Cy_TCPWM_Block_EnableCompare1Swap(TCPWM_Type *base, uint32_t cntNum,  bool enable)
 {
+#if (CY_TCPWM_CC1_RUNTIME_CHECK)
     if (TCPWM_GRP_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum)))
+#endif
     {
         if (enable)
         {
@@ -786,7 +832,9 @@ __STATIC_INLINE uint32_t Cy_TCPWM_Block_GetCC1Val(TCPWM_Type const  *base, uint3
 {
     uint32_t result = 0UL;
 
+#if (CY_TCPWM_CC1_RUNTIME_CHECK)
     if (TCPWM_GRP_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum)))
+#endif
     {
         result = TCPWM_GRP_CNT_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum);
     }
@@ -797,7 +845,9 @@ __STATIC_INLINE uint32_t Cy_TCPWM_Block_GetCC1BufVal(TCPWM_Type const  *base, ui
 {
     uint32_t result = 0UL;
 
+#if (CY_TCPWM_CC1_RUNTIME_CHECK)
     if (TCPWM_GRP_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum)))
+#endif
     {
         result = TCPWM_GRP_CNT_CC1_BUFF(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum);
     }
@@ -806,14 +856,18 @@ __STATIC_INLINE uint32_t Cy_TCPWM_Block_GetCC1BufVal(TCPWM_Type const  *base, ui
 }
 __STATIC_INLINE void Cy_TCPWM_Block_SetCC1BufVal(TCPWM_Type *base, uint32_t cntNum,  uint32_t compareBuf1)
 {
+#if (CY_TCPWM_CC1_RUNTIME_CHECK)
     if (TCPWM_GRP_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum)))
+#endif
     {
         TCPWM_GRP_CNT_CC1_BUFF(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) = compareBuf1;
     }
 }
 __STATIC_INLINE void Cy_TCPWM_Block_SetCC1Val(TCPWM_Type *base, uint32_t cntNum,  uint32_t compare1)
 {
+#if (CY_TCPWM_CC1_RUNTIME_CHECK)
     if (TCPWM_GRP_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum)))
+#endif
     {
         TCPWM_GRP_CNT_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) = compare1;
     }
@@ -1350,7 +1404,7 @@ __STATIC_INLINE void Cy_TCPWM_TriggerCapture0(TCPWM_Type *base, uint32_t cntNum)
 * Function Name: Cy_TCPWM_TriggerCapture1
 ****************************************************************************//**
 *
-* Triggers a Capture 1 in Timer Counter and QuadDec Mode. In PWM mode this acts 
+* Triggers a Capture 1 in Timer Counter and QuadDec Mode. In PWM mode this acts
 * as a second kill input.
 *
 * \param base
@@ -1362,16 +1416,20 @@ __STATIC_INLINE void Cy_TCPWM_TriggerCapture0(TCPWM_Type *base, uint32_t cntNum)
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_TriggerCapture1(TCPWM_Type *base, uint32_t cntNum)
 {
+#if (CY_TCPWM_CC1_RUNTIME_CHECK)
     if (TCPWM_GRP_CC1(base, TCPWM_GRP_CNT_GET_GRP(cntNum)))
+#endif
     {
         TCPWM_GRP_CNT_TR_CMD(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) =
                                                 TCPWM_GRP_CNT_V2_TR_CMD_CAPTURE1_Msk;
     }
+#if (CY_TCPWM_CC1_RUNTIME_CHECK)
     else
     {
         /* Function is not supported for TCPWM_ver1 block */
         CY_ASSERT_L1(false);
     }
+#endif
 }
 
 
@@ -1456,7 +1514,7 @@ __STATIC_INLINE bool Cy_TCPWM_GetTrigPinLevel (TCPWM_Type const *base, uint32_t 
 *
 * \param triggerSignal
 * Selects what trigger signal is connected to the selected input trigger.
-* 
+*
 * \note
 * Trigger signal for general purpose trigger is calculated as below.
 * CY_TCPWM_INPUT_TRIG(n)  = (n + TCPWM_TR_ONE_CNT_NR + 2U)
@@ -1511,7 +1569,9 @@ __STATIC_INLINE void Cy_TCPWM_InputTriggerSetup (TCPWM_Type *base, uint32 cntNum
             TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) |= _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_CAPTURE0_EDGE, edgeSelect);
             break;
         case CY_TCPWM_INPUT_TR_CAPTURE1:
+        #if (CY_TCPWM_CC1_RUNTIME_CHECK)
             if (TCPWM_GRP_CC1(base, grp))
+        #endif
             {
                 TCPWM_GRP_CNT_TR_IN_SEL1(base, grp, cntNum) &= ~TCPWM_GRP_CNT_V2_TR_IN_SEL1_CAPTURE1_SEL_Msk;
                 TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) &= ~TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_CAPTURE1_EDGE_Msk;
@@ -1519,11 +1579,13 @@ __STATIC_INLINE void Cy_TCPWM_InputTriggerSetup (TCPWM_Type *base, uint32 cntNum
                 TCPWM_GRP_CNT_TR_IN_SEL1(base, grp, cntNum) |= _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL1_CAPTURE1_SEL, triggerSignal);
                 TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) |= _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_CAPTURE1_EDGE, edgeSelect);
             }
+        #if (CY_TCPWM_CC1_RUNTIME_CHECK)
             else
             {
                 /* Capture 1 - Not supported for the group */
                 CY_ASSERT_L3(false);
             }
+        #endif
             break;
         default:
             /* Not a valid input trigger */
@@ -1570,6 +1632,10 @@ __STATIC_INLINE void Cy_TCPWM_OutputTriggerSetup (TCPWM_Type *base, uint32 cntNu
 *
 * Enables/disables the Debug Freeze feature for the specified counter.
 *
+* \note This feature will work correctly when the trigger type parameter in
+* \ref Cy_TrigMux_Connect will be set to 'TRIGGER_TYPE_LEVEL'.
+* The example is in the code snippet for this API.
+*
 * \param base
 * The pointer to a TCPWM instance.
 *
@@ -1589,14 +1655,43 @@ __STATIC_INLINE void Cy_TCPWM_OutputTriggerSetup (TCPWM_Type *base, uint32 cntNu
 *******************************************************************************/
 __STATIC_INLINE cy_en_tcpwm_status_t Cy_TCPWM_SetDebugFreeze (TCPWM_Type *base, uint32 cntNum, bool enable)
 {
-
-    TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum) |= (enable ? TCPWM_GRP_CNT_V2_CTRL_DBG_FREEZE_EN_Msk : 0UL);
-
+    CY_REG32_CLR_SET(TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum), TCPWM_GRP_CNT_V2_CTRL_DBG_FREEZE_EN, enable);
     return CY_TCPWM_SUCCESS;
 }
 #endif
 
 #if defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN)
+
+/*******************************************************************************
+* Function Name: Cy_TCPWM_SetDebugSuspend
+****************************************************************************//**
+*
+* Enables/disables the Debug Suspend feature for the specified counter.
+*
+* \note This feature will work correctly when the trigger type parameter in
+* \ref Cy_TrigMux_Connect will be set to 'TRIGGER_TYPE_LEVEL'.
+* The example is in the code snippet for this API.
+*
+* \param base
+* The pointer to a TCPWM instance.
+*
+* \param cntNum
+* The Counter instance number in the selected TCPWM.
+*
+* \param enable
+* true: The Debug Suspend feature is enabled
+* false: The Debug Suspend feature is disabled
+*
+* \funcusage
+* \snippet tcpwm/counter/snippet/main.c snippet_Cy_TCPWM_SetDebugSuspend
+*
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_TCPWM_SetDebugSuspend (TCPWM_Type *base, uint32 cntNum, bool enable)
+{
+    CY_REG32_CLR_SET(TCPWM_GRP_CNT_CTRL(base, TCPWM_GRP_CNT_GET_GRP(cntNum), cntNum), TCPWM_GRP_CNT_CTRL_DBG_SUS_EN, enable);
+}
+
 /*******************************************************************************
 * Function Name: Cy_TCPWM_Block_EnableSwap
 ****************************************************************************//**
@@ -1683,7 +1778,7 @@ __STATIC_INLINE void Cy_TCPWM_InputTriggerSetupWithGF (TCPWM_Type *base, uint32 
     /* Trigger signal for general purpose trigger is calculated as below.
        CY_TCPWM_INPUT_TRIG(n)  = (n + TCPWM_TR_ONE_CNT_NR + 2U)
        TCPWM_TR_ONE_CNT_NR is the max one to one triggers.
-     */ 
+     */
     if((triggerSignal - 2U) <= TCPWM_TR_ONE_CNT_NR)
     {
         uint32_t onetoone_gf = triggerSignal - 2U;
@@ -1718,7 +1813,7 @@ __STATIC_INLINE void Cy_TCPWM_InputTriggerSetupWithGF (TCPWM_Type *base, uint32 
 /** \} group_tcpwm_common */
 
 /*******************************************************************************
-* Backward compatibility macro. The following code is DEPRECATED and must 
+* Backward compatibility macro. The following code is DEPRECATED and must
 * not be used in new projects
 *******************************************************************************/
 #define CY_TCPWM_INT_ON_CC              CY_TCPWM_INT_ON_CC0

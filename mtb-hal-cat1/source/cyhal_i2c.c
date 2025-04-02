@@ -166,16 +166,19 @@ static void _cyhal_i2c_irq_handler(void)
 static void _cyhal_i2c0_irq_handler(void)
 {
     _cyhal_i2c_irq_handler(scb_0_interrupt_IRQn);
+    Cy_SCB_EnableInterrupt(SCB0);
 }
 
 static void _cyhal_i2c1_irq_handler(void)
 {
     _cyhal_i2c_irq_handler(scb_1_interrupt_IRQn);
+    Cy_SCB_EnableInterrupt(SCB1);
 }
 
 static void _cyhal_i2c2_irq_handler(void)
 {
     _cyhal_i2c_irq_handler(scb_2_interrupt_IRQn);
+    Cy_SCB_EnableInterrupt(SCB2);
 }
 
 static CY_SCB_IRQ_THREAD_CB_t _cyhal_irq_cb[3] = {_cyhal_i2c0_irq_handler, _cyhal_i2c1_irq_handler, _cyhal_i2c2_irq_handler};
@@ -241,7 +244,6 @@ static bool _cyhal_i2c_pm_callback_instance(void *obj_ptr, cyhal_syspm_callback_
 
     return allow;
 }
-
 
 static cy_rslt_t _cyhal_i2c_init_resources(cyhal_i2c_t *obj, cyhal_gpio_t sda, cyhal_gpio_t scl, const cyhal_clock_t *clk)
 {
@@ -357,7 +359,7 @@ static cy_rslt_t _cyhal_i2c_init_hw(cyhal_i2c_t *obj, const cy_stc_scb_i2c_confi
     {
         _cyhal_scb_update_instance_data(obj->resource.block_num, (void*)obj, &_cyhal_i2c_pm_callback_instance);
         /* Enable I2C to operate */
-#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
+#if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) || defined(COMPONENT_CAT5)
         Cy_SCB_I2C_Enable(obj->base);
 #elif defined(COMPONENT_CAT2)
         Cy_SCB_I2C_Enable(obj->base, &(obj->context));
@@ -369,10 +371,10 @@ static cy_rslt_t _cyhal_i2c_init_hw(cyhal_i2c_t *obj, const cy_stc_scb_i2c_confi
         obj->irq_cause = CYHAL_I2C_EVENT_NONE;
         obj->addr_irq_cause = CYHAL_I2C_ADDR_EVENT_NONE;
 
-        #if defined (COMPONENT_CAT5)
-            Cy_SCB_RegisterInterruptCallback(obj->base, _cyhal_irq_cb[_CYHAL_SCB_IRQ_N[scb_arr_index]]);
-            Cy_SCB_EnableInterrupt(obj->base);
-        #endif
+    #if defined (COMPONENT_CAT5)
+        Cy_SCB_RegisterInterruptCallback(obj->base, _cyhal_irq_cb[_CYHAL_SCB_IRQ_N[scb_arr_index]]);
+        Cy_SCB_EnableInterrupt(obj->base);
+    #endif
 
         _cyhal_irq_register(_CYHAL_SCB_IRQ_N[scb_arr_index], CYHAL_ISR_PRIORITY_DEFAULT, (cy_israddress)_cyhal_i2c_irq_handler);
         _cyhal_irq_enable(_CYHAL_SCB_IRQ_N[scb_arr_index]);
@@ -449,6 +451,7 @@ cy_rslt_t cyhal_i2c_init_cfg(cyhal_i2c_t *obj, const cyhal_i2c_configurator_t *c
     CY_ASSERT(NULL != obj);
     CY_ASSERT(NULL != cfg);
     CY_ASSERT(NULL != cfg->config);
+    CY_ASSERT(NULL != cfg->clock);
 
     memset(obj, 0, sizeof(cyhal_i2c_t));
 
@@ -555,7 +558,7 @@ cy_rslt_t cyhal_i2c_configure_adv(cyhal_i2c_t *obj, const cyhal_i2c_adv_cfg_t *c
             return CYHAL_I2C_RSLT_ERR_CAN_NOT_REACH_DR;
         }
 
-    #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
+    #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D) || defined(COMPONENT_CAT5)
         (void) Cy_SCB_I2C_Enable(obj->base);
     #elif defined(COMPONENT_CAT2)
         (void) Cy_SCB_I2C_Enable(obj->base, &(obj->context));

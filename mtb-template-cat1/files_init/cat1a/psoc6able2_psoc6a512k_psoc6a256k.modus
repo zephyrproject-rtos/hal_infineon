@@ -41,6 +41,12 @@
                 <Block location="srss[0].clock[0]">
                     <Personality template="sysclocks" version="3.0"/>
                 </Block>
+                <Block location="srss[0].clock[0].altsystickclk[0]">
+                    <Personality template="altsystick" version="3.0">
+                        <Param id="sourceClock" value="lfclk"/>
+                        <Param id="interval" value="0"/>
+                    </Personality>
+                </Block>
                 <Block location="srss[0].clock[0].bakclk[0]">
                     <Personality template="bakclk" version="3.0">
                         <Param id="sourceClock" value="lfclk"/>
@@ -51,6 +57,13 @@
                         <Param id="divider" value="1"/>
                         <Param id="intDivider" value="1"/>
                         <Param id="fracDivider" value="0"/>
+                    </Personality>
+                </Block>
+                <Block location="srss[0].clock[0].fll[0]">
+                    <Personality template="fll" version="4.0">
+                        <Param id="configuration" value="auto"/>
+                        <Param id="desiredFrequency" value="100.000"/>
+                        <Param id="enableOutputDivider" value="false"/>
                     </Personality>
                 </Block>
                 <Block location="srss[0].clock[0].hfclk[0]">
@@ -104,9 +117,23 @@
                         <Param id="divider" value="1"/>
                     </Personality>
                 </Block>
+                <Block location="srss[0].clock[0].pll[0]">
+                    <Personality template="pll" version="3.0">
+                        <Param id="lowFrequencyMode" value="false"/>
+                        <Param id="configuration" value="auto"/>
+                        <Param id="desiredFrequency" value="48.000"/>
+                        <Param id="optimization" value="MinPower"/>
+                    </Personality>
+                </Block>
                 <Block location="srss[0].clock[0].slowclk[0]">
                     <Personality template="slowclk" version="2.0">
                         <Param id="divider" value="1"/>
+                    </Personality>
+                </Block>
+                <Block location="srss[0].clock[0].timerclk[0]">
+                    <Personality template="timerclk" version="3.0">
+                        <Param id="sourceClock" value="imo"/>
+                        <Param id="timerDivider" value="1"/>
                     </Personality>
                 </Block>
             </BlockConfig>

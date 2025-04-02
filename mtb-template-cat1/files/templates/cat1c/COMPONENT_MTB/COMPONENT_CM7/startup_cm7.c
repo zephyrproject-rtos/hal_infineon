@@ -305,6 +305,14 @@ const cy_israddress __Vectors[VECTORTABLE_SIZE] __VECTOR_TABLE_ATTRIBUTE = {
 _Pragma("GCC diagnostic pop")
 #endif /* __GNUC__ */
 
+#ifdef ENABLE_CM7_DATA_CACHE
+static void cy_cache_update(void)
+{
+    SCB_CleanDCache();
+    SCB_InvalidateICache();
+}
+#endif /* ENABLE_CM7_DATA_CACHE */
+
 /* Provide empty __WEAK implementation for the low-level initialization
    routine required by the RTOS-enabled applications.
    clib-support library provides FreeRTOS-specific implementation:
@@ -321,8 +329,25 @@ __WEAK void cy_toolchain_init(void)
 void software_init_hook();
 void software_init_hook()
 {
+#ifdef ENABLE_CM7_DATA_CACHE
+    cy_cache_update();
+#endif /* ENABLE_CM7_DATA_CACHE */
     cy_toolchain_init();
 }
+
+#elif defined(__ARMCC_VERSION)
+/*
+ * ARMClang constructor attribute, function will be
+ * automatically executed before main when the program starts
+ * */
+void __attribute__((constructor)) software_init_hook(void)
+{
+#ifdef ENABLE_CM7_DATA_CACHE
+    cy_cache_update();
+#endif /* ENABLE_CM7_DATA_CACHE */
+    cy_toolchain_init();
+}
+
 #elif defined(__ICCARM__)
 /* Initialize data section */
 void __iar_data_init3(void);
@@ -341,12 +366,34 @@ int __low_level_init(void)
 /**/
 #endif /* defined(__GNUC__) && !defined(__ARMCC_VERSION) */
 
+#if !defined(CY_DEVICE_TVIIC2D6M)
+#ifdef ENABLE_CM7_DATA_CACHE
+void config_noncaheable_region(void)
+{
+
+    ARM_MPU_Disable();
+    /* Configure 128KB of SRAM as a non-cache region starting from BASE_SRAM_NON_CACHE
+       Always make sure that the starting address of the non-cacheable region is aligned to the non-cacheable region size boundary.
+    */
+    ARM_MPU_SetRegionEx(0, (uint32_t)BASE_SRAM_NON_CACHE, \
+                         ARM_MPU_RASR(1, ARM_MPU_AP_FULL, 0x1, 0, 0, 0, 0, \
+                         ARM_MPU_REGION_SIZE_128KB));
+    ARM_MPU_Enable(0x4);
+
+}
+#endif /* ENABLE_CM7_DATA_CACHE */
+#endif
 
 // Reset Handler
 void Reset_Handler(void)
 {
     /* disable global interrupt */
     __disable_irq();
+#if !defined(CY_DEVICE_TVIIC2D6M)
+#ifdef ENABLE_CM7_DATA_CACHE
+    config_noncaheable_region();
+#endif /* ENABLE_CM7_DATA_CACHE */
+#endif
 
     /* Allow write access to Vector Table Offset Register and ITCM/DTCM configuration register
      * (CPUSS_CM7_X_CTL.PPB_LOCK[3] and CPUSS_CM7_X_CTL.PPB_LOCK[1:0]) */
@@ -370,11 +417,13 @@ void Reset_Handler(void)
     CPUSS_CM7_0_CTL |= (0x2 << CPUSS_CM7_0_CTL_INIT_TCM_EN_Pos);
     CPUSS_CM7_0_CTL |= (0x1 << CPUSS_CM7_0_CTL_INIT_RMW_EN_Pos);
     CPUSS_CM7_0_CTL |= (0x2 << CPUSS_CM7_0_CTL_INIT_RMW_EN_Pos);
-#elif CORE_NAME_CM7_0
+#elif CORE_NAME_CM7_1
     CPUSS_CM7_1_CTL |= (0x1 << CPUSS_CM7_1_CTL_INIT_TCM_EN_Pos);
     CPUSS_CM7_1_CTL |= (0x2 << CPUSS_CM7_1_CTL_INIT_TCM_EN_Pos);
     CPUSS_CM7_1_CTL |= (0x1 << CPUSS_CM7_1_CTL_INIT_RMW_EN_Pos);
     CPUSS_CM7_1_CTL |= (0x2 << CPUSS_CM7_1_CTL_INIT_RMW_EN_Pos);
+#else
+/**/
 #endif
 
     // ITCMCR EN/RMW/RETEN enabled to access ITCM
@@ -412,6 +461,10 @@ void Reset_Handler(void)
 #if defined(__ICCARM__)
     /* Initialize data section */
     __iar_data_init3();
+
+#ifdef ENABLE_CM7_DATA_CACHE
+    cy_cache_update();
+#endif /* ENABLE_CM7_DATA_CACHE */
 
     /* Initialization hook for RTOS environment  */
     cy_toolchain_init();

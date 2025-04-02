@@ -1,12 +1,12 @@
 /*******************************************************************************
-* File Name: cyhal_clock_impl.h
+* File Name: cyhal_adc_impl.h
 *
 * Description:
-* Device specific implementation for clocks API.
+* Device specific implementation for ADC API.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2018-2024 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation
 *
 * SPDX-License-Identifier: Apache-2.0

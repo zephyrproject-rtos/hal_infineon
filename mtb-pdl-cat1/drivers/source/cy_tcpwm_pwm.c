@@ -1,13 +1,14 @@
 /***************************************************************************//**
 * \file cy_tcpwm_pwm.c
-* \version 1.70
+* \version 1.80
 *
 * \brief
 *  The source file of the tcpwm driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +28,10 @@
 
 #ifdef CY_IP_MXTCPWM
 
+#if defined (CY_DEVICE_PSC3)
+#include "cy_ms_ctl.h"
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -42,6 +47,15 @@ extern "C" {
 * are set to High-Z state. To set Drive modes as set by PWM output pins
 * configuration, call the \ref Cy_TCPWM_PWM_Enable function.
 *
+* \note PSOC C3 device: This API also tries to disable HRPWM wounding when this feature is
+* available on the target device. when HRPWM feature is enabled in the
+* configuration structure this function checks if TCPWM wounding register is accessible and
+* if yes then activate HRPWM feature. This operation could be done only if the application
+* is running in protection context (PC) = 2 and because of that HRPWM feature
+* could be automatically enable by this function only when PC == 2.
+* The example how to activate HRPWM feature on the device which support it is in code snippet
+* for this function.
+*
 * \param base
 * The pointer to a TCPWM instance.
 *
@@ -56,6 +70,7 @@ extern "C" {
 * \funcusage
 * \snippet tcpwm/pwm/snippet/main.c snippet_Cy_TCPWM_V1_PWM_Init
 * \snippet tcpwm/pwm/snippet/main.c snippet_Cy_TCPWM_V2_PWM_Init
+* \snippet tcpwm/pwm/snippet/main.c snippet_Cy_TCPWM_V3_PWM_Init_HRPWM
 *
 *******************************************************************************/
 cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_stc_tcpwm_pwm_config_t const *config)
@@ -152,6 +167,8 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                     _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_SWAP_ENABLED, config->buffer_swap_enable) |
                     _VAL2FLD(TCPWM_GRP_CNT_V3_CTRL_DITHEREN,(dithering_present ? ((uint32_t)config->dithering_mode) : 0UL)) |
                     _VAL2FLD(TCPWM_GRP_CNT_CTRL_KILL_LINE_POLARITY, config->kill_line_polarity) |
+                    _VAL2FLD(TCPWM_GRP_CNT_CTRL_PWM_TC_SYNC_KILL_DT, config->pwm_tc_sync_kill_dt) |
+                    _VAL2FLD(TCPWM_GRP_CNT_CTRL_PWM_SYNC_KILL_DT, config->pwm_sync_kill_dt) |
 #endif /* defined (CY_IP_MXS40TCPWM) */
                     (enabled_bit ? TCPWM_GRP_CNT_V2_CTRL_ENABLED_Msk : 0UL));
 
@@ -183,7 +200,7 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
             {
                 if (CY_TCPWM_PWM_LEFT_ALIGN == config->pwmAlignment)
                 {
-                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= 
+                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |=
                             _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_UP_DOWN_MODE, CY_TCPWM_PWM_LEFT_ALIGN);
                     TCPWM_GRP_CNT_COUNTER(base, grp, cntNum) = CY_TCPWM_CNT_UP_INIT_VAL;
                     TCPWM_GRP_CNT_TR_PWM_CTRL(base, grp, cntNum) = (CY_TCPWM_PWM_MODE_LEFT |
@@ -191,15 +208,15 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                 }
                 else if (CY_TCPWM_PWM_RIGHT_ALIGN == config->pwmAlignment)
                 {
-                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= 
+                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |=
                             _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_UP_DOWN_MODE, CY_TCPWM_PWM_RIGHT_ALIGN);
                     TCPWM_GRP_CNT_COUNTER(base, grp, cntNum) = config->period0;
-                    TCPWM_GRP_CNT_TR_PWM_CTRL(base, grp, cntNum) = (CY_TCPWM_PWM_MODE_RIGHT | 
+                    TCPWM_GRP_CNT_TR_PWM_CTRL(base, grp, cntNum) = (CY_TCPWM_PWM_MODE_RIGHT |
                                                                     CY_TCPWM_PWM_MODE_CC1_IGNORE);
                 }
                 else if (CY_TCPWM_PWM_ASYMMETRIC_ALIGN == config->pwmAlignment)
                 {
-                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= 
+                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |=
                             _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_UP_DOWN_MODE, CY_TCPWM_PWM_ASYMMETRIC_ALIGN);
                     TCPWM_GRP_CNT_COUNTER(base, grp, cntNum) = CY_TCPWM_CNT_UP_DOWN_INIT_VAL;
                     TCPWM_GRP_CNT_TR_PWM_CTRL(base, grp, cntNum) = ((config->swapOverflowUnderflow ? CY_TCPWM_PWM_MODE_CNTR_OR_ASYMM_SWAPPED : CY_TCPWM_PWM_MODE_CNTR_OR_ASYMM) |
@@ -215,14 +232,14 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                 }
                 else if (TCPWM_GRP_CC1(base, grp) && (CY_TCPWM_PWM_ASYMMETRIC_CC0_CC1_ALIGN == config->pwmAlignment))
                 {
-                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= 
+                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |=
                             _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_UP_DOWN_MODE, CY_TCPWM_PWM_LEFT_ALIGN);
                     TCPWM_GRP_CNT_COUNTER(base, grp, cntNum) = CY_TCPWM_CNT_UP_DOWN_INIT_VAL;
                     TCPWM_GRP_CNT_TR_PWM_CTRL(base, grp, cntNum) = CY_TCPWM_PWM_MODE_ASYMM_CC0_CC1;
                 }
                 else if (TCPWM_GRP_CC1(base, grp) && (CY_TCPWM_PWM_CENTER_ASYMMETRIC_CC0_CC1_ALIGN == config->pwmAlignment))
                 {
-                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |= 
+                    TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |=
                             _VAL2FLD(TCPWM_GRP_CNT_V2_CTRL_UP_DOWN_MODE, CY_TCPWM_PWM_CENTER_ALIGN);
                     TCPWM_GRP_CNT_COUNTER(base, grp, cntNum) = CY_TCPWM_CNT_UP_DOWN_INIT_VAL;
                     TCPWM_GRP_CNT_TR_PWM_CTRL(base, grp, cntNum) = CY_TCPWM_PWM_MODE_CNTR_ASYMM_CC0_CC1;
@@ -246,6 +263,9 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
             {
                 TCPWM_GRP_CNT_PERIOD_BUFF(base, grp, cntNum) = config->period1;
             }
+#if defined (CY_IP_MXS40TCPWM)
+            cy_en_gf_depth_value_t gf_depth_val = (config->glitch_filter_enable) ? config->gf_depth : CY_GLITCH_FILTER_DEPTH_SUPPORT_VALUE_0;
+#endif
 #if !defined (CY_IP_MXS40TCPWM)
             TCPWM_GRP_CNT_TR_IN_SEL0(base, grp, cntNum) =
                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL0_CAPTURE0_SEL, config->swapInput) |
@@ -262,11 +282,11 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_STOP_EDGE, config->killInputMode) |
                      _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_COUNT_EDGE, config->countInputMode));
 #else
-            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_START, config->startInputMode, config->startInput, config->gf_depth);
-            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_RELOAD_OR_INDEX, config->reloadInputMode, config->reloadInput, config->gf_depth);
-            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_STOP_OR_KILL, config->killInputMode, config->killInput, config->gf_depth);
-            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_COUNT, config->countInputMode, config->countInput, config->gf_depth);
-            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE0, config->swapInputMode, config->swapInput, config->gf_depth);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_START, config->startInputMode, config->startInput, gf_depth_val);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_RELOAD_OR_INDEX, config->reloadInputMode, config->reloadInput, gf_depth_val);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_STOP_OR_KILL, config->killInputMode, config->killInput, gf_depth_val);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_COUNT, config->countInputMode, config->countInput, gf_depth_val);
+            Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE0, config->swapInputMode, config->swapInput, gf_depth_val);
 #endif
             TCPWM_GRP_CNT_TR_OUT_SEL(base, grp, cntNum) =
                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_OUT_SEL_OUT0, config->trigger0Event) |
@@ -286,7 +306,7 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                 TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) |=
                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_CAPTURE1_EDGE, config->kill1InputMode));
 #else
-                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE1, config->kill1InputMode, config->kill1Input, config->gf_depth);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE1, config->kill1InputMode, config->kill1Input, gf_depth_val);
 #endif
             }
 
@@ -310,15 +330,31 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
             TCPWM_GRP_CNT_LINE_SEL_BUFF(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_OUT_SEL, config->line_out_sel_buff) |
                                                          _VAL2FLD(TCPWM_GRP_CNT_V2_LINE_SEL_COMPL_OUT_SEL, config->linecompl_out_sel_buff));
 #if defined (CY_IP_MXS40TCPWM)
-            bool hrpwm_present = ((bool)TCPWM_GRP_HRPWM_PRESENT(grp)); 
-            if(hrpwm_present)
+            bool hrpwm_present = ((bool)TCPWM_GRP_HRPWM_PRESENT(grp));
+            if(hrpwm_present && config->hrpwm_enable)
             {
-                if (config->hrpwm_enable)
+            #if defined (CY_DEVICE_PSC3) && defined(CY_PDL_TZ_ENABLED)
+                /* There is a hardware issue related to HRPWM feature activation on PSOC C3 devices.
+                 *  The workaround for automatic HRPWM availability detection is to check if HRPWM feature is present in the device.
+                 *  This workaround will work only in the Secure mode.
+                 */
+                uint32_t activePC = Cy_Ms_Ctl_GetActivePC(CPUSS_MS_ID_CM33_0);
+
+                if (activePC < 3UL)
                 {
-                    TCPWM_GRP_CNT_HRPWM_CTRL(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_HRPWM_CTRL_HRPWM_EN, 1UL) |
-                     _VAL2FLD(TCPWM_GRP_CNT_HRPWM_CTRL_FREQ_SEL, config->hrpwm_input_freq));
+                    uint32_t pc_mask = PPC->PC_MASK[PROT_TCPWM0_BOOT];
+                    if (0UL != ((pc_mask >> activePC) & 1UL))
+                    {
+                        /* Enable HRPWM feature if it is present. */
+                       CY_SET_REG32(GET_ALIAS_ADDRESS(CY_SYSTEM_TCPWM_DISABLE_ADDR), 0);
+                    }
                 }
+            #endif /* defined (CY_DEVICE_PSC3) && defined(CY_PDL_TZ_ENABLED)*/
+
+                TCPWM_GRP_CNT_HRPWM_CTRL(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_HRPWM_CTRL_HRPWM_EN, 1UL) |
+                    _VAL2FLD(TCPWM_GRP_CNT_HRPWM_CTRL_FREQ_SEL, config->hrpwm_input_freq));
             }
+
             if(config->dithering_mode != CY_TCPWM_DITHERING_DISABLE)
             {
                 TCPWM_GRP_CNT_LFSR(base, grp, cntNum)  = (_VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_PLFSR, config->period_dithering_value) |

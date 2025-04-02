@@ -2157,7 +2157,7 @@ cy_rslt_t cyhal_sdhc_set_data_read_timeout(cyhal_sdhc_t *obj, uint32_t timeout, 
 
     /* TMCLK works on 1 MHz in current block implementation if corresponding HF clock is 100 MHz.
     *  This is defined in registers (TOUT_CLK_FREQ[5:0] = 1 and TOUT_CLK_UNIT[7] = 1).  */
-    float tout_clk_period_us = _CYHAL_SDHC_EXPECTED_BASE_CLK_FREQ_HZ / (float)obj->block_source_freq_hz;
+    cy_float32_t tout_clk_period_us = _CYHAL_SDHC_EXPECTED_BASE_CLK_FREQ_HZ / (cy_float32_t)obj->block_source_freq_hz;
 
     uint32_t user_needs_us = (((uint64_t)timeout * 1000000) + current_card_clock - 1) / current_card_clock;
 

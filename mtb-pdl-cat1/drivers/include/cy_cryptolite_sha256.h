@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_sha256.h
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides common constants and parameters
@@ -78,7 +78,7 @@ typedef struct
     uint64_t messageSize;
     uint32_t msgIdx;
     /** Operation data descriptors */
-    cy_stc_cryptolite_descr_t message_schedule_struct;
+    volatile cy_stc_cryptolite_descr_t message_schedule_struct;
     cy_stc_cryptolite_descr_t message_process_struct;
     /** \endcond */
 } cy_stc_cryptolite_context_sha256_t;

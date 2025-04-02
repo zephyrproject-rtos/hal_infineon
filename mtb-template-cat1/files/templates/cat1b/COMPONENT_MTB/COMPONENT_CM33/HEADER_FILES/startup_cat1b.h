@@ -34,7 +34,7 @@ typedef void (* cy_israddress_cat1b)(void);   /**< Type of ISR callbacks */
 
 #define CM33_FIXED_EXP_NR       (15u)
 #define VECTORTABLE_SIZE        (MXCM33_SYSTEM_INT_NR + CM33_FIXED_EXP_NR + 1u) /* +1 is for Stack pointer */
-#define VECTORTABLE_ALIGN       (VECTORTABLE_SIZE <= 512u ? 512u :1024u) /* alignment for 'n' entries is (nx4) */
+#define VECTORTABLE_ALIGN       (VECTORTABLE_SIZE <= 128u ? 512u :1024u) /* alignment for 'n' entries is (nx4) */
 
 #if defined(__ARMCC_VERSION)
 #if defined(CY_PDL_TZ_ENABLED)
@@ -49,11 +49,14 @@ typedef void (* cy_israddress_cat1b)(void);   /**< Type of ISR callbacks */
     extern cy_israddress_cat1b __ns_vector_table_rw[VECTORTABLE_SIZE] __attribute__( ( section(".ram_vectors"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
 #endif
 #elif defined (__ICCARM__)
-#if defined(CY_PDL_TZ_ENABLED)
-    extern cy_israddress_cat1b __s_vector_table_rw[VECTORTABLE_SIZE]  __attribute__( ( section(".intvec_ram"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
-#else
-    extern cy_israddress_cat1b __ns_vector_table_rw[VECTORTABLE_SIZE] __attribute__( ( section(".intvec_ram"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
-#endif
+    #if defined(CY_DEVICE_PSC3)
+        extern int main(void);
+    #endif
+    #if defined(CY_PDL_TZ_ENABLED)
+        extern cy_israddress_cat1b __s_vector_table_rw[VECTORTABLE_SIZE]  __attribute__( ( section(".intvec_ram"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
+    #else
+        extern cy_israddress_cat1b __ns_vector_table_rw[VECTORTABLE_SIZE] __attribute__( ( section(".intvec_ram"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
+    #endif
 #else
     #error "An unsupported toolchain"
 #endif  /* (__ARMCC_VERSION) */

@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syspm_v3.c
-* \version 5.150
+* \version 5.180
 *
 * This driver provides the source code for API power management.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -63,7 +63,7 @@
                                               SRSS_PWR_HIB_WAKE_CTL_HIB_WAKE_CSV_BAK_Msk |\
                                               SRSS_PWR_HIB_WAKE_CTL_HIB_WAKE_RTC_Msk |\
                                               SRSS_PWR_HIB_WAKE_CTL_HIB_WAKE_WDT_Msk))
-#else                                              
+#else
 /** The mask for the Hibernate wakeup sources */
 #define HIBERNATE_WAKEUP_MASK               ((SRSS_PWR_HIBERNATE_MASK_HIBALARM_Msk |\
                                               SRSS_PWR_HIBERNATE_MASK_HIBWDT_Msk |\
@@ -151,6 +151,7 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterSleep(cy_en_syspm_waitfor_t waitFor)
 
         /* The CPU enters the Sleep power mode upon execution of WFI/WFE */
         SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
+        __DSB();                   /* Ensure completion of memory access */
 
         if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
         {
@@ -282,7 +283,7 @@ cy_en_syspm_status_t Cy_SysPm_SystemLpActiveExit(void)
 
         /* Configure the normal operation mode */
         SRSS_PWR_CTL2 &= ((uint32_t) (~SRSS_PWR_CTL2_BGREF_LPMODE_Msk));
-            
+
         /* This wait time allows setting Active Reference */
         Cy_SysLib_DelayUs(CY_SYSPM_LP_TO_ACTIVE_WAIT_AFTER_US);
 
@@ -350,18 +351,23 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
             {
                 (void) Cy_SysPm_ExecuteCallback((cy_en_syspm_callback_type_t)cbDeepSleepRootIdx, CY_SYSPM_BEFORE_TRANSITION);
             }
-                /* The CPU enters Deep Sleep mode upon execution of WFI/WFE
-                 * use Cy_SysPm_SetDeepSleepMode to set various deepsleep modes TBD*/
-                SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
-                if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
-                {
-                    __WFI();
-                }
-                else
-                {
-                    __WFE();
-                }
+            /* The CPU enters Deep Sleep mode upon execution of WFI/WFE
+                * use Cy_SysPm_SetDeepSleepMode to set various deepsleep modes TBD*/
+            SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
+            __DSB();                   /* Ensure completion of memory access */
+
+            if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
+            {
+                __WFI();
+            }
+            else
+            {
+                __WFE();
+            }
+
+            /* Clear SCB_SCR_SLEEPDEEP flag */
+            SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
 
             Cy_SysLib_ExitCriticalSection(interruptState);
         }
@@ -1330,7 +1336,7 @@ void Cy_SysPm_IoFreeze(void)
 {
     uint32_t interruptState;
     uint32_t regValue;
-    
+
     interruptState = Cy_SysLib_EnterCriticalSection();
 
     /* Check the FREEZE state to avoid a recurrent IO-cells freeze attempt,
@@ -1343,9 +1349,9 @@ void Cy_SysPm_IoFreeze(void)
     {
         /* Clear the unlock field for correct freeze of the IO cells */
         SRSS_PWR_HIBERNATE = _CLR_SET_FLD32U((SRSS_PWR_HIBERNATE), SRSS_PWR_HIBERNATE_UNLOCK, 0u);
-        
+
         /* Disable overriding by the peripherals the next pin-freeze command */
-        SRSS_PWR_HIBERNATE |=  CY_SYSPM_PWR_HIBERNATE_UNLOCK | 
+        SRSS_PWR_HIBERNATE |=  CY_SYSPM_PWR_HIBERNATE_UNLOCK |
                                 _VAL2FLD(SRSS_PWR_HIBERNATE_FREEZE, 1u) |
                                 _VAL2FLD(SRSS_PWR_HIBERNATE_HIBERNATE, 1u);
 
@@ -1622,7 +1628,7 @@ uint32_t Cy_SysPm_ReadStatus(void)
     uint32_t pmStatus = 0u;
     interruptState = Cy_SysLib_EnterCriticalSection();
 
-    #if defined (CY_CPU_CORTEX_M7) && (CY_CPU_CORTEX_M7)
+    #if defined(CY_IP_M7CPUSS) && (CY_IP_M7CPUSS == 1u)
     /* Check whether CM7_0 is in the deep sleep mode*/
     if((0u != _FLD2VAL(CPUSS_CM7_0_STATUS_SLEEPING, CPUSS_CM7_0_STATUS)) &&
        (0u != _FLD2VAL(CPUSS_CM7_0_STATUS_SLEEPDEEP, CPUSS_CM7_0_STATUS)))
@@ -1654,7 +1660,7 @@ uint32_t Cy_SysPm_ReadStatus(void)
     {
         pmStatus |= CY_SYSPM_STATUS_CM7_1_ACTIVE;
     }
-    #elif defined (CY_CPU_CORTEX_M4) && (CY_CPU_CORTEX_M4)
+    #elif defined(CY_IP_M4CPUSS) && (CY_IP_M4CPUSS == 1u)
     /* Check whether CM4 is in Deep Sleep mode */
     if ((CPUSS_CM4_STATUS & CM4_DEEPSLEEP_MASK) == CM4_DEEPSLEEP_MASK)
     {
@@ -1669,6 +1675,8 @@ uint32_t Cy_SysPm_ReadStatus(void)
     {
         pmStatus |= CY_SYSPM_STATUS_CM4_ACTIVE;
     }
+    #else
+    /**/
     #endif
 
 
@@ -1823,7 +1831,7 @@ void Cy_SysPm_PmicDisable(cy_en_syspm_pmic_wakeup_polarity_t polarity)
     if(CY_SYSPM_PMIC_UNLOCK_KEY == _FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP_PMIC_CTL))
     {
         BACKUP_PMIC_CTL =
-        (_VAL2FLD(BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY) | 
+        (_VAL2FLD(BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY) |
          _CLR_SET_FLD32U(BACKUP_PMIC_CTL, BACKUP_PMIC_CTL_POLARITY, polarity)) &
         ((uint32_t) ~ _VAL2FLD(BACKUP_PMIC_CTL_PMIC_EN, 1u));
     }
@@ -1853,7 +1861,7 @@ void Cy_SysPm_PmicDisableOutput(void)
         BACKUP_PMIC_CTL =
         (BACKUP_PMIC_CTL | _VAL2FLD(BACKUP_PMIC_CTL_UNLOCK, CY_SYSPM_PMIC_UNLOCK_KEY)) &
         ((uint32_t) ~ _VAL2FLD(BACKUP_PMIC_CTL_PMIC_EN_OUTEN, 1u));
-    } 
+    }
 }
 
 

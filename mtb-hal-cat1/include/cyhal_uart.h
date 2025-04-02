@@ -51,6 +51,11 @@
 * driver. In case flow control enablement status needs to be changed, cyhal_uart_enable_flow_control() function
 * can be used.
 *
+* \note RTS flow control line is deasserted by the receiver when the number of bytes in the
+* receiver RX FIFO reaches configured RTS RX FIFO level. RX FIFO on the receiver side could
+* end up having an extra byte depending on if the transmitter has begun the transmission of
+* the next byte when the RTS flow control line is deasserted by the receiver.
+*
 * The data frame size, STOP bits and parity can be configured via \ref cyhal_uart_cfg_t.
 * The UART contains dedicated hardware buffers for transmit and receive. Optionally,
 * either of these can be augmented with a software buffer. This is done in scope of \ref cyhal_uart_init (if appropriate

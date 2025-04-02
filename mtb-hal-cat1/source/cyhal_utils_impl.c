@@ -254,6 +254,19 @@ uint8_t _cyhal_utils_get_hfclk_for_peri_group(uint8_t peri_group)
             return 0;
         case 1:
             return 2;
+#elif defined(CY_DEVICE_PSC3)
+        case 0:
+        case 2:
+            return 0;
+        case 1:
+        case 3:
+            return 1;
+        case 4:
+            return 2;
+        case 5:
+            return 3;
+        case 6:
+            return 4;
 #else
 #warning "Unsupported device"
 #endif /* defined(CY_DEVICE_CYW20829) */
@@ -333,6 +346,20 @@ uint8_t _cyhal_utils_get_peri_group(const cyhal_resource_inst_t *clocked_item)
         case CYHAL_RSC_CAN:
         case CYHAL_RSC_LIN:
             return 1;
+#elif defined(CY_DEVICE_PSC3)
+        case CYHAL_RSC_CRYPTO:
+            return 2;
+        case CYHAL_RSC_CAN:
+        case CYHAL_RSC_SCB:
+            // SCB[5] source is HF4
+            if (clocked_item->block_num < 5)
+            {
+                return 4;
+            }
+            return 6;
+        case CYHAL_RSC_TCPWM:
+        case CYHAL_RSC_ADC:
+            return 5;
 #else
 #warning "Unsupported device"
 #endif

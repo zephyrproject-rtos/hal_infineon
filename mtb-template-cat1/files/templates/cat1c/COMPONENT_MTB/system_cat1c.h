@@ -375,7 +375,11 @@ extern "C" {
 * Include files
 *******************************************************************************/
 #include <stdint.h>
+#if defined (CY_DEVICE_TVIIC2D6M)
+#include "tviic_partition.h"
+#else
 #include "xmc7xxx_partition.h"
+#endif
 
 /*******************************************************************************
 * Global preprocessor symbols/macros ('define')

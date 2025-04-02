@@ -69,8 +69,8 @@
     <ParamString id="sourceClock" name="Source clock resource" group="Internal" default="`${isFllUsed ? &quot;fll[0]&quot; :
                                                                                             isPllUsed ? &quot;pll[&quot; . (sourceClockNumber-1) . &quot;]&quot; :
                                                                                                         &quot;pathmux[&quot; . sourceClockNumber . &quot;]&quot;}`" visible="false" editable="false" desc="" />
-    <ParamString id="sourceClockDisplayName" name="Source Clock Display Name" group="Internal" default="`${getParamValueDisplay(&quot;sourceClock&quot;)}`" visible="false" editable="false" desc="" />
 
+    <ParamString id="sourceClockDisplayName" name="Source Clock Display Name" group="Internal" default="`${getParamValueDisplay(&quot;sourceClock&quot;)}`" visible="false" editable="false" desc="" />
     <ParamString id="sourceClockRsc" name="Source Clock" group="Internal" default="srss[0].clock[0].`${sourceClock}`" visible="false" editable="false" desc="" />
     <!-- Set an error if the source clock is not enabled or contains an error -->
     <ParamBool id="srcNotUsed" name="Clock Source Enabled" group="Internal" default="`${!isBlockUsed(sourceClockRsc)}`" visible="false" editable="false" desc="" />

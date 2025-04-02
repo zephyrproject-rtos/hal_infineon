@@ -62,8 +62,8 @@
       <Entry name="PILO"   value="pilo"   visible="`${isPILOPresent}`"/>
       <Entry name="WCO"    value="wco"    visible="`${(&quot;mxs40srss&quot; eq getIpBlockName()) || (&quot;mxs40srss_ver2&quot; eq getIpBlockName()) || (&quot;mxs40srss_ver3&quot; eq getIpBlockName()) || (isWCOPresent)}`"/>
       <Entry name="IHO"    value="iho"    visible="`${(&quot;mxs40ssrss&quot; eq getIpBlockName()) || (&quot;mxs22srss&quot; eq getIpBlockName())}`"/>
-    </ParamChoice>
 
+    </ParamChoice>
     <ParamString id="sourceClockDisplayName" name="Source Clock Display Name" group="Internal" default="`${getParamValueDisplay(&quot;sourceClock&quot;)}`" visible="false" editable="false" desc="" />
     <ParamString id="sourceClockRsc" name="Source Clock Resource" group="Internal" default="`${sourceClock eq ilo1 ? &quot;srss[0].clock[0].&quot; . ilo . &quot;[1]&quot; : sourceClock eq ilo0 ? &quot;srss[0].clock[0].&quot; . ilo . &quot;[0]&quot; : &quot;srss[0].clock[0].&quot; . sourceClock . &quot;[0]&quot;}`" visible="false" editable="false" desc="" />
     <ParamString id="sourceClockApiName" name="Source Clock Name" group="Internal" default="`${sourceClock eq imo      ? &quot;IMO&quot; :

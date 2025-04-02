@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_lvd_ht.h
-* \version 1.10
+* \version 1.20
 *
 * The header file of the LVD HT driver.
 *
@@ -49,6 +49,9 @@
 * \ref Cy_LVD_HT_ClearInterrupt, and finally the LVD interrupt can be enabled by
 * the \ref Cy_LVD_HT_SetInterruptMask function.
 *
+* For example:
+* \snippet lvd_ht/snippet/main.c Cy_LVD_HT_Snippet
+*
 * Note : If an LVD is required in Deep Sleep mode, then \ref Cy_LVD_HT_DeepSleepEnable
 * should be used to enable LVD during Deep Sleep.
 *
@@ -59,11 +62,15 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason of Change</th></tr>
 *   <tr>
+*     <td>1.20</td>
+*     <td>Documentation update</td>
+*   </tr>
+*   <tr>
 *     <td>1.10</td>
 *     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
 *       Changed pre-processor logic so SRSS version 2 is grouped with version 3 instead of version 1.</td>
 *     <td>Code enhancement and support for new devices.</td>
-*   </tr> 
+*   </tr>
 *   <tr>
 *     <td>1.0</td>
 *     <td>Initial Version</td>
@@ -102,7 +109,7 @@ extern "C" {
 #define CY_LVD_HT_DRV_VERSION_MAJOR       1
 
 /** The driver minor version */
-#define CY_LVD_HT_DRV_VERSION_MINOR       10
+#define CY_LVD_HT_DRV_VERSION_MINOR       20
 
 /** The LVD driver identifier */
 #define CY_LVD_HT_ID                      (CY_PDL_DRV_ID(0x78U))

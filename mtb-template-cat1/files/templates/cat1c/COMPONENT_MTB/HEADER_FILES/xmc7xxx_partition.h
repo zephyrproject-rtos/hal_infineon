@@ -1,8 +1,6 @@
 #if !defined(LAYOUT_CAT1C_H)
 #define LAYOUT_CAT1C_H
 
-#include "cy_device_headers.h"
-
 #define STACK_SIZE                      0x1000
 #define RAMVECTORS_ALIGNMENT            128
 
@@ -13,6 +11,7 @@
 #define SRAM_BASE_ADDRESS               CY_SRAM_BASE  /* SRAM START */
 #define TOTAL_RAM                       CY_SRAM_SIZE
 #define CM0PLUS_SRAM_RESERVE            0x00004000  /* 16K cm0plus */
+#define CM7_SRAM_NON_CACHE_RESERVE      0x00020000  /* 128K  :non-cacheable sram size */
 
 /* FLASH */
 #define CODE_FLASH_BASE_ADDRESS         CY_FLASH_LG_SBM_BASE  /* FLASH START */
@@ -43,8 +42,11 @@
 #define BASE_SRAM_CM0P                  (SRAM_BASE_ADDRESS + SRAM_START_RESERVE + SRAM_PRIVATE_FOR_SROM)
 #define SIZE_SRAM_CM0P                  (CM0PLUS_SRAM_RESERVE - SRAM_START_RESERVE - SRAM_PRIVATE_FOR_SROM)
 #define BASE_SRAM_CM7_0                 (SRAM_BASE_ADDRESS + CM0PLUS_SRAM_RESERVE)
-#define SIZE_SRAM_CM7_0                 TOTAL_RAM - CM0PLUS_SRAM_RESERVE - CM7_1_SRAM_RESERVE
+#define SIZE_SRAM_CM7_0                 TOTAL_RAM - CM0PLUS_SRAM_RESERVE - CM7_1_SRAM_RESERVE - CM7_SRAM_NON_CACHE_RESERVE
 #define BASE_SRAM_CM7_1                 SRAM_BASE_ADDRESS + CM0PLUS_SRAM_RESERVE + SIZE_SRAM_CM7_0
+
+#define BASE_SRAM_NON_CACHE             BASE_SRAM_CM7_1 + CM7_1_SRAM_RESERVE
+#define SIZE_SRAM_NON_CACHE             CM7_SRAM_NON_CACHE_RESERVE
 
 /* Code flash reservations */
 #define BASE_CODE_FLASH_CM0P            CODE_FLASH_BASE_ADDRESS

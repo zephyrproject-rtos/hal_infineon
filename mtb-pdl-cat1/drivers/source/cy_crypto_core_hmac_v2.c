@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hmac_v2.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the source code to the API for the HMAC method
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -394,7 +394,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hmac_Free(CRYPTO_Type *base, cy_stc_cryp
             Cy_Crypto_Core_V2_MemSet(base, hmacState->m0Key, 0u, CY_CRYPTO_SHA_MAX_BLOCK_SIZE);
         }
 
-        Cy_Crypto_Core_V2_MemSet(base, hmacState, 0u, ((uint16_t)sizeof(cy_stc_crypto_hmac_state_t)));
+        Cy_Crypto_Core_V2_MemSet(base, hmacState, 0u, (uint16_t)sizeof(cy_stc_crypto_hmac_state_t));
     #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
         SCB_InvalidateDCache_by_Addr(hmacState->ipad, (int32_t)CY_CRYPTO_HMAC_MAX_PAD_SIZE);
         SCB_InvalidateDCache_by_Addr(hmacState->opad, (int32_t)CY_CRYPTO_HMAC_MAX_PAD_SIZE);
@@ -451,14 +451,11 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hmac(CRYPTO_Type *base,
                                           cy_en_crypto_sha_mode_t mode)
 {
     cy_en_crypto_status_t status = CY_CRYPTO_BAD_PARAMS;
-    /* Allocating internal variables into the RAM */
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE) static cy_stc_crypto_hmac_state_t  hmacState;
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE) static cy_stc_crypto_v2_hmac_buffers_t hmacBuffer;
-#else
-    cy_stc_crypto_hmac_state_t  hmacState = {0};
-    cy_stc_crypto_v2_hmac_buffers_t hmacBuffer = {0};
-#endif
+    uint8_t  hmacState_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_hmac_state_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+    uint8_t  hmacBuffer_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_v2_hmac_buffers_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+
+    cy_stc_crypto_hmac_state_t  *hmacState = (cy_stc_crypto_hmac_state_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(hmacState_t);
+    cy_stc_crypto_v2_hmac_buffers_t *hmacBuffer = (cy_stc_crypto_v2_hmac_buffers_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(hmacBuffer_t);
 
     /* Input parameters verification */
     if ((NULL == base) || (NULL == hmac) || ((NULL == message) && (0UL != messageSize))
@@ -467,29 +464,29 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hmac(CRYPTO_Type *base,
         return status;
     }
 
-    Cy_Crypto_Core_V2_MemSet(base, (void*)&hmacState, 0x00U, (uint16_t)sizeof(cy_stc_crypto_hmac_state_t));
-    Cy_Crypto_Core_V2_MemSet(base, (void*)&hmacBuffer, 0x00U, (uint16_t)sizeof(cy_stc_crypto_v2_hmac_buffers_t));
-    
-    status = Cy_Crypto_Core_V2_Hmac_Init(base, &hmacState, mode, &hmacBuffer);
+    Cy_Crypto_Core_V2_MemSet(base, (void*)hmacState, 0x00U, (uint16_t)sizeof(cy_stc_crypto_hmac_state_t));
+    Cy_Crypto_Core_V2_MemSet(base, (void*)hmacBuffer, 0x00U, (uint16_t)sizeof(cy_stc_crypto_v2_hmac_buffers_t));
+
+    status = Cy_Crypto_Core_V2_Hmac_Init(base, hmacState, mode, hmacBuffer);
 
     if (CY_CRYPTO_SUCCESS == status)
     {
-        status = Cy_Crypto_Core_V2_Hmac_Start(base, &hmacState, key, keyLength);
+        status = Cy_Crypto_Core_V2_Hmac_Start(base, hmacState, key, keyLength);
     }
 
     if (CY_CRYPTO_SUCCESS == status)
     {
-        status = Cy_Crypto_Core_V2_Hmac_Update(base, &hmacState, message, messageSize);
+        status = Cy_Crypto_Core_V2_Hmac_Update(base, hmacState, message, messageSize);
     }
 
     if (CY_CRYPTO_SUCCESS == status)
     {
-        status =  Cy_Crypto_Core_V2_Hmac_Finish(base, &hmacState, hmac);
+        status =  Cy_Crypto_Core_V2_Hmac_Finish(base, hmacState, hmac);
     }
 
     if (CY_CRYPTO_SUCCESS == status)
     {
-        status =  Cy_Crypto_Core_V2_Hmac_Free(base, &hmacState);
+        status =  Cy_Crypto_Core_V2_Hmac_Free(base, hmacState);
     }
 
     return (status);

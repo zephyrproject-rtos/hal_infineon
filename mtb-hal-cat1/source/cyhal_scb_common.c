@@ -30,12 +30,18 @@
 #include "cyhal_clock.h"
 #include "cyhal_interconnect.h"
 #include "cyhal_peri_common.h"
+#include "cyhal_gpio.h"
 
 #if (_CYHAL_DRIVER_AVAILABLE_SCB)
 
 #if defined(__cplusplus)
 extern "C"
 {
+#endif
+
+/* CAT5 devices do not have triggers hooked up to the SCB, nor do most CAT2 devices */
+#if ((defined(CY_IP_MXSCB) && defined(COMPONENT_CAT1)) || defined(CY_DEVICE_PSOC4AMC) || defined(CY_DEVICE_PSOC4AS3) || defined(CY_DEVICE_PSOC4AS4) || defined(CY_IP_MXS22SCB))
+#define _CYHAL_SCB_TRIGGERS_EXIST
 #endif
 
 const uint32_t _CYHAL_SCB_AVAILABLE_BLOCKS_MASK =
@@ -248,7 +254,7 @@ const _cyhal_system_irq_t _CYHAL_SCB_IRQ_N[_SCB_ARRAY_SIZE] =
 };
 
 // All PSoC™ 6 devices have scb triggers but not all PSoC™ 4 devices do
-#if ((defined(CY_IP_MXSCB) && !defined(COMPONENT_CAT2)) || defined(CY_DEVICE_PSOC4AMC) || defined(CY_DEVICE_PSOC4AS3) || defined(CY_DEVICE_PSOC4AS4) || defined(CY_IP_MXS22SCB))
+#if defined(_CYHAL_SCB_TRIGGERS_EXIST)
 const cyhal_internal_source_t _CYHAL_SCB_TR_RX_REQ[_SCB_ARRAY_SIZE] =
 {
 #ifdef SCB0
@@ -353,7 +359,7 @@ const cyhal_internal_source_t _CYHAL_SCB_TR_TX_REQ[_SCB_ARRAY_SIZE] =
 #endif
 };
 
-#endif // ((defined(CY_IP_MXSCB) && !defined(COMPONENT_CAT2)) || defined(CY_DEVICE_PSOC4AMC) || defined(CY_DEVICE_PSOC4AS3) || defined(CY_DEVICE_PSOC4AS4) || defined(CY_IP_MXS22SCB))
+#endif // defined(_CYHAL_SCB_TRIGGERS_EXIST)
 
 /** The configuration structs for the resource in use on each SCB block */
 static void *_cyhal_scb_config_structs[_SCB_ARRAY_SIZE];
@@ -512,7 +518,7 @@ void *_cyhal_scb_get_irq_obj(void)
 #elif defined(COMPONENT_CAT2)
 #define _CYHAL_SCB_PERI_CLOCK_SLAVE_FSTP     24000000
 #elif defined(COMPONENT_CAT5)
-#define _CYHAL_SCB_PERI_CLOCK_SLAVE_FSTP     96000000
+#define _CYHAL_SCB_PERI_CLOCK_SLAVE_FSTP     48000000
 #endif
 
 /* Must be between 1.55 MHz and 3.2 MHz for running i2c slave at 100KHz     */
@@ -720,11 +726,14 @@ cy_rslt_t _cyhal_scb_set_fifo_level(CySCB_Type *base, cyhal_scb_fifo_type_t type
 cy_rslt_t _cyhal_scb_enable_output(cyhal_resource_inst_t resource, cyhal_scb_output_t output, cyhal_source_t *source)
 {
 // All PSoC™ 6 devices have scb triggers but not all PSoC™ 4 devices do
-#if ((defined(CY_IP_MXSCB) && !defined(COMPONENT_CAT2)) || defined(CY_DEVICE_PSOC4AMC) || defined(CY_DEVICE_PSOC4AS3) || defined(CY_DEVICE_PSOC4AS4) || defined(CY_IP_MXS22SCB))
+#if defined(_CYHAL_SCB_TRIGGERS_EXIST)
     // This just returns a proper cyhal_source_t. Use _cyhal_scb_set_fifo_level
     // to actually set level.
     cyhal_internal_source_t src_int;
     uint8_t scb_arr_index = _cyhal_scb_get_block_index(resource.block_num);
+    /* We have a trigger for every SCB that we know about */
+    CY_ASSERT(scb_arr_index < (sizeof(_CYHAL_SCB_TR_RX_REQ)/sizeof(_CYHAL_SCB_TR_RX_REQ[0])));
+    CY_ASSERT(scb_arr_index < (sizeof(_CYHAL_SCB_TR_TX_REQ)/sizeof(_CYHAL_SCB_TR_TX_REQ[0])));
     if(output == CYHAL_SCB_OUTPUT_TRIGGER_RX_FIFO_LEVEL_REACHED)
     {
         src_int = _CYHAL_SCB_TR_RX_REQ[scb_arr_index];
@@ -752,7 +761,7 @@ cy_rslt_t _cyhal_scb_enable_output(cyhal_resource_inst_t resource, cyhal_scb_out
 cy_rslt_t _cyhal_scb_disable_output(cyhal_scb_output_t output)
 {
 // All PSoC™ 6 devices have scb triggers but not all PSoC™ 4 devices do
-#if (defined(CY_IP_MXSCB) || defined(CY_DEVICE_PSOC4AMC) || defined(CY_DEVICE_PSOC4AS3) || defined(CY_DEVICE_PSOC4AS4) || defined(CY_IP_MXS22SCB))
+#if defined(_CYHAL_SCB_TRIGGERS_EXIST)
     // Noop: Use _cyhal_scb_set_fifo_level to actually set level
     if (output == CYHAL_SCB_OUTPUT_TRIGGER_RX_FIFO_LEVEL_REACHED ||
         output == CYHAL_SCB_OUTPUT_TRIGGER_TX_FIFO_LEVEL_REACHED)
@@ -827,7 +836,7 @@ void _cyhal_scb_update_instance_data(uint8_t block_num, void *obj, cyhal_scb_ins
     _cyhal_scb_config_structs[scb_arr_index] = obj;
     _cyhal_scb_config_pm_callback[scb_arr_index] = pm_callback;
 
-    int count = 0;
+    uint8_t count = 0;
     for (uint8_t i = 0; i < _SCB_ARRAY_SIZE; i++)
     {
         if (NULL != _cyhal_scb_config_structs[i])

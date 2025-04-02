@@ -52,73 +52,6 @@ extern "C" {
 #define _GET_TCPWM_INTR_MASK(group, counter) (1 << (((group) * 2) + counter))
 #endif
 
-#if defined(CY_IP_MXTCPWM_INSTANCES)
-#if (CY_IP_MXTCPWM_VERSION == 1)
-    #if (CY_IP_MXTCPWM_INSTANCES == 0)
-        #define _CYHAL_TCPWM_CHANNELS (0u)
-    #elif (CY_IP_MXTCPWM_INSTANCES == 1)
-        #define _CYHAL_TCPWM_CHANNELS (TCPWM0_CNT_NR)
-    #elif (CY_IP_MXTCPWM_INSTANCES == 2)
-        #define _CYHAL_TCPWM_CHANNELS (TCPWM0_CNT_NR + TCPWM1_CNT_NR)
-    #else
-        #warning Unhandled TCPWM instance count
-    #endif
-#else // (CY_IP_MXTCPWM_VERSION >= 2)
-    #if (CY_IP_MXTCPWM_INSTANCES == 1)
-        #if (TCPWM_GRP_NR == 0)
-            #define _CYHAL_TCPWM_CHANNELS (0U)
-        #elif (TCPWM_GRP_NR == 1)
-            #define _CYHAL_TCPWM_CHANNELS (TCPWM_GRP_NR0_GRP_GRP_CNT_NR)
-        #elif (TCPWM_GRP_NR == 2)
-            #define _CYHAL_TCPWM_CHANNELS (TCPWM_GRP_NR0_GRP_GRP_CNT_NR + TCPWM_GRP_NR1_GRP_GRP_CNT_NR)
-        #elif (TCPWM_GRP_NR == 3)
-            #define _CYHAL_TCPWM_CHANNELS (TCPWM_GRP_NR0_GRP_GRP_CNT_NR + TCPWM_GRP_NR1_GRP_GRP_CNT_NR + TCPWM_GRP_NR2_GRP_GRP_CNT_NR)
-        #elif (TCPWM_GRP_NR == 4)
-            #define _CYHAL_TCPWM_CHANNELS (TCPWM_GRP_NR0_GRP_GRP_CNT_NR + TCPWM_GRP_NR1_GRP_GRP_CNT_NR + TCPWM_GRP_NR2_GRP_GRP_CNT_NR + TCPWM_GRP_NR3_GRP_GRP_CNT_NR)
-        #endif
-    #elif (CY_IP_MXTCPWM_INSTANCES == 2)
-        #if (TCPWM0_GRP_NR == 0)
-            #define _CYHAL_TCPWM0_CHANNELS (0U)
-        #elif (TCPWM0_GRP_NR == 1)
-            #define _CYHAL_TCPWM0_CHANNELS (TCPWM0_GRP_NR0_GRP_GRP_CNT_NR)
-        #elif (TCPWM0_GRP_NR == 2)
-            #define _CYHAL_TCPWM0_CHANNELS (TCPWM0_GRP_NR0_GRP_GRP_CNT_NR + TCPWM0_GRP_NR1_GRP_GRP_CNT_NR)
-        #elif (TCPWM0_GRP_NR == 3)
-            #define _CYHAL_TCPWM0_CHANNELS (TCPWM0_GRP_NR0_GRP_GRP_CNT_NR + TCPWM0_GRP_NR1_GRP_GRP_CNT_NR + TCPWM0_GRP_NR2_GRP_GRP_CNT_NR)
-        #elif (TCPWM0_GRP_NR == 4)
-            #define _CYHAL_TCPWM0_CHANNELS (TCPWM0_GRP_NR0_GRP_GRP_CNT_NR + TCPWM0_GRP_NR1_GRP_GRP_CNT_NR + TCPWM0_GRP_NR2_GRP_GRP_CNT_NR + TCPWM0_GRP_NR3_GRP_GRP_CNT_NR)
-        #endif
-        #ifndef _CYHAL_TCPWM0_CHANNELS
-            #error "Unhandled TCPWM0_GRP_NR count"
-        #endif
-        #if (TCPWM1_GRP_NR == 0)
-            #define _CYHAL_TCPWM1_CHANNELS (0U)
-        #elif (TCPWM1_GRP_NR == 1)
-            #define _CYHAL_TCPWM1_CHANNELS (TCPWM1_GRP_NR0_GRP_GRP_CNT_NR)
-        #elif (TCPWM1_GRP_NR == 2)
-            #define _CYHAL_TCPWM1_CHANNELS (TCPWM1_GRP_NR0_GRP_GRP_CNT_NR + TCPWM1_GRP_NR1_GRP_GRP_CNT_NR)
-        #elif (TCPWM1_GRP_NR == 3)
-            #define _CYHAL_TCPWM1_CHANNELS (TCPWM1_GRP_NR0_GRP_GRP_CNT_NR + TCPWM1_GRP_NR1_GRP_GRP_CNT_NR + TCPWM1_GRP_NR2_GRP_GRP_CNT_NR)
-        #elif (TCPWM1_GRP_NR == 4)
-            #define _CYHAL_TCPWM1_CHANNELS (TCPWM1_GRP_NR0_GRP_GRP_CNT_NR + TCPWM1_GRP_NR1_GRP_GRP_CNT_NR + TCPWM1_GRP_NR2_GRP_GRP_CNT_NR + TCPWM1_GRP_NR3_GRP_GRP_CNT_NR)
-        #endif
-        #ifndef _CYHAL_TCPWM1_CHANNELS
-            #error "Unhandled TCPWM1_GRP_NR count"
-        #endif
-
-        #define _CYHAL_TCPWM_CHANNELS (_CYHAL_TCPWM0_CHANNELS + _CYHAL_TCPWM1_CHANNELS)
-    #else
-        #warning Unhandled TCPWM instance count
-    #endif
-#endif
-#elif defined(CY_IP_M0S8TCPWM_INSTANCES)
-    #if (CY_IP_M0S8TCPWM_INSTANCES == 1)
-        #define _CYHAL_TCPWM_CHANNELS (TCPWM_CNT_NR)
-    #else
-        #warning Unhandled TCPWM instance count
-    #endif
-#endif
-
 const _cyhal_tcpwm_data_t _CYHAL_TCPWM_DATA[] =
 {
 #if defined(CY_IP_MXTCPWM_INSTANCES)
@@ -610,7 +543,7 @@ static uint8_t _cyhal_tcpwm_convert_output_t(cyhal_tcpwm_output_t signal)
 #if (CY_IP_MXTCPWM_VERSION == 1U) ||(CY_IP_MXTCPWM_VERSION == 2U) || (CY_IP_M0S8TCPWM_VERSION == 2)
 // Assumes trig_index is not offset by _CYHAL_TCPWM_TRIGGER_INPUTS_IDX_OFFSET
 // (that is, it is 0 indexed).
-cyhal_dest_t _cyhal_tpwm_calculate_dest(uint8_t block, uint8_t trig_index)
+cyhal_dest_t _cyhal_tcpwm_calculate_dest(uint8_t block, uint8_t trig_index)
 {
 #if (CY_IP_MXTCPWM_VERSION == 1U)
     if(block == 0)
@@ -752,7 +685,7 @@ cy_rslt_t _cyhal_tcpwm_connect_digital(cyhal_tcpwm_t *obj, cyhal_source_t source
             uint32_t saved_intr_status = cyhal_system_critical_section_enter();
             for(trig_index = 0; trig_index < (_CYHAL_TCPWM_TRIGGER_INPUTS_PER_BLOCK[_CYHAL_TCPWM_GET_IP_BLOCK(block)]) ; trig_index++)
             {
-                cyhal_dest_t dest = _cyhal_tpwm_calculate_dest(block, trig_index);
+                cyhal_dest_t dest = _cyhal_tcpwm_calculate_dest(block, trig_index);
 
                 /* On some devices, not all triggers connect uniformly to all sources, so make sure the trigger
                 * we're trying to use can actually connect to the source we want to use */
@@ -863,7 +796,7 @@ cy_rslt_t _cyhal_tcpwm_connect_digital(cyhal_tcpwm_t *obj, cyhal_source_t source
     else if((_CYHAL_TCPWM_TRIGGER_INPUTS_PER_BLOCK[_CYHAL_TCPWM_GET_IP_BLOCK(block)]) != trig_index)
     {
         /* If we made a connection before erroring out later, undo the connection */
-        cyhal_dest_t dest = _cyhal_tpwm_calculate_dest(block, trig_index);
+        cyhal_dest_t dest = _cyhal_tcpwm_calculate_dest(block, trig_index);
         cy_rslt_t disconnect_rslt = _cyhal_disconnect_signal(source, dest);
         /* Deliberately not impacting the return value, because we're already in an error state. A successful
          * disconnect won't change that. An unsuccessful disconnect should in theory never happen because if
@@ -1034,7 +967,7 @@ cy_rslt_t _cyhal_tcpwm_disconnect_digital(cyhal_tcpwm_t *obj, cyhal_source_t sou
 
     trig_index -= (_CYHAL_TCPWM_TRIGGER_INPUTS_IDX_OFFSET[_CYHAL_TCPWM_GET_IP_BLOCK(block)]);
 
-    cyhal_dest_t dest = _cyhal_tpwm_calculate_dest(block, trig_index);
+    cyhal_dest_t dest = _cyhal_tcpwm_calculate_dest(block, trig_index);
 
     cy_rslt_t rslt = _cyhal_disconnect_signal(source, dest);
     if (CY_RSLT_SUCCESS == rslt)

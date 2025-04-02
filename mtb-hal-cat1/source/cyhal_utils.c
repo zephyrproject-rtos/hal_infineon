@@ -118,7 +118,6 @@ uint32_t _cyhal_utils_convert_flags(const uint32_t map[], uint32_t count, uint32
     return result_flags;
 }
 
-
 #if defined(__cplusplus)
 }
 #endif

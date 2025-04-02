@@ -140,12 +140,12 @@ CY_SECTION_RAMFUNC_BEGIN
 ****************************************************************************//**
 *
 * Prepares the system to work after warmboot:
-* - Intializes Vector Table
+* - Initializes Vector Table
 * - Enables all the IP's through Slave Control Registers
 * - Unfreezes the IO's
 *
 *******************************************************************************/
-void SystemInit_Warmboot_CAT1B_CM33()
+void SystemInit_Warmboot_CAT1B_CM33(void)
 {
     SCB->VTOR = (uint32_t)__ns_vector_table_rw;
     (void)Cy_SysClk_PeriGroupSetSlaveCtl(1, CY_SYSCLK_PERI_GROUP_SL_CTL2, 0x0U);
@@ -181,12 +181,12 @@ uint32_t scbSHPR3StoreRestore;
 CY_SECTION_RAMFUNC_BEGIN
 void System_Store_NVIC_Reg(void)
 {
-    for (uint32_t idx = 0; idx < CY_NVIC_REG_COUNT; idx++)
+    for (uint8_t idx = 0; idx < CY_NVIC_REG_COUNT; idx++)
     {
         nvicStoreRestore[idx] = NVIC->ISER[idx];
     }
 
-    for (uint32_t idx = 0; idx < CY_NVIC_IPR_REG_COUNT; idx++)
+    for (uint8_t idx = 0; idx < CY_NVIC_IPR_REG_COUNT; idx++)
     {
         nvicIPRStoreRestore[idx] = NVIC->IPR[idx];
     }
@@ -206,12 +206,12 @@ CY_SECTION_RAMFUNC_END
 CY_SECTION_RAMFUNC_BEGIN
 void System_Restore_NVIC_Reg(void)
 {
-    for (uint32_t idx = 0; idx < CY_NVIC_REG_COUNT; idx++)
+    for (uint8_t idx = 0; idx < CY_NVIC_REG_COUNT; idx++)
     {
         NVIC->ISER[idx] = nvicStoreRestore[idx];
     }
 
-    for (uint32_t idx = 0; idx < CY_NVIC_IPR_REG_COUNT; idx++)
+    for (uint8_t idx = 0; idx < CY_NVIC_IPR_REG_COUNT; idx++)
     {
         NVIC->IPR[idx] = nvicIPRStoreRestore[idx];
     }
@@ -267,7 +267,7 @@ void SystemCoreClockUpdate (void)
 
     cy_Hfclk0FreqHz = SystemCoreClock;
 
-    /* Get frequency for the high-frequency clock # 2 , whcih is used for PERI PCLK*/
+    /* Get frequency for the high-frequency clock # 2 , which is used for PERI PCLK*/
     clkHfPath = CY_SYSCLK_CLK_PERI_HF_PATH_NUM;
 
     pathFreqHz = Cy_SysClk_ClkHfGetFrequency(clkHfPath);

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_common.c
-* \version 3.20
+* \version 3.30
 *
 * Provides common API implementation of the SCB driver.
 *
@@ -282,7 +282,7 @@ void Cy_SCB_WriteArrayNoCheck(CySCB_Type *base, void *buffer, uint32_t size)
     }
 #elif((defined (CY_IP_MXSCB_VERSION) && (CY_IP_MXSCB_VERSION>=2)) || defined (CY_IP_MXS22SCB))
     uint32_t datawidth = Cy_SCB_Get_TxDataWidth(base);
-    
+
     if (datawidth <= CY_SCB_BYTE_WIDTH)
     {
         uint8_t *buf = (uint8_t *) buffer;

@@ -74,8 +74,8 @@
                                                                                             (sourceClockNumber eq NUM_DPLL_LP) ? isPll500mUsed ? &quot;pll500m[&quot; . (sourceClockNumber - (NUM_DPLL_LP)) . &quot;]&quot; :
                                                                                             &quot;pathmux[&quot; . sourceClockNumber . &quot;]&quot; :
 																							&quot;pathmux[&quot; . sourceClockNumber . &quot;]&quot;}`" visible="false" editable="false" desc="" />
-    <ParamString id="sourceClockDisplayName" name="Source Clock Display Name" group="Internal" default="`${getParamValueDisplay(&quot;sourceClock&quot;)}`" visible="false" editable="false" desc="" />                                              
 
+    <ParamString id="sourceClockDisplayName" name="Source Clock Display Name" group="Internal" default="`${getParamValueDisplay(&quot;sourceClock&quot;)}`" visible="false" editable="false" desc="" />
     <ParamString id="sourceClockRsc" name="Source Clock" group="Internal" default="srss[0].clock[0].`${sourceClock}`" visible="false" editable="false" desc="" />
 
     <!-- Set an error if the source clock is not enabled or contains an error -->

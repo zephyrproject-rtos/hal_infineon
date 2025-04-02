@@ -37,6 +37,7 @@
     <ExposedMember key="frequency" paramId="frequency" />
     <ExposedMember key="accuracy"  paramId="accuracy" />
     <ExposedMember key="error"     paramId="error" />
+    <ExposedMember key="sourceClockDisplayName" paramId="sourceClock" />
   </ExposedMembers>
   <Parameters>
     <!-- PDL documentation -->

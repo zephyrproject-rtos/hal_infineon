@@ -150,14 +150,14 @@
 
     <!-- Clock Constraint -->
     <ParamRange id="uartClkHz" name="uartClkHz" group="Internal" default="`${BaudRate * OversampleFinal}`" min="0" max="400000000" resolution="1" visible="false" editable="false" desc="SCB UART clock to operate with desired baud rate." />
-    
+
     <ParamString id="hfclockperi" name="PCLK Destination Clock" group="Internal" default="srss[0].clock[0].periclk[0]" visible="false" editable="false" desc="String variable used for source peri clock." />
     <ParamString id="hfclock1" name="PCLK Destination Clock" group="Internal" default="srss[0].clock[0].hfclk[1]" visible="false" editable="false" desc="String variable used for source HF clock1." />
     <ParamString id="hfclock2" name="PCLK Destination Clock" group="Internal" default="srss[0].clock[0].hfclk[2]" visible="false" editable="false" desc="String variable used for source HF clock2." />
     <ParamString id="hfclock10" name="PCLK Destination Clock" group="Internal" default="srss[0].clock[0].hfclk[10]" visible="false" editable="false" desc="String variable used for source HF clock10." />
 
     <ParamString id="hfclocksource" name="PCLK Destination" group="Internal" default="`${((ipName ne &quot;mxs22scb&quot;) ? ((version eq 1)  ? hfclockperi : ((version eq 4) ? hfclock1 : hfclock2)) : hfclock10) }`" visible="false" editable="false" desc="Generates PCLK connection define." />
-    
+
     <ParamRange  id="clkPeriHz" name="clkPeriHz" group="Internal" default="`${getExposedMember(hfclocksource, &quot;frequency&quot;)}`" min="0" max="400000000" resolution="1" visible="false" editable="false" desc="Clk_Peri frequency." />
     <ParamRange  id="uartDiv" name="uartDiv" group="Internal" default="`${clkPeriHz / cast(float, uartClkHz)}`" min="1" max="16777216" resolution="1" visible="false" editable="false" desc="UART pclk divider value." />
     <ParamBool id="useUartDiv8" name="useUartDiv8" group="Internal" default="`${(uartDiv &lt;= pow(2, 8))}`" visible="false" editable="false" desc="Checks whether 8-bit divider can be used for UART operation." />
@@ -187,7 +187,7 @@
       </Constraint>
       <Constraint type="ACCEPT" targetLocation=".*" valid="true" />
     </ParamSignal>
-    
+
     <ParamSignal port="clock_scb_en[0]" name="Clock" group="Connections" visible="`${hasVisibleOption(&quot;clock_scb_en[0]&quot;)}`" desc="Clock that operates this block." canBeEmpty="false" >
       <Constraint type="ACCEPT" targetLocation="peri\[\d+\](\.group\[\d+\])?\.div_8.*" valid="`${useUartDiv8}`" >
         <Parameter id="intDivider" severity="ERROR" reason="Clock frequency does not match desired `${uartClkHz / 1000.0}` kHz.">
@@ -381,17 +381,17 @@
 
     <!-- Peripheral clock divider connection -->
     <ParamBool id="pclkOk" name="PCLK Valid" group="Internal" default="`${(hasVisibleOption(&quot;clock[0]&quot;)) ? (hasConnection(&quot;clock&quot;, 0) &amp;&amp; isBlockUsed(sourceClock)) : (hasConnection(&quot;clock_scb_en&quot;, 0) &amp;&amp; isBlockUsed(sourceClock)) }`" visible="false" editable="false" desc="Checks whether there is a PCLK connected and enabled." />
-    
+
     <ParamString id="pclkSCBClockString" name="PCLK Destination Clock" group="Internal" default="PCLK_SCB`${InstNumber}`_CLOCK" visible="false" editable="false" desc="String variable used for PCLK_SCB_CLOCK." />
     <ParamString id="pclkSCBClockSCBENString" name="PCLK Destination Clock" group="Internal" default="PCLK_SCB`${InstNumber}`_CLOCK_SCB_EN" visible="false" editable="false" desc="String variable used only for PCLK_SCB_CLOCK_SCB_EN." />
-    
+
     <ParamString id="pclkDst" name="PCLK Destination" group="Internal" default="`${(hasVisibleOption(&quot;clock[0]&quot;)) ? pclkSCBClockString : pclkSCBClockSCBENString }`" visible="false" editable="false" desc="Generates PCLK connection define." />
   </Parameters>
 
   <DRCs>
     <!-- DRC: 8-bit clock divider must not be used -->
     <DRC type="ERROR" text="Wider clock divider resolution is required for UART to operate with baud rate `${BaudRate}` bps." paramId="clock[0]" condition="`${!useUartDiv8 &amp;&amp; pClkDiv8}`" />
-    
+
     <!-- DRC: 8-bit clock divider must not be used -->
     <DRC type="ERROR" text="Wider clock divider resolution is required for UART to operate with baud rate `${BaudRate}` bps." paramId="clock_scb_en[0]" condition="`${!useUartDiv8 &amp;&amp; pClkDiv8}`" />
 
@@ -425,6 +425,9 @@
     <ConfigInclude value="cy_sysclk.h" include="`${pclkOk}`" />
     <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />
     <ConfigInclude value="cyhal.h" include="true" guard="defined (CY_USING_HAL)" />
+    <ConfigInclude value="mtb_hal.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="cycfg_clocks.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="mtb_hal_hw_types.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
     <ConfigInclude value="cyhal_hw_types.h" include="true" guard="defined (CY_USING_HAL_LITE)" />
 
     <ConfigDefine name="`${INST_NAME}`_HW" value="SCB`${InstNumber}`" public="true" include="true" />
@@ -484,6 +487,22 @@
       <Member name="config" value="&amp;`${INST_NAME}`_config" />
       <Member name="clock" value="&amp;`${INST_NAME}`_clock" />
       <Member name="gpios" value="{.pin_tx = `${txPin &amp;&amp; hasExposedMember(txPin, &quot;halPortPin&quot;) ? getExposedMember(txPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, .pin_rts = `${rtsPin &amp;&amp; hasExposedMember(rtsPin, &quot;halPortPin&quot;) ? getExposedMember(rtsPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, .pin_cts = `${ctsPin &amp;&amp; hasExposedMember(ctsPin, &quot;halPortPin&quot;) ? getExposedMember(ctsPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`}" guard="defined (CY_USING_HAL)" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_clock_ref" type="mtb_hal_peri_div_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+        <Member name="clk_dst" value="(en_clk_dst_t)`${getExposedMember(sourceClock, &quot;instName&quot;)}`_GRP_NUM" />
+        <Member name="div_type" value="`${getExposedMember(sourceClock, &quot;instName&quot;)}`_HW" />
+        <Member name="div_num" value="`${getExposedMember(sourceClock, &quot;instName&quot;)}`_NUM" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_clock" type="mtb_hal_clock_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+        <Member name="clock_ref" value="&amp;`${INST_NAME}`_clock_ref" />
+        <Member name="interface" value="&amp;mtb_hal_clock_peri_interface" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_config" type="mtb_hal_uart_configurator_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL) &amp;&amp; (MTB_HAL_DRIVER_AVAILABLE_UART)">
+      <Member name="base" value="`${INST_NAME}`_HW" />
+      <Member name="clock" value="&amp;`${INST_NAME}`_hal_clock" />
     </ConfigStruct>
 
     <ConfigInstruction purpose="INITIALIZE" value="Cy_SysClk_PeriGroupSlaveInit(CY_MMIO_SCB`${InstNumber}`_PERI_NR, CY_MMIO_SCB`${InstNumber}`_GROUP_NR, CY_MMIO_SCB`${InstNumber}`_SLAVE_NR, CY_MMIO_SCB`${InstNumber}`_CLK_HF_NR);" include="`${(ipName eq &quot;mxs22scb&quot;)}`" />

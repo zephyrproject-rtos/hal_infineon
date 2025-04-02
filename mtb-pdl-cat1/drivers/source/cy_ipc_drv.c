@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_drv.c
-* \version 1.130
+* \version 1.140
 *
 *  \brief
 *   IPC Driver - This source file contains the low-level driver code for
