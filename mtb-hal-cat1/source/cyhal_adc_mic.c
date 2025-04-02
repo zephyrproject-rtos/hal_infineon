@@ -130,8 +130,8 @@ static uint8_t _cyhal_adcmic_get_block_from_irqn(_cyhal_system_irq_t irqn)
 }
 
 /* Find the next enabled channel, starting from current_idx and adjusting the buffer
- * along the way to account for disabled channels */
-static void _cyhal_adcmic_find_next_channel(cyhal_adc_t* obj, uint8_t* current_idx, int32_t **buffer)
+* along the way to account for disabled channels */
+static void _cyhal_adcmic_find_enabled_channel(cyhal_adc_t* obj, uint8_t* current_idx, int32_t **buffer)
 {
     uint8_t start_idx = *current_idx;
     do
@@ -146,17 +146,44 @@ static void _cyhal_adcmic_find_next_channel(cyhal_adc_t* obj, uint8_t* current_i
             {
                 ++(*buffer);
             }
-            *current_idx = (*current_idx + 1) % _CYHAL_ADCMIC_NUM_CHANNELS(obj);
         }
+        *current_idx = (*current_idx + 1) % _CYHAL_ADCMIC_NUM_CHANNELS(obj);
     } while(*current_idx != start_idx); /* While we haven't wrapped completely around */
+}
+
+static void _cyhal_adcmic_find_first_channel(cyhal_adc_t* obj, uint8_t* current_idx, int32_t **buffer)
+{
+    // Find the first enabled channel, starting from the current_idx
+    _cyhal_adcmic_find_enabled_channel(obj, current_idx, buffer);
+}
+static void _cyhal_adcmic_find_next_channel(cyhal_adc_t* obj, uint8_t* current_idx, int32_t **buffer)
+{
+    // Find the next enabled channel after the current_idx
+    *current_idx = (*current_idx + 1) % _CYHAL_ADCMIC_NUM_CHANNELS(obj);
+    ++(*buffer);
+    _cyhal_adcmic_find_enabled_channel(obj, current_idx, buffer);
+    
 }
 
 static uint16_t _cyhal_adc_cnt_to_u16(cyhal_adc_t *adc, int16_t raw_cnt)
 {
-    uint16_t raw_cnt_fixed = (uint16_t)(raw_cnt - adc->pdl_context.offset);
-    // Scaling 0 - CY_ADCMIC_DC_FS_CNT range to 0 - CY_ADCMIC_DC_FS (0xFFFF) range
-    // CY_ADCMIC_DC_FS_CNT is multiplied by 10, so division needed
-    uint16_t scaled_cnt = (uint16_t)((raw_cnt_fixed * CY_ADCMIC_DC_FS) / (CY_ADCMIC_DC_FS_CNT / 10));
+    // ADC results scale from 0x0 to 0x7FFF, but the range isn't fully saturated (0V != 0x0 raw_count, and
+    // v3.6 != 0x7FFF raw_count).  To adjust this scaling to a 0-based counting (0V = 0 counts), subtract by
+    // the offset (default is CY_ADCMIC_DC_OFFSET, tracked in adc->pdl_context.offset).
+
+    // Convert this to a uint16_t range (0x0 through 0xFFFF) by dividing by the max raw_count value adjusted
+    // for our offset (CY_ADCMIC_DC_HI_CNT - adc->pdl_context.offset), then multiplying by our new max.
+
+    // The raw_count has a small margin for error - this is problematic on reading 0v.  0v may read as a hair
+    // under the offset, resulting in raw_cnt_0_based value underflowing.  Skip calculation and return 0 in 
+    // this case (we could set raw_cnt_0_based to zero, but then scaled_cnt will always equal zero, so skip).
+    uint16_t scaled_cnt = 0U;
+    const uint16_t MAX_UINT16 = 0xFFFFU;
+    if(raw_cnt > (adc->pdl_context.offset))
+    {
+        uint16_t raw_cnt_0_based = (uint16_t)(raw_cnt - adc->pdl_context.offset);
+        scaled_cnt = (uint16_t)(((uint32_t)raw_cnt_0_based * (uint32_t)MAX_UINT16) / (CY_ADCMIC_DC_HI_CNT - adc->pdl_context.offset));
+    }
     return scaled_cnt;
 }
 
@@ -180,9 +207,16 @@ static void _cyhal_adcmic_irq_handler(void)
         {
             *(obj->async_buff_next) = (int32_t)_cyhal_adc_cnt_to_u16(obj, dc_data);
         }
-        obj->async_buff_next++;
         uint8_t old_channel = obj->current_channel_index;
+
         _cyhal_adcmic_find_next_channel(obj, &(obj->current_channel_index), &(obj->async_buff_next));
+        if(old_channel != obj->current_channel_index)
+        {
+            /* Select next channel if found */
+            Cy_ADCMic_SelectDcChannel(obj->base, obj->channel_config[obj->current_channel_index]->channel_sel);
+            cyhal_system_delay_us(30); // Give it a moment to swap
+        }
+
         /* we know that at least one channel was enabled, so we don't have to worry about that case,
          * but we do need to check for rollover */
         if(obj->current_channel_index <= old_channel)
@@ -621,7 +655,7 @@ static void _cyhal_adcmic_start_async_read(cyhal_adc_t* obj, size_t num_scan, in
     obj->current_channel_index = 0;
     obj->async_scans_remaining = num_scan;
     obj->async_buff_next = result_list;
-    _cyhal_adcmic_find_next_channel(obj, &(obj->current_channel_index), &(obj->async_buff_next));
+    _cyhal_adcmic_find_first_channel(obj, &(obj->current_channel_index), &(obj->async_buff_next));
     if(NULL == obj->channel_config[obj->current_channel_index]
         || (false == obj->channel_config[obj->current_channel_index]->enabled))
     {

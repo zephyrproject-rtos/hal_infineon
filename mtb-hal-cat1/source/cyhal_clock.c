@@ -215,7 +215,7 @@ const cyhal_resource_inst_t CYHAL_CLOCK_RSC_WCO = { CYHAL_RSC_CLOCK, (uint8_t)CY
 #if defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT)
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_MFO = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_MFO, 0 };
 #endif
-#if defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)
+#if (defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)) && (_CYHAL_CLOCK_AVAILABLE_MFO )
 const cyhal_resource_inst_t CYHAL_CLOCK_RSC_MF = { CYHAL_RSC_CLOCK, (uint8_t)CYHAL_CLOCK_BLOCK_MF, 0 };
 #endif
 
@@ -1082,7 +1082,7 @@ static cy_rslt_t _cyhal_clock_set_enabled_eco(cyhal_clock_t *clock, bool enabled
             // Already enabled
             if (wait_for_lock)
             {
-                for (int t = 0; t < 3 && Cy_SysClk_EcoGetStatus() != CY_SYSCLK_ECOSTAT_STABLE; ++t)
+                for (uint32_t t = 0; t < 3 && Cy_SysClk_EcoGetStatus() != CY_SYSCLK_ECOSTAT_STABLE; ++t)
                 {
                     cyhal_system_delay_us(1000UL);
                 }
@@ -1804,7 +1804,7 @@ static cy_rslt_t _cyhal_clock_get_sources_pll(const cyhal_clock_t *clock, const 
 #endif
 
 // MF
-#if defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)
+#if (defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)) && (_CYHAL_CLOCK_AVAILABLE_MFO )
 static bool _cyhal_clock_is_enabled_mf(const cyhal_clock_t *clock)
 {
     CY_UNUSED_PARAMETER(clock);
@@ -3320,7 +3320,7 @@ static const cyhal_clock_funcs_t FUNCS_LF =
     .set_source = _cyhal_clock_set_source_lf,
 };
 
-#if defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)
+#if (defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)) && (_CYHAL_CLOCK_AVAILABLE_MFO )
 static const cyhal_clock_funcs_t FUNCS_MF =
 {
 #if (defined(CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) /* CAT1A/SRSSv1 only supports driving clk_mf from the MFO */
@@ -3556,7 +3556,7 @@ static const cyhal_clock_funcs_t* _cyhal_clock_get_funcs_all(cyhal_clock_block_t
 #endif
         case CYHAL_CLOCK_BLOCK_LF:
             return &FUNCS_LF;
-#if defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)
+#if (defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT) || defined(CY_IP_MXS22SRSS)) && (_CYHAL_CLOCK_AVAILABLE_MFO )
         case CYHAL_CLOCK_BLOCK_MF:
             return &FUNCS_MF;
 #endif
@@ -3770,7 +3770,7 @@ const cyhal_clock_t CYHAL_CLOCK_PILO = _CYHAL_CLOCK_CREATE(PILO, 0);
 #if SRSS_BACKUP_PRESENT || SRSS_WCO_PRESENT
 const cyhal_clock_t CYHAL_CLOCK_WCO = _CYHAL_CLOCK_CREATE(WCO, 0);
 #endif
-#if defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT)
+#if (defined(COMPONENT_CAT1B) || (SRSS_MFO_PRESENT)) && (_CYHAL_CLOCK_AVAILABLE_MFO )
 const cyhal_clock_t CYHAL_CLOCK_MFO = _CYHAL_CLOCK_CREATE(MFO, 0);
 const cyhal_clock_t CYHAL_CLOCK_MF = _CYHAL_CLOCK_CREATE(MF, 0);
 #endif

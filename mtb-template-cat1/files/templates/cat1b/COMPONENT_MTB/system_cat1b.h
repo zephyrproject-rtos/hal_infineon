@@ -263,7 +263,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CY_SYSTEM_CPU_CM33          1UL
+#define CY_SYSTEM_CPU_CM33                  1UL
 
 /*******************************************************************************
 * Global preprocessor symbols/macros ('define')

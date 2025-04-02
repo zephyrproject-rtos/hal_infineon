@@ -96,16 +96,19 @@ static void _cyhal_ezi2c_irq_handler(void)
 static void _cyhal_ezi2c0_irq_handler(void)
 {
     _cyhal_ezi2c_irq_handler(scb_0_interrupt_IRQn);
+    Cy_SCB_EnableInterrupt(SCB0);
 }
 
 static void _cyhal_ezi2c1_irq_handler(void)
 {
     _cyhal_ezi2c_irq_handler(scb_1_interrupt_IRQn);
+    Cy_SCB_EnableInterrupt(SCB1);
 }
 
 static void _cyhal_ezi2c2_irq_handler(void)
 {
     _cyhal_ezi2c_irq_handler(scb_2_interrupt_IRQn);
+    Cy_SCB_EnableInterrupt(SCB2);
 }
 
 static CY_SCB_IRQ_THREAD_CB_t _cyhal_irq_cb[3] = {_cyhal_ezi2c0_irq_handler, _cyhal_ezi2c1_irq_handler, _cyhal_ezi2c2_irq_handler};
@@ -237,9 +240,9 @@ static cy_rslt_t _cyhal_ezi2c_init_hw(cyhal_ezi2c_t *obj, const cy_stc_scb_ezi2c
         obj->callback_data.callback_arg = NULL;
         obj->irq_cause = 0;
 
-        #if defined (COMPONENT_CAT5)
-            Cy_SCB_RegisterInterruptCallback(obj->base, _cyhal_irq_cb[_CYHAL_SCB_IRQ_N[scb_arr_index]]);
-        #endif
+    #if defined (COMPONENT_CAT5)
+        Cy_SCB_RegisterInterruptCallback(obj->base, _cyhal_irq_cb[_CYHAL_SCB_IRQ_N[scb_arr_index]]);
+    #endif
 
         _cyhal_irq_register(_CYHAL_SCB_IRQ_N[scb_arr_index], CYHAL_ISR_PRIORITY_DEFAULT, (cy_israddress)_cyhal_ezi2c_irq_handler);
     }
@@ -262,9 +265,9 @@ static void _cyhal_ezi2c_setup_and_enable(cyhal_ezi2c_t *obj, const cyhal_ezi2c_
         Cy_SCB_EZI2C_SetBuffer2(obj->base, slave2_cfg->buf, slave2_cfg->buf_size, slave2_cfg->buf_rw_boundary, &(obj->context));
     }
 
-    #if defined (COMPONENT_CAT5)
-        Cy_SCB_EnableInterrupt(obj->base);
-    #endif
+#if defined (COMPONENT_CAT5)
+    Cy_SCB_EnableInterrupt(obj->base);
+#endif
 
     _cyhal_irq_enable(_CYHAL_SCB_IRQ_N[scb_arr_index]);
     /* Enable EZI2C to operate */

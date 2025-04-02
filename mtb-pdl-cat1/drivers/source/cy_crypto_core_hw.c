@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hw.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the source code to the API for the utils
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -233,15 +233,22 @@ cy_en_crypto_status_t Cy_Crypto_Core_SetVuMemoryAddress(CRYPTO_Type *base,
     uint32_t *vuMemAddrIn = (uint32_t *)vuMemoryAddr;
 
     uint32_t  vuMemSize = vuMemorySize;
+    bool  isVUInternalMem = false;
 
 #if !defined(CY_CRYPTO_CFG_HW_USE_MPN_SPECIFIC)
     if (cy_cryptoIP != NULL)
     {
 #endif
+        if(REG_CRYPTO_MEM_BUFF(base) == vuMemoryAddr)
+        {
+            isVUInternalMem = true;
+        }
+            
         if ((vuMemAddrIn == NULL) && (vuMemSize == 0uL))
         {
             vuMemAddrIn = REG_CRYPTO_MEM_BUFF(base);
             vuMemSize = CY_CRYPTO_MEM_BUFF_SIZE;
+            vuMemAddrRemap = vuMemAddrIn;
         }
 
         /* Check for new memory size is less or equal to maximal IP allowed value */
@@ -321,7 +328,16 @@ cy_en_crypto_status_t Cy_Crypto_Core_SetVuMemoryAddress(CRYPTO_Type *base,
                     }
                     #endif
 
-                    REG_CRYPTO_VU_CTL1(base) = (uint32_t)vuMemAddrRemap;
+                    /* For Internal memory VU operation, Crypto CTL register should always point to Non-secure memory address
+                    for both Secure & Non-Secure execution */
+                    if(isVUInternalMem)
+                    {
+                        REG_CRYPTO_VU_CTL1(base) = (uint32_t)REG_CRYPTO_MEM_BUFF((uint32_t *)CY_CRYPTO_VU_MEM_NS_ALIAS_ADDRESS(base));
+                    }
+                    else
+                    {
+                        REG_CRYPTO_VU_CTL1(base) = (uint32_t)vuMemAddrRemap;
+                    }
 
                     /* Set the stack pointer to the Crypto buff size, in words */
                     CY_CRYPTO_VU_SET_REG(base, CY_CRYPTO_VU_HW_REG15, vuMemSize / 4u, 1u);

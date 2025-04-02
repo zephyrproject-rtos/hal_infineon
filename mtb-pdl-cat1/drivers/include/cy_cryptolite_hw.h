@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_hw.h
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides common constants and macros
@@ -34,8 +34,6 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-
-#include "ip/cyip_cryptolite.h"
 
 #define REG_CRYPTOLITE_CTL(base)                         (((CRYPTOLITE_Type*)(base))->CTL)
 #define REG_CRYPTOLITE_STATUS(base)                      (((CRYPTOLITE_Type*)(base))->STATUS)

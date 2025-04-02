@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_smartio.h
-* \version 1.0.3
+* \version 1.0.4
 *
 * \brief
 * Provides an API declaration of the Smart I/O driver
@@ -166,6 +166,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.0.4</td>
+*     <td>Updated driver guards.</td>
+*     <td>Driver disabled on devices that do not support SMARTIO.</td>
+*   </tr>
+*   <tr>
 *     <td>1.0.3</td>
 *     <td>Updated driver guards.</td>
 *     <td>Support Added for future devices of the CAT1B.</td>
@@ -205,6 +210,7 @@
 #include "cy_device.h"
 
 #if (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS))
+#if (defined(IOSS_SMARTIO_SMARTIO_MASK) && (IOSS_SMARTIO_SMARTIO_MASK != 0))
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -866,6 +872,7 @@ CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8')
 }
 #endif
 
+#endif /* (defined(IOSS_SMARTIO_SMARTIO_MASK) && (IOSS_SMARTIO_SMARTIO_MASK != 0)) */
 #endif /* (defined (CY_IP_MXS40IOSS) || defined(CY_IP_MXS40SIOSS) || defined(CY_IP_MXS22IOSS)) */
 
 #endif /* CY_SMARTIO_H */

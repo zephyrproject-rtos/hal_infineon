@@ -37,6 +37,16 @@
     <!-- PDL documentation -->
     <ParamDoc id="pdlDoc" name="Configuration Help" group="Overview" default="file:///`${cy_libs_path()}`/docs/pdl_api_reference_manual/html/group__group__mcwdt.html" linkText="Open MCWDT Documentation" visible="true" desc="Opens the Peripheral Driver Library Documentation" />
 
+    <!--Clock source-->
+    <ParamString id="sourceLfClk" name="Low Frequency Clock" group="Internal" default="srss[0].clock[0].lfclk[0]" visible="false" editable="false" desc="" />
+
+    <ParamBool id="srcLfUsed" name="Clock Source Enabled" group="Internal" default="`${isBlockUsed(sourceLfClk)}`" visible="false" editable="false" desc="" />
+    <ParamBool id="errorLf" name="Low Frequency Error" group="Internal" default="`${!srcLfUsed || getExposedMember(sourceLfClk, &quot;error&quot;)}`" visible="false" editable="false" desc="" />
+
+    <ParamRange id="sourceLowFreq" name="Source Low Frequency" group="Internal" default="`${!errorLf ? getExposedMember(sourceLfClk, &quot;frequency&quot;) : 0}`" min="0" max="100000" resolution="1" visible="false" editable="false" desc="" />
+    <ParamString id="accuracyLF"  name="Accuracy LF"  group="Internal" default="`${!errorLf ? getExposedMember(sourceLfClk, &quot;accuracy&quot;) : 0}`" visible="false" editable="false" desc="" />
+    <ParamString id="sourceLowFrequencyInfo" name="Low Frequency Clock" group="Counter" default="CLK_LF (`${formatFrequency(sourceLowFreq,accuracyLF)}`)" visible="true" editable="false" desc="Source clock frequency" />
+
     <!--Counter0 (16-bit)-->
     <ParamChoice id="C0ClearOnMatch" name="Clear on Match" group="Counter0 (16-bit)" default="FREE_RUNNING" visible="true" editable="true" desc="Controls whether the counter is free running, with a period of 65,536 counts, or clear on match, where the period equals the match value + 1.">
       <Entry name="Free Running" value="FREE_RUNNING" visible="true" />
@@ -93,12 +103,21 @@
     <!--Config-->
     <ParamBool id="inFlash" name="Store Config in Flash" group="Advanced" default="true" visible="true" editable="true" desc="Controls whether the configuration structure is stored in flash (const, true) or SRAM (not const, false)." />
   </Parameters>
+
+  <DRCs>  
+    <!--MCWDT DRCs-->
+    <DRC type="ERROR" text="Source low frequency clock for MCWDT is not enabled" condition="`${!srcLfUsed}`" >
+      <FixIt action="ENABLE_BLOCK" target="`${sourceLfClk}`" value="" valid="true" />
+    </DRC>
+  </DRCs>
+
   <ConfigFirmware>
     <ConfigInclude value="cy_mcwdt.h" include="true" />
     <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />
+    <ConfigInclude value="mtb_hal.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
     
     <ConfigDefine name="`${INST_NAME}`_HW" value="MCWDT_STRUCT`${InstNumber}`" public="true" include="true" />
-    <ConfigDefine name="`${INST_NAME}`_IRQ" value="srss_interrupt_mcwdt_`${InstNumber}`_IRQn" public="true" include="`${(C0Mode eq CY_MCWDT_MODE_INT) || (C0Mode eq CY_MCWDT_MODE_INT_RESET) || (C1Mode eq CY_MCWDT_MODE_INT) || (C1Mode eq CY_MCWDT_MODE_INT_RESET) || (C2Mode eq CY_MCWDT_MODE_INT)}`" />
+    <ConfigDefine name="`${INST_NAME}`_IRQ" value="srss_interrupt_mcwdt_`${InstNumber}`_IRQn" public="true" include="true" />
     <ConfigStruct name="`${INST_NAME . &quot;_config&quot;}`" type="cy_stc_mcwdt_config_t" const="`${inFlash}`" public="true" include="true" >
       <Member name="c0Match" value="`${C0Match}`U" />
       <Member name="c1Match" value="`${C1Match}`U" />
@@ -114,6 +133,10 @@
       <Member name="c0LowerLimit" value="`${C0LowerLimit}`U" include="`${(&quot;mxs40ssrss&quot; eq getIpBlockName()) || (&quot;mxs22srss&quot; eq getIpBlockName())}`" />
       <Member name="c1LowerLimitMode" value="`${C1LowerLimitMode}`" include="`${(&quot;mxs40ssrss&quot; eq getIpBlockName()) || (&quot;mxs22srss&quot; eq getIpBlockName())}`" />
       <Member name="c1LowerLimit" value="`${C1LowerLimit}`U" include="`${(&quot;mxs40ssrss&quot; eq getIpBlockName()) || (&quot;mxs22srss&quot; eq getIpBlockName())}`" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_config" type="mtb_hal_lptimer_configurator_t" const="true" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+      <Member name="base" value="`${INST_NAME}`_HW" />
     </ConfigStruct>
 
     <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL)">

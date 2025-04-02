@@ -65,7 +65,8 @@
 ; RAM
 #define SRAM_BASE_ADDRESS               0x28000000  /* SRAM START */
 #define CM0PLUS_SRAM_RESERVE            0x00004000 /* 16K : cm0 sram size */
-#define CM7_0_SRAM_RESERVE              0x000BC000 /* 752K: cm7_0 sram size */
+#define CM7_NON_CACHEABLE_SRAM_RESERVE  0x00020000  /* 128k: non-cacheable sram size */
+#define CM7_0_SRAM_RESERVE              SRAM_TOTAL_SIZE - CM0PLUS_SRAM_RESERVE - CM7_NON_CACHEABLE_SRAM_RESERVE /* 624K: cm7_0 sram size */
 
 ; FLASH
 #define CODE_FLASH_BASE_ADDRESS         0x10000000  /* FLASH START */
@@ -77,6 +78,9 @@
 #define SIZE_SRAM_CM0P                  CM0PLUS_SRAM_RESERVE - SRAM_START_RESERVE - SRAM_PRIVATE_FOR_SROM
 #define BASE_SRAM_CM7_0                 SRAM_BASE_ADDRESS + CM0PLUS_SRAM_RESERVE
 #define SIZE_SRAM_CM7_0                 CM7_0_SRAM_RESERVE
+/* Always make sure that the starting address of the non-cacheable region is aligned to the non-cacheable region size boundary. */
+#define SIZE_SRAM_NON_CACHE             CM7_NON_CACHEABLE_SRAM_RESERVE /* 128K : non-cacheable sram size */
+#define BASE_SRAM_NON_CACHE             SRAM_BASE_ADDRESS + CM0PLUS_SRAM_RESERVE + CM7_0_SRAM_RESERVE
 
 ; Code flash reservations
 #define BASE_CODE_FLASH_CM0P            CODE_FLASH_BASE_ADDRESS
@@ -124,11 +128,6 @@ LR_IROM1 BASE_CODE_FLASH SIZE_CODE_FLASH
         * (+RW, +ZI)
     }
 
-    RW_RAM_SHARED_DATA +0 ALIGN 32
-    {
-        * (.cy_sharedmem)
-    }
-
     ; Place variables in the section that should not be initialized during the
     ; device startup.
     RW_IRAM1 +0 UNINIT
@@ -145,5 +144,10 @@ LR_IROM1 BASE_CODE_FLASH SIZE_CODE_FLASH
     ; Stack region growing down
     ARM_LIB_STACK (BASE_SRAM+SIZE_SRAM) EMPTY -STACK_SIZE
     {
+    }
+
+    RAM_NONCACHE BASE_SRAM_NON_CACHE ALIGN 32 SIZE_SRAM_NON_CACHE
+    {
+        * (.cy_sharedmem)
     }
 }

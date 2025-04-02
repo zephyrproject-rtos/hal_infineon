@@ -39,8 +39,8 @@
     <ParamDoc id="pdlDoc" name="Configuration Help" group="Overview" default="file:///`${cy_libs_path()}`/docs/pdl_api_reference_manual/html/group__group__tcpwm__counter.html" linkText="Open Timer - Counter (TCPWM) Documentation" visible="true" desc="Opens the Peripheral Driver Library Documentation" />
 
     <!--General-->
-    <ParamRange id="pCntWidthMax" name="pCntWidthMax" desc="pCntWidthMax" group="Internal"  default="`${pow(2, CNT.CNT_WIDTH)-1}`" min="0" max="4294967296" resolution="1" visible="false" editable="false" />    
-    
+    <ParamRange id="pCntWidthMax" name="pCntWidthMax" desc="pCntWidthMax" group="Internal"  default="`${pow(2, CNT.CNT_WIDTH)-1}`" min="0" max="4294967296" resolution="1" visible="false" editable="false" />
+
     <ParamChoice id="ClockPrescaler" name="Clock Prescaler" group="General" default="CY_TCPWM_COUNTER_PRESCALER_DIVBY_1" visible="true" editable="true" desc="Divides down the input clock." >
       <Entry name="Divide by 1" value="CY_TCPWM_COUNTER_PRESCALER_DIVBY_1" visible="true" />
       <Entry name="Divide by 2" value="CY_TCPWM_COUNTER_PRESCALER_DIVBY_2" visible="true" />
@@ -71,13 +71,13 @@
       <Entry name="Compare" value="CY_TCPWM_COUNTER_MODE_COMPARE" visible="true" />
     </ParamChoice>
     <ParamBool id="pCCeqCompare" name="pCCeqCompare" desc="pCCeqCompare" group="Internal" default="`${CompareOrCapture eq CY_TCPWM_COUNTER_MODE_COMPARE}`" visible="false" editable="false" />
-   
-        
+
+
     <!--Compare-->
     <ParamBool id="EnableCompareSwap" name="Enable Compare Swap" group="Compare" default="false" visible="`${pCCeqCompare}`" editable="true" desc="When selected the compare register is swapped between compare 0 and compare 1 each time the comparison is true." />
     <ParamRange id="Compare0" name="`${EnableCompareSwap ? &quot;Compare 0&quot; : &quot;Compare&quot;}`" group="Compare" default="16384" min="0" max="`${pCntWidthMax}`" resolution="1" visible="`${pCCeqCompare}`" editable="true" desc="Sets the compare value. Range: 0-65535 (for 16 bit resolution) or 0–4294967295 (for 32 bit resolution)." />
     <ParamRange id="Compare1" name="Compare 1" group="Compare" default="16384" min="0" max="`${pCntWidthMax}`" resolution="1" visible="`${pCCeqCompare &amp;&amp; EnableCompareSwap}`" editable="true" desc="Sets the compare value. Range: 0-65535 (for 16 bit resolution) or 0–4294967295 (for 32 bit resolution)." />
-    
+
     <!--Capture-->
     <ParamChoice id="CaptureInput" name="Capture Input" group="Capture" default="CY_TCPWM_INPUT_DISABLED" visible="`${CompareOrCapture eq CY_TCPWM_COUNTER_MODE_CAPTURE}`" editable="true" desc="This parameter determines if a Capture terminal is displayed." >
       <Entry name="Rising Edge" value="CY_TCPWM_INPUT_RISINGEDGE" visible="true" />
@@ -105,8 +105,8 @@
       <Entry name="Overflow &amp; Underflow" value="CY_TCPWM_INT_ON_TC" visible="true" />
       <Entry name="Compare &amp; Capture" value="CY_TCPWM_INT_ON_CC" visible="true" />
       <Entry name="Overflow &amp; Underflow or Compare &amp; Capture" value="CY_TCPWM_INT_ON_CC_OR_TC" visible="true" />
-    </ParamChoice>  
-       
+    </ParamChoice>
+
     <!--Inputs-->
     <ParamSignal port="clock[0]" name="Clock Signal" group="Inputs" visible="true" desc="The clock input defines the operating frequency." canBeEmpty="false" />
     <ParamChoice id="CountInput" name="Count Input" group="Inputs" default="CY_TCPWM_INPUT_DISABLED" visible="true" editable="true" desc="Determines if a count input is needed and how that input is registered." >
@@ -146,7 +146,7 @@
           <Fixed value="CY_GPIO_DM_HIGHZ" />
         </Parameter>
       </Constraint>
-      <Constraint type="ACCEPT" targetLocation=".*" valid="true" /> 
+      <Constraint type="ACCEPT" targetLocation=".*" valid="true" />
     </ParamSignal>
     <ParamChoice id="ReloadInput" name="Reload Input" group="Inputs" default="CY_TCPWM_INPUT_DISABLED" visible="true" editable="true" desc="Determines if a reload input is needed and how the reload signal input is registered." >
       <Entry name="Rising Edge" value="CY_TCPWM_INPUT_RISINGEDGE" visible="true" />
@@ -188,7 +188,7 @@
     </ParamSignal>
 
     <!--Outputs-->
-    <ParamSignal port="tr_overflow[0]" name="Overflow" group="Outputs" visible="true" desc="This output goes high when the count value overflows from the period to zero. 
+    <ParamSignal port="tr_overflow[0]" name="Overflow" group="Outputs" visible="true" desc="This output goes high when the count value overflows from the period to zero.
     Reload will also generate an Overflow when up counting." canBeEmpty="true" >
       <Constraint type="ACCEPT" targetLocation="ioss\[\d+\]\.port\[\d+\]\.pin.*" valid="true" >
         <Parameter id="DriveModes" severity="DEFAULT" reason="">
@@ -228,31 +228,31 @@
         </Parameter>
       </Constraint>
       <Constraint type="ACCEPT" targetLocation=".*" valid="true" />
-    </ParamSignal>    
-    
+    </ParamSignal>
+
     <!--Config-->
     <ParamBool id="inFlash" name="Store Config in Flash" group="Advanced" default="true" visible="true" editable="true" desc="Controls whether the configuration structure is stored in flash (const, true) or SRAM (not const, false)." />
- 
+
     <!-- Peripheral clock divider connection -->
     <ParamRange id="tcpwmInst" name="TCPWM Number" group="Internal" default="`${getInstNumber(&quot;tcpwm&quot;)}`" min="0" max="127" resolution="1" visible="false" editable="false" desc="" />
     <ParamRange id="cntInst" name="CNT Number" group="Internal" default="`${getInstNumber(&quot;cnt&quot;)}`" min="0" max="31" resolution="1" visible="false" editable="false" desc="" />
     <ParamString id="definePrefix" name="Define prefix" group="Internal" default="`${&quot;TCPWM&quot; . tcpwmInst . &quot;_CNT&quot; . cntInst}`" visible="false" editable="false" desc="" />
-    <ParamString id="defineInputDisabled" name="Define input disabled" group="Internal" default="`${INST_NAME . &quot;_INPUT_DISABLED &amp; 0x3U&quot;}`" visible="false" editable="false" desc="" />    
+    <ParamString id="defineInputDisabled" name="Define input disabled" group="Internal" default="`${INST_NAME . &quot;_INPUT_DISABLED &amp; 0x3U&quot;}`" visible="false" editable="false" desc="" />
     <ParamString id="pclk" name="PCLK" group="Internal" default="`${getBlockFromSignal(&quot;clock[0]&quot;)}`" visible="false" editable="false" desc="Connected peripheral clock divider (PCLK)" />
     <ParamBool id="pclkOk" name="PCLK Valid" group="Internal" default="`${hasConnection(&quot;clock&quot;, 0) &amp;&amp; isBlockUsed(pclk)}`" visible="false" editable="false" desc="Checks whether there is a PCLK connected and enabled" />
     <ParamString id="pclkDst" name="PCLK Destination" group="Internal" default="PCLK_TCPWM`${tcpwmInst}`_CLOCKS`${cntInst}`" visible="false" editable="false" desc="" />
-    
+
     <ParamString id="hal_block" name="hal_block" group="Internal" default="`${INST_NAME}`_hal_config" visible="false" editable="false" desc="" />
   </Parameters>
 
   <DRCs>
     <!--Compare0 DRCs-->
     <DRC type="ERROR" text="Compare0 (Compare) value must be less or equal to period." condition="`${pCCeqCompare &amp;&amp; (Compare0 &gt; Period)}`" paramId="Compare0" />
-    
+
     <!--Compare1 DRCs-->
     <DRC type="ERROR" text="Compare1 value must be less or equal to period." condition="`${pCCeqCompare &amp;&amp; EnableCompareSwap &amp;&amp; (Compare1 &gt; Period)}`" paramId="Compare1" />
   </DRCs>
-  
+
   <ConfigFirmware>
     <ConfigInclude value="cy_tcpwm_counter.h" include="true" />
     <ConfigInclude value="cy_sysclk.h" include="`${pclkOk}`" />
@@ -260,6 +260,7 @@
     <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />
     <ConfigInclude value="cyhal.h" include="true" guard="defined (CY_USING_HAL)" />
     <ConfigInclude value="cyhal_hw_types.h" include="true" guard="defined (CY_USING_HAL_LITE)" />
+    <ConfigInclude value="mtb_hal.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
 
     <ConfigDefine name="`${INST_NAME}`_HW" value="TCPWM`${tcpwmInst}`" public="true" include="true" />
     <ConfigDefine name="`${INST_NAME}`_NUM" value="`${cntInst}`UL" public="true" include="true" />
@@ -287,7 +288,7 @@
       <Member name="countInputMode" value="`${CountInput eq CY_TCPWM_INPUT_DISABLED ? defineInputDisabled : CountInput}`" />
       <Member name="countInput" value="`${CountInput eq CY_TCPWM_INPUT_DISABLED ? &quot;CY_TCPWM_INPUT_1&quot; : (definePrefix . &quot;_COUNT_VALUE&quot;)}`" />
     </ConfigStruct>
-    
+
     <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL) || defined(CY_USING_HAL_LITE)">
       <Member name="type" value="CYHAL_RSC_TCPWM" />
       <Member name="block_num" value="`${getInstNumber(&quot;tcpwm&quot;)}`U" />
@@ -305,6 +306,23 @@
       <Member name="resource" value="&amp;`${INST_NAME}`_obj" />
       <Member name="config" value="&amp;`${INST_NAME}`_config" />
       <Member name="clock" value="&amp;`${INST_NAME}`_clock" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_clock_ref" type="mtb_hal_peri_div_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+      <Member name="clk_dst" value="(en_clk_dst_t)`${pclkDst}`" />
+      <Member name="div_type" value="`${getExposedMember(pclk, &quot;type&quot;)}`" />
+      <Member name="div_num" value="`${getExposedMember(pclk, &quot;number&quot;)}`" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_clock" type="mtb_hal_clock_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+      <Member name="clock_ref" value="&amp;`${INST_NAME}`_clock_ref" />
+      <Member name="interface" value="&amp;mtb_hal_clock_peri_interface" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_config" type="mtb_hal_timer_configurator_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL) &amp;&amp; (MTB_HAL_DRIVER_AVAILABLE_TIMER)">
+      <Member name="tcpwm_base" value="`${INST_NAME}`_HW" />
+      <Member name="clock" value="&amp;`${INST_NAME}`_hal_clock" />
+      <Member name="tcpwm_cntnum" value="`${getInstNumber(&quot;cnt&quot;)}`U" />
     </ConfigStruct>
 
     <ConfigInstruction value="Cy_SysClk_PeriphAssignDivider(`${pclkDst}`, `${getExposedMember(pclk, &quot;clockSel&quot;)}`);" include="`${pclkOk}`"  />

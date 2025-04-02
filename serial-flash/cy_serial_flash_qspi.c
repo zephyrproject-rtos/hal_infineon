@@ -159,7 +159,15 @@ typedef struct
 static read_txfr_info_t read_txfr_info;
 
 /* DMA related variables */
+#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+CY_ALIGN(__SCB_DCACHE_LINE_SIZE) union
+{
+    cy_stc_dma_descriptor_t        dw;
+    uint8_t                        padding[__SCB_DCACHE_LINE_SIZE];
+} dma_descr;
+#else
 static cy_stc_dma_descriptor_t dma_descr;
+#endif
 
 /* Default DW descriptor config */
 static cy_stc_dma_descriptor_config_t dma_descr_config =
@@ -181,13 +189,13 @@ static cy_stc_dma_descriptor_config_t dma_descr_config =
     .srcYincrement   = 0U,
     .dstYincrement   = CY_DMA_LOOP_COUNT_MAX,
     .yCount          = 1UL,
-    .nextDescriptor  = &dma_descr,
+    .nextDescriptor  = (cy_stc_dma_descriptor_t*)&dma_descr,
 };
 
 /* Default DW channel config */
 static cy_stc_dma_channel_config_t dma_channel_config =
 {
-    .descriptor  = &dma_descr,
+    .descriptor  = (cy_stc_dma_descriptor_t*)&dma_descr,
     .preemptable = false,
     .priority    = DMA_CHANNEL_PRIORITY,
     .enable      = false,
@@ -706,7 +714,10 @@ static cy_en_smif_status_t _read_next_chunk(void)
         dma_descr_config.srcAddress =
             (void*)(qspi_block_config.memConfig[MEM_SLOT]->baseAddress + read_txfr_info.addr);
         #endif /* defined(CY_DEVICE_CYW20829) */
-        Cy_DMA_Descriptor_Init(&dma_descr, &dma_descr_config);
+        Cy_DMA_Descriptor_Init((cy_stc_dma_descriptor_t*)&dma_descr, &dma_descr_config);
+        #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+        SCB_CleanDCache_by_Addr((void*)&dma_descr, sizeof(dma_descr));
+        #endif
 
         #if defined(CY_DEVICE_CYW20829)
         Cy_TrigMux_SwTrigger(TRIG_OUT_MUX_0_PDMA0_TR_IN0, CY_TRIGGER_TWO_CYCLES);
@@ -717,6 +728,10 @@ static cy_en_smif_status_t _read_next_chunk(void)
          */
         _value_to_byte_array(read_txfr_info.addr, &addr_array[0], 0UL,
                              qspi_block_config.memConfig[MEM_SLOT]->deviceCfg->numOfAddrBytes);
+
+        #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+        SCB_InvalidateDCache_by_Addr((void*)read_txfr_info.buf, chunk);
+        #endif
         smif_status = Cy_SMIF_MemCmdRead(qspi_obj.base, qspi_block_config.memConfig[MEM_SLOT],
                                          addr_array, NULL, chunk, NULL, &qspi_obj.context);
 

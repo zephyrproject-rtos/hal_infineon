@@ -177,10 +177,6 @@
     <Destination id="mxaudioss_pdm-1.1" valid="true" message="Migration is successful" defaultMapping="true">
     </Destination>
   </Source>
-  <Source id="mxs40sv2pdm-2.0">
-    <Destination id="pdm_v2-3.0" valid="true" message="Migration is successful" defaultMapping="true">
-    </Destination>
-  </Source>
   <Source id="mxs40sv2keyscan-1.0">
     <Destination id="keyscan-1.1" valid="true" message="Migration is successful" defaultMapping="true">
     </Destination>
@@ -436,6 +432,38 @@
   </Source>
   <Source id="smartio-3.0">
     <Destination id="smartio-4.0" valid="true" message="Migration is successful" defaultMapping="true">
+    </Destination>
+  </Source>
+  <Source id="pdm_v2-3.0">
+    <Destination id="pdm_v2-4.0" valid="true" message="Migration is successful" defaultMapping="true">
+	    <Parameter param="interface_type" value="`${((value(&quot;rxChannels&quot;,&quot;2&quot;) eq &quot;2&quot;) &amp;&amp; ((value(&quot;routeCtl&quot;,&quot;0&quot;) eq &quot;1&quot;) || ((value(&quot;routeCtl&quot;,&quot;0&quot;) eq &quot;2&quot;)))
+													)  ? &quot;2&quot; : &quot;1&quot;}`" />
+        <Parameter param="is_receiver_0_used" value="true"/>
+	    <Parameter param="is_receiver_1_used" value="`${(value(&quot;rxChannels&quot;,&quot;2&quot;) eq &quot;2&quot;) ? &quot;true&quot; : &quot;false&quot;}`"/>
+	    <Parameter param="sampleDelay_0"         value="`${value(&quot;sampleDelay&quot;,&quot;2&quot;)}`" />
+        <Parameter param="wordSize_0"            value="`${value(&quot;wordSize&quot;,&quot;CY_PDM_PCM_WSIZE_16_BIT&quot;)}`"/>
+        <Parameter param="signExtension_0"       value="`${value(&quot;signExtension&quot;,&quot;true&quot;)}`"/>
+        <Parameter param="rxFifoTriggerLevel_0"  value="`${value(&quot;rxFifoTriggerLevel&quot;,&quot;10&quot;)}`"/>
+        <Parameter param="fir0Enable_0"          value="`${value(&quot;fir0Enable&quot;,&quot;true&quot;)}`"/>
+        <Parameter param="cicDecimCode_0"        value="`${value(&quot;cicDecimCode&quot;,&quot;CY_PDM_PCM_CHAN_CIC_DECIM_8&quot;)}`"/>
+        <Parameter param="fir0DecimCode_0"       value="`${value(&quot;fir0DecimCode&quot;,&quot;CY_PDM_PCM_CHAN_FIR1_DECIM_2&quot;)}`"/>
+        <Parameter param="fir0Scale_0"           value="`${value(&quot;fir0Scale&quot;,&quot;7&quot;)}`"/>
+        <Parameter param="fir1DecimCode_0"       value="`${value(&quot;fir1DecimCode&quot;,&quot;CY_PDM_PCM_CHAN_FIR1_DECIM_2&quot;)}`"/>
+        <Parameter param="fir1Scale_0"           value="`${value(&quot;fir1Scale&quot;,&quot;7&quot;)}`"/>
+        <Parameter param="dcBlockDisable_0"      value="`${value(&quot;dcBlockDisable&quot;,&quot;true&quot;)}`"/>
+        <Parameter param="dcBlockCode_0"         value="`${value(&quot;dcBlockCode&quot;,&quot;CY_PDM_PCM_CHAN_DCBLOCK_CODE_1&quot;)}`"/>
+        <Parameter param="sampleDelay_1"         value="`${value(&quot;sampleDelay2&quot;,&quot;2&quot;)}`" />
+        <Parameter param="wordSize_1"            value="`${value(&quot;wordSize2&quot;,&quot;CY_PDM_PCM_WSIZE_16_BIT&quot;)}`"/>
+        <Parameter param="signExtension_1"       value="`${value(&quot;signExtension2&quot;,&quot;true&quot;)}`"/>
+        <Parameter param="rxFifoTriggerLevel_1"  value="`${value(&quot;rxFifoTriggerLevel2&quot;,&quot;10&quot;)}`"/>
+        <Parameter param="fir0Enable_1"          value="`${value(&quot;fir0Enable2&quot;,&quot;true&quot;)}`"/>
+        <Parameter param="cicDecimCode_1"        value="`${value(&quot;cicDecimCode2&quot;,&quot;CY_PDM_PCM_CHAN_CIC_DECIM_8&quot;)}`"/>
+        <Parameter param="fir0DecimCode_1"       value="`${value(&quot;fir0DecimCode2&quot;,&quot;CY_PDM_PCM_CHAN_FIR1_DECIM_2&quot;)}`"/>
+        <Parameter param="fir0Scale_1"           value="`${value(&quot;fir0Scale2&quot;,&quot;7&quot;)}`"/>
+        <Parameter param="fir1DecimCode_1"       value="`${value(&quot;fir1DecimCode2&quot;,&quot;CY_PDM_PCM_CHAN_FIR1_DECIM_2&quot;)}`"/>
+        <Parameter param="fir1Scale_1"           value="`${value(&quot;fir1Scale2&quot;,&quot;7&quot;)}`"/>
+        <Parameter param="dcBlockDisable_1"      value="`${value(&quot;dcBlockDisable2&quot;,&quot;true&quot;)}`"/>
+        <Parameter param="dcBlockCode_1"         value="`${value(&quot;dcBlockCode2&quot;,&quot;CY_PDM_PCM_CHAN_DCBLOCK_CODE_1&quot;)}`"/>
     </Destination>
   </Source>
 </Migration>

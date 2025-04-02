@@ -247,7 +247,7 @@ typedef struct {
   __IOM uint32_t CLK_PATH_SELECT[16];           /*!< 0x00001200 Clock Path Select Register */
   __IOM uint32_t CLK_ROOT_SELECT[16];           /*!< 0x00001240 Clock Root Select Register */
    __IM uint32_t RESERVED12[96];
-        CSV_HF_Type CSV_HF;                     /*!< 0x00001400 Clock Supervisor (CSV) registers for Root clocks */
+        CSV_HF_Type CSV_HF_STRUCT;              /*!< 0x00001400 Clock Supervisor (CSV) registers for Root clocks */
   __IOM uint32_t CLK_SELECT;                    /*!< 0x00001500 Clock selection register */
    __IM uint32_t RESERVED13;
   __IOM uint32_t CLK_ILO0_CONFIG;               /*!< 0x00001508 ILO0 Configuration */
@@ -272,9 +272,9 @@ typedef struct {
    __IM uint32_t RESERVED18[33];
   __IOM uint32_t CSV_REF_SEL;                   /*!< 0x00001700 Select CSV Reference clock for Active domain */
    __IM uint32_t RESERVED19[3];
-        CSV_REF_Type CSV_REF;                   /*!< 0x00001710 CSV registers for the CSV Reference clock */
-        CSV_LF_Type CSV_LF;                     /*!< 0x00001720 CSV registers for LF clock */
-        CSV_ILO_Type CSV_ILO;                   /*!< 0x00001730 CSV registers for HVILO clock */
+        CSV_REF_Type CSV_REF_STRUCT;            /*!< 0x00001710 CSV registers for the CSV Reference clock */
+        CSV_LF_Type CSV_LF_STRUCT;              /*!< 0x00001720 CSV registers for LF clock */
+        CSV_ILO_Type CSV_ILO_STRUCT;            /*!< 0x00001730 CSV registers for HVILO clock */
    __IM uint32_t RESERVED20[48];
   __IOM uint32_t RES_CAUSE;                     /*!< 0x00001800 Reset Cause Observation Register */
   __IOM uint32_t RES_CAUSE2;                    /*!< 0x00001804 Reset Cause Observation Register 2 */

@@ -397,8 +397,10 @@
      </Destination>
   </Source>
   <Source id="mxs40lpc-1.0">
-    <Destination id="lpcomp-2.0" valid="true" message="Migration is successful" defaultMapping="true">
-      </Destination>
+    <Destination id="lpcomp-3.0" valid="true" message="Migration is successful" defaultMapping="true"/>
+  </Source>
+  <Source id="lpcomp-2.0">
+    <Destination id="lpcomp-3.0" valid="true" message="Migration is successful" defaultMapping="true"/>
   </Source>
   <Source id="mxs40peripheralclock-1.0">
     <Destination id="pclk-3.0" valid="true" message="Migration is successful" defaultMapping="true">

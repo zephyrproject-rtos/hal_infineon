@@ -290,6 +290,10 @@ static _cyhal_system_irq_t _cyhal_get_irqn(cyhal_gpio_t pin)
         irqn = (_cyhal_system_irq_t)0u;
         CY_ASSERT(false); /* Unknown port */
     }
+#elif defined(COMPONENT_CAT2)
+    irqn = ((ioss_interrupts_gpio_0_IRQn + CYHAL_GET_PORT(pin)) < ioss_interrupt_gpio_IRQn)
+                ? (_cyhal_system_irq_t)(ioss_interrupts_gpio_0_IRQn + CYHAL_GET_PORT(pin))
+                : (_cyhal_system_irq_t)(ioss_interrupt_gpio_IRQn);
 #else /* other components */
     irqn = (_cyhal_system_irq_t)(ioss_interrupts_gpio_0_IRQn + CYHAL_GET_PORT(pin));
 #endif /* defined(COMPONENT_CAT1D) */
@@ -370,7 +374,6 @@ void cyhal_gpio_free(cyhal_gpio_t pin)
             #endif
 
             Cy_GPIO_Pin_FastInit(CYHAL_GET_PORTADDR(pin), CYHAL_GET_PIN(pin), CY_GPIO_DM_ANALOG, 0UL, HSIOM_SEL_GPIO);
-
             /* Do not attempt to free the resource we don't reserve in mbed. */
 #ifndef __MBED__
             cyhal_resource_inst_t pinRsc = _cyhal_utils_get_gpio_resource(pin);

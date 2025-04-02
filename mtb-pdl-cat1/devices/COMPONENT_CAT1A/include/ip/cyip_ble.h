@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -55,8 +55,8 @@ typedef struct {
   __IOM uint32_t RADIO_REG4_ADDR;               /*!< 0x0000002C Address of Register#4 in Radio  (ACCH) */
   __IOM uint32_t RADIO_REG5_ADDR;               /*!< 0x00000030 Address of Register#5 in Radio  (RSSI ENERGY) */
    __IM uint32_t RESERVED1[3];
-  __IOM uint32_t CPU_WRITE_REG;                 /*!< 0x00000040 N/A */
-  __IOM uint32_t CPU_READ_REG;                  /*!< 0x00000044 N/A */
+  __IOM uint32_t CPU_WRITE_REG;                 /*!< 0x00000040 TX_Reserved 1 register */
+  __IOM uint32_t CPU_READ_REG;                  /*!< 0x00000044 TX_Reserved 2 register */
    __IM uint32_t RESERVED2[46];
 } BLE_RCB_RCBLL_V1_Type;                        /*!< Size = 256 (0x100) */
 

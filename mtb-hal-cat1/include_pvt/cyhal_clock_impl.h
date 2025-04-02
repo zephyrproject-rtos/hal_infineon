@@ -113,6 +113,12 @@ extern "C"
 
 /** \cond INTERNAL */
 #define SRSS_MFO_PRESENT    (SRSS_VER1P3)
+/* Certain devices have MFO but are not exposed */
+#if ((defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 == 0UL)) || defined (CY_IP_MXS28SRSS) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)))
+#define _CYHAL_CLOCK_AVAILABLE_MFO     (1)
+#else
+#define _CYHAL_CLOCK_AVAILABLE_MFO     (0)
+#endif
 /** \endcond */
 
 /** Internal Main Oscillator: This is a fixed-frequency clock that is commonly used as a general purpose source for clocks that do not require specific frequencies or very high accuracy. This clock is stopped in the deep sleep and hibernate power modes. */

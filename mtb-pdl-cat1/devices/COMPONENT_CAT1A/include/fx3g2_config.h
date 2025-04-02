@@ -1834,7 +1834,6 @@ typedef enum
 #include "ip/cyip_main_reg.h"
 #include "ip/cyip_usb32dev.h"
 #include "ip/cyip_lvdsss.h"
-#include "ip/cyip_smartio.h"
 #include "ip/cyip_backup.h"
 
 /* IP type definitions */
@@ -1888,8 +1887,6 @@ typedef CySCB_V1_Type CySCB_Type;
 typedef CANFD_CH_M_TTCAN_V1_Type CANFD_CH_M_TTCAN_Type;
 typedef CANFD_CH_V1_Type CANFD_CH_Type;
 typedef CANFD_V1_Type CANFD_Type;
-typedef SMARTIO_PRT_V1_Type SMARTIO_PRT_Type;
-typedef SMARTIO_V1_Type SMARTIO_Type;
 typedef BACKUP_V1_Type BACKUP_Type;
 typedef TDM_TDM_STRUCT_TDM_TX_STRUCT_V2_Type TDM_TDM_STRUCT_TDM_TX_STRUCT_Type;
 typedef TDM_TDM_STRUCT_TDM_RX_STRUCT_V2_Type TDM_TDM_STRUCT_TDM_RX_STRUCT_Type;

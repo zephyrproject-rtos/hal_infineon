@@ -42,6 +42,11 @@
  *  - CAT1 devices with MXSCB block version 2 and further (value of CY_IP_MXSCB_VERSION) support next data width range: 4 - 32 (included) with step 1
  *  - CAT1 devices with MXSCB block version 1 (value of CY_IP_MXSCB_VERSION) support next data width range: 4 - 16 (included) with step 1
  *  - CAT2 devices support next data width range : 4-16 (included) with step 1
+ *  - CAT5 devices support data widths: 4,8,16,32
+ *
+ *  \section section_hal_impl_spi_master_ss SPI master SS pin configured in GPIO mode
+ * SPI master Slave Select pins are configured in GPIO mode to support asymmetric data transfers.
+ * Therefore these pins are not restricted to direct connections to the SPI hardware
  *
  * \} group_hal_impl_spi
  */
@@ -84,7 +89,7 @@ extern "C"
 #define _CYHAL_SPI_SSEL_ACTIVATE            true
 #define _CYHAL_SPI_SSEL_DEACTIVATE          false
 
-// BWC: PDL finished new asymmetric transfer function in minor version 20
+// BWC: PDL introduced new asymmetric transfer function finalized by version 3.20
 #if CY_SCB_DRV_VERSION_MINOR >= 20 && defined(COMPONENT_CAT1) && CY_SCB_DRV_VERSION_MAJOR == 3
 #define _CYHAL_SPI_ASYMM_PDL_FUNC_AVAIL
 #endif
@@ -199,7 +204,7 @@ static cy_rslt_t _cyhal_spi_int_frequency(cyhal_spi_t *obj, uint32_t hz, uint8_t
         *   tDSI Is external master delay which is assumed to be 16.66 nsec */
 
         /* Divided by 2 desired period to avoid dividing in required_frequency formula */
-        float desired_period_us_divided = 5e5f * (1 / (float)hz);
+        cy_float32_t desired_period_us_divided = 5e5f * (1 / (cy_float32_t)hz);
         uint32_t required_frequency = (uint32_t)(3e6f / (desired_period_us_divided - 36.66f / 1e3f));
 
         if (required_frequency > peri_freq)
@@ -936,6 +941,10 @@ cy_rslt_t cyhal_spi_init(cyhal_spi_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t miso,
                                 (CY_SCB_SPI_ACTIVE_LOW << CY_SCB_SPI_SLAVE_SELECT1) | \
                                 (CY_SCB_SPI_ACTIVE_LOW << CY_SCB_SPI_SLAVE_SELECT2) | \
                                 (CY_SCB_SPI_ACTIVE_LOW << CY_SCB_SPI_SLAVE_SELECT3));
+#if defined (COMPONENT_CAT5)
+    // Temporary workaround to allow the Master to correctly sample the data.
+    driver_config.oversample = (is_slave == 0) ? 0 : _CYHAL_SPI_OVERSAMPLE_MIN;
+#endif
 
     cy_rslt_t result = CY_RSLT_SUCCESS;
 
@@ -972,6 +981,11 @@ cy_rslt_t cyhal_spi_init_cfg(cyhal_spi_t *obj, const cyhal_spi_configurator_t *c
 
     obj->dc_configured = (NULL != cfg->resource);
     cy_stc_scb_spi_config_t cfg_local = *cfg->config;
+
+    #if defined (COMPONENT_CAT5)
+     // Temporary workaround to allow the Master to correctly sample the data.
+    cfg_local.oversample = (cfg->config->spiMode == CY_SCB_SPI_MASTER) ? 0 : _CYHAL_SPI_OVERSAMPLE_MIN;
+    #endif
 
     if (obj->dc_configured &&
        ((cfg_local.subMode != CY_SCB_SPI_MOTOROLA) ||
@@ -1047,6 +1061,7 @@ cy_rslt_t cyhal_spi_init_cfg(cyhal_spi_t *obj, const cyhal_spi_configurator_t *c
         {
             obj->clock = *cfg->clock;
             obj->alloc_clock = false;
+            #if !defined(COMPONENT_CAT5)
 
             /* Per CDT 315848 and 002-20730 Rev. *E:
              * For SPI, an integer clock divider must be used for both master and slave. */
@@ -1055,6 +1070,9 @@ cy_rslt_t cyhal_spi_init_cfg(cyhal_spi_t *obj, const cyhal_spi_configurator_t *c
             {
                 result = CYHAL_SPI_RSLT_CLOCK_NOT_SUPPORTED;
             }
+            #else
+            result = _cyhal_spi_int_frequency(obj, _CYHAL_SPI_DEFAULT_SPEED, &obj->oversample_value);
+            #endif
         }
     }
     #endif

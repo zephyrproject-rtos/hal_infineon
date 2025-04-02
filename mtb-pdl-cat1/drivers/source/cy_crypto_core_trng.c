@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_trng.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the source code to the API for the TRNG

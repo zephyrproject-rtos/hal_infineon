@@ -153,6 +153,7 @@
   <ConfigFirmware>
     <ConfigInclude value="cy_dma.h" include="true" />
     <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />
+    <ConfigInclude value="cyhal_dma.h" include="true" guard="defined (CY_USING_HAL) || defined (CY_USING_HAL_LITE)" />
 
     <ConfigDefine name="`${INST_NAME . &quot;_HW&quot;}`" value="`${HWbase}`" public="true" include="true" />
     <ConfigDefine name="`${INST_NAME . &quot;_CHANNEL&quot;}`" value="`${channel}`U" public="true" include="true" />
@@ -225,13 +226,13 @@
       <Member name="polynomial" value="`${CRC_POLYNOMIAL}`" />
     </ConfigStruct>
     
-    <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL)">
+    <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL) || defined (CY_USING_HAL_LITE)">
       <Member name="type" value="CYHAL_RSC_DW" />
       <Member name="block_num" value="`${block}`U" />
       <Member name="channel_num" value="`${INST_NAME}`_CHANNEL" />
     </ConfigStruct>
 
-    <ConfigStruct name="`${INST_NAME}`_hal_config" type="cyhal_dma_configurator_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL)">
+    <ConfigStruct name="`${INST_NAME}`_hal_config" type="cyhal_dma_configurator_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL) || defined (CY_USING_HAL_LITE)">
       <Member name="resource" value="&amp;`${INST_NAME}`_obj" />
       <Member name="dw_channel_config" value="&amp;`${INST_NAME . &quot;_channelConfig&quot;}`" />
       <Member name="dw_descriptor_config" value="&amp;`${INST_NAME}`_Descriptor_`${DESCR_SELECTION}`_config" />

@@ -32,7 +32,7 @@
 #if defined(CY_USING_HAL)
 #include "cyhal_hwmgr.h"
 #include "cyhal_syspm.h"
-
+#include "cyhal_system.h"
 #if defined(CYBSP_WIFI_CAPABLE) && defined(CYHAL_UDB_SIO)
 #include "SDIO_HOST.h"
 #endif
@@ -89,26 +89,32 @@ static cy_rslt_t cybsp_register_sysclk_pm_callback(void)
 //--------------------------------------------------------------------------------------------------
 cy_rslt_t cybsp_init(void)
 {
+    #if defined(CY_USING_HAL)
     // Setup hardware manager to track resource usage then initialize all system (clock/power) board
     // configuration
-    #if defined(CY_USING_HAL)
     cy_rslt_t result = cyhal_hwmgr_init();
 
     if (CY_RSLT_SUCCESS == result)
     {
         result = cyhal_syspm_init();
     }
+    #else // if defined(CY_USING_HAL)
+    cy_rslt_t result = CY_RSLT_SUCCESS;
+    #endif /* defined(CY_USING_HAL) */
 
     #ifdef CY_CFG_PWR_VDDA_MV
     if (CY_RSLT_SUCCESS == result)
     {
+        #if defined(CY_USING_HAL)
+        // Old versions of classic HAL have this API in the Syspm HAL. In versions of HAL which
+        // support HAL-Lite configuration, this is moved to the System HAL, with compatibility
+        // macros that exist in classic HAL configuration only (HAL-Lite configuration does
+        // not include SysPm HAL)
         cyhal_syspm_set_supply_voltage(CYHAL_VOLTAGE_SUPPLY_VDDA, CY_CFG_PWR_VDDA_MV);
+        #endif
     }
-    #endif
+    #endif // ifdef CY_CFG_PWR_VDDA_MV
 
-    #else // if defined(CY_USING_HAL)
-    cy_rslt_t result = CY_RSLT_SUCCESS;
-    #endif // if defined(CY_USING_HAL)
 
     // By default, the peripheral configuration will be done on the first core running user code.
     // This is the CM0+ if it is available and not running a pre-built image, and the CM4 otherwise.
@@ -132,7 +138,7 @@ cy_rslt_t cybsp_init(void)
         #endif
     }
 
-    #if defined(CYBSP_WIFI_CAPABLE) && defined(CYHAL_UDB_SIO)
+    #if defined(CYBSP_WIFI_CAPABLE) && defined(CYHAL_UDB_SIO) && defined(CY_USING_HAL)
 
     // Reserve resources for the UDB SDIO interface that might want to be used by others. This
     // includes specific clock and DMA instances. This must be done before other HAL API calls as
@@ -143,7 +149,7 @@ cy_rslt_t cybsp_init(void)
     {
         result = SDIO_ReserveResources();
     }
-    #endif // defined(CYBSP_WIFI_CAPABLE) && defined(CYHAL_UDB_SIO)
+    #endif // defined(CYBSP_WIFI_CAPABLE) && defined(CYHAL_UDB_SIO) && defined(CY_USING_HAL)
 
     // CYHAL_HWMGR_RSLT_ERR_INUSE error code could be returned if any needed for BSP resource was
     // reserved by user previously. Please review the Device Configurator (design.modus) and the BSP

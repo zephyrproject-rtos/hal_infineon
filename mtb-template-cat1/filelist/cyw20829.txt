@@ -11,3 +11,8 @@ files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_ARM/cyw20829_ns_ram
 files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_IAR/cyw20829_ns_flash_sahb.icf:TOOLCHAIN_IAR/linker_ns_flash.icf
 files/templates/cat1b/COMPONENT_MTB/COMPONENT_CM33/TOOLCHAIN_IAR/cyw20829_ns_ram_cbus.icf:TOOLCHAIN_IAR/linker_ns_ram_cbus.icf
 
+files/wiced_bluetooth/cybsp_bt_config.c:bluetooth/cybsp_bt_config.c
+files/wiced_bluetooth/cybsp_bt_config.h:bluetooth/cybsp_bt_config.h
+files/flashloader/cat1b/CYW208xx_SMIF.FLM:config/FlashLoaders/CYW208xx_SMIF.FLM
+files/flashloader/cat1b/FlashCYW208xx_SMIF.out:config/FlashLoaders/FlashCYW208xx_SMIF.out
+files/flashloader/cat1b/version.xml:config/FlashLoaders/version.xml

@@ -163,11 +163,9 @@ static const _cyhal_wdt_ignore_bits_data_t _cyhal_wdt_ignore_data[] = {
     {     1,      1}, // 18 bit(s): min period:      1ms, max period:      1ms, round up from 1+ms
 };
 #elif defined(COMPONENT_CAT2)
-// ILO Frequency = 40000 Hz
-// ILO Period = 1 / 40000 Hz = .025 ms
-// WDT Reset Period (timeout_ms) = .025 ms * (2 * 2^(16 - ignore_bits) + match)
-// ignore_bits range: 0 - 16 (only need up to 12)
-// match range: 0 - 2^(16 - ignore_bits)
+// ILO Frequency = 40000 Hz, ILO Period = 1 / 40000 Hz = .025 ms
+#define _CYHAL_WDT_MAX_TIMEOUT_MS 4915
+#define _CYHAL_WDT_MAX_IGNORE_BITS (_CYHAL_WDT_MATCH_BITS - 4)
 static const _cyhal_wdt_ignore_bits_data_t _cyhal_wdt_ignore_data[] = {
     {3277, 2458}, //  0 bit(s): min period: 3277ms, max period: 4915ms, round up from 2458+ms
     {1639, 1229}, //  1 bit(s): min period: 1639ms, max period: 2457ms, round up from 1229+ms

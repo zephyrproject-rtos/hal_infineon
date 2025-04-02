@@ -100,6 +100,8 @@ enum cyhal_rslt_module_chip
     CYHAL_RSLT_MODULE_IMPL_TCPWM    = (0x22),  //!< An error occurred in TCPWM module (TCPWM based drivers are: Timer, PWM, Quadrature Decoder)
     CYHAL_RSLT_MODULE_IMPL_SCB      = (0x23),  //!< An error occurred in SCB module (SCB based drivers are: I2C, SPI, UART)
     CYHAL_RSLT_MODULE_T2TIMER       = (0x24),  //!< An error occurred in T2Timer module
+    CYHAL_RSLT_MODULE_ETHERNET      = (0x25),  //!< An error occurred in Ethernet module
+    CYHAL_RSLT_MODULE_OTP           = (0x26),  //!< An error occurred in OTP module
 };
 
 /**

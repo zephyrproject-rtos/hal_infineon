@@ -241,8 +241,8 @@ static cy_rslt_t _cyhal_quaddec_pin_init(cyhal_quaddec_t *obj, cyhal_gpio_t pin,
         uint8_t idx = (uint8_t)_cyhal_quaddec_translate_input_signal(input);
 
         #if !defined(COMPONENT_CAT5)
-            // Already taken care of in cyhal_connect_pin() for CAT5
-            rslt = cyhal_gpio_enable_output(pin, signal_type, &(obj->tcpwm.inputs[idx]));
+        // Already taken care of in cyhal_connect_pin() for CAT5
+        rslt = cyhal_gpio_enable_output(pin, signal_type, &(obj->tcpwm.inputs[idx]));
         #endif
         
         if (rslt == CY_RSLT_SUCCESS)
@@ -276,7 +276,7 @@ static cyhal_dest_t _cyhal_quaddec_get_phy_a_input_dest(uint8_t block_num, uint8
         There is no possibility to return warning/error code, setting trig index to default 0. */
         trig_idx = 0;
     }
-    return _cyhal_tpwm_calculate_dest(block_num, trig_idx);
+    return _cyhal_tcpwm_calculate_dest(block_num, trig_idx);
 }
 #endif
 
@@ -314,7 +314,14 @@ cy_rslt_t _cyhal_quaddec_init_hw(cyhal_quaddec_t *obj, const cy_stc_tcpwm_quadde
         }
         else
         {
-            rslt = _cyhal_quaddec_configure_clock(&obj->tcpwm, pclk, frequency);
+            if (!frequency)
+            {
+                rslt = CYHAL_QUADDEC_RSLT_ERR_BAD_ARGUMENT;
+            }
+            else
+            {
+                rslt = _cyhal_quaddec_configure_clock(&obj->tcpwm, pclk, frequency);
+            }
         }
 
         if (rslt == CY_RSLT_SUCCESS)
@@ -630,6 +637,15 @@ cy_rslt_t cyhal_quaddec_disconnect_digital(cyhal_quaddec_t *obj, cyhal_source_t 
 }
 
 #elif defined(COMPONENT_CAT2)
+
+cy_rslt_t cyhal_quaddec_connect_digital2(cyhal_quaddec_t *obj, cyhal_source_t source, cyhal_quaddec_input_t signal, cyhal_edge_type_t edge_type)
+{
+    CY_UNUSED_PARAMETER(obj);
+    CY_UNUSED_PARAMETER(source);
+    CY_UNUSED_PARAMETER(signal);
+    CY_UNUSED_PARAMETER(edge_type);
+    return CYHAL_QUADDEC_RSLT_ERR_NOT_SUPPORTED;
+}
 
 cy_rslt_t cyhal_quaddec_connect_digital(cyhal_quaddec_t *obj, cyhal_source_t source, cyhal_quaddec_input_t signal)
 {

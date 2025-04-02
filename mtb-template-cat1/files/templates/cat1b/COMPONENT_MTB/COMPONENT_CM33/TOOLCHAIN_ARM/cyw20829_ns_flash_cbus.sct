@@ -1,4 +1,4 @@
-#! armclang -E  --target=arm-arm-none-eabi -x c -mcpu=cortex-m33 -march=armv8-m.main
+#! armclang -E  --target=arm-arm-none-eabi -x c -mcpu=cortex-m33
 ; The first line specifies a preprocessor command that the linker invokes
 ; to pass a scatter file through a C preprocessor.
 

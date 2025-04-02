@@ -46,7 +46,8 @@
 *   (http://www.cypress.com/documentation/programming-specifications/psoc-6-programming-specifications)
 * - CAT1B devices support writing to eFuse memory. 
 *     \note Blowing eFuses is normally performed during device provisioning; eFuses are not intended to be 
-*     programmed by the customer
+*     programmed by the customer. Read and write of eFuse data is generally restricted to Boot FW code and 
+*     will not be accessible to customer application.
 * - CAT1C devices does not support writing to eFuse memory.
 *
 * One eFuse macro consists of 256 bits (32 * 8).

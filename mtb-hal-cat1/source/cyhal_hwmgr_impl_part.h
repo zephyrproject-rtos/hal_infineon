@@ -39,6 +39,10 @@
     #define CY_BLOCK_COUNT_ADC  (CY_IP_MXS40EPASS_ESAR_INSTANCES)
 #elif defined (CY_IP_M0S8PASS4A_SAR_INSTANCES)
     #define CY_BLOCK_COUNT_ADC  (CY_IP_M0S8PASS4A_SAR_INSTANCES)
+#elif defined (CY_IP_MXS22LPPASS_SAR_INSTANCES)
+    #define CY_BLOCK_COUNT_ADC  (CY_IP_MXS22LPPASS_SAR_INSTANCES)
+#elif defined (CY_IP_MXS40MCPASS_INSTANCES)
+    #define CY_BLOCK_COUNT_ADC  (CY_IP_MXS40MCPASS_INSTANCES)
 #else
     #define CY_BLOCK_COUNT_ADC      (0)
 #endif
@@ -187,8 +191,11 @@
 #elif defined(COMPONENT_CAT1B)
 // 10 dedicated = IHO, IMO, EXT, ILO, FLL, LF, Pump, BAK, AltSysTick, Peri
 //  7 optional =  ECO, ALTHF, ALTLF, PILO, WCO, MFO, MF
+#if defined(SRSS_NUM_DPLL250M)
+#define CY_CHANNEL_COUNT_CLOCK      (10 + 7 + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + SRSS_NUM_HFROOT + PERI_DIV_NR)
+#else
 #define CY_CHANNEL_COUNT_CLOCK      (10 + 7 + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + PERI_DIV_NR)
-// TODO : to be fixed
+#endif
 #elif defined(COMPONENT_CAT1C)
 // 15 dedicated = IMO, EXT, ILO, IL01, FLL, LF, BAK, AltSysTick, Peri, Fast0, Fast1, Slow, Mem, Timer
 //  2 optional =  ECO, WCO
@@ -213,12 +220,16 @@
     #define CY_BLOCK_COUNT_CRYPTO   (CY_IP_M0S8CRYPTO_INSTANCES)
 #elif defined(CY_IP_M0S8CRYPTOLITE_INSTANCES)
     #define CY_BLOCK_COUNT_CRYPTO   (CY_IP_M0S8CRYPTOLITE_INSTANCES)
+#elif defined(CY_IP_MXCRYPTOLITE_INSTANCES)
+    #define CY_BLOCK_COUNT_CRYPTO   (CY_IP_MXCRYPTOLITE_INSTANCES)
 #else
     #define CY_BLOCK_COUNT_CRYPTO   (0)
 #endif
 
 #if defined(CY_IP_MXS40PASS_CTDAC_INSTANCES)
     #define CY_BLOCK_COUNT_DAC      (CY_IP_MXS40PASS_CTDAC_INSTANCES)
+#elif defined(CY_IP_MXS22LPPASS_DAC_INSTANCES)
+    #define CY_BLOCK_COUNT_DAC      (CY_IP_MXS22LPPASS_DAC_INSTANCES)
 #else
     #define CY_BLOCK_COUNT_DAC      (0)
 #endif
@@ -334,6 +345,10 @@
     #define CY_BLOCK_COUNT_LPCOMP   (CY_IP_MXLPCOMP_INSTANCES)
 #elif defined(CY_IP_M0S8LPCOMP_INSTANCES)
     #define CY_BLOCK_COUNT_LPCOMP   (CY_IP_M0S8LPCOMP_INSTANCES)
+#elif defined(CY_IP_MXS22LPCOMP_INSTANCES)
+    #define CY_BLOCK_COUNT_LPCOMP   (CY_IP_MXS22LPCOMP_INSTANCES)
+#elif defined(CY_IP_MXS40LPCOMP_INSTANCES)
+    #define CY_BLOCK_COUNT_LPCOMP   (CY_IP_MXS40LPCOMP_INSTANCES)
 #else
     #define CY_BLOCK_COUNT_LPCOMP   (0)
 #endif
@@ -347,6 +362,8 @@
     #else
         #define CY_BLOCK_COUNT_OPAMP    (PASS0_NR_CTBS)
     #endif
+#elif defined(PASS_NR_CTBLS)
+    #define CY_BLOCK_COUNT_OPAMP    (PASS_NR_CTBLS)
 #else
     #define CY_BLOCK_COUNT_OPAMP    (0)
 #endif
@@ -360,7 +377,10 @@
     #define CY_BLOCK_COUNT_PDMPCM   (0)
 #endif
 
-#if defined(CY_IP_MXSMIF_INSTANCES)
+#if defined(CY_IP_MXSMIF_INSTANCES) && defined(SMIF0_CORE1)
+    /* On CAT1D device, CY_IP_MXSMIF_INSTANCES is 1, but number of cores is 2 */
+    #define CY_BLOCK_COUNT_QSPI     (2)
+#elif defined(CY_IP_MXSMIF_INSTANCES)
     #define CY_BLOCK_COUNT_QSPI     (CY_IP_MXSMIF_INSTANCES)
 #else
     #define CY_BLOCK_COUNT_QSPI     (0)
@@ -390,8 +410,12 @@
     #define CY_BLOCK_COUNT_SDIODEV  (0)
 #endif
 
-#if defined(CY_IP_MXTCPWM_INSTANCES)
+#if defined(CY_IP_MXTCPWM_INSTANCES) || defined(CY_IP_MXS40TCPWM_INSTANCES)
+    #if defined(CY_IP_MXTCPWM_INSTANCES)
     #define CY_BLOCK_COUNT_TCPWM    CY_IP_MXTCPWM_INSTANCES
+    #elif defined(CY_IP_MXS40TCPWM_INSTANCES)
+    #define CY_BLOCK_COUNT_TCPWM    CY_IP_MXS40TCPWM_INSTANCES
+    #endif
     #if (CY_IP_MXTCPWM_VERSION == 1)
         #if (CY_IP_MXTCPWM_INSTANCES == 0)
             #define CY_CHANNEL_COUNT_TCPWM (0u)
@@ -418,8 +442,8 @@
         #elif (CY_IP_MXTCPWM_INSTANCES > 10)
             #warning Unhandled TCPWM instance count
         #endif
-    #elif (CY_IP_MXTCPWM_VERSION == 2)
-        #if (CY_IP_MXTCPWM_INSTANCES == 1)
+    #elif (CY_IP_MXTCPWM_VERSION == 2) || (CY_IP_MXS40TCPWM_VERSION == 1)
+        #if (CY_IP_MXTCPWM_INSTANCES == 1) || (CY_IP_MXS40TCPWM_INSTANCES == 1)
             #if (TCPWM_GRP_NR == 0)
                 #define CY_CHANNEL_COUNT_TCPWM (0u)
             #elif (TCPWM_GRP_NR == 1)
@@ -433,7 +457,7 @@
             #elif (TCPWM_GRP_NR > 4)
                 #warning Unhandled TCPWM instance count
             #endif
-        #elif (CY_IP_MXTCPWM_INSTANCES == 2)
+        #elif (CY_IP_MXTCPWM_INSTANCES == 2) || (CY_IP_MXS40TCPWM_INSTANCES == 2)
             #if (TCPWM0_GRP_NR == 0)
                 #define CY_CHANNEL_COUNT_TCPWM0 (0u)
             #elif (TCPWM0_GRP_NR == 1)
@@ -766,7 +790,12 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[26] =
  * one higher than the previous value. When there are multiple clocks (e.g.: PathMux/PLL)
  * the subsequent value is increased by the define that specifies how many clocks are
  * actually present. */
+
+#if defined(SRSS_NUM_DPLL250M)
+static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[PERI_PERI_PCLK_PCLK_GROUP_NR * 4 + 23] =
+#else
 static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[PERI_PERI_PCLK_PCLK_GROUP_NR * 4 + 22] =
+#endif
 {
     // Peripheral dividers (8-bit, 16-bit, 16.5-bit & 24.5 bit) for each group
     #if (PERI_PERI_PCLK_PCLK_GROUP_NR > 0)
@@ -818,32 +847,46 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[PERI_PERI_PCLK_PCLK
         CY_MXSPERI_PCLK_DIV_CNT_OFFSETS(15),
     #endif
 
-    PERI_DIV_NR,                                                                                    // IHO
-    PERI_DIV_NR + 1,                                                                                // IMO
-    PERI_DIV_NR + 2,                                                                                // ECO
-    PERI_DIV_NR + 3,                                                                                // EXT
-    PERI_DIV_NR + 4,                                                                                // ALTHF
-    PERI_DIV_NR + 5,                                                                                // ALTLF
-    PERI_DIV_NR + 6,                                                                                // ILO
-    PERI_DIV_NR + 7,                                                                                // PILO
-    PERI_DIV_NR + 8,                                                                                // WCO
-    PERI_DIV_NR + 9,                                                                                // MFO
+    PERI_DIV_NR,                                                                                                    // IHO
+    PERI_DIV_NR + 1,                                                                                                // IMO
+    PERI_DIV_NR + 2,                                                                                                // ECO
+    PERI_DIV_NR + 3,                                                                                                // EXT
+    PERI_DIV_NR + 4,                                                                                                // ALTHF
+    PERI_DIV_NR + 5,                                                                                                // ALTLF
+    PERI_DIV_NR + 6,                                                                                                // ILO
+    PERI_DIV_NR + 7,                                                                                                // PILO
+    PERI_DIV_NR + 8,                                                                                                // WCO
+    PERI_DIV_NR + 9,                                                                                                // MFO
 
-    PERI_DIV_NR + 10,                                                                               // PathMux
+    PERI_DIV_NR + 10,                                                                                               // PathMux
 
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + 10,                                                            // FLL
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + 11,                                                            // PLL200
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + 11,                                         // PLL400
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 11,                      // ECO_PreScaler
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + 10,                                                                            // FLL
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + 11,                                                                            // PLL200
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + 11,                                                         // PLL400
+    #if defined(SRSS_NUM_DPLL250M) /* Not all CAT1B devices have DPLL250 defined */
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 11,                                      // DPLL250
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + 11,                   // ECO_PreScaler
 
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 12,                      // LF
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 13,                      // MF
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 14,                      // HF
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + 12,                   // LF
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + 13,                   // MF
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + 14,                   // HF
 
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 14,    // PUMP
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 15,    // BAK
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 16,    // AltSysTick
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 17,    // Peri
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + SRSS_NUM_HFROOT + 14, // PUMP
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + SRSS_NUM_HFROOT + 15, // BAK
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + SRSS_NUM_HFROOT + 16, // AltSysTick
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_DPLL250M + SRSS_NUM_HFROOT + 17, // Peri
+    #else
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 11,                                      // ECO_PreScaler
+
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 12,                                      // LF
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 13,                                      // MF
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + 14,                                      // HF
+
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 14,                    // PUMP
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 15,                    // BAK
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 16,                    // AltSysTick
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_PLL200M + SRSS_NUM_PLL400M + SRSS_NUM_HFROOT + 17,                    // Peri
+    #endif
 };
 
 #elif defined(COMPONENT_CAT1C)
@@ -1077,7 +1120,7 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[PERI_PERI_PCLK_PCLK
  * one higher than the previous value. When there are multiple clocks (e.g.: PathMux/PLL)
  * the subsequent value is increased by the define that specifies how many clocks are
  * actually present. */
-static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[(PERI0_PERI_PCLK_PCLK_GROUP_NR + PERI1_PERI_PCLK_PCLK_GROUP_NR) * 4 + 14] =
+static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[(PERI0_PERI_PCLK_PCLK_GROUP_NR + PERI1_PERI_PCLK_PCLK_GROUP_NR) * 4 + 16] =
 {
     // Peripheral dividers (8-bit, 16-bit, 16.5-bit & 24.5 bit) for each group
     #if (PERI0_PERI_PCLK_PCLK_GROUP_NR > 0)
@@ -1149,12 +1192,12 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_clock[(PERI0_PERI_PCLK_PC
     PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + 5,                       // ECO_PreScaler
 
     PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + 6,                       // LF
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + 7,                       // MF
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + 8,                       // HF
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + 7,                       // HF
 
     PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + SRSS_NUM_HFROOT + 8,     // BAK
-    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + SRSS_NUM_HFROOT + 9      // Peri
-
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + SRSS_NUM_HFROOT + 9,     // SysTick
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + SRSS_NUM_HFROOT + 10,     // Peri
+    PERI_DIV_NR + SRSS_NUM_CLKPATH + SRSS_NUM_DPLL_LP + SRSS_NUM_DPLL_HP + SRSS_NUM_HFROOT + 11     // Timer
 };
 
 #elif defined(COMPONENT_CAT2)
@@ -1220,6 +1263,8 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_tdm[] =
 #endif
 #endif
 };
+
+
 #endif
 
 static const _cyhal_hwmgr_offset_t cyhal_block_offsets_gpio[] =
@@ -1294,11 +1339,24 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_opamp[] =
 #endif
 };
 
+#if defined(COMPONENT_CAT1D)
+static const _cyhal_hwmgr_offset_t cyhal_block_offsets_dac[] =
+{
+    0,
+#if (CY_BLOCK_COUNT_DAC > 1)
+    2,
+#endif /* (CY_BLOCK_COUNT_DAC > 1) */
+#if (CY_BLOCK_COUNT_DAC > 2)
+    #error "Unhandled DAC count"
+#endif /* (CY_BLOCK_COUNT_DAC > 2) */
+};
+#endif
+
 static const _cyhal_hwmgr_offset_t cyhal_block_offsets_tcpwm[] =
 {
     0,
-#ifdef CY_IP_MXTCPWM_INSTANCES
-    #if CY_IP_MXTCPWM_VERSION == 1
+#if defined(CY_IP_MXTCPWM_INSTANCES) || defined(CY_IP_MXS40TCPWM_INSTANCES)
+    #if (CY_IP_MXTCPWM_VERSION == 1)
         #if (CY_IP_MXTCPWM_INSTANCES > 1)
             TCPWM0_CNT_NR,
         #endif
@@ -1329,8 +1387,8 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_tcpwm[] =
         #if (CY_IP_MXTCPWM_INSTANCES > 10)
             #warning Unhandled TCPWM instance count
         #endif
-    #else // CY_IP_MXTCPWM_VERSION >= 2
-        #if (CY_IP_MXTCPWM_INSTANCES == 1)
+    #else // CY_IP_MXTCPWM_VERSION >= 2 || CY_IP_MXS40TCPWM_VERSION
+        #if (CY_IP_MXTCPWM_INSTANCES == 1) || (CY_IP_MXS40TCPWM_INSTANCES == 1)
             #if (TCPWM_GRP_NR > 1)
                 TCPWM_GRP_NR0_GRP_GRP_CNT_NR,
             #endif
@@ -1340,7 +1398,7 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_tcpwm[] =
             #if (TCPWM_GRP_NR > 3)
                 TCPWM_GRP_NR0_GRP_GRP_CNT_NR + TCPWM_GRP_NR1_GRP_GRP_CNT_NR + TCPWM_GRP_NR2_GRP_GRP_CNT_NR,
             #endif
-        #elif (CY_IP_MXTCPWM_INSTANCES == 2)
+        #elif (CY_IP_MXTCPWM_INSTANCES == 2) || (CY_IP_MXS40TCPWM_INSTANCES == 2)
             // The 'else's are placeholders to ensure the groups line up, even if groups are empty or absent
             #if (TCPWM0_GRP_NR > 1)
                 TCPWM0_GRP_NR0_GRP_GRP_CNT_NR,
@@ -1384,8 +1442,6 @@ static const _cyhal_hwmgr_offset_t cyhal_block_offsets_tcpwm[] =
     #endif
 #endif
 };
-
-static uint8_t cyhal_used[(CY_TOTAL_ALLOCATABLE_ITEMS + 7) / 8] = {0};
 
 // Note: the ordering here needs to be parallel to that of cyhal_resource_t
 static const uint16_t cyhal_resource_offsets[] =
@@ -1453,7 +1509,7 @@ static const uint32_t cyhal_has_channels =
     (1 << CYHAL_RSC_GPIO)  |
     (1 << CYHAL_RSC_LPCOMP)|
     (1 << CYHAL_RSC_OPAMP) |
-    (1 << CYHAL_RSC_TCPWM) ;
+    (1 << CYHAL_RSC_TCPWM);
 
 /*******************************************************************************
 *       Utility helper functions
@@ -1485,6 +1541,10 @@ static inline const _cyhal_hwmgr_offset_t* _cyhal_get_block_offsets(cyhal_resour
         case CYHAL_RSC_TDM:
             return cyhal_block_offsets_tdm;
 #endif
+#if defined(COMPONENT_CAT1D)
+        case CYHAL_RSC_DAC:
+            return cyhal_block_offsets_dac;
+#endif
         case CYHAL_RSC_GPIO:
             return cyhal_block_offsets_gpio;
         case CYHAL_RSC_LPCOMP:
@@ -1494,7 +1554,6 @@ static inline const _cyhal_hwmgr_offset_t* _cyhal_get_block_offsets(cyhal_resour
         case CYHAL_RSC_TCPWM:
             return cyhal_block_offsets_tcpwm;
         default:
-            CY_ASSERT(false);
             return NULL;
     }
 }
@@ -1525,7 +1584,6 @@ static inline uint8_t _cyhal_get_block_offset_length(cyhal_resource_t type)
         case CYHAL_RSC_TCPWM:
             return sizeof(cyhal_block_offsets_tcpwm)/sizeof(cyhal_block_offsets_tcpwm[0]);
         default:
-            CY_ASSERT(false);
             return 0;
     }
 }

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_ecc_eddsa.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides constant and parameters for the API for the ECC EDDSA
@@ -36,15 +36,12 @@
 extern "C" {
 #endif
 
-#if defined(CY_CRYPTO_CFG_EDDSA_C)
+#if defined(CY_CRYPTO_CFG_EDDSA_C) || defined(CY_CRYPTO_CFG_EC25519_C)
 
 #include "cy_crypto_core_ecc_nist_p.h"
 #include "cy_crypto_core_mem.h"
 #include "cy_crypto_core_vu.h"
 
-cy_en_crypto_status_t Cy_Crypto_Core_EDDSA_Bar_MulRed(CRYPTO_Type *base, uint32_t z, uint32_t x, uint32_t size);
-cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MulMod( CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t b, uint32_t size);
-cy_en_crypto_status_t Cy_Crypto_Core_ED25519_SquareMod( CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t size);
 cy_en_crypto_status_t Cy_Crypto_Core_ED25519_ExpMod(CRYPTO_Type *base, uint32_t p_x, uint32_t p_y, uint32_t p_e, uint32_t bitsize);
 cy_en_crypto_status_t Cy_Crypto_Core_ED25519Add(CRYPTO_Type *base, cy_stc_crypto_edw_dp_type *edwDp, uint32_t s_x,
                                                 uint32_t s_y, uint32_t s_z,
@@ -64,26 +61,6 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMulAdd(CRYPTO_Type *base, cy_s
 
 #define CY_ED25519SIG_VERIFY_PASS (0xA1A1A1A1u)
 #define CY_ED25519SIG_VERIFY_FAIL (0x00BADBADu)
-
-static void Cy_Crypto_Core_ED25519_dom2_ctx( CRYPTO_Type *base, cy_en_eddsa_sig_type_t sigType, const uint8_t *ctx,
-                uint32_t ctx_len, cy_stc_crypto_sha_state_t *shaState )
-{
-    uint8_t ct_init_string[] = "SigEd25519 no Ed25519 collisions";
-    uint8_t ct_flag;
-    uint8_t ct_ctx_len = (uint8_t)(ctx_len & 0xffu);
-
-    ct_flag = (sigType == CY_CRYPTO_EDDSA_CTX)? (uint8_t)0: (uint8_t)1;
-    /*Note: Can merge to one update call*/
-    (void)Cy_Crypto_Core_Sha_Update(base, shaState, (uint8_t const*)ct_init_string, 32u);
-    (void)Cy_Crypto_Core_Sha_Update(base, shaState, (uint8_t const*)&ct_flag, 1u);
-    (void)Cy_Crypto_Core_Sha_Update(base, shaState, (uint8_t const*)&ct_ctx_len, 1u);
-
-    if( ctx != NULL && ctx_len > 0u)
-    {
-        (void)Cy_Crypto_Core_Sha_Update(base, shaState, ctx, ctx_len );
-
-    }
-}
 
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_EDDSA_Bar_MulRed
@@ -265,6 +242,27 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_SquareMod( CRYPTO_Type *base,
     uint32_t size)
 {
     return Cy_Crypto_Core_ED25519_MulMod( base, z, a, a, size);
+}
+
+#if defined(CY_CRYPTO_CFG_EDDSA_C)
+static void Cy_Crypto_Core_ED25519_dom2_ctx( CRYPTO_Type *base, cy_en_eddsa_sig_type_t sigType, const uint8_t *ctx,
+                uint32_t ctx_len, cy_stc_crypto_sha_state_t *shaState )
+{
+    uint8_t ct_init_string[] = "SigEd25519 no Ed25519 collisions";
+    uint8_t ct_flag;
+    uint8_t ct_ctx_len = (uint8_t)(ctx_len & 0xffu);
+
+    ct_flag = (sigType == CY_CRYPTO_EDDSA_CTX)? (uint8_t)0: (uint8_t)1;
+    /*Note: Can merge to one update call*/
+    (void)Cy_Crypto_Core_Sha_Update(base, shaState, (uint8_t const*)ct_init_string, 32u);
+    (void)Cy_Crypto_Core_Sha_Update(base, shaState, (uint8_t const*)&ct_flag, 1u);
+    (void)Cy_Crypto_Core_Sha_Update(base, shaState, (uint8_t const*)&ct_ctx_len, 1u);
+
+    if( ctx != NULL && ctx_len > 0u)
+    {
+        (void)Cy_Crypto_Core_Sha_Update(base, shaState, ctx, ctx_len );
+
+    }
 }
 
 /*******************************************************************************
@@ -836,15 +834,15 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMulAdd(CRYPTO_Type *base, cy_s
         return tmpResult;
     }
     /* Inverse transform */
+    Cy_Crypto_Core_Vu_WaitForComplete(base);
     tmpResult = Cy_Crypto_Core_ED25519InvTransform(base, p_x, p_y, p_z, bitsize);
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
     }
 
-    CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(p_z)|CY_CRYPTO_VU_REG_BIT(VR_P)|CY_CRYPTO_VU_REG_BIT(VR_BARRETT));
-
     Cy_Crypto_Core_Vu_WaitForComplete(base);
+    CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(p_z)|CY_CRYPTO_VU_REG_BIT(VR_P)|CY_CRYPTO_VU_REG_BIT(VR_BARRETT));
     CY_CRYPTO_VU_POP_REG (base);
 
     return tmpResult;
@@ -1012,7 +1010,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMul(CRYPTO_Type *base, cy_stc_
             }
         }
     }
-
+    Cy_Crypto_Core_Vu_WaitForComplete(base);
     /* Inverse transform */
     tmpResult = Cy_Crypto_Core_ED25519InvTransform(base, my_s_x, my_s_y, my_s_z, bitsize);
     if(CY_CRYPTO_SUCCESS != tmpResult)
@@ -1020,12 +1018,13 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMul(CRYPTO_Type *base, cy_stc_
         return tmpResult;
     }
 
+    Cy_Crypto_Core_Vu_WaitForComplete(base);
     CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(my_s_z) | CY_CRYPTO_VU_REG_BIT(my_t_x) |
                                  CY_CRYPTO_VU_REG_BIT(my_t_y) | CY_CRYPTO_VU_REG_BIT(t) |
                                  CY_CRYPTO_VU_REG_BIT(VR_P)   | CY_CRYPTO_VU_REG_BIT(VR_BARRETT) |
                                  CY_CRYPTO_VU_REG_BIT(clr) );
 
-    Cy_Crypto_Core_Vu_WaitForComplete(base);
+
     CY_CRYPTO_VU_POP_REG (base);
 
     return tmpResult;
@@ -1037,7 +1036,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMul(CRYPTO_Type *base, cy_stc_
 *
 * Edwards 25519 elliptic curve point multiplication in GF(p).
 *
-* For CAT1C & CAT1D devices with DCache enabled this API is not supported.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameters ecpGX,ecpGY,ecpD,ecpQX and ecpQY must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to a Crypto instance.
@@ -1091,12 +1090,6 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMultiplication(CRYPTO_Type *ba
             uint8_t *ecpQXRemap;
             uint8_t *ecpQYRemap;
 
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-            /* Flush the cache */
-            SCB_CleanDCache_by_Addr((volatile void *)ecpGX, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
-            SCB_CleanDCache_by_Addr((volatile void *)ecpGY, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
-            SCB_CleanDCache_by_Addr((volatile void *)ecpD, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
-#endif
             ecpGXRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(ecpGX);
             ecpGYRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(ecpGY);
             ecpDRemap  = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(ecpD);
@@ -1137,10 +1130,8 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMultiplication(CRYPTO_Type *ba
             /* Get result P = (X,Y) = d.G from Ed25519 scalar multiplication */
             Cy_Crypto_Core_Vu_GetMemValue (base, ecpQXRemap, VR_S_X, bitsize);
             Cy_Crypto_Core_Vu_GetMemValue (base, ecpQYRemap, VR_S_Y, bitsize);
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-            SCB_InvalidateDCache_by_Addr(ecpQX, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
-            SCB_InvalidateDCache_by_Addr(ecpQY, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
-#endif
+
+            Cy_Crypto_Core_Vu_WaitForComplete(base);
             /* Free memory */
             CY_CRYPTO_VU_FREE_MEM (base,
                                     CY_CRYPTO_VU_REG_BIT(VR_S_Y) |
@@ -1153,6 +1144,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMultiplication(CRYPTO_Type *ba
 
     return tmpResult;
 }
+#endif /*#if defined(CY_CRYPTO_CFG_EDDSA_C)*/
 
 #if defined (CY_CRYPTO_CFG_EDDSA_GENKEY_C)
 /*******************************************************************************
@@ -1161,7 +1153,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointMultiplication(CRYPTO_Type *ba
 *
 * Make a new ED25519 public key
 *
-* For CAT1C & CAT1D devices with DCache enabled this API is not supported.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameters privateKey, publicKey( x&y) must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to a Crypto instance.
@@ -1199,11 +1191,17 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MakePublicKey(CRYPTO_Type *base,
             (publicKey->pubkey.x != NULL) && (publicKey->pubkey.y != NULL))
         {
 #if (CY_IP_MXCRYPTO_VERSION == 1u)
-            static cy_stc_crypto_v1_sha512_buffers_t shaBuffers;
+            cy_stc_crypto_v1_sha512_buffers_t shaBuffers_t;
+            cy_stc_crypto_sha_state_t shaHashState_t;
+            cy_stc_crypto_sha_state_t *shaHashState = &shaHashState_t;
+            cy_stc_crypto_v1_sha512_buffers_t *shaBuffers = &shaBuffers_t;
 #else
-            static cy_stc_crypto_v2_sha512_buffers_t shaBuffers;
+            uint8_t shaBuffers_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_v2_sha512_buffers_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+            uint8_t shaHashState_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_sha_state_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+            cy_stc_crypto_v2_sha512_buffers_t *shaBuffers = (cy_stc_crypto_v2_sha512_buffers_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(shaBuffers_t);
+            cy_stc_crypto_sha_state_t *shaHashState = (cy_stc_crypto_sha_state_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(shaHashState_t);
 #endif
-            static cy_stc_crypto_sha_state_t shaHashState;
+
             uint32_t bitsize  = edwDp->size;
             uint32_t bytesize = CY_CRYPTO_BYTE_SIZE_OF_BITS(edwDp->size);
 
@@ -1220,10 +1218,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MakePublicKey(CRYPTO_Type *base,
             uint32_t p_y = 12u;       /* y coordinate */
             uint32_t p_sha = 4u;      /* digest */
 
-            tmpResult = Cy_Crypto_Core_Sha_Init(base, &shaHashState, (cy_en_crypto_sha_mode_t)CY_CRYPTO_MODE_SHA512, (void *)&shaBuffers);
+            tmpResult = Cy_Crypto_Core_Sha_Init(base, shaHashState, (cy_en_crypto_sha_mode_t)CY_CRYPTO_MODE_SHA512, (void *)shaBuffers);
             if (CY_CRYPTO_SUCCESS == tmpResult)
             {
-                tmpResult = Cy_Crypto_Core_Sha_Start(base, &shaHashState);
+                tmpResult = Cy_Crypto_Core_Sha_Start(base, shaHashState);
                 if(CY_CRYPTO_SUCCESS != tmpResult)
                 {
                     return tmpResult;
@@ -1265,10 +1263,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MakePublicKey(CRYPTO_Type *base,
 
             /*step1: Compute secret scalar 's' and prefix*/
             /*SHA expects big-endian input*/
-            tmpResult = Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)privateKeyRemap, bytesize);
+            tmpResult = Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)privateKeyRemap, bytesize);
             if(CY_CRYPTO_SUCCESS == tmpResult)
             {
-                tmpResult = Cy_Crypto_Core_Sha_Finish(base, &shaHashState, digest);
+                tmpResult = Cy_Crypto_Core_Sha_Finish(base, shaHashState, digest);
             }
             if(CY_CRYPTO_SUCCESS != tmpResult)
             {
@@ -1301,12 +1299,12 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MakePublicKey(CRYPTO_Type *base,
             publicKey->type = PK_PUBLIC;
             publicKey->curveID = curveID;
 
+            Cy_Crypto_Core_Vu_WaitForComplete(base);
             CY_CRYPTO_VU_FREE_MEM(base, CY_CRYPTO_VU_REG_BIT(p_x) | CY_CRYPTO_VU_REG_BIT(p_y) |
                                         CY_CRYPTO_VU_REG_BIT(p_sha) | CY_CRYPTO_VU_REG_BIT(p_d));
             /* free sha context*/
-            (void)Cy_Crypto_Core_Sha_Free(base, &shaHashState);
+            (void)Cy_Crypto_Core_Sha_Free(base, shaHashState);
             tmpResult = CY_CRYPTO_SUCCESS;
-            Cy_Crypto_Core_Vu_WaitForComplete(base);
         }
     }
 
@@ -1321,7 +1319,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MakePublicKey(CRYPTO_Type *base,
 *
 * Sign a message.
 *
-* For CAT1C & CAT1D devices with DCache enabled this API is not supported.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameters hash, sig, key(k) and sigctx must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to a Crypto instance.
@@ -1404,11 +1402,16 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
         if(CY_CRYPTO_SUCCESS == Cy_Crypto_Core_EDW_GetCurveParams(edwDp, key->curveID))
         {
 #if (CY_IP_MXCRYPTO_VERSION == 1u)
-            static cy_stc_crypto_v1_sha512_buffers_t shaBuffers;
+            cy_stc_crypto_v1_sha512_buffers_t shaBuffers_t;
+            cy_stc_crypto_sha_state_t shaHashState_t;
+            cy_stc_crypto_sha_state_t *shaHashState = &shaHashState_t;
+            cy_stc_crypto_v1_sha512_buffers_t *shaBuffers = &shaBuffers_t;
 #else
-            static cy_stc_crypto_v2_sha512_buffers_t shaBuffers;
+            uint8_t shaBuffers_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_v2_sha512_buffers_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+            uint8_t shaHashState_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_sha_state_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+            cy_stc_crypto_v2_sha512_buffers_t *shaBuffers = (cy_stc_crypto_v2_sha512_buffers_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(shaBuffers_t);
+            cy_stc_crypto_sha_state_t *shaHashState = (cy_stc_crypto_sha_state_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(shaHashState_t);
 #endif
-            static cy_stc_crypto_sha_state_t shaHashState;
             uint32_t bitsize  = edwDp->size;
             uint32_t bytesize = CY_CRYPTO_BYTE_SIZE_OF_BITS(edwDp->size);
 
@@ -1419,10 +1422,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
             /* sigctx is managed by the SHA functions */
 #endif
 
-            tmpResult = Cy_Crypto_Core_Sha_Init(base, &shaHashState, (cy_en_crypto_sha_mode_t)CY_CRYPTO_MODE_SHA512, (void *)&shaBuffers);
+            tmpResult = Cy_Crypto_Core_Sha_Init(base, shaHashState, (cy_en_crypto_sha_mode_t)CY_CRYPTO_MODE_SHA512, (void *)shaBuffers);
             if (CY_CRYPTO_SUCCESS == tmpResult)
             {
-                tmpResult = Cy_Crypto_Core_Sha_Start(base, &shaHashState);
+                tmpResult = Cy_Crypto_Core_Sha_Start(base, shaHashState);
             }
 
             if (CY_CRYPTO_SUCCESS == tmpResult)
@@ -1441,7 +1444,8 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
                 uint8_t *pubkey_y;
                 uint8_t *r_x;
                 uint8_t *r_y;
-                uint32_t pr[8u];
+                uint8_t pr_t[CY_CRYPTO_ALIGN_CACHE_LINE(CY_CRYPTO_ECC_ED25519_BYTE_SIZE) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+                uint8_t *pr = (uint8_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(pr_t);
 
                 /*Curve Order*/
                 tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, VR_P, bitsize);
@@ -1520,10 +1524,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
 
                 /*step1: Compute secret scalar 's' and prefix*/
                 /*SHA expects big-endian*/
-                tmpResult = Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)keyKRemap, bytesize);
+                tmpResult = Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)keyKRemap, bytesize);
                 if(CY_CRYPTO_SUCCESS == tmpResult)
                 {
-                    tmpResult = Cy_Crypto_Core_Sha_Finish(base, &shaHashState, digest);
+                    tmpResult = Cy_Crypto_Core_Sha_Finish(base, shaHashState, digest);
                 }
                 if(CY_CRYPTO_SUCCESS != tmpResult)
                 {
@@ -1552,17 +1556,17 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
                 pubkey_y = (uint8_t *)Cy_Crypto_Core_Vu_RegMemPointer(base, VR_S_Y);
 
                 /* step2: 'r' computation */
-                (void)Cy_Crypto_Core_Sha_Start(base, &shaHashState);
+                (void)Cy_Crypto_Core_Sha_Start(base, shaHashState);
                 /* EDDSA sig mode as per 5.1 RFC 8032 */
                 if(sigType != CY_CRYPTO_EDDSA_PURE)
                 {
-                    Cy_Crypto_Core_ED25519_dom2_ctx( base, sigType, sigctx, sigctx_len, &shaHashState);
+                    Cy_Crypto_Core_ED25519_dom2_ctx( base, sigType, sigctx, sigctx_len, shaHashState);
                 }
 
                 /*update prefix and input hash */
-                (void)Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)prefix, (CY_CRYPTO_SHA512_HASH_SIZE >> 1u));
-                (void)Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)hashPtrRemap, hashlen);
-                (void)Cy_Crypto_Core_Sha_Finish(base, &shaHashState, digest);
+                (void)Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)prefix, (CY_CRYPTO_SHA512_HASH_SIZE >> 1u));
+                (void)Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)hashPtrRemap, hashlen);
+                (void)Cy_Crypto_Core_Sha_Finish(base, shaHashState, digest);
 
                 /* Mod reduction modulo n (order of the base point in VR_P and barret_o in VR_BARRET) */
                 if ( CY_CRYPTO_SUCCESS != Cy_Crypto_Core_EDDSA_Bar_MulRed(base, p_r, p_sha, bitsize) )
@@ -1593,14 +1597,14 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
                 Cy_Crypto_Core_Vu_GetMemValue (base, &sigPtrRemap[0], p_y, bitsize);
 
                 /* Step4: 's' computation */
-                (void)Cy_Crypto_Core_Sha_Start(base, &shaHashState);
+                (void)Cy_Crypto_Core_Sha_Start(base, shaHashState);
                 /* EDDSA sig mode as per 5.1 RFC 8032 */
                 if(sigType != CY_CRYPTO_EDDSA_PURE)
                 {
-                    Cy_Crypto_Core_ED25519_dom2_ctx( base, sigType, sigctx, sigctx_len, &shaHashState);
+                    Cy_Crypto_Core_ED25519_dom2_ctx( base, sigType, sigctx, sigctx_len, shaHashState);
                 }
 
-                (void)Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)r_y, bytesize);
+                (void)Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)r_y, bytesize);
                 /*Note: key encode/decode can be a separate function */
                 /* encode point: From RFC 5.1.2, we shall copy LSB of x to the MSB of y */
                 if((bool)(((uint8_t*)pubkey_x)[0] & (uint8_t)0x01))
@@ -1608,9 +1612,9 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
                     ((uint8_t*)pubkey_y)[31] = ((uint8_t*)pubkey_y)[31] | (uint8_t)0x80;
                 }
 
-                (void)Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)pubkey_y, bytesize);
-                (void)Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)hashPtrRemap, hashlen);
-                (void)Cy_Crypto_Core_Sha_Finish(base, &shaHashState, digest);
+                (void)Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)pubkey_y, bytesize);
+                (void)Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)hashPtrRemap, hashlen);
+                (void)Cy_Crypto_Core_Sha_Finish(base, shaHashState, digest);
 
                 /* step5 */
                 /* Mod reduction modulo n (order of the base point in VR_P and barret_o in VR_BARRET) */
@@ -1639,9 +1643,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Sign(CRYPTO_Type *base, const uint8
                     tmpResult = CY_CRYPTO_HW_ERROR;
                 }
 
+                Cy_Crypto_Core_Vu_WaitForComplete(base);
                 /* Free all mem allocations */
                 CY_CRYPTO_VU_FREE_MEM(base, mallocMask);
-                (void)Cy_Crypto_Core_Sha_Free(base, &shaHashState);
+                (void)Cy_Crypto_Core_Sha_Free(base, shaHashState);
 #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
                 CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
                 SCB_InvalidateDCache_by_Addr(sig, (int32_t)(bytesize*2U));
@@ -1766,24 +1771,23 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_ExpMod(CRYPTO_Type *base, uint32_t 
             (void)Cy_Crypto_Core_ED25519_MulMod (base, my_s_x, my_s_x, my_s_y, bitsize);
         }
     }
-    /* free memory */
-    CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(t) | CY_CRYPTO_VU_REG_BIT(clr));
 
     Cy_Crypto_Core_Vu_WaitForComplete(base);
+    /* free memory */
+    CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(t) | CY_CRYPTO_VU_REG_BIT(clr));
     CY_CRYPTO_VU_POP_REG (base);
 
     return tmpResult;
 }
 
 #if defined(CY_CRYPTO_CFG_EDDSA_VERIFY_C)
-/** \cond INTERNAL */
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_ED25519_PointDecode
 ****************************************************************************//**
 *
 * Decode ED25519 encoded public key in to x and y
 *
-* For CAT1C & CAT1D devices with DCache enabled this API is not supported.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameters publicKey, pubKey_x and pubKey_y must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to a Crypto instance.
@@ -1801,8 +1805,6 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_ExpMod(CRYPTO_Type *base, uint32_t 
 * [out] Decoded 32 bytes Public key y in little-endian format.
 *
 * \return status code. See \ref cy_en_crypto_status_t.
-*
-* \note This is a preliminary implementation and should not be used in production code.
 *
 *******************************************************************************/
 cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointDecode(CRYPTO_Type *base,
@@ -1907,14 +1909,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointDecode(CRYPTO_Type *base,
 
             /* Recover x_0 and generate p_y*/
             Cy_Crypto_Core_MemCpy(base, (void*)publicKeyYRemap, (void const *)publicKeyRemap, (uint16_t)bytesize);
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-            SCB_InvalidateDCache_by_Addr((void *)publicKeyYRemap,(int32_t)bytesize);
-#endif
-            x_0 = publicKeyYRemap[31] & (uint8_t)0x01;
+
+            x_0 = publicKeyYRemap[31] >> (uint8_t)0x07;
             publicKeyYRemap[31] &= (uint8_t)0x7F;
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-            SCB_CleanDCache_by_Addr((void *)publicKeyYRemap,(int32_t)bytesize);
-#endif
+
             /* If the resulting y >= grp->P, decoding fails. */
             Cy_Crypto_Core_Vu_SetMemValue (base, p_y, (uint8_t const *)publicKeyYRemap, bitsize);
             if (!Cy_Crypto_Core_Vu_IsRegLess(base, p_y, VR_P))
@@ -1994,6 +1992,10 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointDecode(CRYPTO_Type *base,
                         return tmpResult;
                     }
                 }
+                else
+                {
+                    p_x = p_uv;
+                }
                 /* Use the x_0 bit to select the right square root. */
                 if (Cy_Crypto_Core_Vu_IsRegZero(base, p_x) && x_0 == 1u)
                 {
@@ -2011,29 +2013,27 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointDecode(CRYPTO_Type *base,
 
                 Cy_Crypto_Core_Vu_GetMemValue (base, publicKeyXRemap, p_x, bitsize);
             }
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-            SCB_InvalidateDCache_by_Addr(pubKey_x, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
-            SCB_InvalidateDCache_by_Addr(pubKey_y, (int32_t)CY_CRYPTO_BYTE_SIZE_OF_BITS(bitsize));
-#endif
+
+            Cy_Crypto_Core_Vu_WaitForComplete(base);
+
             CY_CRYPTO_VU_FREE_MEM(base, CY_CRYPTO_VU_REG_BIT(p_x) | CY_CRYPTO_VU_REG_BIT(p_y) |
                                         CY_CRYPTO_VU_REG_BIT(p_a) | CY_CRYPTO_VU_REG_BIT(p_d) |
                                         CY_CRYPTO_VU_REG_BIT(VR_P)| CY_CRYPTO_VU_REG_BIT(p_uv)|
                                         CY_CRYPTO_VU_REG_BIT(VR_BARRETT));
 
-            Cy_Crypto_Core_Vu_WaitForComplete(base);
             CY_CRYPTO_VU_POP_REG (base);
         }
     }
     return (tmpResult);
 }
-/** \endcond */
+
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_ED25519_Verify
 ****************************************************************************//**
 *
 * Verify ED25519 signed message.
 *
-* For CAT1C & CAT1D devices with DCache enabled this API is not supported.
+* For CAT1C & CAT1D devices when D-Cache is enabled parameters hash, sig, key(x & y) and sigctx must align and end in 32 byte boundary.
 *
 * \param base
 * The pointer to a Crypto instance.
@@ -2112,35 +2112,24 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Verify(CRYPTO_Type *base, uint8_t *
         if(CY_CRYPTO_SUCCESS == Cy_Crypto_Core_EDW_GetCurveParams(edwDp, key->curveID))
         {
 #if (CY_IP_MXCRYPTO_VERSION == 1u)
-            static cy_stc_crypto_v1_sha512_buffers_t shaBuffers;
+            cy_stc_crypto_v1_sha512_buffers_t shaBuffers_t;
+            cy_stc_crypto_sha_state_t shaHashState_t;
+            cy_stc_crypto_sha_state_t *shaHashState = &shaHashState_t;
+            cy_stc_crypto_v1_sha512_buffers_t *shaBuffers = &shaBuffers_t;
 #else
-            static cy_stc_crypto_v2_sha512_buffers_t shaBuffers;
+            uint8_t shaBuffers_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_v2_sha512_buffers_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+            uint8_t shaHashState_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_sha_state_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+            cy_stc_crypto_v2_sha512_buffers_t *shaBuffers = (cy_stc_crypto_v2_sha512_buffers_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(shaBuffers_t);
+            cy_stc_crypto_sha_state_t *shaHashState = (cy_stc_crypto_sha_state_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(shaHashState_t);
 #endif
-            static cy_stc_crypto_sha_state_t shaHashState;
+
             uint32_t bitsize  = edwDp->size;
             uint32_t bytesize = CY_CRYPTO_BYTE_SIZE_OF_BITS(edwDp->size);
 
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-            /* Flush the cache */
-            SCB_CleanDCache_by_Addr((volatile void *)hash,(int32_t)hashlen);
-            SCB_CleanDCache_by_Addr((volatile void *)key->pubkey.x, (int32_t)bytesize);
-            SCB_CleanDCache_by_Addr((volatile void *)key->pubkey.y, (int32_t)bytesize);
-            CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
-            SCB_CleanDCache_by_Addr((volatile void *)sig,(int32_t)(2u*bytesize));
-            SCB_CleanDCache_by_Addr((volatile void *)edwDp->order,(int32_t)bytesize);
-            SCB_CleanDCache_by_Addr((volatile void *)edwDp->Gx,(int32_t)bytesize);
-            SCB_CleanDCache_by_Addr((volatile void *)edwDp->Gy,(int32_t)bytesize);
-            SCB_CleanDCache_by_Addr((volatile void *)edwDp->prime,(int32_t)bytesize);
-            CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
-            SCB_CleanDCache_by_Addr((volatile void *)edwDp->barrett_o,(int32_t)edwDp->barret_osize);
-            CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
-            SCB_CleanDCache_by_Addr((volatile void *)edwDp->barrett_p,(int32_t)edwDp->barret_psize);
-            /* sigctx is managed by the SHA functions */
-#endif
-            tmpResult = Cy_Crypto_Core_Sha_Init(base, &shaHashState, (cy_en_crypto_sha_mode_t)CY_CRYPTO_MODE_SHA512, (void *)&shaBuffers);
+            tmpResult = Cy_Crypto_Core_Sha_Init(base, shaHashState, (cy_en_crypto_sha_mode_t)CY_CRYPTO_MODE_SHA512, (void *)shaBuffers);
             if (CY_CRYPTO_SUCCESS == tmpResult)
             {
-                tmpResult = Cy_Crypto_Core_Sha_Start(base, &shaHashState);
+                tmpResult = Cy_Crypto_Core_Sha_Start(base, shaHashState);
             }
 
             if (CY_CRYPTO_SUCCESS == tmpResult)
@@ -2253,12 +2242,11 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Verify(CRYPTO_Type *base, uint8_t *
                 /*SHA expects big-endian*/
                 if(sigType != CY_CRYPTO_EDDSA_PURE)
                 {
-                    Cy_Crypto_Core_Vu_WaitForComplete(base);
-                    Cy_Crypto_Core_ED25519_dom2_ctx( base, sigType, sigctx, sigctx_len, &shaHashState);
+                    Cy_Crypto_Core_ED25519_dom2_ctx( base, sigType, sigctx, sigctx_len, shaHashState);
                 }
 
                 /* step2: h = sha512(Rs + public + msg) mod N */
-                (void)Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)sig_r, bytesize);
+                (void)Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)sig_r, bytesize);
                 /* compress public key */
                 pubkey_x = (uint8_t *)Cy_Crypto_Core_Vu_RegMemPointer(base, p_x);
                 pubkey_y = (uint8_t *)Cy_Crypto_Core_Vu_RegMemPointer(base, p_y);
@@ -2268,12 +2256,12 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Verify(CRYPTO_Type *base, uint8_t *
                     ((uint8_t*)pubkey_y)[31] |= (uint8_t)0x80;
                 }
                 /* interpret as little-endian */
-                (void)Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)pubkey_y, bytesize);
+                (void)Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)pubkey_y, bytesize);
                 /* For EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
-                tmpResult = Cy_Crypto_Core_Sha_Update(base, &shaHashState, (uint8_t const*)hashPtrRemap, hashlen);
+                tmpResult = Cy_Crypto_Core_Sha_Update(base, shaHashState, (uint8_t const*)hashPtrRemap, hashlen);
                 if(CY_CRYPTO_SUCCESS == tmpResult)
                 {
-                    tmpResult = Cy_Crypto_Core_Sha_Finish(base, &shaHashState, digest);
+                    tmpResult = Cy_Crypto_Core_Sha_Finish(base, shaHashState, digest);
                     if(CY_CRYPTO_SUCCESS != tmpResult)
                     {
                         return tmpResult;
@@ -2315,7 +2303,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Verify(CRYPTO_Type *base, uint8_t *
                 }
                 /* Free all mem allocations */
                 CY_CRYPTO_VU_FREE_MEM(base, mallocMask);
-                (void)Cy_Crypto_Core_Sha_Free(base, &shaHashState);
+                (void)Cy_Crypto_Core_Sha_Free(base, shaHashState);
             }
         }
     }
@@ -2323,7 +2311,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_Verify(CRYPTO_Type *base, uint8_t *
     return (tmpResult);
 }
 #endif /* defined(CY_CRYPTO_CFG_EDDSA_VERIFY_C) */
-#endif /* defined(CY_CRYPTO_CFG_EDDSA_C) */
+#endif /* (CY_CRYPTO_CFG_EDDSA_C) || defined(CY_CRYPTO_CFG_EC25519_C) */
 
 #if defined(__cplusplus)
 }

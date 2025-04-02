@@ -62,16 +62,30 @@ Enabling configSUPPORT_STATIC_ALLOCATION requires the application to provide imp
 `vApplicationGetTimerTaskMemory`functions. Weak implementations for these functions are provided as a part of this library. These can
 be overridden by the application if custom implementations of these functions are desired.<br>
 
+#### Low Power Configuration
 This library provides an API `vApplicationSleep` which can be used to enable tickless support in FreeRTOS. In order to enable tickless mode with this API, the following changes need to be made in `FreeRTOSConfig.h`:
 * Enables tickless mode with user specified `portSUPPRESS_TICKS_AND_SLEEP` implementation.<br>
 \c \#define `configUSE_TICKLESS_IDLE                       2`
 * Hook `portSUPPRESS_TICKS_AND_SLEEP` macro to `vApplicationSleep` implementation.<br>
 \c \#define `portSUPPRESS_TICKS_AND_SLEEP( xIdleTime )    vApplicationSleep( xIdleTime )`
 
+In tickless mode `vApplicationSleep` updates the number of RTOS ticks that have passed since the tick interrupt was stopped using `vTaskStepTick`, taking into account the sleep/deepsleep latency.
+* The maximum tickless idle time can be calculated as follow:
+    * `MaxIdleTime = LPtimerDelay + latency` where: `latency = PreSleepLatency + PostSleepLatency`, `LPtimerDelay = xExpectedIdleTime - latency`. 
+
+    **Note**: The `LPtimerDelay` represents the duration in which the IP is configured to Wake-up the device. Wake-up can happen before its expiration if one other configured interrupt triggers during this time.
+
+* In case of `xExpectedIdleTime <= latency` WFI is executed instead, and normal sleep is expected to be reached (SCR->SLEEPDEEP = 0).
+
+* The actual Idle time for which the Systick timer is disabled, is always update in vTaskStepTick to keep the RTOS alwyas up to date, independently from if the tickless sleep is reached or not successfully. The reason for this is to find in the sequence of operations to reach the sleep, the Systick is disabled before the (deep)sleep callbacks are called, so if one of them will not allow (deep)sleep, the ticks for which the check is performed needs to be anyway counted in the RTOS.
+
 Functions cy_rtos_scheduler_suspend/cy_rtos_scheduler_resume can be called from ISR but calls need to be paired to restore the saved interrupt status correctly so a structure to save these values has been implemented.
 The size of this structure can be controlled with CY_RTOS_MAX_SUSPEND_NESTING. This macro is overridable and its default value is 3.
 
 For further details on Low power support in FreeRTOS please refer to documentation [here](https://www.freertos.org/low-power-tickless-rtos.html)
+
+#### Known Limitations
+The cy_rtos_event_* functions accept a 32-bit event as an argument. However, FreeRTOS requires 8-bits(`configUSE_16_BIT_TICKS` == 1) or 24-bits (`configUSE_16_BIT_TICKS` == 0) to run successfully. Hence the application should not reference these unsupported bits. Check the FreeRTOS implementation of `eventEVENT_BITS_CONTROL_BYTES` in event_group.c for internal details.
 
 ### RTX / ThreadX
 No specific requirements exist

@@ -64,7 +64,7 @@
       <Entry name="8-bit" value="CY_SD_HOST_BUS_WIDTH_8_BIT" visible="`${(cardType eq emmc) &amp;&amp; (InstNumber eq 1)}`" />
     </ParamChoice>
     <ParamBool id="lowVoltageSignaling" name="Enable Low Voltage Signaling" group="General" default="false" visible="`${hasVisibleOption(&quot;io_volt_sel[0]&quot;)}`" editable="true" desc="If enabled then the host supports the 1.8V signaling." />
-    
+
     <!--Inputs/Outputs-->
     <ParamSignal port="clk_card[0]" name="CLK" group="Inputs" visible="true" desc="The card clock pin." canBeEmpty="true" >
       <Constraint type="ACCEPT" targetLocation="ioss\[\d+\]\.port\[\d+\]\.pin.*" valid="true" >
@@ -206,7 +206,7 @@
       <Constraint type="ACCEPT" targetLocation=".*" valid="true" />
     </ParamSignal>
     <ParamString id="data7Pin" name="data7Pin" group="Internal" default="`${getBlockFromSignal(&quot;card_dat_7to4[3]&quot;)}`" visible="false" editable="false" desc="" />
-    
+
     <ParamSignal port="card_detect_n[0]" name="Card Detect" group="Inputs" visible="`${hasVisibleOption(&quot;card_detect_n[0]&quot;)}`" desc="The card detect pin. Note: You can use any GPIO custom pin for Card Detect. Add the SD Host driver Cy_SD_Host_IsCardConnected() function with the __WEAK type to your code. This function could read the value from any GPIO pin and return true when the card is connected. For more information see the Cy_SD_Host_IsCardConnected() function description." canBeEmpty="true" >
       <Constraint type="ACCEPT" targetLocation="ioss\[\d+\]\.port\[\d+\]\.pin.*" valid="true" >
         <Parameter id="DriveModes" severity="DEFAULT" reason="">
@@ -291,10 +291,10 @@
       <Constraint type="ACCEPT" targetLocation=".*" valid="true" />
     </ParamSignal>
     <ParamString id="ioVolSelPin" name="ioVolSelPin" group="Internal" default="`${getBlockFromSignal(&quot;io_volt_sel[0]&quot;)}`" visible="false" editable="false" desc="" />
-    
+
     <ParamBool id="inFlash" name="Store Config in Flash" group="Advanced" default="true" visible="true" editable="true" desc="Controls whether the configuration structure is stored in flash (const, true) or SRAM (not const, false)." />
   </Parameters>
-  
+
   <DRCs>
     <!--Timing DRCs-->
     <DRC type="INFO" text="To correctly set the bus speed, CLK_HF must be set to 100 MHz if the compatibility with the Capabilities register is required." condition="`${sourceFreq ne 100000000}`" />
@@ -306,25 +306,30 @@
         <DRC type="ERROR" text="To achieve 50 percent duty cycle a minimum of divide by 2 of assigned divider is required." condition="`${hasExposedMember(sourceClock, &quot;divider&quot;) &amp;&amp; getExposedMember(sourceClock, &quot;divider&quot;) == 1}`" />
 
   </DRCs>
-  
+
   <ConfigFirmware>
     <ConfigInclude value="cy_sysclk.h" include="true" />
     <ConfigInclude value="cy_sd_host.h" include="true" />
     <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />
     <ConfigInclude value="cyhal.h" include="true" guard="defined (CY_USING_HAL)" />
-    
+    <ConfigInclude value="mtb_hal.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="cycfg_clocks.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="mtb_hal_hw_types.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="mtb_hal_clock.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="cyhal_hw_types.h" include="true" guard="defined (CY_USING_HAL_LITE)" />
+
     <ConfigDefine name="`${INST_NAME . &quot;_HW&quot;}`" value="SDHC`${InstNumber}`" public="true" include="true" />
     <ConfigDefine name="`${INST_NAME}`_IRQ" value="sdhc_`${InstNumber}`_interrupt_general_IRQn" public="true" include="true" />
     <ConfigVariable name="`${INST_NAME . &quot;_cardCapacity&quot;}`" type="cy_en_sd_host_card_capacity_t" const="false" value="CY_SD_HOST_SDSC" public="true" include="true"  />
     <ConfigVariable name="`${INST_NAME . &quot;_cardType&quot;}`" type="cy_en_sd_host_card_type_t" const="false" value="`${(cardType eq emmc) ? &quot;CY_SD_HOST_EMMC&quot; : &quot;CY_SD_HOST_NOT_EMMC&quot;}`" public="true" include="true"  />
     <ConfigVariable name="`${INST_NAME . &quot;_rca&quot;}`" type="uint32_t" const="false" value="0u" public="true" include="true"  />
-    
+
     <ConfigStruct name="`${INST_NAME . &quot;_config&quot;}`" type="cy_stc_sd_host_init_config_t" const="`${inFlash}`" public="true" include="true" >
       <Member name="emmc" value="`${(cardType eq emmc) ? &quot;true&quot; : &quot;false&quot;}`" />
       <Member name="dmaType" value="`${dmaType}`" />
       <Member name="enableLedControl" value="`${enableLedControl ? &quot;true&quot; : &quot;false&quot;}`" />
     </ConfigStruct>
-    
+
     <ConfigStruct name="`${INST_NAME . &quot;_card_cfg&quot;}`" type="cy_stc_sd_host_sd_card_config_t" const="false" public="true" include="true" >
       <Member name="lowVoltageSignaling" value="`${lowVoltageSignaling ? &quot;true&quot; : &quot;false&quot;}`" />
       <Member name="busWidth" value="`${busWidth}`" />
@@ -332,7 +337,7 @@
       <Member name="rca" value="&amp;`${INST_NAME . &quot;_rca&quot;}`" />
       <Member name="cardCapacity" value="&amp;`${INST_NAME . &quot;_cardCapacity&quot;}`" />
     </ConfigStruct>
-    
+
     <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL)">
       <Member name="type" value="CYHAL_RSC_SDHC" />
       <Member name="block_num" value="`${getInstNumber(&quot;sdhc&quot;)}`U" />
@@ -361,7 +366,35 @@
       <Member name="clock" value="&amp;CYHAL_CLOCK_HF[`${getExposedMember(sourceClock, &quot;clockInst&quot;)}`]" include="`${hasExposedMember(sourceClock, &quot;clockInst&quot;)}`" />
       <Member name="gpios" value="{.clk = `${clkPin &amp;&amp; hasExposedMember(clkPin, &quot;halPortPin&quot;) ? getExposedMember(clkPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, .cmd = `${cmdPin &amp;&amp; hasExposedMember(cmdPin, &quot;halPortPin&quot;) ? getExposedMember(cmdPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`,  .data = {`${data0Pin &amp;&amp; hasExposedMember(data0Pin, &quot;halPortPin&quot;) ? getExposedMember(data0Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, `${data1Pin &amp;&amp; hasExposedMember(data1Pin, &quot;halPortPin&quot;) ? getExposedMember(data1Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, `${data2Pin &amp;&amp; hasExposedMember(data2Pin, &quot;halPortPin&quot;) ? getExposedMember(data2Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, `${data3Pin &amp;&amp; hasExposedMember(data3Pin, &quot;halPortPin&quot;) ? getExposedMember(data3Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`}}" />
     </ConfigStruct>
-    
+
+    <ConfigStruct name="`${INST_NAME}`_clock_ref" type="mtb_hal_peri_div_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+      <Member name="clk_dst" value="(en_clk_dst_t)`${toUpper(getExposedMember(sourceClock, &quot;instName&quot;))}`_GRP_NUM" />
+      <Member name="div_type" value="`${getExposedMember(sourceClock, &quot;instName&quot;)}`_HW" />
+      <Member name="div_num" value="`${getExposedMember(sourceClock, &quot;instName&quot;)}`_NUM" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_clock" type="mtb_hal_clock_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+      <Member name="clock_ref" value="&amp;`${INST_NAME}`_clock_ref" />
+      <Member name="interface" value="&amp;mtb_hal_clock_peri_interface" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_config" type="mtb_hal_sdhc_configurator_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL) &amp;&amp; (MTB_HAL_DRIVER_AVAILABLE_SDHC)">
+      <Member name="base" value="`${INST_NAME}`_HW" />
+      <Member name="host_config" value="&amp;`${INST_NAME}`_config" />
+      <Member name="card_config" value="&amp;`${INST_NAME}`_card_cfg" />
+      <Member name="clock" value="&amp;`${INST_NAME}`_hal_clock" />
+      <Member name="gpios" value="{.clk = { .pin_num = `${clkPin &amp;&amp; hasExposedMember(clkPin, &quot;pinNum&quot;) ? getExposedMember(clkPin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${clkPin &amp;&amp; hasExposedMember(clkPin, &quot;portNum&quot;) ? getExposedMember(clkPin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+.cmd = { .pin_num = `${cmdPin &amp;&amp; hasExposedMember(cmdPin, &quot;pinNum&quot;) ? getExposedMember(cmdPin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${cmdPin &amp;&amp; hasExposedMember(cmdPin, &quot;portNum&quot;) ? getExposedMember(cmdPin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+.data = {{ .pin_num = `${data0Pin &amp;&amp; hasExposedMember(data0Pin, &quot;pinNum&quot;) ? getExposedMember(data0Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data0Pin &amp;&amp; hasExposedMember(data0Pin, &quot;portNum&quot;) ? getExposedMember(data0Pin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+{ .pin_num = `${data1Pin &amp;&amp; hasExposedMember(data1Pin, &quot;pinNum&quot;) ? getExposedMember(data1Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data1Pin &amp;&amp; hasExposedMember(data1Pin, &quot;portNum&quot;) ? getExposedMember(data1Pin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+{ .pin_num = `${data2Pin &amp;&amp; hasExposedMember(data2Pin, &quot;pinNum&quot;) ? getExposedMember(data2Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data2Pin &amp;&amp; hasExposedMember(data2Pin, &quot;portNum&quot;) ? getExposedMember(data2Pin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+{ .pin_num = `${data3Pin &amp;&amp; hasExposedMember(data3Pin, &quot;pinNum&quot;) ? getExposedMember(data3Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data3Pin &amp;&amp; hasExposedMember(data3Pin, &quot;portNum&quot;) ? getExposedMember(data3Pin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+{ .pin_num = `${data4Pin &amp;&amp; hasExposedMember(data4Pin, &quot;pinNum&quot;) ? getExposedMember(data4Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data4Pin &amp;&amp; hasExposedMember(data4Pin, &quot;portNum&quot;) ? getExposedMember(data4Pin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+{ .pin_num = `${data5Pin &amp;&amp; hasExposedMember(data5Pin, &quot;pinNum&quot;) ? getExposedMember(data5Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data5Pin &amp;&amp; hasExposedMember(data5Pin, &quot;portNum&quot;) ? getExposedMember(data5Pin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+{ .pin_num = `${data6Pin &amp;&amp; hasExposedMember(data6Pin, &quot;pinNum&quot;) ? getExposedMember(data6Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data6Pin &amp;&amp; hasExposedMember(data6Pin, &quot;portNum&quot;) ? getExposedMember(data6Pin, &quot;portNum&quot;) : &quot;NC&quot;}`},
+{ .pin_num = `${data7Pin &amp;&amp; hasExposedMember(data7Pin, &quot;pinNum&quot;) ? getExposedMember(data7Pin, &quot;pinNum&quot;) : &quot;NC&quot;}`, .port_num = `${data7Pin &amp;&amp; hasExposedMember(data7Pin, &quot;portNum&quot;) ? getExposedMember(data7Pin, &quot;portNum&quot;) : &quot;NC&quot;}`}}}" />
+    </ConfigStruct>
+
     <ConfigInstruction value="Cy_SysClk_PeriGroupSlaveInit(CY_MMIO_SDHC`${InstNumber}`_PERI_NR, CY_MMIO_SDHC`${InstNumber}`_GROUP_NR, CY_MMIO_SDHC`${InstNumber}`_SLAVE_NR, CY_MMIO_SDHC`${InstNumber}`_CLK_HF_NR);" include="true" guard="defined (CY_DEVICE_CONFIGURATOR_IP_ENABLE_FEATURE)" />
     <ConfigInstruction purpose="INITIALIZE" value="Cy_SysClk_PeriPclkAssignDivider(PCLK_SDHC`${InstNumber}`_CLK_HF, `${getExposedMember(sourceClock, &quot;clockSel&quot;)}`);" include="`${(ip_version &gt; 1)}`"  />
     <ConfigInstruction value="cyhal_hwmgr_reserve(&amp;`${INST_NAME}`_obj);" include="true" guard="defined (CY_USING_HAL)" />

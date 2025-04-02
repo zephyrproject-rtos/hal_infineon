@@ -23,7 +23,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
-#if CY_PDL_FLASH_BOOT
+#if (CY_PDL_FLASH_BOOT)
 #include "cybsp_smif_init.h"
 #include "cycfg_pins.h"
 #include "cyhal_pin_package.h"
@@ -378,4 +378,4 @@ CY_RAMFUNC_END
 CY_PRAGMA(diag_default = Ta022)
 #endif
 
-#endif // if CY_PDL_FLASH_BOOT
+#endif // if (CY_PDL_FLASH_BOOT)

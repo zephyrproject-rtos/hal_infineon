@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_flash.c
-* \version 3.110
+* \version 3.130
 *
 * \brief
-* Provides the public functions for the API for the PSoC 6 Flash Driver.
+* Provides the public functions for the API for the PSOC 6 and PSOC C3 Flash Driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2024 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -224,16 +224,18 @@ static volatile cy_stc_flash_context_t flashContext;
 
 #define CYBOOT_FLAGS_BLOCKING 0U
 #define CYBOOT_FLAGS_NON_BLOCKING 1U
-
-static cyboot_flash_context_t boot_rom_context;
-static cyboot_flash_refresh_t flash_refresh;
-
 #define HASH_CALC_DIVISOR 127U
 #define HASH_CALC_DIVISOR_LEN 7U
 #define REG8(addr)                      ( *( (volatile uint8_t  *)(addr) ) )
+#define SECTOR_INDEX_WITHOUT_SFLASH  0U
 
+static cyboot_flash_context_t boot_rom_context;
+/* This is a work around in PDL. To cyboot_flash_refresh_init passing an array of cyboot_flash_refresh_t instead of passing a pointer to cyboot_flash_refresh_t.
+The change is required to prevent writes to sector 1 from corrupting memory adjacent to the refresh_t structure.
+The refresh structure is updated by the flash write routine even if it is not initialized.
+This should be fixed in the Boot code later. */
+static cyboot_flash_refresh_t flash_refresh[CPUSS_FLASHC_SECTOR_M];
 static bool refresh_feature_enable;
-
 
 /* To calculate hash */
 static uint8_t Cy_Flash_GetHash(uint32_t startAddr,uint32_t numberOfBytes);
@@ -676,7 +678,16 @@ static cy_en_flashdrv_status_t Cy_Flash_Process_BootRom_Error_Code(uint32_t erro
             result = CY_FLASH_DRV_INVALID_INPUT_PARAMETERS;
             break;
         }
-        case CYBOOT_FAULT_UNEXPECTED :
+        case CYBOOT_FLASH_RECOVER_ERR:
+        {
+        #if defined(CY_DEVICE_PSC3)
+            result = CY_FLASH_DRV_REFRESH_NOTHING;
+        #else
+            result = CY_FLASH_DRV_ERR_UNC;
+        #endif /* defined(CY_DEVICE_PSC3) */
+            break;
+        }
+        case CYBOOT_FAULT_UNEXPECTED:
         {
             result = CY_FLASH_DRV_ERR_UNC;
             break;
@@ -766,11 +777,11 @@ cy_en_flashdrv_status_t Cy_Flash_Init(bool refresh_enable)
     if(refresh_enable)
     {
         refresh_feature_enable = refresh_enable;
-        boot_rom_context.refresh = &flash_refresh;
+        boot_rom_context.refresh = flash_refresh;
         /* Need to initialize boot_rom_context.refresh before working with flash */
-        ROM_FUNC->cyboot_flash_refresh_init_all(&flash_refresh);
+        ROM_FUNC->cyboot_flash_refresh_init((uint32_t)SECTOR_INDEX_WITHOUT_SFLASH, flash_refresh);
         /* To recover a previous failure, if any */
-        uint32_t ret = ROM_FUNC->cyboot_flash_refresh_recover_all(&flash_refresh);
+        uint32_t ret = ROM_FUNC->cyboot_flash_refresh_recover((uint32_t)SECTOR_INDEX_WITHOUT_SFLASH, flash_refresh);
         return Cy_Flash_Process_BootRom_Error_Code(ret);
     }
     return CY_FLASH_DRV_SUCCESS;
@@ -787,7 +798,7 @@ cy_en_flashdrv_status_t Cy_Flash_Init(bool refresh_enable)
 *******************************************************************************/
 bool Cy_Flash_Is_Refresh_Required(void)
 {
-    return ROM_FUNC->cyboot_flash_refresh_test(&flash_refresh);
+    return ROM_FUNC->cyboot_flash_refresh_test(flash_refresh);
 }
 #endif /* !defined (CY_IP_MXS40FLASHC) */
 
@@ -832,7 +843,7 @@ cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr)
     }
 #else
         boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_erase_row(rowAddr, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_erase_row(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), &boot_rom_context);
         result = Cy_Flash_Process_BootRom_Error_Code(status);
 #endif /* !defined (CY_IP_MXS40FLASHC) */
 
@@ -890,7 +901,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartEraseRow(uint32_t rowAddr)
     }
 #else
         boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_erase_row_start(rowAddr, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_erase_row_start(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), &boot_rom_context);
         if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
         {
             result = CY_FLASH_DRV_OPERATION_STARTED;
@@ -1141,7 +1152,7 @@ cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* da
 #else
 
         boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_program_row(rowAddr, (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_program_row(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
         result = Cy_Flash_Process_BootRom_Error_Code(status);
 #endif /* !defined (CY_IP_MXS40FLASHC) */
 
@@ -1195,7 +1206,7 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 #else
 
         boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_write_row(rowAddr, (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_write_row(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
         result = Cy_Flash_Process_BootRom_Error_Code(status);
 #endif /* !defined (CY_IP_MXS40FLASHC) */
 
@@ -1251,7 +1262,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* da
 
 #else
         boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_write_row_start(rowAddr, (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_write_row_start(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
         if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
         {
             result = CY_FLASH_DRV_OPERATION_STARTED;
@@ -1328,7 +1339,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* 
     }
 #else
         boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_program_row_start(rowAddr, (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_program_row_start(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
         if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
         {
             result = CY_FLASH_DRV_OPERATION_STARTED;
@@ -1409,7 +1420,7 @@ cy_en_flashdrv_status_t Cy_Flash_RowChecksum (uint32_t rowAddr, uint32_t* checks
         volatile uint32_t i, j;
         uint32_t checksum_value=0U;
 
-        startAddress = rowAddr;
+        startAddress = FLASH_SBUS_ALIAS_ADDRESS(rowAddr);
         endAddress = startAddress + CY_FLASH_SIZEOF_ROW;
 
         i = startAddress;
@@ -1476,7 +1487,7 @@ cy_en_flashdrv_status_t Cy_Flash_CalculateHash (const uint32_t* data, uint32_t n
             result = CY_FLASH_DRV_IPC_BUSY;
         }
 #else
-        *hashPtr = (uint32_t)Cy_Flash_GetHash((uint32_t) data, numberOfBytes);
+        *hashPtr = (uint32_t)Cy_Flash_GetHash((uint32_t)FLASH_SBUS_ALIAS_ADDRESS(data), numberOfBytes);
         result = CY_FLASH_DRV_SUCCESS;
 
 #endif /* !defined (CY_IP_MXS40FLASHC) */
@@ -1686,14 +1697,110 @@ uint32_t Cy_Flash_GetExternalStatus(void)
 
 
 #if defined (CY_IP_MXS40FLASHC)
+
+/** \cond INTERNAL */
+
+/*******************************************************************************
+* Function Name: memcpy8
+********************************************************************************
+* Performs a fast memcpy4 by unrolling a loop.
+* \param dst    A pointer to a destination buffer, should be aligned to 4 bytes.
+* \param src    A pointer to a source buffer, should be aligned to 4 bytes.
+* \param size   A size in byte to be copied, must be a multiple of 8 bytes
+*******************************************************************************/
+static void memcpy8(uint32_t *dst, const uint32_t *src, uint32_t size)
+{
+    do
+    {
+        dst[0] = src[0];
+        dst[1] = src[1];
+        dst = &dst[2];
+        src = &src[2];
+        size -= 8UL;
+    } while (size != 0UL);
+}
+
+/*******************************************************************************
+* Function Name: cy_flash_scratch_row_addr
+********************************************************************************
+* Computes an address for a flash scratch row \c scratch_row_idx in a sector
+* \c sector_idx.
+* \param sector_idx         A flash sector.
+* \param scratch_row_idx    A flash scratch row index within a flash sector.
+*
+* \returns An address for a flash scratch row.
+*******************************************************************************/
+static uint32_t cy_flash_scratch_row_addr(uint32_t sector_idx, uint32_t scratch_row_idx)
+{
+    return CYBOOT_SCRATCH_BASE_ADDR
+            + (sector_idx * (CYBOOT_N_SCRATCH_ROWS * CY_FLASH_ROW_SIZE))
+            + (scratch_row_idx * CY_FLASH_ROW_SIZE);
+}
+
+/*******************************************************************************
+* Function Name: cy_flash_refresh_perform
+********************************************************************************
+* Performs a blocking flash refresh operation for one flash sector.
+* \param sector_idx     A sector index.
+* \param refresh        A pointer to a single refresh structure.
+*
+* \returns  A status code.
+*******************************************************************************/
+static cy_en_flashdrv_status_t cy_flash_refresh_perform(uint32_t sector_idx, cyboot_flash_refresh_t *refresh)
+{
+    cyboot_flash_context_t ctx = { 0UL, };
+
+    /* An index for flash row's column 33 in uint32_t[] */
+    uint32_t COL33_IDX = (CY_FLASH_ROW_SIZE / sizeof(uint32_t));
+    cyboot_flash_row_t row_data;
+    uint32_t ret = CYBOOT_FLASH_FAILED;
+    uint32_t scratch_addr;
+    uint32_t min_addr;
+    ctx.flags = CY_FLASH_MODE_REFRESH_MANUAL;
+
+    if (!ROM_FUNC->cyboot_flash_refresh_test(refresh))
+    {
+        return CY_FLASH_DRV_REFRESH_NOTHING;
+    }
+
+    scratch_addr = cy_flash_scratch_row_addr(sector_idx, refresh->scratch_row_idx);
+    refresh->scratch_row_idx = (refresh->scratch_row_idx + 1UL) % CYBOOT_N_SCRATCH_ROWS;
+    min_addr = refresh->min_page_addr;
+
+    memcpy8((uint32_t *)row_data, (uint32_t *)min_addr, CY_FLASH_ROW_SIZE);
+    ++refresh->max_count;
+    row_data[COL33_IDX      ] = CYBOOT_FLASH_REFRESH_TAG;
+    row_data[COL33_IDX + 1UL] = refresh->max_count;
+    row_data[COL33_IDX + 2UL] = min_addr;
+    row_data[COL33_IDX + 3UL] = 0UL;
+    (void)ROM_FUNC->cyboot_flash_write_row(scratch_addr, row_data, &ctx);
+
+    CY_SET_REG32(0x52152A10, 0x01000000); /* if_sel=1 (FLASH_MACRO_CTL) */
+    CY_SET_REG32(0x52152A58, 0x00000001); /* ACLK  (ACLK_CTL) */
+    CY_SET_REG32(0x52152A10, 0x00000000); /* if_sel=0  (FLASH_MACRO_CTL) */
+
+    ++refresh->max_count;
+    row_data[COL33_IDX + 1UL] = refresh->max_count;
+    row_data[COL33_IDX + 2UL] = 0UL;
+    ret = ROM_FUNC->cyboot_flash_write_row(min_addr, row_data, &ctx);
+    if (CYBOOT_FLASH_SUCCESS == ret)
+    {
+        ROM_FUNC->cyboot_flash_refresh_get_min_max(sector_idx, refresh);
+    }
+
+    return Cy_Flash_Process_BootRom_Error_Code(ret);
+}
+/** \endcond */
+
 /*******************************************************************************
 * Function Name: Cy_Flash_Refresh
 ****************************************************************************//**
 *
-* Refreshes the flash rows which were not updated by the user code. This is a blocking call.
-* If there are only limited number of flash row writes for each flash sector then
-* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
-* This refresh feature will prevent the flash sector from wear out
+* This is a blocking call.
+* Writes to the flash will cause slight degradation of the other cells in the flash.
+* If the flash is written more than 100,000 times, errors may appear on flash reads.
+* To prevent this, the refresh functions should be called before or after flash writes.
+* The refresh functions are not available on CPUSS_FLASHC_SFLASH_SECNUM because it includes the SFLASH.
 *
 * param address of the row that needs to be refreshed.
 *
@@ -1705,17 +1812,30 @@ uint32_t Cy_Flash_GetExternalStatus(void)
 cy_en_flashdrv_status_t Cy_Flash_Refresh(uint32_t flashAddr)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_REFRESH_NOT_ENABLED;
-    if(refresh_feature_enable)
+    if (IS_FLASH_ADDRESS_IN_SFLASH_SECNUM(FLASH_SBUS_ALIAS_ADDRESS(flashAddr)))
+    {
+        return CY_FLASH_DRV_REFRESH_NOT_SUPPORTED;
+    }
+    if (refresh_feature_enable)
     {
         uint32_t sector_Idx;
         uint32_t row_Idx;
-        uint32_t status = ROM_FUNC->cyboot_flash_refresh_get_sector_idx(flashAddr, &sector_Idx, &row_Idx);
-        if( status == CYBOOT_FLASH_SUCCESS)
-        {
-            status = ROM_FUNC->cyboot_flash_refresh_perform(sector_Idx, &flash_refresh);
-        }
+        uint32_t status = ROM_FUNC->cyboot_flash_refresh_get_sector_idx(FLASH_SBUS_ALIAS_ADDRESS(flashAddr), &sector_Idx, &row_Idx);
         (void)row_Idx;
-        result = Cy_Flash_Process_BootRom_Error_Code(status);
+
+        if (status == CYBOOT_FLASH_SUCCESS)
+        {
+        #if defined(CY_DEVICE_PSC3)
+            result = (cy_en_flashdrv_status_t)cy_flash_refresh_perform(sector_Idx, flash_refresh);
+        #else
+            status = ROM_FUNC->cyboot_flash_refresh_perform(sector_Idx, flash_refresh);
+            result = Cy_Flash_Process_BootRom_Error_Code(status);
+        #endif
+        }
+        else
+        {
+            result = Cy_Flash_Process_BootRom_Error_Code(status);
+        }
     }
     return result;
 }
@@ -1724,11 +1844,11 @@ cy_en_flashdrv_status_t Cy_Flash_Refresh(uint32_t flashAddr)
 * Function Name: Cy_Flash_Refresh_Start
 ****************************************************************************//**
 *
-* Refreshes the flash rows which were not updated by the user code. This is a non-blocking call.
-* If there are only limited number of flash row writes for each flash sector then
-* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
-* This refresh feature will prevent the flash sector from wear out
-* This is not allowed on sector which has SFLASH
+* This is a non-blocking call.
+* Writes to the flash will cause slight degradation of the other cells in the flash.
+* If the flash is written more than 100,000 times, errors may appear on flash reads.
+* To prevent this, the refresh functions should be called before or after flash writes.
+* The refresh functions are not available on CPUSS_FLASHC_SFLASH_SECNUM because it includes the SFLASH.
 *
 * \param address of the row that needs to be refreshed.
 *
@@ -1739,15 +1859,19 @@ cy_en_flashdrv_status_t Cy_Flash_Refresh(uint32_t flashAddr)
 cy_en_flashdrv_status_t Cy_Flash_Refresh_Start(uint32_t flashAddr)
 {
     cy_en_flashdrv_status_t result = CY_FLASH_DRV_REFRESH_NOT_ENABLED;
-    if(refresh_feature_enable)
+    if (IS_FLASH_ADDRESS_IN_SFLASH_SECNUM(FLASH_SBUS_ALIAS_ADDRESS(flashAddr)))
+    {
+        return CY_FLASH_DRV_REFRESH_NOT_SUPPORTED;
+    }
+    if (refresh_feature_enable)
     {
         uint32_t sector_Idx;
         uint32_t row_Idx;
-        uint32_t status = ROM_FUNC->cyboot_flash_refresh_get_sector_idx(flashAddr, &sector_Idx, &row_Idx);
-        if( status == CYBOOT_FLASH_SUCCESS)
+        uint32_t status = ROM_FUNC->cyboot_flash_refresh_get_sector_idx(FLASH_SBUS_ALIAS_ADDRESS(flashAddr), &sector_Idx, &row_Idx);
+        if (status == CYBOOT_FLASH_SUCCESS)
         {
-            status = ROM_FUNC->cyboot_flash_refresh_perform_start(sector_Idx, &flash_refresh, &boot_rom_context);
-            if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
+            status = ROM_FUNC->cyboot_flash_refresh_perform_start(sector_Idx, flash_refresh, &boot_rom_context);
+            if (status == (uint32_t)CYBOOT_FLASH_SUCCESS)
             {
                 return CY_FLASH_DRV_OPERATION_STARTED;
             }

@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_lpcomp.c
-* \version 1.70
+* \version 1.80.1
 *
 * \brief
 *  This file provides the driver code to the API for the Low Power Comparator
@@ -49,9 +49,9 @@ static cy_stc_lpcomp_context_t cy_lpcomp_context;
 #define TRIMM_START_IDX_COMP_CH1                                                                (91UL)
 
 /* Forward declarations */
-#if (0) /* Until SORT Si */
+#if !defined (CY_AUTANALOG_TRIMM_DISABLE)
 static cy_en_lpcomp_status_t LPComp_LoadTrimmValues(LPCOMP_Type *base, cy_en_lpcomp_channel_t channel);
-#endif /* Until SORT Si */
+#endif
 #endif /* CY_IP_MXS22LPCOMP */
 
 /*******************************************************************************
@@ -124,10 +124,11 @@ cy_en_lpcomp_status_t Cy_LPComp_Init_Ext(LPCOMP_Type *base, cy_en_lpcomp_channel
 
 #if defined (CY_IP_MXS22LPCOMP)
         /* Read and apply trimming values */
-#if (0) /* Until SORT Si */
+#if !defined (CY_AUTANALOG_TRIMM_DISABLE)
         ret = LPComp_LoadTrimmValues(base, channel);
-#endif /* Until SORT Si */
+#else
         ret = CY_LPCOMP_SUCCESS;
+#endif
 #else
         ret = CY_LPCOMP_SUCCESS;
 #endif /* CY_IP_MXS22LPCOMP */
@@ -958,9 +959,18 @@ cy_en_syspm_status_t Cy_LPComp_HibernateCallback(cy_stc_syspm_callback_params_t 
             {
                 /* Disable the low-power comparator block when there is no wake-up source from any channel. */
                 if(!(((_FLD2VAL(LPCOMP_CMP0_CTRL_MODE0, LPCOMP_CMP0_CTRL(locBase)) == (uint32_t)CY_LPCOMP_MODE_ULP) &&
+                #if defined (CY_IP_MXS22LPCOMP) || defined (CY_IP_MXS40LPCOMP)
+                       _FLD2BOOL(CY_LPCOMP_WAKEUP_PIN0, SRSS_PWR_HIB_WAKE_CTL)) ||
+                #else
                        _FLD2BOOL(CY_LPCOMP_WAKEUP_PIN0, SRSS_PWR_HIBERNATE)) ||
+                #endif
                      ((_FLD2VAL(LPCOMP_CMP1_CTRL_MODE1, LPCOMP_CMP1_CTRL(locBase)) == (uint32_t)CY_LPCOMP_MODE_ULP) &&
+
+                #if defined (CY_IP_MXS22LPCOMP) || defined (CY_IP_MXS40LPCOMP)
+                       _FLD2BOOL(CY_LPCOMP_WAKEUP_PIN1, SRSS_PWR_HIB_WAKE_CTL))))
+                #else
                        _FLD2BOOL(CY_LPCOMP_WAKEUP_PIN1, SRSS_PWR_HIBERNATE))))
+                #endif
                 {
                     /* Disable the low-power comparator block to avoid leakage. */
                     Cy_LPComp_GlobalDisable(locBase);
@@ -998,6 +1008,8 @@ cy_en_syspm_status_t Cy_LPComp_HibernateCallback(cy_stc_syspm_callback_params_t 
 *
 * This function returns current trim settings for a particular channel of
 * low-power comparator.
+*
+* \note This function is only available for the CAT1D family of devices.
 *
 * \param *base
 *     The low-power comparator register structure pointer.
@@ -1041,6 +1053,8 @@ void Cy_LPComp_GetTrim(LPCOMP_Type const * base, cy_en_lpcomp_channel_t channel,
 * This function applies trim settings to the particular channel of
 * low-power comparator.
 *
+* \note This function is only available for the CAT1D family of devices.
+*
 * \param *base
 *     The low-power comparator register structure pointer.
 *
@@ -1073,7 +1087,7 @@ void Cy_LPComp_SetTrim(LPCOMP_Type * base, cy_en_lpcomp_channel_t channel, const
 }
 
 
-#if (0) /* Until SORT Si */
+#if !defined (CY_AUTANALOG_TRIMM_DISABLE)
 /*******************************************************************************
 * Function Name: LPComp_LoadTrimmValues
 ****************************************************************************//**
@@ -1113,7 +1127,7 @@ static cy_en_lpcomp_status_t LPComp_LoadTrimmValues(LPCOMP_Type *base, cy_en_lpc
 
     return ret;
 }
-#endif /* Until SORT Si */
+#endif
 
 #endif /* CY_IP_MXS22LPCOMP */
 

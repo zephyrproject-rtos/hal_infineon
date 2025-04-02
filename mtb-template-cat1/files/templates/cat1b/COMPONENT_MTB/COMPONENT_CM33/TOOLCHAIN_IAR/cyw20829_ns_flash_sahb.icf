@@ -39,7 +39,7 @@
 
 /* The size of the stack section at the end of CM33 SRAM */
 define symbol STACK_SIZE = 0x800;
-define symbol HEAP_SIZE = 0x0400;
+define symbol HEAP_SIZE = 0x0400; /* This value can be adjusted using LDFLAG --config_def __HEAP_SIZE=<value> */
 
 /* Memory reserved for Bootstrap code and data */
 if (!isdefinedsymbol(APP_BOOTSTRAP_SIZE)) {
@@ -124,14 +124,15 @@ define block RAMVECTOR        with alignment = RAMVECTORS_ALIGNMENT { section .i
 define block APPTEXTRAM       with alignment = 8
 {
   section .cy_ramfunc,
+  section *.cy_os_common,
+  section *.text.cy_btstack_common,
+  section *.text.cy_btstack_gatt,
+  section *.text.cy_ipc,
+  section *.text.cy_btstack_porting,
+
   readwrite code object cy_smif.o,
   readwrite code object cy_smif_sfdp.o,
-  readwrite code object cy_smif_memslot.o,
-  readwrite code object cy_os_common*.o,
-  readwrite code object cy_btstack_common*.o,
-  readwrite code object cy_btstack_gatt*.o,
-  readwrite code object cy_ipc*.o,
-  readwrite code object cy_btstack_porting*.o
+  readwrite code object cy_smif_memslot.o
 };
 
 define block XIP              {readonly};
@@ -139,14 +140,16 @@ define block XIP              {readonly};
 /*-Initializations-*/
 initialize by copy { readwrite }; /* copy .data section from flash to ram and initialize by ILINK */
 initialize by copy { rw, section .cy_ramfunc }; /* copy .data section from flash to ram and initialize by ILINK */
+initialize by copy { section *.cy_os_common };
+initialize by copy { section *.text.cy_btstack_common };
+initialize by copy { section *.text.cy_btstack_gatt };
+initialize by copy { section *.text.cy_ipc };
+initialize by copy { section *.text.cy_btstack_porting };
 initialize by copy { readonly object cy_smif.o };
 initialize by copy { readonly object cy_smif_sfdp.o };
 initialize by copy { readonly object cy_smif_memslot.o };
-initialize by copy { readonly object cy_os_common*.o };
-initialize by copy { readonly object cy_btstack_common*.o };
-initialize by copy { readonly object cy_btstack_gatt*.o };
-initialize by copy { readonly object cy_ipc*.o };
-initialize by copy { readonly object cy_btstack_porting*.o };
+
+
 do not initialize  { section .noinit, section .intvec_ram }; /* exclude .noinit and .intvec_ram sections */
 
 /*-Placement-*/
@@ -164,12 +167,11 @@ place in          CODE_region     { readonly object *cy_syslib*.o };
 place in          CODE_region     { readonly object *ppu_v1.o };
 place in          CODE_region     { readonly object *cy_mpc.o };
 place in          CODE_region     { readonly object *cy_syspm_ppu.o };
-place in          CODE_region     { readonly object *ABImemcpy.o };
-place in          CODE_region     { readonly object *memcmp.o };
-place in          CODE_region     { readonly object *ABImemset.o };
-place in          CODE_region     { readonly object *ABImemset48.o };
-place in          CODE_region     { readonly object *ABImemclr.o };
-place in          CODE_region     { readonly object *ABImemclr4.o };
+place in          CODE_region     { readonly object *memcpy*.o };
+place in          CODE_region     { readonly object *memcmp*.o };
+place in          CODE_region     { readonly object *memset*.o };
+place in          CODE_region     { readonly object *memclr*.o };
+place in          CODE_region     { readonly object *memmove*.o };
 
 
 place in          DATA_BS_region  { readwrite object *startup_cat1b_cm33.o };

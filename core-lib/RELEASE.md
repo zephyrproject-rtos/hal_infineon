@@ -44,8 +44,7 @@ The Core Library provides basic types and utilities that can be used between dif
 ### What Changed?
 
 #### v1.4.2
-* Added new module identifiers to cy_result.h 
-* Added new utility MACROs to cy_utils.h. Custom ASSERT Handler can now be defined.
+* Added new module identifiers to cy_result.h
 #### v1.4.1
 * Added new module identifiers to cy_result.h
 #### v1.4.0

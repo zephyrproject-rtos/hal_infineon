@@ -25,6 +25,8 @@
 #ifndef PARTITION_ARMCM33_H
 #define PARTITION_ARMCM33_H
 
+#include "partition_psc3.h"
+
 /*
 //-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
 */
@@ -66,53 +68,13 @@
 //   <e>Initialize SAU Region 0
 //   <i> Setup SAU Region 0 memory attributes
 */
-#define SAU_INIT_REGION0    1
-
-/*
-//     <o>Start Address <0-0xFFFFFFE0>
-*/
-#define SAU_INIT_START0     0x00000000      /* start address of SAU region 0 */
-
-/*
-//     <o>End Address <0x1F-0xFFFFFFFF>
-*/
-#define SAU_INIT_END0       0x001FFFFF      /* end address of SAU region 0 */
-
-/*
-//     <o>Region is
-//         <0=>Non-Secure
-//         <1=>Secure, Non-Secure Callable
-*/
-#define SAU_INIT_NSC0       1
-/*
-//   </e>
-*/
+#define SAU_INIT_REGION0    0
 
 /*
 //   <e>Initialize SAU Region 1
 //   <i> Setup SAU Region 1 memory attributes
 */
-#define SAU_INIT_REGION1    1
-
-/*
-//     <o>Start Address <0-0xFFFFFFE0>
-*/
-#define SAU_INIT_START1     0x00200000
-
-/*
-//     <o>End Address <0x1F-0xFFFFFFFF>
-*/
-#define SAU_INIT_END1       0x003FFFFF
-
-/*
-//     <o>Region is
-//         <0=>Non-Secure
-//         <1=>Secure, Non-Secure Callable
-*/
-#define SAU_INIT_NSC1       0
-/*
-//   </e>
-*/
+#define SAU_INIT_REGION1    0
 
 /*
 //   <e>Initialize SAU Region 2
@@ -123,12 +85,12 @@
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START2     0x20200000
+#define SAU_INIT_START2     SRAM0_NS_SBUS_SAU_START      /* start address of SAU region 2 */
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END2       0x203FFFFF
+#define SAU_INIT_END2       (SRAM0_NS_SBUS_SAU_END - 1)      /* end address of SAU region 2 */
 
 /*
 //     <o>Region is
@@ -149,12 +111,12 @@
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START3     0x40000000
+#define SAU_INIT_START3     SRAM0_NS_CBUS_SAU_START
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END3       0x40040000
+#define SAU_INIT_END3       (SRAM0_NS_CBUS_SAU_END - 1)
 
 /*
 //     <o>Region is
@@ -170,17 +132,17 @@
 //   <e>Initialize SAU Region 4
 //   <i> Setup SAU Region 4 memory attributes
 */
-#define SAU_INIT_REGION4    0
+#define SAU_INIT_REGION4    1
 
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START4     0x00000000      /* start address of SAU region 4 */
+#define SAU_INIT_START4     MMIO_NS_SAU_START
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END4       0x00000000      /* end address of SAU region 4 */
+#define SAU_INIT_END4       (MMIO_NS_SAU_END - 1)
 
 /*
 //     <o>Region is
@@ -196,24 +158,24 @@
 //   <e>Initialize SAU Region 5
 //   <i> Setup SAU Region 5 memory attributes
 */
-#define SAU_INIT_REGION5    0
+#define SAU_INIT_REGION5    1
 
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START5     0x00000000
+#define SAU_INIT_START5     NSC_SAU_START
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END5       0x00000000
+#define SAU_INIT_END5       (NSC_SAU_END - 1)
 
 /*
 //     <o>Region is
 //         <0=>Non-Secure
 //         <1=>Secure, Non-Secure Callable
 */
-#define SAU_INIT_NSC5       0
+#define SAU_INIT_NSC5       1
 /*
 //   </e>
 */
@@ -222,17 +184,17 @@
 //   <e>Initialize SAU Region 6
 //   <i> Setup SAU Region 6 memory attributes
 */
-#define SAU_INIT_REGION6    0
+#define SAU_INIT_REGION6    1
 
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START6     0x00000000
+#define SAU_INIT_START6     FLASH_NS_SBUS_SAU_START      /* start address of SAU region 6 */
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END6       0x00000000
+#define SAU_INIT_END6       (FLASH_NS_SBUS_SAU_END - 1)      /* end address of SAU region 6 */
 
 /*
 //     <o>Region is
@@ -248,17 +210,17 @@
 //   <e>Initialize SAU Region 7
 //   <i> Setup SAU Region 7 memory attributes
 */
-#define SAU_INIT_REGION7    0
+#define SAU_INIT_REGION7    1
 
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START7     0x00000000
+#define SAU_INIT_START7     FLASH_NS_CBUS_SAU_START
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END7       0x00000000
+#define SAU_INIT_END7       (FLASH_NS_CBUS_SAU_END - 1)
 
 /*
 //     <o>Region is
@@ -269,6 +231,7 @@
 /*
 //   </e>
 */
+
 
 /*
 // </h>
@@ -285,7 +248,7 @@
 //     <1=>Secure state only
 //   <i> Value for SCB->CSR register bit DEEPSLEEPS
 */
-#define SCB_CSR_DEEPSLEEPS_VAL  1
+#define SCB_CSR_DEEPSLEEPS_VAL  0
 
 /*
 //   <o>System reset request accessible from
@@ -293,7 +256,7 @@
 //     <1=> Secure state only
 //   <i> Value for SCB->AIRCR register bit SYSRESETREQS
 */
-#define SCB_AIRCR_SYSRESETREQS_VAL  1
+#define SCB_AIRCR_SYSRESETREQS_VAL  0
 
 /*
 //   <o>Priority of Non-Secure exceptions is
@@ -400,7 +363,7 @@
 //   <o.30> Interrupt 30  <0=> Secure state <1=> Non-Secure state
 //   <o.31> Interrupt 31  <0=> Secure state <1=> Non-Secure state
 */
-#define NVIC_INIT_ITNS0_VAL      0x00000000
+#define NVIC_INIT_ITNS0_VAL      0xFBF003FF /* 10-19 and 26 sec */
 
 /*
 //   </e>
@@ -446,7 +409,7 @@
 //   <o.30> Interrupt 62  <0=> Secure state <1=> Non-Secure state
 //   <o.31> Interrupt 63  <0=> Secure state <1=> Non-Secure state
 */
-#define NVIC_INIT_ITNS1_VAL      0x00000000
+#define NVIC_INIT_ITNS1_VAL      0xFFFFFFFF
 
 /*
 //   </e>
@@ -455,7 +418,7 @@
 /*
 //   <e>Initialize ITNS 2 (Interrupts 64..95)
 */
-#define NVIC_INIT_ITNS2    0
+#define NVIC_INIT_ITNS2    1
 
 /*
 // Interrupts 64..95
@@ -492,7 +455,7 @@
 //   <o.30> Interrupt 94  <0=> Secure state <1=> Non-Secure state
 //   <o.31> Interrupt 95  <0=> Secure state <1=> Non-Secure state
 */
-#define NVIC_INIT_ITNS2_VAL      0x00000000
+#define NVIC_INIT_ITNS2_VAL      0xFFFFFFFF
 
 /*
 //   </e>
@@ -501,7 +464,7 @@
 /*
 //   <e>Initialize ITNS 3 (Interrupts 96..127)
 */
-#define NVIC_INIT_ITNS3    0
+#define NVIC_INIT_ITNS3    1
 
 /*
 // Interrupts 96..127
@@ -538,7 +501,7 @@
 //   <o.30> Interrupt 126 <0=> Secure state <1=> Non-Secure state
 //   <o.31> Interrupt 127 <0=> Secure state <1=> Non-Secure state
 */
-#define NVIC_INIT_ITNS3_VAL      0x00000000
+#define NVIC_INIT_ITNS3_VAL      0xFFFFFFFF
 
 /*
 //   </e>
@@ -547,7 +510,7 @@
 /*
 //   <e>Initialize ITNS 4 (Interrupts 128..159)
 */
-#define NVIC_INIT_ITNS4    0
+#define NVIC_INIT_ITNS4    1
 
 /*
 // Interrupts 128..159
@@ -584,7 +547,7 @@
 //   <o.30> Interrupt 158 <0=> Secure state <1=> Non-Secure state
 //   <o.31> Interrupt 159 <0=> Secure state <1=> Non-Secure state
 */
-#define NVIC_INIT_ITNS4_VAL      0x00000000
+#define NVIC_INIT_ITNS4_VAL      0x00000FFF
 
 /*
 //   </e>
@@ -1162,12 +1125,12 @@ __STATIC_INLINE void TZ_SAU_Setup (void)
 
   #if defined (SAU_INIT_CTRL) && (SAU_INIT_CTRL == 1U)
     SAU->CTRL = ((SAU_INIT_CTRL_ENABLE << SAU_CTRL_ENABLE_Pos) & SAU_CTRL_ENABLE_Msk) |
-                ((((uint32_t)SAU_INIT_CTRL_ALLNS)  << ((uint32_t)SAU_CTRL_ALLNS_Pos))  & SAU_CTRL_ALLNS_Msk)   ;
+                ((SAU_INIT_CTRL_ALLNS  << SAU_CTRL_ALLNS_Pos)  & SAU_CTRL_ALLNS_Msk)   ;
   #endif
 
   #if defined (SCB_CSR_AIRCR_INIT) && (SCB_CSR_AIRCR_INIT == 1U)
     SCB->SCR   = (SCB->SCR   & ~(SCB_SCR_SLEEPDEEPS_Msk    )) |
-                   ((((uint32_t)SCB_CSR_DEEPSLEEPS_VAL)     << ((uint32_t)SCB_SCR_SLEEPDEEPS_Pos))     & SCB_SCR_SLEEPDEEPS_Msk);
+                   ((SCB_CSR_DEEPSLEEPS_VAL     << SCB_SCR_SLEEPDEEPS_Pos)     & SCB_SCR_SLEEPDEEPS_Msk);
 
     SCB->AIRCR = (SCB->AIRCR & ~(SCB_AIRCR_VECTKEY_Msk   | SCB_AIRCR_SYSRESETREQS_Msk |
                                  SCB_AIRCR_BFHFNMINS_Msk | SCB_AIRCR_PRIS_Msk          ))                    |
@@ -1181,6 +1144,9 @@ __STATIC_INLINE void TZ_SAU_Setup (void)
       defined (TZ_FPU_NS_USAGE) && (TZ_FPU_NS_USAGE == 1U)
 
     SCB->NSACR = (SCB->NSACR & ~(SCB_NSACR_CP10_Msk | SCB_NSACR_CP11_Msk)) |
+                   ((SCB_NSACR_CP10_11_VAL << SCB_NSACR_CP10_Pos) & (SCB_NSACR_CP10_Msk | SCB_NSACR_CP11_Msk));
+
+    SCB_NS->NSACR = (SCB_NS->NSACR & ~(SCB_NSACR_CP10_Msk | SCB_NSACR_CP11_Msk)) |
                    ((SCB_NSACR_CP10_11_VAL << SCB_NSACR_CP10_Pos) & (SCB_NSACR_CP10_Msk | SCB_NSACR_CP11_Msk));
 
     FPU->FPCCR = (FPU->FPCCR & ~(FPU_FPCCR_TS_Msk | FPU_FPCCR_CLRONRETS_Msk | FPU_FPCCR_CLRONRET_Msk)) |

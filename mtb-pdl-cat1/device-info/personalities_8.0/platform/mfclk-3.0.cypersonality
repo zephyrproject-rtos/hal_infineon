@@ -38,6 +38,7 @@
     <ExposedMember key="accuracy"  paramId="accuracy" />
     <ExposedMember key="error"     paramId="error" />
     <ExposedMember key="sourceClock"   paramId="sourceClock" />
+    <ExposedMember key="sourceClockDisplayName" paramId="sourceClock" />
   </ExposedMembers>
   <Parameters>
     <!-- PDL documentation -->

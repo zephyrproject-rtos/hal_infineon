@@ -1,0 +1,3 @@
+files_init/cat1a/props.json:props.json
+files_init/cat1a/bsp.mk:bsp.mk
+files_init/cat1a/tviibe2m.modus:config/design.modus

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides common constants and parameters
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -266,6 +266,7 @@
 #include "cy_crypto_core_trng.h"
 #include "cy_crypto_core_vu.h"
 #include "cy_crypto_core_hkdf.h"
+
 #endif /* #if !defined (CY_CRYPTO_CORE_H) */
 
 /* [] END OF FILE */

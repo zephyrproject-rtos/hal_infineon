@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_wdt.h
-* \version 1.80
+* \version 1.90
 *
 *  This file provides constants and parameter values for the WDT driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -93,6 +93,13 @@
 * is powered down, so the interrupt request from the WDT is sent directly to the
 * WakeUp Interrupt Controller (WIC) which will then wake up the CPU. The
 * CPU then acknowledges the interrupt request and executes the ISR.
+* Clear the interrupt in the ISR. The Reset occurs on the 3rd WDT counter match.
+*
+* In Hibernate mode, the entire device except a few peripherals
+* (such as WDT and LPCOMP) are powered down. Any interrupt to wake up the device
+* in this mode results in a device reset. Hence, there is no interrupt service
+* routine or mechanism associated with this mode. The Reset occurs on the first
+* WDT counter match.
 *
 * <b> Clock Source </b>
 *
@@ -190,16 +197,23 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.90</td>
+*     <td>Updated internal macro for parameter validation.</td>
+*     <td>Code enhancement</td>
+*   </tr>
+*   <tr>
 *     <td>1.80</td>
 *     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
 *          MXS40SRSS_VERSION compares now expect &lt; or &gt;= 2, previously 3.</td>
 *     <td>Code enhancement and support for new devices.</td>
 *   </tr>
 *   <tr>
-*     <td>1.70</td>
+*     <td rowspan="2">1.70</td>
 *     <td>Modified Cy_WDT_SetIgnoreBits() API to work correctly with CAT1B.<br>
 *         Newly Added API : Cy_WDT_ResetCounter() for resetting counter to zero.</td>
 *     <td>Code Enhancements for CAT1B.</td>
+*   </tr>
+*   <tr>
 *     <td>Added \ref Cy_WDT_ResetCounter new API and few macros.</td>
 *     <td>Usability enhancement.</td>
 *   </tr>
@@ -339,7 +353,7 @@ extern "C" {
 #define CY_WDT_DRV_VERSION_MAJOR                       1
 
 /** The driver minor version */
-#define CY_WDT_DRV_VERSION_MINOR                       80
+#define CY_WDT_DRV_VERSION_MINOR                       90
 
 #if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2))
 /** The internal define for the first iteration of WDT unlocking */
@@ -388,7 +402,7 @@ extern "C" {
 
 
  /* Internal macro to validate match value */
- #define CY_WDT_IS_MATCH_VAL_VALID(match)        ((match) <= WDT_MAX_MATCH_VALUE)
+ #define CY_WDT_IS_MATCH_VAL_VALID(match)        ((match) <= (WDT_MAX_MATCH_VALUE-1))
 
 /* Internal macro to validate match value */
 #define CY_WDT_IS_IGNORE_BITS_VALID(bitsNum)     ((bitsNum) <= WDT_MAX_IGNORE_BITS)

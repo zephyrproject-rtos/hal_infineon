@@ -1189,13 +1189,31 @@ cy_rslt_t cy_rtos_timer_start(cy_timer_t* timer, cy_time_t num_ms)
     else
     {
         TickType_t ticks = convert_ms_to_ticks(num_ms);
-        BaseType_t ret   = xTimerChangePeriod(*timer, ticks, 0);
+        BaseType_t ret;
 
-        if (ret == pdPASS)
+        if (is_in_isr())
         {
-            ret = xTimerStart(*timer, 0);
+            BaseType_t taskWoken = pdFALSE;
+            ret = xTimerChangePeriodFromISR(*timer, ticks, &taskWoken);
+            if (ret == pdPASS)
+            {
+                portYIELD_FROM_ISR(taskWoken);
+                taskWoken = pdFALSE;
+                ret = xTimerStartFromISR(*timer, &taskWoken);
+                if (ret == pdPASS)
+                {
+                    portYIELD_FROM_ISR(taskWoken);
+                }
+            }
         }
-
+        else
+        {
+            ret = xTimerChangePeriod(*timer, ticks, 0);
+            if (ret == pdPASS)
+            {
+                ret = xTimerStart(*timer, 0);
+            }
+        }
         if (ret == pdFALSE)
         {
             status = CY_RTOS_GENERAL_ERROR;
@@ -1221,8 +1239,20 @@ cy_rslt_t cy_rtos_timer_stop(cy_timer_t* timer)
     }
     else
     {
-        BaseType_t ret = xTimerStop(*timer, 0);
-
+        BaseType_t ret;
+        if (is_in_isr())
+        {
+            BaseType_t taskWoken = pdFALSE;
+            ret = xTimerStopFromISR(*timer, &taskWoken);
+            if (pdPASS == ret)
+            {
+                portYIELD_FROM_ISR(taskWoken);
+            }
+        }
+        else
+        {
+            ret = xTimerStop(*timer, 0);
+        }
         if (ret == pdFALSE)
         {
             status = CY_RTOS_GENERAL_ERROR;
@@ -1232,6 +1262,7 @@ cy_rslt_t cy_rtos_timer_stop(cy_timer_t* timer)
             status = CY_RSLT_SUCCESS;
         }
     }
+
     return status;
 }
 

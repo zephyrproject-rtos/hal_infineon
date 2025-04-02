@@ -1,13 +1,14 @@
 /***************************************************************************//**
 * \file cy_tcpwm_counter.c
-* \version 1.70
+* \version 1.80
 *
 * \brief
 *  The source file of the tcpwm driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -145,19 +146,20 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
                 TCPWM_GRP_CNT_CC0(base, grp, cntNum) = config->compare0;
                 TCPWM_GRP_CNT_CC0_BUFF(base, grp, cntNum) = config->compare1;
 
-                if(TCPWM_GRP_CC1(base, grp))
+                if (TCPWM_GRP_CC1(base, grp))
                 {
                     TCPWM_GRP_CNT_CC1(base, grp, cntNum) = config->compare2;
                     TCPWM_GRP_CNT_CC1_BUFF(base, grp, cntNum) = config->compare3;
 
                     TCPWM_GRP_CNT_CTRL(base, grp, cntNum) |=
                                     (config->enableCompare1Swap ? TCPWM_GRP_CNT_V2_CTRL_AUTO_RELOAD_CC1_Msk : 0UL);
-
                 }
             }
 
             TCPWM_GRP_CNT_PERIOD(base, grp, cntNum) = config->period;
-
+#if defined (CY_IP_MXS40TCPWM)
+            cy_en_gf_depth_value_t gf_depth_val = (config->glitch_filter_enable) ? config->gf_depth : CY_GLITCH_FILTER_DEPTH_SUPPORT_VALUE_0;
+#endif
             if (CY_TCPWM_INPUT_CREATOR != config->countInput)
             {
 #if !defined (CY_IP_MXS40TCPWM)
@@ -169,11 +171,11 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
 
                 TCPWM_GRP_CNT_TR_IN_SEL1(base, grp, cntNum) = _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL1_START_SEL, config->startInput);
 #else
-                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_START, config->startInputMode, config->startInput, config->gf_depth);
-                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_RELOAD_OR_INDEX, config->reloadInputMode, config->reloadInput, config->gf_depth);
-                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_STOP_OR_KILL, config->stopInputMode, config->stopInput, config->gf_depth);
-                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_COUNT, config->countInputMode, config->countInput, config->gf_depth);
-                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE0, config->captureInputMode, config->captureInput, config->gf_depth);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_START, config->startInputMode, config->startInput, gf_depth_val);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_RELOAD_OR_INDEX, config->reloadInputMode, config->reloadInput, gf_depth_val);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_STOP_OR_KILL, config->stopInputMode, config->stopInput, gf_depth_val);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_COUNT, config->countInputMode, config->countInput, gf_depth_val);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE0, config->captureInputMode, config->captureInput, gf_depth_val);
 #endif
             }
 
@@ -184,14 +186,14 @@ cy_en_tcpwm_status_t Cy_TCPWM_Counter_Init(TCPWM_Type *base, uint32_t cntNum,
                                               _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_STOP_EDGE, config->stopInputMode) |
                                               _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_COUNT_EDGE, config->countInputMode));
 
-            if(TCPWM_GRP_CC1(base, grp))
+            if (TCPWM_GRP_CC1(base, grp))
             {
 #if !defined (CY_IP_MXS40TCPWM)
                 TCPWM_GRP_CNT_TR_IN_SEL1(base, grp, cntNum) |= _VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_SEL1_CAPTURE1_SEL, config->capture1Input);
                 TCPWM_GRP_CNT_TR_IN_EDGE_SEL(base, grp, cntNum) |=
                                     (_VAL2FLD(TCPWM_GRP_CNT_V2_TR_IN_EDGE_SEL_CAPTURE1_EDGE, config->capture1InputMode));
 #else
-                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE1, config->capture1InputMode, config->capture1Input, config->gf_depth);
+                Cy_TCPWM_InputTriggerSetupWithGF(base, cntNum, CY_TCPWM_INPUT_TR_CAPTURE1, config->capture1InputMode, config->capture1Input, gf_depth_val);
 #endif
             }
 

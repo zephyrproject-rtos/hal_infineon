@@ -27,9 +27,7 @@
 #ifndef _CY_DEVICE_HEADERS_H_
 #define _CY_DEVICE_HEADERS_H_
 
-#if defined (CY_DEVICE_COMMON)
-    #include "cy_device_common.h"
-#elif defined (CY8C6036BZI_F04)
+#if defined (CY8C6036BZI_F04)
     #include "cy8c6036bzi_f04.h"
 #elif defined (CY8C6016BZI_F04)
     #include "cy8c6016bzi_f04.h"
@@ -535,6 +533,20 @@
     #include "cyt2b65cas.h"
 #elif defined (CYT2B65CAE)
     #include "cyt2b65cae.h"
+#elif defined (XMC5100_F64K576AA)
+    #include "xmc5100_f64k576aa.h"
+#elif defined (XMC5100_F100K576AA)
+    #include "xmc5100_f100k576aa.h"
+#elif defined (XMC5200_F64K1088AA)
+    #include "xmc5200_f64k1088aa.h"
+#elif defined (XMC5200_F100K1088AA)
+    #include "xmc5200_f100k1088aa.h"
+#elif defined (XMC5200_F144K1088AA)
+    #include "xmc5200_f144k1088aa.h"
+#elif defined (XMC5300_F100K2112AA)
+    #include "xmc5300_f100k2112aa.h"
+#elif defined (XMC5300_F144K2112AA)
+    #include "xmc5300_f144k2112aa.h"
 #elif defined (CYUSB4024_BZXI)
     #include "cyusb4024_bzxi.h"
 #elif defined (CYUSB4014_FCAXI)
@@ -574,7 +586,7 @@
 #elif defined (CYUSB2318_BF104AXI)
     #include "cyusb2318_bf104axi.h"
 #else
-    #include "cy_device_common.h"
+    #error Undefined part number. Consider updating PDL via ModusToolbox Library Manager to resolve the issue.
 #endif
 
 #endif /* _CY_DEVICE_HEADERS_H_ */

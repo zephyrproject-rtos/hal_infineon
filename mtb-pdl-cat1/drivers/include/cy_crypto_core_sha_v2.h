@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_sha_v2.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -42,19 +42,12 @@ extern "C" {
 /** \cond INTERNAL */
 
 #if (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED)
-typedef struct  
+typedef struct
 {
     /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
-    uint32_t block[CY_CRYPTO_SHA1_BLOCK_SIZE / 4u];
-
+    uint32_t block[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA1_BLOCK_SIZE / 4u)];
     /* Allocates CRYPTO_MAX_HASH_SIZE Bytes for the hash. */
-     uint32_t hash[CY_CRYPTO_SHA1_HASH_SIZE / 4u];
-
-    #if (CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)
-    uint8_t padding_bytes[12];
-    #endif
-
-
+     uint32_t hash[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA1_HASH_SIZE / 4u)];
 } cy_stc_crypto_v2_sha1_buffers_t;
 #endif /* (CPUSS_CRYPTO_SHA1 == 1) && defined(CY_CRYPTO_CFG_SHA1_ENABLED) */
 
@@ -62,24 +55,19 @@ typedef struct
 typedef struct
 {
     /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
-    uint32_t block[CY_CRYPTO_SHA256_BLOCK_SIZE / 4u];
-
+    uint32_t block[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA256_BLOCK_SIZE / 4u)];
     /* Allocates CRYPTO_MAX_HASH_SIZE Bytes for the hash. */
-    uint32_t hash[CY_CRYPTO_SHA256_HASH_SIZE / 4u];
+    uint32_t hash[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA256_HASH_SIZE / 4u)];
 } cy_stc_crypto_v2_sha256_buffers_t;
 #endif /* (CPUSS_CRYPTO_SHA256 == 1) && defined(CY_CRYPTO_CFG_SHA2_256_ENABLED) */
 
 #if (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED)
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-#endif
-typedef struct
+ typedef struct
 {
     /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
-    uint32_t block[CY_CRYPTO_SHA512_BLOCK_SIZE / 4u];
-
+    uint32_t block[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA512_BLOCK_SIZE / 4u)];
     /* Allocates CRYPTO_MAX_HASH_SIZE Bytes for the hash. */
-    uint32_t hash[CY_CRYPTO_SHA512_HASH_SIZE / 4u];
+    uint32_t hash[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA512_HASH_SIZE / 4u)];
 } cy_stc_crypto_v2_sha512_buffers_t;
 #endif /* (CPUSS_CRYPTO_SHA512 == 1) && defined(CY_CRYPTO_CFG_SHA2_512_ENABLED) */
 
@@ -87,24 +75,15 @@ typedef struct
 typedef struct
 {
     /* Allocates CY_CRYPTO_SHA3_STATE_SIZE for the hash state. */
-    uint8_t hash[CY_CRYPTO_SHA3_STATE_SIZE];
-
+    uint8_t hash[CY_CRYPTO_ALIGN_CACHE_LINE(CY_CRYPTO_SHA3_STATE_SIZE)];
 } cy_stc_crypto_v2_sha3_buffers_t;
 #endif /* (CPUSS_CRYPTO_SHA3 == 1) && defined(CY_CRYPTO_CFG_SHA3_ENABLED) */
 
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-#endif
-typedef struct
+ typedef struct
 {
     /* Allocates CRYPTO_MAX_BLOCK_SIZE Bytes for the block. */
-    uint32_t block[CY_CRYPTO_SHA_MAX_BLOCK_SIZE / 4u];
-
-    #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE)
-    #endif
-    uint32_t hash[CY_CRYPTO_SHA_MAX_HASH_SIZE / 4u];
-    
+    uint32_t block[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA_MAX_BLOCK_SIZE / 4u)];
+    uint32_t hash[CY_CRYPTO_ALIGN_CACHE_LINE_WORD(CY_CRYPTO_SHA_MAX_HASH_SIZE / 4u)];
 } cy_stc_crypto_v2_sha_buffers_t;
 
 

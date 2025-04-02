@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash_v2.c
-* \version 3.110
+* \version 3.130
 *
 * \brief
 * Provides the public functions for the API for the Flash Driver.
@@ -19,6 +19,7 @@
 #include "cy_sysint.h"
 #include "cy_ipc_drv.h"
 #include "cy_syslib.h"
+#include "cy_syspm.h"
 
 /** SROM API flash region ID shift for flash row information */
 #define CY_FLASH_REGION_ID_SHIFT           (16U)
@@ -42,7 +43,10 @@ static en_flash_bounds_t Cy_Flash_WorkBoundsCheck(uint32_t address);
 static en_flash_bounds_t Cy_Flash_MainBoundsCheck(uint32_t address);
 static en_flash_bounds_t Cy_Flash_BoundsCheck(uint32_t flashAddr);
 static cy_en_flashdrv_status_t Cy_Flash_ProcessOpcode(uint32_t opcode);
+static cy_en_syspm_status_t Cy_Flash_DSCallbackFunc(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
 static uint8_t g_non_block_context = 0;
+static cy_stc_syspm_callback_params_t g_ds_params;
+static cy_stc_syspm_callback_t g_ds_cbHandler;
 
 /*******************************************************************************
 * Function Name: Cy_Flash_CallSromApiForFlashWrite
@@ -1370,6 +1374,16 @@ void Cy_Flash_Init(void)
      * Error needs to be passed to the user.
      */
     Cy_Srom_SetResponseHandler(NULL);
+
+    g_ds_cbHandler.callback = Cy_Flash_DSCallbackFunc;
+    g_ds_cbHandler.type = CY_SYSPM_DEEPSLEEP;
+    g_ds_cbHandler.skipMode = 0;
+    g_ds_cbHandler.callbackParams = &g_ds_params;
+    g_ds_cbHandler.prevItm = NULL;
+    g_ds_cbHandler.nextItm = NULL;
+    g_ds_cbHandler.order = 0;
+
+    (void)Cy_SysPm_RegisterCallback(&g_ds_cbHandler);
 }
 
 /*******************************************************************************
@@ -1593,6 +1607,59 @@ void Cy_Flashc_SetWork_Flash_Mapping(cy_en_maptype_t mapping)
 {
     FLASHC_FLASH_CTL &= ~FLASHC_FLASH_CTL_WORK_MAP_Msk;
     FLASHC_FLASH_CTL |= _VAL2FLD(FLASHC_FLASH_CTL_WORK_MAP, mapping);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_Flash_DSCallbackFunc
+****************************************************************************//**
+*
+* \brief Deep sleep Callback function
+*
+* \param callbackParams syspm callback params
+*
+* \param mode syspm callback mode
+*
+* \return none
+*******************************************************************************/
+static cy_en_syspm_status_t Cy_Flash_DSCallbackFunc(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
+{
+    cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
+
+    CY_UNUSED_PARAMETER(callbackParams);
+
+    switch(mode)
+    {
+        case CY_SYSPM_CHECK_READY:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        case CY_SYSPM_CHECK_FAIL:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        case CY_SYSPM_BEFORE_TRANSITION:
+        {
+            Cy_Flashc_WorkWriteDisable();
+            Cy_Flashc_MainWriteDisable();
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        case CY_SYSPM_AFTER_TRANSITION:
+        {
+            Cy_Flashc_WorkWriteEnable();
+            Cy_Flashc_MainWriteEnable();
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        default:
+            /* default case */
+            break;
+    }
+
+    return retVal;
 }
 
 

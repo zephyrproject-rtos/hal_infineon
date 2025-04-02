@@ -46,6 +46,8 @@ extern "C"
 
 #define _CYHAL_SYSTEM_HZ_PER_MHZ 1000000
 
+static uint32_t _cyhal_system_supply_voltages[((size_t)CYHAL_VOLTAGE_SUPPLY_MAX) + 1] = { 0 };
+
 #if (defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)) &&\
     !defined(CYHAL_DISABLE_WEAK_FUNC_IMPL)
 /* Overrides weak implemenation for Cy_SysLib_Rtos_Delay to provide a way
@@ -134,6 +136,18 @@ cy_rslt_t cyhal_system_set_isr(int32_t irq_num, int32_t irq_src, uint8_t priorit
 #endif
     };
     return Cy_SysInt_Init(&cfg, (cy_israddress)handler);
+}
+
+void cyhal_system_set_supply_voltage(cyhal_system_voltage_supply_t supply, uint32_t mvolts)
+{
+    CY_ASSERT((size_t)supply <= CYHAL_VOLTAGE_SUPPLY_MAX);
+    _cyhal_system_supply_voltages[(size_t)supply] = mvolts;
+}
+
+uint32_t cyhal_system_get_supply_voltage(cyhal_system_voltage_supply_t supply)
+{
+    CY_ASSERT((size_t)supply <= CYHAL_VOLTAGE_SUPPLY_MAX);
+    return _cyhal_system_supply_voltages[(size_t)supply];
 }
 
 #if defined(__cplusplus)

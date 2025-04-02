@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--****************************************************************************
+* \file emusb_v2.cypersonality
+* \version 1.0
+*
+* \brief
+* Personality for configuration USB for CAT1D device.
+*
+********************************************************************************
+* \copyright
+* Copyright (c) (2023), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
+* SPDX-License-Identifier: Apache-2.0
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*****************************************************************************-->
+
+<Personality id="mxs22emusb" name="emUSB-Host/Device" version="1.0" xmlns="http://cypress.com/xsd/cyhwpersonality_v7">
+  <Dependencies>
+    <IpBlock name="mxs22usbhs" />
+    <Resource name="usbhs" />
+  </Dependencies>
+  <ExposedMembers />
+  <Parameters>
+
+    <!-- Debug mode selection -->
+    <ParamBool id="debug" name="debug" group="Internal" default="false" visible="false" editable="false" desc="Enable/Disable debug mode" />
+
+    <!-- Mode selection -->
+    <ParamChoice id="mode" name="USB mode" group="General" default="Host" visible="true" editable="true" desc="Select USB Mode">
+      <Entry name="Host" value="Host" visible="true" />
+      <Entry name="Device" value="Device" visible="true" />
+    </ParamChoice>
+    <ParamBool id="modeIsDevice" name="modeIsDevice" group="Internal" default="`${mode eq Device}`" visible="false" editable="false" desc="USB mode is Device" />
+    <ParamBool id="modeIsHost" name="modeIsHost" group="Internal" default="`${mode eq Host}`" visible="false" editable="false" desc="USB Mode is Host" />
+
+    <!-- TODO:MIDDLEWARE-6587 Remove this section if driver for emUSB-Device will support only High-Speed -->
+    <!-- Speed selection for Device -->
+    <ParamChoice id="deviceSpeed" name="USB speed" group="General" default="highSpeed" visible="`${mode eq Device}`" editable="true" desc="Field select USB speed is only applicable for Device mode with the main goal to define the Phy Pll Clock accuracy">
+      <Entry name="High-speed" value="highSpeed" visible="true" />
+      <Entry name="Full-speed" value="fullSpeed" visible="true" />
+    </ParamChoice>
+
+    <!-- Documentation -->
+    <ParamDoc id="emUsbDoc" name="Configuration Help" group="Overview" default="`${modeIsHost ? &quot;https://infineon.github.io/emusb-host/html/index.html&quot; : &quot;https://infineon.github.io/emusb-device/html/index.html&quot;}`" linkText="`${modeIsHost ? &quot;Open emUSB-Host Documentation&quot; : &quot;Open emUSB-Device Documentation&quot;}`" visible="true" desc="Open the USB Documentation" />
+
+    <!-- Main Clock selection -->
+    <ParamSignal port="mmio_clk_hf[0]" name="Main Clock" group="Connections" visible="true" desc="The clock to operate this block" canBeEmpty="true" />
+    <ParamBool id="mmioClkHfIsConnected" name="mmioClkHfIsConnected" group="Internal" default="`${hasConnection(&quot;mmio_clk_hf&quot;, 0)}`" visible="`${debug}`" editable="false" desc="Check if mmio_clk_hf[0] is connected" />
+
+    <ParamString id="mmioClkHf" name="mmioClkHf" group="Internal" default="`${getBlockFromSignal(&quot;mmio_clk_hf[0]&quot;)}`" visible="false" editable="false" desc="Get Block signal from mmio_clk_hf[0]" />
+    <ParamRange  id="mmioClkHfHz" name="mmioClkHfHz" group="Internal" default="`${getExposedMember(mmioClkHf, &quot;frequency&quot;)}`" min="0" max="1000000000" resolution="1" visible="`${debug}`" editable="false" desc="Get frequency of mmio_clk_hf[0]" />
+
+    <ParamBool id="isPowerEnabled" name="Is Power Enabled" group="Internal" default="`${isBlockUsed(&quot;srss[0].power[0]&quot;)}`" visible="`${debug}`" editable="false" desc="Check if Power personality is enabled" />
+    <ParamString id="selectedPwrMode" name="selectedPwrMode" group="Internal" default="`${isPowerEnabled ? getExposedMember(&quot;srss[0].power[0]&quot;, &quot;activePowerMode&quot;) : &quot;LP&quot;}`" visible="`${debug}`" editable="false" desc="Get Active power mode. By default LP is selected" />
+
+    <ParamRange id="mmioExpClkHfHz" name="mmioExpClkHfHz" group="Internal" default="`${selectedPwrMode eq &quot;HP&quot; ? 400000000 : 160000000}`" min="0" max="400000000" resolution="1" visible="`${debug}`" editable="false" desc="Select expected frequency for mmio_clk_hf[0]. For HP mode the frequency should be 400 MHz, for LP 160 MHz. In case ULP the personality generates warning." />
+
+    <ParamBool id="isUlpSelected" name="isUlpSelected" group="Internal" default="`${selectedPwrMode eq &quot;ULP&quot;}`" visible="`${debug}`" editable="false" desc="Check if ULP mode is selected" />
+
+    <!-- Peri 1 Group 3 -->
+    <ParamBool id="isPeri1Group3Enabled" name="Is Peri 1 Group 3 Enabled" group="Internal" default="`${isBlockUsed(&quot;peri[1].peri_group[3]&quot;)}`" visible="`${debug}`" editable="false" desc="Check if Peri 1 Group 3 is enabled" />
+    <ParamRange  id="peri1Group3Div" name="peri1Group3Div" group="Internal" default="`${isPeri1Group3Enabled ? getExposedMember(&quot;peri[1].peri_group[3]&quot;, &quot;intDivider&quot;) : 4}`" min="1" max="256" resolution="1" visible="`${debug}`" editable="false" desc="Get divider of peri[1].peri_group[3]" />
+
+    <!-- Phy PLL Ref selection -->
+    <ParamSignal port="clk_phy_pll_ref[0]" name="Phy Pll Clock" group="Connections" visible="true" desc="PHY PLL reference clock" canBeEmpty="true" />
+    <ParamBool id="clkphyPllIsConnected" name="clkphyPllIsConnected" group="Internal" default="`${hasConnection(&quot;clk_phy_pll_ref&quot;, 0)}`" visible="`${debug}`" editable="false" desc="Check if clk_phy_pll_ref[0] is connected" />
+
+    <ParamString id="phyPll" name="phyPll" group="Internal" default="`${getBlockFromSignal(&quot;clk_phy_pll_ref[0]&quot;)}`" visible="false" editable="false" desc="Get Block signal from clk_phy_pll_ref[0]" />
+    <ParamRange  id="phyPllHz" name="phyPllHz" group="Internal" default="`${getExposedMember(phyPll, &quot;frequency&quot;)}`" min="0" max="1000000000" resolution="1" visible="false" editable="false" desc="Get frequency of clk_phy_pll_ref[0]" />
+
+    <ParamRange  id="phyPllHzRealAccuracyPercent" name="phyPllHzRealAccuracyPercent" group="Internal" default="`${getExposedMember(phyPll, &quot;accuracy&quot;)}`" min="0" max="100" resolution="0.0001" visible="false" editable="false" desc="Get accuracy of clk_phy_pll_ref[0]" />
+    <ParamRange  id="phyPllRealAccuracy" name="phyPllRealAccuracy" group="Internal" default="`${phyPllHzRealAccuracyPercent / 100}`" min="0" max="100" resolution="0.000001" visible="false" editable="false" desc="Find real accuracy of clk_phy_pll_ref[0] in relative units" />
+    <ParamRange  id="phyPllRealAccuracyUp" name="phyPllRealAccuracyUp" group="Internal" default="`${phyPllHz + (phyPllHz * phyPllRealAccuracy)}`" min="0" max="1000000000" resolution="0.000001" visible="false" editable="false" desc="Find the maximum frequency deviation (upper limit)" />
+    <ParamRange  id="phyPllRealAccuracyLower" name="phyPllRealAccuracyLower" group="Internal" default="`${phyPllHz - (phyPllHz * phyPllRealAccuracy)}`" min="0" max="1000000000" resolution="0.000001" visible="false" editable="false" desc="Find the maximum frequency deviation (lower limit)" />
+
+    <ParamRange id="phyPllAccuracy" name="phyPllAccuracy" group="Internal" default="`${modeIsHost ? 0.0005 : ((deviceSpeed eq highSpeed) ? 0.0005 : 0.0025)}`" min="0" max="100" resolution="0.000001" visible="`${debug}`" editable="false" desc="Select expected clock accuracy in percent" />
+    <ParamRange id="phyPllAccuracyUp" name="phyPllAccuracyUp" group="Internal" default="`${50000000 + (50000000 * phyPllAccuracy)}`" min="0" max="1000000000" resolution="1" visible="false" editable="false" desc="Find the maximum possible frequency deviation (upper limit)" />
+    <ParamRange id="phyPllAccuracyLower" name="phyPllAccuracyLower" group="Internal" default="`${50000000 - (50000000 * phyPllAccuracy)}`" min="0" max="1000000000" resolution="1" visible="false" editable="false" desc="Find the maximum possible frequency deviation (lower limit)" />
+
+    <ParamString id="phyPllFreq" name="Clock real frequency" group="Connections" default="`${phyPllHz . &quot;Hz +/-&quot; . phyPllRealAccuracy * 100 . &quot;%&quot;}`" visible="`${debug}`" editable="false" desc="Real frequency of the connected clock" />
+
+  </Parameters>
+
+  <DRCs>
+    <DRC type="WARNING" text="`${&quot;CLK_HF8 does not meet the requirements. The frequency must be in the range 50 MHz +/- &quot; . phyPllAccuracy * 100 . &quot; % or the maximum deviation in the range [&quot; . phyPllAccuracyLower . &quot;-&quot; . phyPllAccuracyUp . &quot;] Hz&quot;}`" condition="`${(phyPllRealAccuracyUp &gt; phyPllAccuracyUp) || (phyPllRealAccuracyLower &lt; phyPllAccuracyLower)}`" location="`${phyPll}`" paramId="frequencyInfo">
+    </DRC>
+    <DRC type="ERROR" text="`${&quot;For USB operation, set CLK_HF1 to &quot; . mmioExpClkHfHz / 1000000 . &quot; MHz.&quot;}`" condition="`${(!isUlpSelected) &amp;&amp; (((abs(mmioClkHfHz - mmioExpClkHfHz) / mmioClkHfHz) * 100) &gt; 1.0)}`" />
+    <DRC type="ERROR" text="Clock for USB must be always connected" condition="`${!clkphyPllIsConnected}`" paramId="clk_phy_pll_ref[0]">
+    </DRC>
+    <DRC type="ERROR" text="Clock for USB must be always connected" condition="`${!mmioClkHfIsConnected}`" paramId="mmio_clk_hf[0]">
+    </DRC>
+    <DRC type="ERROR" text="The USB can not operate in Ultra Low Power Profile" condition="`${isUlpSelected}`" paramId="srss[0].power[0]">
+    </DRC>
+    <DRC type="ERROR" text="Peri 1 Group 3 personality must be enabled for USB operation (See Peripheral-Groups Tab)" condition="`${!isPeri1Group3Enabled}`" paramId="peri[1].peri_group[3]">
+    </DRC>
+    <DRC type="WARNING" text="Divider of Peri 1 Group 3 must be set to 4 for USB operation" condition="`${!(peri1Group3Div eq 4)}`" paramId="peri[1].peri_group[3]">
+    </DRC>
+  </DRCs>
+
+  <ConfigFirmware>
+
+    <!-- Reserve USB resources -->
+    <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />
+
+    <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL)">
+      <Member name="type" value="CYHAL_RSC_USB" />
+      <Member name="block_num" value="`${getInstNumber(&quot;usbhs&quot;)}`U" />
+      <Member name="channel_num" value="0U" />
+    </ConfigStruct>
+
+    <ConfigInstruction value="Cy_SysClk_PeriGroupSlaveInit(CY_MMIO_USBHS_PERI_NR, CY_MMIO_USBHS_GROUP_NR, CY_MMIO_USBHS_SLAVE_NR, CY_MMIO_USBHS_CLK_HF_NR);" include="true"  />
+    <ConfigInstruction value="cyhal_hwmgr_reserve(&amp;`${INST_NAME}`_obj);" include="true" guard="defined (CY_USING_HAL)" />
+
+  </ConfigFirmware>
+</Personality>

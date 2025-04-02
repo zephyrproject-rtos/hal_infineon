@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite.h
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  This file provides interface header
@@ -31,12 +31,17 @@
 * \note Availability of Cryptolite Algorithms will be chip specific, Refer to individual API for availability.
 * \note Device Categories: CAT1B. Please refer <a href="usergroup1.html">Device Catalog</a>.
 *
-* The PDL Cryptolite driver provides a public API to perform hardware accelerated cryptographic calculations. 
+* The PDL Cryptolite driver provides a public API to perform hardware accelerated cryptographic calculations.
 *
 * The functions and other declarations used in this driver are in cy_cryptolite.h.
 * You can also include cy_pdl.h to get access to all functions and declarations in the PDL.
 *
-* The Cryptolite driver supports AES (128bits), SHA-256, HMAC-SHA256, TRNG, RSA and ECDSA.
+* The Cryptolite driver supports AES (128bits), SHA-256, HMAC-SHA256, TRNG, RSA, ECDSA, EDDSA.
+*
+*
+* \note For EDDSA, user application needs to implement SHA-512 functions. The prototypes of SHA functions are available in \ref cy_stc_cryptolite_ed25519_sha512_t.
+* There is also separate EDDSA \ref Cy_Cryptolite_ED25519_Init and \ref Cy_Cryptolite_ED25519_Free functions needs to be called.
+*
 *
 * \section group_cryptolite_configuration_considerations Configuration Considerations
 *
@@ -180,6 +185,37 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td >2.80</td>
+*     <td>
+*      <ul>
+*      <li> Added new API's \ref Cy_Cryptolite_ED25519_Init, \ref Cy_Cryptolite_ED25519_Free, \ref Cy_Cryptolite_ED25519_Sign, \ref Cy_Cryptolite_ED25519_PointMultiplication, \ref Cy_Cryptolite_ED25519_PointDecode,
+*          \ref Cy_Cryptolite_ED25519_Verify, \ref Cy_Cryptolite_ED25519_MakePublicKey, \ref Cy_Cryptolite_EC25519_MakePublicKey, \ref Cy_Cryptolite_EC25519_PointMultiplication.</li>
+*      <li> Added new function pointers \ref cy_func_get_random_data_t, \ref cy_cryptolite_ed25519_sha512_init_t, \ref cy_cryptolite_ed25519_sha512_update_t,
+*          \ref cy_cryptolite_ed25519_sha512_start_t, \ref cy_cryptolite_ed25519_sha512_finish_t, \ref cy_cryptolite_ed25519_sha512_free_t.</li>
+*      <li> Added new enum \ref cy_en_cryptolite_eddsa_sig_type_t. Added new structures \ref cy_stc_cryptolite_ec25519_dp_type, \ref cy_stc_cryptolite_ed25519_sha512_t.</li>
+*      <li> Added new macros </li>
+*      <li> updated API's \ref Cy_Cryptolite_Cmac_Update, \ref Cy_Cryptolite_Aes_Ecb_Update, \ref Cy_Cryptolite_Aes_Cbc_Update.</li>
+*      <li> updated enum \ref cy_en_cryptolite_ecc_curve_id_t. updated structure \ref cy_stc_cryptolite_context_ecdsa_t.</li>
+
+*     </ul>
+*     <td>Added support for amazon sidewalk crypto requirement.</td>
+*   </tr>
+*   <tr>
+*     <td>2.70</td>
+*     <td>Updated structure \ref cy_stc_cryptolite_context_sha256_t. </td>
+*     <td>Bug fixes</td>
+*   </tr>
+*   <tr>
+*     <td>2.60</td>
+*     <td>
+*         <ul>
+*         <li>Added new API \ref Cy_Cryptolite_ECC_SharedSecret.</li>
+*         <li>Updated APIs \ref Cy_Cryptolite_Sha256_Start, \ref Cy_Cryptolite_Sha256_Update, \ref Cy_Cryptolite_Aes_Ccm_Finish</li>
+*         </ul>
+*     </td>
+*     <td>Added ECDH support for CAT1B devices and Bug fixes</td>
+*   </tr>
+*   <tr>
 *     <td>2.50</td>
 *     <td>
 *         <ul>
@@ -248,7 +284,7 @@
 *   \{
 *     \defgroup group_cryptolite_lld_kdf_functions Functions
 *   \}
-*   \defgroup group_cryptolite_lld_asymmetric Asymmetric Key Algorithm (RSA,ECP,ECDSA)
+*   \defgroup group_cryptolite_lld_asymmetric Asymmetric Key Algorithm (RSA,ECP,ECDSA,EDDSA)
 *   \{
 *     \defgroup group_cryptolite_lld_asymmetric_functions Functions
 *   \}
@@ -286,6 +322,7 @@
 #include "cy_cryptolite_ecc_key_gen.h"
 #include "cy_cryptolite_hkdf.h"
 #include "cy_cryptolite_cmac.h"
+
 
 #endif /* CY_IP_MXCRYPTOLITE */
 

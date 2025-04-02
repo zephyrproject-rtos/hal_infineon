@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_rtc.h
-* \version 2.90
+* \version 2.100
 *
 * This file provides constants and parameter values for the APIs for the
 * Real-Time Clock (RTC).
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -226,6 +226,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.100</td>
+*     <td>Minor update in API \ref Cy_RTC_GetInterruptStatus.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>2.90</td>
 *     <td>Updated API \ref Cy_RTC_GetInterruptStatus.</td>
 *     <td>Code enhancement.</td>
@@ -376,7 +381,7 @@ extern "C" {
 #define CY_RTC_DRV_VERSION_MAJOR                    2
 
 /** Driver minor version */
-#define CY_RTC_DRV_VERSION_MINOR                    90
+#define CY_RTC_DRV_VERSION_MINOR                    100
 
 /** RTC driver retry macros */
 #define CY_RTC_ACCESS_BUSY_RETRY_COUNT    (200u)

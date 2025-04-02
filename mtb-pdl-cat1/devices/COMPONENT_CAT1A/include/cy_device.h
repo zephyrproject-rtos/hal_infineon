@@ -1420,6 +1420,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 #define GPIO_INTR_CAUSE1                   (((GPIO_V5_Type*)(cy_device->gpioBase))->INTR_CAUSE1)
 #define GPIO_INTR_CAUSE2                   (((GPIO_V5_Type*)(cy_device->gpioBase))->INTR_CAUSE2)
 #define GPIO_INTR_CAUSE3                   (((GPIO_V5_Type*)(cy_device->gpioBase))->INTR_CAUSE3)
+#define GPIO_PRT_CFG_OUT2(base)            (((GPIO_PRT_V5_Type*)(base))->CFG_OUT2)
 
 #define GPIO_PRT_V2_Type GPIO_PRT_V5_Type
 #define HSIOM_PRT_V2_Type HSIOM_PRT_V5_Type

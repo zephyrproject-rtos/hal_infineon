@@ -1,13 +1,14 @@
 /***************************************************************************//**
 * \file cy_sd_host.h
-* \version 2.20
+* \version 2.40
 *
 *  This file provides constants and parameter values for
 *  the SD Host Controller driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2021 Cypress Semiconductor Corporation
+* Copyright 2018-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -248,6 +249,18 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td > 2.40</td>
+*     <td>Updated API \ref Cy_SD_Host_Read, \ref Cy_SD_Host_Write.</td>
+*     <td>Bug Fixes.</td>
+*   </tr>
+*   <tr>
+*     <td> 2.30</td>
+*     <td>Updated APIs \ref Cy_SD_Host_Read and \ref Cy_SD_Host_Write.
+*         Updated API \ref Cy_SD_Host_DeepSleepCallback for multiple SDHC instances support.
+*         Added new parameter to \ref cy_stc_sd_host_context_t</td>
+*     <td>Defect fixing.</td>
+*   </tr>
+*   <tr>
 *     <td> 2.20</td>
 *     <td>Updated API \ref Cy_SD_Host_InitDataTransfer to check for CMD/DATA line BUSY status.
 *         Updated API \ref Cy_SD_Host_DeepSleepCallback to support SW retention after deep sleep in CAT1C devices. </td>
@@ -432,7 +445,7 @@ extern "C"
 #define CY_SD_HOST_DRV_VERSION_MAJOR       2
 
 /** Driver minor version */
-#define CY_SD_HOST_DRV_VERSION_MINOR       20
+#define CY_SD_HOST_DRV_VERSION_MINOR       40
 
 /******************************************************************************
 * API Constants
@@ -1374,9 +1387,9 @@ typedef enum
 /** The DMA type enum. */
 typedef enum
 {
-    CY_SD_HOST_DMA_SDMA         = 0U, /**< SDMA mode. */
-    CY_SD_HOST_DMA_ADMA2        = 2U, /**< ADMA2 mode. */
-    CY_SD_HOST_DMA_ADMA2_ADMA3  = 3U  /**< ADMA2-ADMA3 mode. */
+    CY_SD_HOST_DMA_SDMA         = 0U, /**< SDMA mode. SDMA transfers a data boundary by a read/write command with max transfer size 512KB.*/
+    CY_SD_HOST_DMA_ADMA2        = 2U, /**< ADMA2 mode. ADMA2 transfers multiple data boundaries by a read/write command with max transfer size 4GB.*/
+    CY_SD_HOST_DMA_ADMA2_ADMA3  = 3U  /**< ADMA2-ADMA3 mode. ADMA3 performs multiple ADMA2 operations with max transfer size 4 EB.*/
 }cy_en_sd_host_dma_type_t;
 
 /** Write Protect type enum. */
@@ -1449,6 +1462,7 @@ typedef struct
     cy_en_sd_host_card_capacity_t *cardCapacity;       /**< Stores the card capacity. */
 }cy_stc_sd_host_sd_card_config_t;
 
+
 /** SD Host command configuration structure. */
 typedef struct
 {
@@ -1502,6 +1516,8 @@ typedef struct
     uint32_t                      RCA;          /**< The relative card address. */
     cy_en_sd_host_card_type_t     cardType;     /**< The card type. */
     uint32_t                      csd[4];       /**< The Card-Specific Data register. */
+    cy_en_sd_host_bus_width_t     busWidth;     /**< card bus width. */
+
 }cy_stc_sd_host_context_t;
 
 /** \} group_sd_host_data_structures */

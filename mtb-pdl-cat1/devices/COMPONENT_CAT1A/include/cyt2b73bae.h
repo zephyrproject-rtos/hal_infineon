@@ -528,77 +528,96 @@ typedef enum {
 #define CY_SRAM_BASE                    0x08000000UL
 #define CY_SRAM_SIZE                    0x00020000UL
 
-#define CY_DEVICE_TVIIBE1M
-#define CY_DEVICE_SERIES_CYT2B7
-
-#include "system_psoc6.h"                       /*!< Category 1A System */
 
 /* IP List */
 #define CY_IP_MXTTCANFD                 1u
 #define CY_IP_MXTTCANFD_INSTANCES       2u
 #define CY_IP_MXTTCANFD_VERSION         1u
+#define CY_IP_MXTTCANFD_VERSION_MINOR   0u
 #define CY_IP_M4CPUSS                   1u
 #define CY_IP_M4CPUSS_INSTANCES         1u
 #define CY_IP_M4CPUSS_VERSION           2u
+#define CY_IP_M4CPUSS_VERSION_MINOR     0u
 #define CY_IP_M4CPUSS_DMAC              1u
 #define CY_IP_M4CPUSS_DMAC_INSTANCES    1u
 #define CY_IP_M4CPUSS_DMAC_VERSION      2u
+#define CY_IP_M4CPUSS_DMAC_VERSION_MINOR 0u
 #define CY_IP_M4CPUSS_DMA               1u
 #define CY_IP_M4CPUSS_DMA_INSTANCES     2u
 #define CY_IP_M4CPUSS_DMA_VERSION       2u
+#define CY_IP_M4CPUSS_DMA_VERSION_MINOR 0u
 #define CY_IP_MXCRYPTO                  1u
 #define CY_IP_MXCRYPTO_INSTANCES        1u
 #define CY_IP_MXCRYPTO_VERSION          2u
+#define CY_IP_MXCRYPTO_VERSION_MINOR    0u
 #define CY_IP_MXDFT                     1u
 #define CY_IP_MXDFT_INSTANCES           1u
 #define CY_IP_MXDFT_VERSION             1u
+#define CY_IP_MXDFT_VERSION_MINOR       0u
 #define CY_IP_MXEFUSE                   1u
 #define CY_IP_MXEFUSE_INSTANCES         1u
 #define CY_IP_MXEFUSE_VERSION           2u
+#define CY_IP_MXEFUSE_VERSION_MINOR     0u
 #define CY_IP_MXEVTGEN                  1u
 #define CY_IP_MXEVTGEN_INSTANCES        1u
 #define CY_IP_MXEVTGEN_VERSION          1u
+#define CY_IP_MXEVTGEN_VERSION_MINOR    0u
 #define CY_IP_MXS40IOSS                 1u
 #define CY_IP_MXS40IOSS_INSTANCES       1u
 #define CY_IP_MXS40IOSS_VERSION         2u
+#define CY_IP_MXS40IOSS_VERSION_MINOR   0u
 #define CY_IP_MXLIN                     1u
 #define CY_IP_MXLIN_INSTANCES           1u
 #define CY_IP_MXLIN_VERSION             1u
+#define CY_IP_MXLIN_VERSION_MINOR       0u
 #define CY_IP_MXS40EPASS                1u
 #define CY_IP_MXS40EPASS_INSTANCES      1u
 #define CY_IP_MXS40EPASS_VERSION        1u
+#define CY_IP_MXS40EPASS_VERSION_MINOR  0u
 #define CY_IP_MXS40EPASS_ESAR           1u
 #define CY_IP_MXS40EPASS_ESAR_INSTANCES 3u
 #define CY_IP_MXS40EPASS_ESAR_VERSION   1u
+#define CY_IP_MXS40EPASS_ESAR_VERSION_MINOR 0u
 #define CY_IP_MXPERI                    1u
 #define CY_IP_MXPERI_INSTANCES          1u
 #define CY_IP_MXPERI_VERSION            2u
+#define CY_IP_MXPERI_VERSION_MINOR      0u
 #define CY_IP_MXPERI_TR                 1u
 #define CY_IP_MXPERI_TR_INSTANCES       1u
 #define CY_IP_MXPERI_TR_VERSION         2u
+#define CY_IP_MXPERI_TR_VERSION_MINOR   0u
 #define CY_IP_MXSCB                     1u
 #define CY_IP_MXSCB_INSTANCES           7u
 #define CY_IP_MXSCB_VERSION             2u
+#define CY_IP_MXSCB_VERSION_MINOR       0u
 #define CY_IP_MXS40SRSS                 1u
 #define CY_IP_MXS40SRSS_INSTANCES       1u
 #define CY_IP_MXS40SRSS_VERSION         2u
+#define CY_IP_MXS40SRSS_VERSION_MINOR   0u
 #define CY_IP_MXS40SRSS_RTC             1u
 #define CY_IP_MXS40SRSS_RTC_INSTANCES   1u
 #define CY_IP_MXS40SRSS_RTC_VERSION     2u
+#define CY_IP_MXS40SRSS_RTC_VERSION_MINOR 0u
 #define CY_IP_MXS40SRSS_MCWDT           1u
 #define CY_IP_MXS40SRSS_MCWDT_INSTANCES 2u
 #define CY_IP_MXS40SRSS_MCWDT_VERSION   2u
+#define CY_IP_MXS40SRSS_MCWDT_VERSION_MINOR 0u
 #define CY_IP_MXTCPWM                   1u
 #define CY_IP_MXTCPWM_INSTANCES         1u
 #define CY_IP_MXTCPWM_VERSION           2u
+#define CY_IP_MXTCPWM_VERSION_MINOR     0u
 
-#include "tviibe1m_config.h"
-#include "gpio_tviibe1m_64_lqfp.h"
-
+#define CY_DEVICE_TVIIBE1M
+#define CY_DEVICE_SERIES_CYT2B7
 #define CY_SILICON_ID                   0xE3C92301UL
 #define CY_HF_CLK_MAX_FREQ              160000000UL
 
 #define CPUSS_FLASHC_PA_SIZE_LOG2       0x7UL
+
+#include "system_psoc6.h"                       /*!< PSoC 6 System */
+
+#include "tviibe1m_config.h"
+#include "gpio_tviibe1m_64_lqfp.h"
 
 /*******************************************************************************
 *                                    SFLASH
@@ -1232,16 +1251,16 @@ typedef enum {
 
 #define SRSS_BASE                               0x40260000UL
 #define SRSS                                    ((SRSS_Type*) SRSS_BASE)                                          /* 0x40260000 */
-#define CSV_HF                                  ((CSV_HF_Type*) &SRSS->CSV_HF)                                    /* 0x40261400 */
-#define CSV_HF_CSV0                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[0])                         /* 0x40261400 */
-#define CSV_HF_CSV1                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[1])                         /* 0x40261410 */
-#define CSV_HF_CSV2                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[2])                         /* 0x40261420 */
-#define CSV_REF                                 ((CSV_REF_Type*) &SRSS->CSV_REF)                                  /* 0x40261710 */
-#define CSV_REF_CSV                             ((CSV_REF_CSV_Type*) &SRSS->CSV_REF.CSV)                          /* 0x40261710 */
-#define CSV_LF                                  ((CSV_LF_Type*) &SRSS->CSV_LF)                                    /* 0x40261720 */
-#define CSV_LF_CSV                              ((CSV_LF_CSV_Type*) &SRSS->CSV_LF.CSV)                            /* 0x40261720 */
-#define CSV_ILO                                 ((CSV_ILO_Type*) &SRSS->CSV_ILO)                                  /* 0x40261730 */
-#define CSV_ILO_CSV                             ((CSV_ILO_CSV_Type*) &SRSS->CSV_ILO.CSV)                          /* 0x40261730 */
+#define CSV_HF                                  ((CSV_HF_Type*) &SRSS->CSV_HF_STRUCT)                             /* 0x40261400 */
+#define CSV_HF_CSV0                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[0])                  /* 0x40261400 */
+#define CSV_HF_CSV1                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[1])                  /* 0x40261410 */
+#define CSV_HF_CSV2                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[2])                  /* 0x40261420 */
+#define CSV_REF                                 ((CSV_REF_Type*) &SRSS->CSV_REF_STRUCT)                           /* 0x40261710 */
+#define CSV_REF_CSV                             ((CSV_REF_CSV_Type*) &SRSS->CSV_REF_STRUCT.CSV)                   /* 0x40261710 */
+#define CSV_LF                                  ((CSV_LF_Type*) &SRSS->CSV_LF_STRUCT)                             /* 0x40261720 */
+#define CSV_LF_CSV                              ((CSV_LF_CSV_Type*) &SRSS->CSV_LF_STRUCT.CSV)                     /* 0x40261720 */
+#define CSV_ILO                                 ((CSV_ILO_Type*) &SRSS->CSV_ILO_STRUCT)                           /* 0x40261730 */
+#define CSV_ILO_CSV                             ((CSV_ILO_CSV_Type*) &SRSS->CSV_ILO_STRUCT.CSV)                   /* 0x40261730 */
 #define MCWDT0                                  ((MCWDT_Type*) &SRSS->MCWDT[0])                                   /* 0x40268000 */
 #define MCWDT1                                  ((MCWDT_Type*) &SRSS->MCWDT[1])                                   /* 0x40268100 */
 #define MCWDT0_CTR0                             ((MCWDT_CTR_Type*) &SRSS->MCWDT[0].CTR[0])                        /* 0x40268000 */

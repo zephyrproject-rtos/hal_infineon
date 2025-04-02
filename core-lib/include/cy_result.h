@@ -254,13 +254,19 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_TCPWM = 0x002d,
     /** Module identifier for the Protection driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_PROT = 0x0030,
+    /** Module identifier for the HVSS driver. Asset(s): (mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_HVSS = 0x0031,
+    /** Module identifier for the CRWDT driver. Asset(s): (mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_CRWDT = 0x0032,
     /** Module identifier for the TRIGMUX driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_TRIGMUX = 0x0033,
     /** Module identifier for the WDT driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_WDT = 0x0034,
     /** Module identifier for the (WDC / MCWDT) driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_MCWDT = 0x0035,
-    /** Module identifier for the LIN driver. Asset(s): (mtb-pdl-cat1) */
+    /** Module identifier for the LTC driver. Asset(s): (mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_LTC = 0x0036,
+    /** Module identifier for the LIN driver. Asset(s): (mtb-pdl-cat1, mtb-pdl-cat2) */
     CY_RSLT_MODULE_DRIVER_LIN = 0x0037,
     /** Module identifier for the LVD driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_LVD = 0x0039,
@@ -327,8 +333,11 @@ typedef enum
     CY_RSLT_MODULE_BOARD_LIB_RETARGET_IO = 0x1A0,
     /** Module identifier for the RGB LED Board Library. Asset(s): (rgb-led) */
     CY_RSLT_MODULE_BOARD_LIB_RGB_LED = 0x01A1,
+    /** Module identifier for the Serial Memory Board Library. Asset(s): (serial-memory) */
+    CY_RSLT_MODULE_BOARD_LIB_SERIAL_MEMORY = 0x01A2,
+    /* Deprecated due to renaming */
     /** Module identifier for the Serial Flash Board Library. Asset(s): (serial-flash) */
-    CY_RSLT_MODULE_BOARD_LIB_SERIAL_FLASH = 0x01A2,
+    CY_RSLT_MODULE_BOARD_LIB_SERIAL_FLASH = CY_RSLT_MODULE_BOARD_LIB_SERIAL_MEMORY,
     /** Module identifier for the WiFi Host Driver + Board Support Integration Library.
        Asset(s): (whd-bsp-integration) */
     CY_RSLT_MODULE_BOARD_LIB_WHD_INTEGRATION = 0x01A3,
@@ -374,8 +383,8 @@ typedef enum
     CY_RSLT_MODULE_BOARD_HARDWARE_XENSIV_BGT60TRXX = 0x01CC,
     /** Module identifier for the LM49450 Audio Codec Library. Asset(s): (audio-codec-lm49450) */
     CY_RSLT_MODULE_BOARD_HARDWARE_LM49450 = 0x01CE,
-    /** Module identifier for the TLV320DAC3100 Audio Codec Library.
-       Asset(s): (audio-codec-tlv320dac3100) */
+    /** Module identifier for the TLV320DAC3100 Audio Codec Library. Asset(s):
+       (audio-codec-tlv320dac3100) */
     CY_RSLT_MODULE_BOARD_HARDWARE_TLV320DAC3100 = 0x01CF,
 
     /** Module identifier for the MDNS library. Asset(s): (mdns) */
@@ -420,8 +429,14 @@ typedef enum
     CY_RSLT_MODULE_MIDDLEWARE_LIN = 0x0251,
     /** Module identifier for the UBM Middleware Library. Asset(s): (ubm) */
     CY_RSLT_MODULE_MIDDLEWARE_UBM = 0x0252,
-    /** Module identifier for the KV Store CAT5 Middleware Library. Asset(s): (kv-store-cat5 ) */
-    CY_RSLT_MODULE_MIDDLEWARE_KVSTORE_CAT5 = 0x0253
+    /** Module identifier for the KV Store CAT5 Middleware Library. Asset(s): (kv-store-cat5) */
+    CY_RSLT_MODULE_MIDDLEWARE_KVSTORE_CAT5 = 0x0253,
+    /** Module identifier for the Motor Control Driver Interface Middleware. Asset(s): (mtb-mcdi) */
+    CY_RSLT_MODULE_MIDDLEWARE_MCDI = 0x0254,
+    /** Module identifier for the Power Conversion Middleware. Asset(s): (mtb-pwrconv) */
+    CY_RSLT_MODULE_MIDDLEWARE_PWRCONV = 0x0255,
+    /** Module identifier for the Async Transfer Utility Library. Asset(s): (async-transfer) */
+    CY_RSLT_MODULE_MIDDLEWARE_ASYNC_TRANSFER = 0x0256
 } cy_en_rslt_module_t;
 
 /** \} modules */

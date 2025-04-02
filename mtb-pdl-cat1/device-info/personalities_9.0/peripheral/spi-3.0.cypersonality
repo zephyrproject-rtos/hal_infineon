@@ -76,7 +76,7 @@
       <Entry name="CPHA = 0, CPOL = 1" value="CY_SCB_SPI_CPHA0_CPOL1" visible="true" />
       <Entry name="CPHA = 1, CPOL = 0" value="CY_SCB_SPI_CPHA1_CPOL0" visible="true" />
       <Entry name="CPHA = 1, CPOL = 1" value="CY_SCB_SPI_CPHA1_CPOL1" visible="true" />
-    </ParamChoice> 
+    </ParamChoice>
     <ParamRange id="DataRate" name="Data Rate (kbps)" group="General" default="1000" min="1" max="`${hasConnection(&quot;spi_miso&quot;, 0) ? 25000 : 50000}`" resolution="1" visible="true" editable="true" desc="Data rate that SPI operates. The actual data rate may differ based on the available clock frequency and SPI settings. The range: 1-25000 kbps." />
     <!--Oversample-->
     <ParamRange id="OvsFactor" name="Oversample" group="General" default="16" min="`${hasConnection(&quot;spi_miso&quot;, 0) ? 4 : 2}`" max="16" resolution="1" visible="`${MasterMode}`" editable="true" desc="This parameter defines how many SCB clocks are used to generate the SCLK period (only applicable for the master mode). When the oversample is even the first and second phase of the clock period are the same. Otherwise the first phase of the clock signal period is one SCB clock cycle longer than the second phase. The range: 4-16 (MISO utilized) and 2-16 (MISO is not utilized)." />
@@ -90,8 +90,8 @@
       <Entry name="Odd Parity" value="CY_SCB_SPI_PARITY_ODD" visible="true" />
     </ParamChoice>
     <ParamBool id="DropOnParityError" name="Drop On Parity Error" group="General" default="false" visible="`${(((version &gt; 1) || (ipName eq &quot;mxs22scb&quot;))|| (ipName eq &quot;mxs22scb&quot;)) &amp;&amp; ((Parity eq CY_SCB_SPI_PARITY_EVEN) || (Parity eq CY_SCB_SPI_PARITY_ODD))}`" editable="true" desc="This parameter enables the hardware to drop data in the RX FIFO when a parity error is detected." />
-    <ParamBool id="EnableWakeup" name="Enable Wakeup from Deep Sleep Mode" group="General" default="false" visible="`${DeepSleepCapable}`" editable="true" desc="This parameter enables wake-up from Deep Sleep on an SPI slave-select event." />  
-    
+    <ParamBool id="EnableWakeup" name="Enable Wakeup from Deep Sleep Mode" group="General" default="false" visible="`${DeepSleepCapable}`" editable="true" desc="This parameter enables wake-up from Deep Sleep on an SPI slave-select event." />
+
     <!--Data Configuration-->
     <ParamChoice id="BitsOrder" name="Bit Order" group="Data Configuration" default="MSB_FIRST" visible="true" editable="true" desc="This parameter defines the direction in which the serial data is transmitted. When set to the MSB first, the most-significant bit is transmitted first. When set to the LSB first, the least-significant bit is transmitted first.">
       <Entry name="MSB First" value="MSB_FIRST" visible="true" />
@@ -119,7 +119,7 @@
     <!-- SS visible options -->
     <ParamBool id="isConnectableSel0" name="isConnectableSel0" group="Internal" default="`${hasVisibleOption(&quot;spi_select0[0]&quot;)}`" visible="false" editable="false" desc="This parameter determines if SS0 has valid connections." />
     <ParamBool id="isConnectableSel1" name="isConnectableSel1" group="Internal" default="`${hasVisibleOption(&quot;spi_select1[0]&quot;)}`" visible="false" editable="false" desc="This parameter determines if SS1 has valid connections." />
-    <ParamBool id="isConnectableSel2" name="isConnectableSel2" group="Internal" default="`${hasVisibleOption(&quot;spi_select2[0]&quot;)}`" visible="false" editable="false" desc="This parameter determines if SS2 has valid connections." />    
+    <ParamBool id="isConnectableSel2" name="isConnectableSel2" group="Internal" default="`${hasVisibleOption(&quot;spi_select2[0]&quot;)}`" visible="false" editable="false" desc="This parameter determines if SS2 has valid connections." />
     <ParamBool id="isConnectableSel3" name="isConnectableSel3" group="Internal" default="`${hasVisibleOption(&quot;spi_select3[0]&quot;)}`" visible="false" editable="false" desc="This parameter determines if SS3 has valid connections." />
 
     <!-- Slave Select polarities -->
@@ -138,16 +138,16 @@
     <ParamChoice id="Ss3Polarity" name="SS3 Polarity" group="Slave Select" default="CY_SCB_SPI_ACTIVE_LOW" visible="`${isConnectableSel3}`" editable="true" desc="This parameter defines the active polarity of the slave-select 3 signal as Active Low or Active High.">
       <Entry name="Active Low"  value="CY_SCB_SPI_ACTIVE_LOW"  visible="true" />
       <Entry name="Active High" value="CY_SCB_SPI_ACTIVE_HIGH" visible="true" />
-    </ParamChoice>  
+    </ParamChoice>
 
     <!-- SPI Slave data rate calculation parameters -->
     <ParamRange id="TDSO" name="TDSO" group="Internal" default="50" min="0" max="255" resolution="1" visible="false" editable="false" desc="TDSO, 002-10490 Rev. *C: SID171 (units ns)." />
     <ParamRange id="F_SPI_SLAVE_IC" name="F_SPI_SLAVE_IC" group="Internal" default="15" min="0" max="255" resolution="1" visible="false" editable="false" desc="002-10490 Rev. *C: SID166A (units MHz)." />
     <ParamRange id="T_DSO_INTERNAL" name="T_DSO_INTERNAL" group="Internal" default="`${TDSO - 3 * 10}`" min="0" max="255" resolution="1" visible="false" editable="true" desc="Tdso = Tdso_internal + (3 * Tscbclk), where Tscbclk = 10ns (units ns)." />
     <ParamRange id="T_MASTER_DELAYS" name="T_MASTER_DELAYS" group="Internal" default="`${(1000.0 / F_SPI_SLAVE_IC) - TDSO}`" min="0" max="1000" resolution="0.000001" visible="false" editable="false" desc="Calculate time left for master delays to meet SID166A FSPI_IC." />
-    <ParamRange id="scbClocksToOutput" name="scbClocksToOutput" group="Internal" default="`${EnableInputFilter ? 4 : 3}`" min="0" max="255" resolution="1" visible="false" editable="false" desc="The number of scb clocks to output." /> 
+    <ParamRange id="scbClocksToOutput" name="scbClocksToOutput" group="Internal" default="`${EnableInputFilter ? 4 : 3}`" min="0" max="255" resolution="1" visible="false" editable="false" desc="The number of scb clocks to output." />
     <ParamRange id="spiClkPeriod" name="spiClkPeriod" group="Internal" default="`${1000000 / DataRate}`" min="0" max="1000000" resolution="1" visible="false" editable="false" desc="SPI SCLK period (units ns)." />
-    
+
     <!-- Connections -->
     <ParamSignal port="clock[0]" name="Clock" group="Connections" visible="`${hasVisibleOption(&quot;clock[0]&quot;)}`" desc="Clock that operates this block." canBeEmpty="false" >
       <Constraint type="REQUIRE" targetLocation="peri\[\d+\](\.group\[\d+\])?\.div_.*" valid="`${!MasterMode}`" />
@@ -156,9 +156,9 @@
         <Parameter id="fracDivider" severity="ERROR" reason="Fractional divider must be 0 for SPI interface.">
           <Fixed value= "0" />
         </Parameter>
-      </Constraint>     
+      </Constraint>
     </ParamSignal>
-    
+
     <ParamSignal port="clock_scb_en[0]" name="Clock" group="Connections" visible="`${hasVisibleOption(&quot;clock_scb_en[0]&quot;)}`" desc="Clock that operates this block." canBeEmpty="false" >
       <Constraint type="REQUIRE" targetLocation="peri\[\d+\](\.group\[\d+\])?\.div_.*" valid="`${!MasterMode}`" />
       <Constraint type="REQUIRE" targetLocation="peri\[\d+\](\.group\[\d+\])?\.div_.*" valid="`${MasterMode}`" />
@@ -166,7 +166,7 @@
         <Parameter id="fracDivider" severity="ERROR" reason="Fractional divider must be 0 for SPI interface.">
           <Fixed value= "0" />
         </Parameter>
-      </Constraint>     
+      </Constraint>
     </ParamSignal>
 
     <!-- Clock Frequency -->
@@ -179,7 +179,7 @@
     <ParamString id="hfclockperi" name="PCLK Destination Clock" group="Internal" default="srss[0].clock[0].periclk[0]" visible="false" editable="false" desc="String variable used for source peri clock." />
 
     <ParamString id="hfclocksource" name="PCLK Destination" group="Internal" default="`${((ipName ne &quot;mxs22scb&quot;) ? ((version eq 1)  ? hfclockperi : hfclk) : hfclk) }`" visible="false" editable="false" desc="Generates PCLK connection define." />
-    
+
     <ParamString id="ClkPeri" name="ClkPeri" group="Internal" default="`${hfclocksource}`" visible="false" editable="false" desc="" />
     <ParamBool id="isClkPeriUsed" name="isClkPeriUsed" group="Internal" default="`${isBlockUsed(ClkPeri)}`" visible="false" editable="false" desc="" />
     <ParamRange id="ClkPeriHz" name="ClkPeriHz" group="Internal" default="`${isClkPeriUsed ? getExposedMember(ClkPeri, &quot;frequency&quot;) : 0}`" min="0" max="200000000" resolution="1" visible="false" editable="false" desc="ClkPeri frequency in Hz." />
@@ -245,7 +245,7 @@
       <Constraint type="ACCEPT" targetLocation=".*" valid="true" />
     </ParamSignal>
     <ParamString id="misoPin" name="misoPin" group="Internal" default="`${getBlockFromSignal(&quot;spi_miso[0]&quot;)}`" visible="false" editable="false" desc="" />
-    
+
     <ParamSignal port="spi_select0[0]" name="SS0" group="Connections" visible="`${isConnectableSel0}`" desc="The Master Output / Slave Input Slave Select (SS) signal. The master uses SS signal to enable Slave for the following communication." canBeEmpty="true" >
       <Constraint type="ACCEPT" targetLocation="ioss\[\d+\]\.port\[\d+\]\.pin.*" valid="true" >
         <Parameter id="DriveModes" severity="DEFAULT" reason="">
@@ -349,7 +349,7 @@
 
     <!-- Data Rate and Clock output-->
     <ParamRange id="actualDataRate" name="Actual Data Rate (kbps)" group="Data Rate" default="`${MasterMode ? MasterActualDataRate : SlaveActualDataRate}`" min="0" max="4294967295" resolution="0.001" visible="true" editable="false" desc="`${MasterMode ? MasterActDataRateNote : SlaveActDataRateNote}`" />
-    
+
     <ParamString id="ClkFreq" name="Clock Frequency" group="Data Rate" default="`${(scbClkHz &lt; 1000000) ? (scbClkHz / 1000.0) . &quot; kHz&quot; : (scbClkHz / 1000000.0) . &quot; MHz&quot;}`" visible="true" editable="false" desc="Frequency of the connected clock" />
 
     <!-- Hardware buffer size (defines FIFO size) -->
@@ -362,11 +362,11 @@
     <!--Trigger Level-->
     <ParamRange id="RxTriggerLevel" name="RX FIFO Level" group="Trigger Level" default="63" min="0" max="`${FifoLevelMax}`" resolution="1" visible="true" editable="true" desc="This parameter determines behavior of signal which drives the RX FIFO Above Level interrupt source and RX trigger output as follows: the signal remains active until the number of data elements in the RX FIFO is greater than the value of RX FIFO Level. For example, the RX FIFO has 8 data elements and the RX FIFO level is 0. The signal remains active until all data elements are read from the RX FIFO. The range: 0 – `${FifoLevelByte}` (when TX/RX Data Width less or equal 8), and 0 - `${FifoLevelHalfword}` otherwise." />
 
-    <ParamRange id="TxTriggerLevel" name="TX FIFO Level" group="Trigger Level" default="63" min="0" max="`${FifoLevelMax}`" resolution="1" visible="true" editable="true" desc="This parameter determines the behavior of the signal which drives the TX FIFO Below Level interrupt source and TX trigger output as follows: until the number of data elements in the TX FIFO is less than the value of the TX FIFO level. For example, the TX FIFO has 0 data elements (empty) and the TX FIFO level is 7. The signal remains active until TX FIFO has 7 data elements. The range: 0 – `${FifoLevelByte}` (when TX/RX Data Width less or equal 8), and 0 - `${FifoLevelHalfword}` otherwise." /> 
+    <ParamRange id="TxTriggerLevel" name="TX FIFO Level" group="Trigger Level" default="63" min="0" max="`${FifoLevelMax}`" resolution="1" visible="true" editable="true" desc="This parameter determines the behavior of the signal which drives the TX FIFO Below Level interrupt source and TX trigger output as follows: until the number of data elements in the TX FIFO is less than the value of the TX FIFO level. For example, the TX FIFO has 0 data elements (empty) and the TX FIFO level is 7. The signal remains active until TX FIFO has 7 data elements. The range: 0 – `${FifoLevelByte}` (when TX/RX Data Width less or equal 8), and 0 - `${FifoLevelHalfword}` otherwise." />
 
     <!-- API Mode -->
     <ParamChoice id="ApiMode" name="API Mode" group="API Mode" default="HIGH_LEVEL" visible="true" editable="true" desc="This parameter defines which API set will be used during driver operation. High Level means driver controls interrupt sources and Cy_SCB_SPI_Interrupt function must be called in the interrupt handler hooked to NVIC. Low Level means that the user configures interrupt sources and implements own interrupt handler or do not use interrupt at all.">
-      <Entry name="High Level" value="HIGH_LEVEL" visible="true" />      
+      <Entry name="High Level" value="HIGH_LEVEL" visible="true" />
       <Entry name="Low Level"  value="LOW_LEVEL"  visible="true" />
     </ParamChoice>
     <ParamBool id="ConfigIntr" name="ConfigIntr" group="Internal" default="`${ApiMode eq LOW_LEVEL}`" visible="false" editable="false" desc="This parameter specifies the visibility of all RX Interrupt Sources parameter." />
@@ -376,8 +376,8 @@
     <ParamBool id="IntrRxTrigger" name="RX FIFO Above Level" group="RX Interrupt Sources" default="false" visible="`${ConfigIntr}`" editable="true" desc="This parameter enables the RX FIFO above-level interrupt source to trigger the interrupt output." />
     <ParamBool id="IntrRxFull" name="RX FIFO Full" group="RX Interrupt Sources" default="false" visible="`${ConfigIntr}`" editable="true" desc="This parameter enables the RX FIFO full interrupt source to trigger the interrupt output." />
     <ParamBool id="IntrRxOverflow" name="RX FIFO Overflow" group="RX Interrupt Sources" default="false" visible="`${ConfigIntr}`" editable="true" desc="This parameter enables the RX FIFO overflow interrupt source to trigger the interrupt output." />
-    <ParamBool id="IntrRxUnderflow" name="RX FIFO Underflow" group="RX Interrupt Sources" default="false" visible="`${ConfigIntr}`" editable="true" desc="This parameter enables the RX FIFO underflow interrupt source to trigger the interrupt output." />  
-  
+    <ParamBool id="IntrRxUnderflow" name="RX FIFO Underflow" group="RX Interrupt Sources" default="false" visible="`${ConfigIntr}`" editable="true" desc="This parameter enables the RX FIFO underflow interrupt source to trigger the interrupt output." />
+
     <ParamRange id="IntrRxMask" name="INTR_RX_MASK" group="Internal" default="`${ConfigIntr ? (IntrRxTrigger ? 0x1 : 0) + (IntrRxNotEmpty ? 0x4 : 0) + (IntrRxFull ? 0x8 : 0) + (IntrRxOverflow ? 0x20 : 0) + (IntrRxUnderflow ? 0x40 : 0) : 0}`" min="0" max="4294967295" resolution="1" visible="false" editable="false" desc="This parameter defines the SPI RX interrupt mask to be written into the SCB.INTR_RX_MASK register." />
 
     <!--TX Interrupt Sources-->
@@ -400,13 +400,13 @@
 
     <!-- SCB instance number -->
     <ParamString id="InstNumber" name="InstNumber" group="Internal" default="`${getInstNumber(&quot;scb&quot;)}`" visible="false" editable="false" desc="SCB Instance name number." />
-   
+
     <!-- Peripheral clock divider connection -->
     <ParamBool id="pclkOk" name="PCLK Valid" group="Internal" default="`${(hasVisibleOption(&quot;clock[0]&quot;)) ? (hasConnection(&quot;clock&quot;, 0) &amp;&amp; isBlockUsed(sourceClock)) : (hasConnection(&quot;clock_scb_en&quot;, 0) &amp;&amp; isBlockUsed(sourceClock)) }`" visible="false" editable="false" desc="Checks whether there is a PCLK connected and enabled." />
-    
+
     <ParamString id="pclkSCBClockString" name="PCLK Destination Clock" group="Internal" default="PCLK_SCB`${InstNumber}`_CLOCK" visible="false" editable="false" desc="String variable used for PCLK_SCB_CLOCK." />
     <ParamString id="pclkSCBClockSCBENString" name="PCLK Destination Clock" group="Internal" default="PCLK_SCB`${InstNumber}`_CLOCK_SCB_EN" visible="false" editable="false" desc="String variable used only for PCLK_SCB_CLOCK_SCB_EN." />
-    
+
     <ParamString id="pclkDst" name="PCLK Destination" group="Internal" default="`${(hasVisibleOption(&quot;clock[0]&quot;)) ? pclkSCBClockString : pclkSCBClockSCBENString }`" visible="false" editable="false" desc="Generates PCLK connection define." />
 
     <!-- Clock Divider Config -->
@@ -416,8 +416,8 @@
     <ParamString id="overSampleFix" name="Fix for OverSample" group="Internal" default="`${ceil(scbClkHz / (DataRate * 1000))}`" visible="false" editable="false" desc=" " />
 
   </Parameters>
-  
-  <DRCs>   
+
+  <DRCs>
     <!-- Slave Mode -->
     <DRC type="INFO" paramId="clock_scb_en[0]" text="The clock frequency must be `${SlaveClkHz / 1000}` kHz to operate with data rate `${DataRate}` kbps." condition="`${((!MasterMode) &amp;&amp; (slaveDivFix) &amp;&amp; (hasVisibleOption(&quot;clock_scb_en[0]&quot;)))}`" >
         <FixIt action="SET_PARAM" target="`${getBlockFromSignalValue(getParamValue(&quot;clock_scb_en[0]&quot;)).&quot;.intDivider&quot;}`" value="`${slaveDiv}`" valid="`${true}`" />
@@ -439,7 +439,7 @@
         <FixIt action="SET_PARAM" target="`${getBlockFromSignalValue(getParamValue(&quot;clock[0]&quot;)).&quot;.intDivider&quot;}`" value="`${ceil((scbClkHz * getExposedMember(sourceClock, &quot;divider&quot;)) / MasterClkHz)}`" valid="`${true}`" />
         <FixIt action="SET_PARAM" target="OvsFactor" value="`${((17 > overSampleFix) ? ((overSampleFix > (hasConnection(&quot;spi_miso&quot;, 0) ? 3 : 1)) ? overSampleFix : (hasConnection(&quot;spi_miso&quot;, 0) ? 4 : 2)) : 16)}`" valid="`${(MasterClkHz != (floor(getExposedMember(sourceClock, &quot;frequency&quot;) * getExposedMember(sourceClock, &quot;divider&quot;))))}`" />
     </DRC>
-    
+
     <!--RxDataWidth and $TxDataWidth DRCs-->
     <DRC type="ERROR" text="The RX and TX Data Width must be equal for the selected Sub Mode." paramId="TxDataWidth" condition="`${((SubModeUser ne CY_SCB_SPI_NATIONAL) &amp;&amp; (RxDataWidth ne TxDataWidth)) ? true : false}`" />
 
@@ -455,14 +455,17 @@
     <!-- Check oversample value -->
     <DRC type="ERROR" text="Oversample between 2-16 is allowed only if MISO is not used. Otherwise oversample only between 4-16 is allowed." paramId="OvsFactor" condition="`${MasterMode ? ((!hasConnection(&quot;spi_miso&quot;, 0)) ? ((OvsFactor &lt; 2) ? true : false) : ((OvsFactor &lt; 4) ? true : false)) : false}`" />
   </DRCs>
-  
+
   <ConfigFirmware>
     <ConfigInclude value="cy_scb_spi.h" include="true" />
     <ConfigInclude value="cy_sysclk.h" include="`${pclkOk}`" />
     <ConfigInclude value="cyhal_hwmgr.h" include="true" guard="defined (CY_USING_HAL)" />
     <ConfigInclude value="cyhal.h" include="true" guard="defined (CY_USING_HAL)" />
+    <ConfigInclude value="mtb_hal.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="cycfg_clocks.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
+    <ConfigInclude value="mtb_hal_hw_types.h" include="true" guard="defined (COMPONENT_MTB_HAL)" />
     <ConfigInclude value="cyhal_hw_types.h" include="true" guard="defined (CY_USING_HAL_LITE)" />
-    
+
     <ConfigDefine name="`${INST_NAME}`_HW" value="SCB`${InstNumber}`" public="true" include="true" />
     <ConfigDefine name="`${INST_NAME}`_IRQ" value="scb_`${InstNumber}`_interrupt_IRQn" public="true" include="true" />
     <ConfigStruct name="`${INST_NAME}`_config" type="cy_stc_scb_spi_config_t" const="`${inFlash}`" public="true" include="true" >
@@ -479,11 +482,11 @@
       <Member name="txDataWidth" value="`${TxDataWidth}`UL" />
       <Member name="enableMsbFirst" value="`${(BitsOrder eq MSB_FIRST) ? &quot;true&quot; : &quot;false&quot;}`" />
       <Member name="enableInputFilter" value="`${EnableInputFilter}`" />
-      
+
       <Member name="enableFreeRunSclk" value="`${(MasterMode &amp;&amp; EnableFreeRunSclk) ? &quot;true&quot; : &quot;false&quot;}`" />
       <Member name="enableMisoLateSample" value="`${(MasterMode &amp;&amp; EnableLateMisoSample) ? &quot;true&quot; : &quot;false&quot;}`" />
       <Member name="enableTransferSeperation" value="`${(MasterMode &amp;&amp; DeassertSelectLine) ? &quot;true&quot; : &quot;false&quot;}`" />
-      
+
       <Member name="ssPolarity" value="(`${&quot;(&quot; . Ss0Polarity}` &lt;&lt; CY_SCB_SPI_SLAVE_SELECT0) | \&#xA;
                                         `${&quot;(&quot; . Ss1Polarity}` &lt;&lt; CY_SCB_SPI_SLAVE_SELECT1) | \&#xA;
                                         `${&quot;(&quot; . Ss2Polarity}` &lt;&lt; CY_SCB_SPI_SLAVE_SELECT2) | \&#xA;
@@ -494,16 +497,16 @@
       <Member name="ssInterFrameDelay" value="`${InterdataframeDelay}`" include="`${((version &gt; 1) || (ipName eq &quot;mxs22scb&quot;))}`" />
 
       <Member name="enableWakeFromSleep" value="`${EnableWakeup}`" />
-      
+
       <Member name="rxFifoTriggerLevel"  value="`${RxTriggerLevel}`UL" />
       <Member name="rxFifoIntEnableMask" value="`${IntrRxMask}`UL" />
-      
+
       <Member name="txFifoTriggerLevel"  value="`${TxTriggerLevel}`UL" />
       <Member name="txFifoIntEnableMask" value="`${IntrTxMask}`UL" />
-      
+
       <Member name="masterSlaveIntEnableMask" value="`${IntrMasterSlaveMask}`UL" />
     </ConfigStruct>
-    
+
     <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL) || defined(CY_USING_HAL_LITE)">
       <Member name="type" value="CYHAL_RSC_SCB" />
       <Member name="block_num" value="`${getInstNumber(&quot;scb&quot;)}`U" />
@@ -523,11 +526,27 @@
       <Member name="clock" value="&amp;`${INST_NAME}`_clock" />
       <Member name="gpios" value="{.sclk = `${sclkPin &amp;&amp; hasExposedMember(sclkPin, &quot;halPortPin&quot;) ? getExposedMember(sclkPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, .ssel = {`${ssel0Pin &amp;&amp; hasExposedMember(ssel0Pin, &quot;halPortPin&quot;) ? getExposedMember(ssel0Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, `${ssel1Pin &amp;&amp; hasExposedMember(ssel1Pin, &quot;halPortPin&quot;) ? getExposedMember(ssel1Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, `${ssel2Pin &amp;&amp; hasExposedMember(ssel2Pin, &quot;halPortPin&quot;) ? getExposedMember(ssel2Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, `${ssel3Pin &amp;&amp; hasExposedMember(ssel3Pin, &quot;halPortPin&quot;) ? getExposedMember(ssel3Pin, &quot;halPortPin&quot;) : &quot;NC&quot;}`}, .mosi = `${mosiPin &amp;&amp; hasExposedMember(mosiPin, &quot;halPortPin&quot;) ? getExposedMember(mosiPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`, .miso = `${misoPin &amp;&amp; hasExposedMember(misoPin, &quot;halPortPin&quot;) ? getExposedMember(misoPin, &quot;halPortPin&quot;) : &quot;NC&quot;}`}" />
     </ConfigStruct>
-    
+
+    <ConfigStruct name="`${INST_NAME}`_clock_ref" type="mtb_hal_peri_div_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+      <Member name="clk_dst" value="(en_clk_dst_t)`${pclkDst}`" />
+      <Member name="div_type" value="`${getExposedMember(sourceClock, &quot;type&quot;)}`" />
+      <Member name="div_num" value="`${getExposedMember(sourceClock, &quot;number&quot;)}`" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_clock" type="mtb_hal_clock_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL)">
+        <Member name="clock_ref" value="&amp;`${INST_NAME}`_clock_ref" />
+        <Member name="interface" value="&amp;mtb_hal_clock_peri_interface" />
+    </ConfigStruct>
+
+    <ConfigStruct name="`${INST_NAME}`_hal_config" type="mtb_hal_spi_configurator_t" const="`${inFlash}`" public="true" include="true" guard="defined (COMPONENT_MTB_HAL) &amp;&amp; (MTB_HAL_DRIVER_AVAILABLE_SPI)">
+      <Member name="base" value="`${INST_NAME}`_HW" />
+      <Member name="clock" value="&amp;`${INST_NAME}`_hal_clock" />
+      <Member name="config" value="&amp;`${INST_NAME}`_config" />
+    </ConfigStruct>
+
     <ConfigInstruction purpose="INITIALIZE" value="Cy_SysClk_PeriGroupSlaveInit(CY_MMIO_SCB`${InstNumber}`_PERI_NR, CY_MMIO_SCB`${InstNumber}`_GROUP_NR, CY_MMIO_SCB`${InstNumber}`_SLAVE_NR, CY_MMIO_SCB`${InstNumber}`_CLK_HF_NR);" include="`${(ipName eq &quot;mxs22scb&quot;)}`" />
     <ConfigInstruction purpose="INITIALIZE" value="Cy_SysClk_PeriPclkAssignDivider(`${pclkDst}`, `${getExposedMember(sourceClock, &quot;clockSel&quot;)}`);" include="`${(((version &gt; 1) || (ipName eq &quot;mxs22scb&quot;)) &amp;&amp; pclkOk)}`"  />
     <ConfigInstruction purpose="INITIALIZE" value="Cy_SysClk_PeriphAssignDivider(`${pclkDst}`, `${getExposedMember(sourceClock, &quot;clockSel&quot;)}`);" include="`${(((version eq 1) &amp;&amp; (ipName ne &quot;mxs22scb&quot;)) &amp;&amp; pclkOk)}`"  />
-
     <ConfigInstruction purpose="RESERVE" value="cyhal_hwmgr_reserve(&amp;`${INST_NAME}`_obj);" include="true" guard="defined (CY_USING_HAL)" />
   </ConfigFirmware>
 </Personality>

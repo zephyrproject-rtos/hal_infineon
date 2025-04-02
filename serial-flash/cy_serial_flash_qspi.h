@@ -184,6 +184,14 @@ cy_rslt_t cy_serial_flash_qspi_read(uint32_t addr, size_t length, uint8_t* buf);
  * function. Returns error if (addr + length) exceeds the flash size.
  * Uses fixed DMA (DW) instance and channel for transferring the data from
  * QSPI RX FIFO to the user-provided buffer.
+ *
+ * \note If D-cache is enabled, this function cleans the D-cache of the DMA descriptor.
+ * The data Cache line is 32 bytes. The user needs to make sure that the buf pointer
+ * passed to the cy_serial_flash_qspi_read_async function points to a 32 byte
+ * aligned array of words that contains the buffer i.e. the size of buffer must be
+ * a multiple of 32 bytes to ensure cache coherency.
+ * CY_ALIGN(__SCB_DCACHE_LINE_SIZE) macro can be used for 32 byte alignment.
+ *
  * \param addr Starting address to read from
  * \param length Number of data bytes to read
  * \param buf Pointer to the buffer to store the data read from the memory

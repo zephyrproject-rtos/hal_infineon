@@ -96,13 +96,13 @@
       <Member name="intType" value="`${PulseInterruptConfiguration}`" />
     </ConfigStruct>
     
-    <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL)">
+    <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL) || defined(CY_USING_HAL_LITE)">
       <Member name="type" value="CYHAL_RSC_LPCOMP" />
       <Member name="block_num" value="`${getInstNumber(&quot;lpcomp&quot;)}`U" />
       <Member name="channel_num" value="`${getInstNumber(&quot;comp&quot;)}`U" />
     </ConfigStruct>
     
-    <ConfigStruct name="`${INST_NAME}`_hal_config" type="cyhal_comp_configurator_t" const="`${inFlash}`" public="true" include="true" guard="defined (CY_USING_HAL)">
+    <ConfigStruct name="`${INST_NAME}`_hal_config" type="cyhal_comp_configurator_t" const="`${inFlash}`" public="true" include="true" guard="defined (CY_USING_HAL) || defined(CY_USING_HAL_LITE)">
       <Member name="resource" value="&amp;`${INST_NAME}`_obj" />
       <Member name="lpcomp" value="&amp;`${INST_NAME . &quot;_config&quot;}`" />
     </ConfigStruct>

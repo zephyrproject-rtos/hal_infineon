@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_ecc_nist_p.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides constant and parameters for the API for the ECC
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -76,6 +76,12 @@ void Cy_Crypto_Core_JacobianTransform(CRYPTO_Type *base, uint32_t s_x, uint32_t 
 cy_en_crypto_status_t Cy_Crypto_Core_JacobianInvTransform(CRYPTO_Type *base, uint32_t s_x, uint32_t s_y, uint32_t s_z, uint32_t size);
 
 cy_en_crypto_status_t Cy_Crypto_Core_EC_NistP_PointMul(CRYPTO_Type *base, uint32_t p_x, uint32_t p_y, uint32_t p_d, uint32_t p_order, uint32_t bitsize);
+
+#if defined(CY_CRYPTO_CFG_EDDSA_C) || defined(CY_CRYPTO_CFG_EC25519_C)
+cy_en_crypto_status_t Cy_Crypto_Core_EDDSA_Bar_MulRed(CRYPTO_Type *base, uint32_t z, uint32_t x, uint32_t size);
+cy_en_crypto_status_t Cy_Crypto_Core_ED25519_MulMod( CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t b, uint32_t size);
+cy_en_crypto_status_t Cy_Crypto_Core_ED25519_SquareMod( CRYPTO_Type *base, uint32_t z, uint32_t a, uint32_t size);
+#endif /* #if defined(CY_CRYPTO_CFG_EDDSA_C) || defined(CY_CRYPTO_CFG_EC25519_C) */
 
 #endif /* #if (CPUSS_CRYPTO_VU == 1) */
 

@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -104,7 +104,7 @@ typedef struct {
    __IM uint32_t RESERVED15[491];
   __IOM uint32_t FLASH_BOOT_OBJECT_SIZE;        /*!< 0x00002000 Flash Boot - Object Size */
   __IOM uint32_t FLASH_BOOT_APP_ID;             /*!< 0x00002004 Flash Boot - Application ID/Version */
-  __IOM uint32_t FLASH_BOOT_ATTRIBUTE;          /*!< 0x00002008 N/A */
+  __IOM uint32_t FLASH_BOOT_ATTRIBUTE;          /*!< 0x00002008 Flash Boot - Reserved for future use. Should be zero for now */
   __IOM uint32_t FLASH_BOOT_N_CORES;            /*!< 0x0000200C Flash Boot - Number of Cores(N) */
   __IOM uint32_t FLASH_BOOT_VT_OFFSET;          /*!< 0x00002010 Flash Boot - Core Vector Table offset */
   __IOM uint32_t FLASH_BOOT_CORE_CPUID;         /*!< 0x00002014 Flash Boot - Core CPU ID/Core Index */

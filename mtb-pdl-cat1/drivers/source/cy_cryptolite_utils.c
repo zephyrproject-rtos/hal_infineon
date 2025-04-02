@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_utils.c
-* \version 2.50
+* \version 2.80
 *
 * \brief
 *  Provides utility functions.
@@ -154,7 +154,7 @@ void Cy_Cryptolite_InvertEndianness(void *inArrPtr, uint32_t byteSize)
     }
 
     tempPtr = (uint8_t*)inArrPtr;
-    
+
     if (byteSize > 1u)
     {
         limit = (int32_t)byteSize / 2;
@@ -176,4 +176,26 @@ void Cy_Cryptolite_InvertEndianness(void *inArrPtr, uint32_t byteSize)
         }
     }
 }
+
+uint32_t Cy_Cryptolite_GetCLSAME(uint8_t* src, uint32_t bytesize)
+{
+    uint32_t clsame = 0u;
+
+    for (uint32_t i = bytesize; i > 0u; i--) {
+        uint8_t byte = src[i-1u];
+        if (byte == 0u) {
+            clsame += 8u;
+        } else {
+            for (uint32_t j = 8u; j > 0u; j--) {
+                if (((uint8_t)byte & (uint8_t)(1u << (j-1u))) != (uint8_t)0u) {
+                    clsame += (7u - (uint32_t)(j-1u));
+                    return clsame;
+                }
+            }
+        }
+    }
+
+    return clsame;
+}
+
 #endif /*defined(CY_IP_MXCRYPTOLITE)*/

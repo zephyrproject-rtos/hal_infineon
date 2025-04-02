@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_flash.h
-* \version 3.110
+* \version 3.130
 *
 * Provides the API declarations of the Flash driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2024 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,13 +258,24 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th style="width: 52%;">Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>3.130</td>
+*     <td>Updated status code for \ref Cy_Flash_Refresh and \ref Cy_Flash_Init.
+*         Updated \ref cy_en_flashdrv_status_t with new status codes.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
+*     <td>3.120</td>
+*     <td>Updated internal implementation for PSOC C3 device.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>3.110</td>
 *     <td>In Cy_Flash_SendCmd, waiting for CM0 to be ready to accept command.</td>
 *     <td></td>
 *   </tr>
 *   <tr>
 *     <td>3.100</td>
-*     <td>Added support for PSoC C3 (CAT1B).<br>
+*     <td>Added support for PSOC C3 (CAT1B).<br>
 *         Added flash refresh feature.<br>
 *         Added inject ecc disable and corrected address in inject ecc.</td>
 *     <td>Added support for new devices, added new feature and code enhancement.</td>
@@ -276,7 +287,7 @@
 *       In cy_flash_srom, changed pre-processor checks from using CM7 availability to using MXFLASHC ver. to determine flash hardware availability.<br>
 *       In cy_flash_srom, added interrupt compatibility for CM4 devices.</td>
 *     <td>Code enhancement and support for new devices.</td>
-*   </tr> 
+*   </tr>
 *   <tr>
 *     <td>3.80</td>
 *     <td>Dual bank support added for CAT1A devices.</td>
@@ -457,7 +468,7 @@ extern "C" {
 #define CY_FLASH_DRV_VERSION_MAJOR       3
 
 /** Driver minor version */
-#define CY_FLASH_DRV_VERSION_MINOR       110
+#define CY_FLASH_DRV_VERSION_MINOR       130
 
 #define CY_FLASH_ID               (CY_PDL_DRV_ID(0x14UL))                          /**< FLASH PDL ID */
 
@@ -605,11 +616,12 @@ typedef enum cy_en_flashdrv_status
     CY_FLASH_DRV_REFRESH_NOT_SUPPORTED    =   ( CY_FLASH_ID_ERROR + 0x11UL),  /**< Refresh on this sector is not supported. */
     CY_FLASH_DRV_REFRESH_FAILED           =   ( CY_FLASH_ID_ERROR + 0x12UL),  /**< Refresh Operation failed. */
     CY_FLASH_DRV_REFRESH_NOT_ENABLED      =   ( CY_FLASH_ID_ERROR + 0x13UL),  /**< Refresh Feature not enabled. */
-    CY_FLASH_DRV_INIT_FAILED              =   ( CY_FLASH_ID_ERROR + 0x14UL),  /**< Refresh Feature not enabled. */
+    CY_FLASH_DRV_INIT_FAILED              =   ( CY_FLASH_ID_ERROR + 0x14UL),  /**< Flash initialization failed. */
+    CY_FLASH_DRV_REFRESH_NOTHING          =   ( CY_FLASH_ID_INFO  + 0x3UL),   /**< There are no any flash rows to recover. */
 #endif /* defined (CY_IP_MXS40FLASHC) */
 } cy_en_flashdrv_status_t;
 
-#if defined (CY_IP_MXS40FLASHC)
+#if defined (CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
 /** No of errors when ECC error injection is enabled.  */
 typedef enum
 {
@@ -618,7 +630,7 @@ typedef enum
 } cy_en_flash_ecc_inject_errors_t;
 #endif
 
-#if (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS)
+#if ((defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS)) || defined(CY_DOXYGEN)
 /** Flash Dual bank mode configuration */
 typedef enum
 {
@@ -634,7 +646,7 @@ typedef enum
 } cy_en_maptype_t;
 #endif /* (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS) */
 
-#if defined (CY_IP_MXS40FLASHC)
+#if defined (CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
 /** Flash Dual bank mode mapping configuration */
 typedef enum
 {
@@ -645,7 +657,7 @@ typedef enum
 } cy_en_flash_dual_bank_mapping_t;
 #endif /* defined (CY_IP_MXS40FLASHC) */
 
-#if !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
+#if !defined (CY_FLASH_RWW_DRV_SUPPORT_DISABLED) || defined(CY_DOXYGEN)
     /** Flash notification configuration structure */
     typedef struct
     {
@@ -657,7 +669,7 @@ typedef enum
 
 /** \} group_flash_enumerated_types */
 
-#if (defined(CY_IP_MXFLASHC_VERSION_ECT))
+#if (defined(CY_IP_MXFLASHC_VERSION_ECT)) || defined(CY_DOXYGEN)
 
 /**
 * \addtogroup group_flash_enumerated_types
@@ -775,7 +787,7 @@ typedef enum
 /***************************************
 * Data Structure definitions
 ***************************************/
-#if (defined(CY_IP_MXFLASHC_VERSION_ECT))
+#if (defined(CY_IP_MXFLASHC_VERSION_ECT)) || defined(CY_DOXYGEN)
 
 /**
 * \addtogroup group_flash_srom_config_structure
@@ -840,7 +852,7 @@ typedef struct
 /***************************************
 * Function Prototypes
 ***************************************/
-#if (defined(CY_IP_MXFLASHC_VERSION_ECT))
+#if (defined(CY_IP_MXFLASHC_VERSION_ECT)) || defined(CY_DOXYGEN)
 
 
 /**
@@ -959,7 +971,7 @@ void Cy_Flashc_MainECCEnable(void);
 * Function Name: Cy_Flashc_MainECCDisable
 ****************************************************************************//**
 *
-* \brief Disables ECC for main flash. 
+* \brief Disables ECC for main flash.
 * ECC checking/reporting on FLASH main interface is disabled.
 * No correctable or non-correctable faults are reported by disabling ECC.
 *
@@ -1071,10 +1083,10 @@ cy_en_flashdrv_status_t Cy_Flash_Checksum (const cy_stc_flash_checksum_config_t 
 * Function Name: Cy_Flash_EraseSuspend
 ****************************************************************************//**
 *
-* This function suspends an ongoing erase operation. User should not read from a 
-* sector which is suspended from an erase operation. Cy_Flash_ProgramRow function 
+* This function suspends an ongoing erase operation. User should not read from a
+* sector which is suspended from an erase operation. Cy_Flash_ProgramRow function
 * will return error if invoked on suspended sector.
-* This function cannot be called on SFLASH. Reports success 
+* This function cannot be called on SFLASH. Reports success
 * or a reason for failure. Does not return until the Erase operation is complete.
 * Returns immediately and reports a CY_FLASH_DRV_IPC_BUSY error in the case when another
 * process is operating flash.
@@ -1091,7 +1103,7 @@ cy_en_flashdrv_status_t Cy_Flash_EraseSuspend(void);
 * Function Name: Cy_Flash_EraseResume
 ****************************************************************************//**
 *
-* This function calls to resume a suspended erase operation. 
+* This function calls to resume a suspended erase operation.
 * Reports success or a reason for failure.
 * Returns immediately and reports a CY_FLASH_DRV_IPC_BUSY error in the case when another
 * process is operating flash.
@@ -1157,7 +1169,7 @@ cy_en_flashdrv_status_t Cy_Flash_OperationStatus(void);
 * Function Name: Cy_Flashc_InjectECC
 ****************************************************************************//**
 *
-* This function enables ECC injection and sets the address where a parity will be injected 
+* This function enables ECC injection and sets the address where a parity will be injected
 * and the parity value.
 * Reports success or a reason for failure.
 *
@@ -1447,7 +1459,7 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 * \note In CAT1B devices with flash IP CY_IP_MXS40FLASHC
 * When refresh is enabled, for each row an extra 16 bytes is used for storing refresh related data.
 * User need to make sure that this data is not corrupted while writing and erasing the row data.
-* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes 
+* When refresh is enabled row size has to be considered as CY_FLASH_SIZEOF_ROW + 16Bytes
 *
 * \return Returns the status of the Flash operation,
 * see \ref cy_en_flashdrv_status_t.
@@ -1853,7 +1865,7 @@ cy_en_flashdrv_status_t Cy_Flash_CalculateHash(const uint32_t* data, uint32_t nu
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_RowChecksum(uint32_t rowAddr, uint32_t* checksumPtr);
 
-#if !defined(CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
+#if !defined(CY_IP_MXS40FLASHC)  || defined(CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_Flash_Init
 ****************************************************************************//**
@@ -1873,7 +1885,9 @@ cy_en_flashdrv_status_t Cy_Flash_RowChecksum(uint32_t rowAddr, uint32_t* checksu
 *******************************************************************************/
 void Cy_Flash_Init(void);
 
-#else
+#endif
+
+#if defined(CY_IP_MXS40FLASHC)  || defined(CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_Flash_Init
 ****************************************************************************//**
@@ -1881,9 +1895,18 @@ void Cy_Flash_Init(void);
 * Initiates all needed prerequisites to support flash erase/write.
 * Should be once before starting any flash operations.
 *
-* \param refresh_enable enable disable refresh feature
+* \param refresh_enable Enable or disable refresh feature
 *
-* \return success if Init is complete else will return err
+* \return Flash initialization status
+*
+* \note The return value is depending on the \p refresh_enable. \n
+* When \p refresh_enable is false: \n
+*   - CY_FLASH_DRV_SUCCESS if Init is complete otherwise will return error. \n
+*   .
+* When \p refresh_enable is true: \n
+*   - CY_FLASH_DRV_SUCCESS if Init is completed. \n
+*   - CY_FLASH_DRV_REFRESH_NOTHING if Init is completed and there are no any
+*     flash rows to refresh otherwise will return an error.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_Init(bool refresh_enable);
@@ -1892,16 +1915,17 @@ cy_en_flashdrv_status_t Cy_Flash_Init(bool refresh_enable);
 * Function Name: Cy_Flash_Refresh
 ****************************************************************************//**
 *
-* Refreshes the flash rows which were not updated by the user code. This is a blocking call.
-* If there are only limited number of flash row writes for each flash sector then
-* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
-* This refresh feature will prevent the flash sector from wear out
-* This is not allowed on sector which has SFLASH
+* This is a blocking call.
+* Writes to the flash will cause slight degradation of the other cells in the flash.
+* If the flash is written more than 100,000 times, errors may appear on flash reads.
+* To prevent this, the refresh functions should be called before or after flash writes.
+* The refresh functions are not available on CPUSS_FLASHC_SFLASH_SECNUM because it includes the SFLASH.
 *
-* \param address of the row that needs to be refreshed.
+* \param flashAddr The address of the row that needs to be refreshed.
 *
-* \return success if refresh is complete. Else will return error
-*
+* \return Operation status: \n
+*  * CY_FLASH_DRV_SUCCESS if Refresh is completed. \n
+*  * CY_FLASH_DRV_REFRESH_NOTHING if there are no any flash rows to refresh otherwise will return an error.
 *
 *******************************************************************************/
 cy_en_flashdrv_status_t Cy_Flash_Refresh(uint32_t flashAddr);
@@ -1910,13 +1934,13 @@ cy_en_flashdrv_status_t Cy_Flash_Refresh(uint32_t flashAddr);
 * Function Name: Cy_Flash_Refresh_Start
 ****************************************************************************//**
 *
-* Refreshes the flash rows which were not updated by the user code. This is a non-blocking call.
-* If there are only limited number of flash row writes for each flash sector then
-* the flash rows in this flash sector (which were not updated during this number of row writes) start to wear out.
-* This refresh feature will prevent the flash sector from wear out
-* This is not allowed on sector which has SFLASH
+* This is a non-blocking call.
+* Writes to the flash will cause slight degradation of the other cells in the flash.
+* If the flash is written more than 100,000 times, errors may appear on flash reads.
+* To prevent this, the refresh functions should be called before or after flash writes.
+* The refresh functions are not available on CPUSS_FLASHC_SFLASH_SECNUM because it includes the SFLASH.
 *
-* \param address of the row that needs to be refreshed.
+* \param flashAddr of the row that needs to be refreshed.
 *
 * \return success if refresh is started. Else will return error
 *
@@ -1926,12 +1950,11 @@ cy_en_flashdrv_status_t Cy_Flash_Refresh_Start(uint32_t flashAddr);
 
 /*******************************************************************************
 * Function Name: Cy_Flash_Is_Refresh_Required
-********************************************************************************
-* Checks whether a flash refresh is needed for a sector.
-
-* \returns
-* - TRUE, if a refresh is needed.
-* - FALSE, if a refresh is not needed.
+****************************************************************************//**
+* Checks if a flash refresh is needed for the sector.
+* This is not allowed on sector which has SFLASH
+*
+* \returns TRUE, if a refresh is needed and FALSE, if a refresh is not needed.
 *******************************************************************************/
 bool Cy_Flash_Is_Refresh_Required(void);
 

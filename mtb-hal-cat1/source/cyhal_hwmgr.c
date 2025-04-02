@@ -49,6 +49,8 @@ extern "C"
 //    static inline uint8_t _cyhal_get_block_offset_length(cyhal_resource_t type);
 #include "cyhal_hwmgr_impl_part.h"
 
+static uint8_t cyhal_used[(CY_TOTAL_ALLOCATABLE_ITEMS + 7) / 8] = {0};
+
 /*
  * This function is designed to verify that the number of valid resources in the cyhal_resource_t
  * enum and the number entries in the _CYHAL_RESOURCES array are identical. Any mismatch
@@ -81,6 +83,7 @@ static inline void _check_array_size(void)
 
 static cy_rslt_t _cyhal_get_bit_position(cyhal_resource_t type, uint8_t block, uint8_t channel, uint16_t* bitPosition)
 {
+    cy_rslt_t result;
 #if defined(COMPONENT_CAT1A) || defined(COMPONENT_CAT1B) || defined(COMPONENT_CAT1C) || defined(COMPONENT_CAT1D)
     /* For backwards compatability. */
     if (type == CYHAL_RSC_CLKPATH)
@@ -90,40 +93,45 @@ static cy_rslt_t _cyhal_get_bit_position(cyhal_resource_t type, uint8_t block, u
         type = CYHAL_RSC_CLOCK;
     }
 #endif
-    uint16_t offsetRsc = _cyhal_get_resource_offset(type);
-    // Offset that is one past the beginning of the next resource (or one past the end of the array).
-    // Our offset must be strictly less than that
-    uint16_t offsetEndOfRsc = ((1u + type) < _CYHAL_RESOURCES)
-        ? _cyhal_get_resource_offset((cyhal_resource_t)(type + 1))
-        : CY_TOTAL_ALLOCATABLE_ITEMS;
-
-    if (_cyhal_uses_channels(type))
+    result =  (type < CYHAL_RSC_INVALID) ? CY_RSLT_SUCCESS : CYHAL_HWMGR_RSLT_ERR_INVALID;
+    if( result == CY_RSLT_SUCCESS )
     {
-        const _cyhal_hwmgr_offset_t* blockOffsets = _cyhal_get_block_offsets(type);
-        *bitPosition = offsetEndOfRsc;
-        if (blockOffsets != NULL)
+        uint16_t offsetRsc = _cyhal_get_resource_offset(type);
+        // Offset that is one past the beginning of the next resource (or one past the end of the array).
+        // Our offset must be strictly less than that
+        uint16_t offsetEndOfRsc = ((1u + type) < _CYHAL_RESOURCES)
+            ? _cyhal_get_resource_offset((cyhal_resource_t)(type + 1))
+            : CY_TOTAL_ALLOCATABLE_ITEMS;
+
+        if (_cyhal_uses_channels(type))
         {
-            // Offset (from the beginning of the section for this block type) that is one past the end of
-            // the requested block index. The channel number must be strictly less than that.
-            uint16_t blocks = _cyhal_get_block_offset_length(type);
-            if (block < blocks)
+            const _cyhal_hwmgr_offset_t* blockOffsets = _cyhal_get_block_offsets(type);
+            *bitPosition = offsetEndOfRsc;
+            if (blockOffsets != NULL)
             {
-                *bitPosition = offsetRsc + blockOffsets[block] + channel;
-                if ((block + 1) < blocks)
+                // Offset (from the beginning of the section for this block type) that is one past the end of
+                // the requested block index. The channel number must be strictly less than that.
+                uint16_t blocks = _cyhal_get_block_offset_length(type);
+                if (block < blocks)
                 {
-                    offsetEndOfRsc = offsetRsc + blockOffsets[block + 1];
+                    *bitPosition = offsetRsc + blockOffsets[block] + channel;
+                    if ((block + 1) < blocks)
+                    {
+                        offsetEndOfRsc = offsetRsc + blockOffsets[block + 1];
+                    }
                 }
             }
         }
-    }
-    else
-    {
-        *bitPosition = offsetRsc + block;
-    }
+        else
+        {
+            *bitPosition = offsetRsc + block;
+        }
 
-    return (*bitPosition < offsetEndOfRsc)
-        ? CY_RSLT_SUCCESS
-        : CYHAL_HWMGR_RSLT_ERR_INVALID;
+        result = (*bitPosition < offsetEndOfRsc)
+            ? CY_RSLT_SUCCESS
+            : CYHAL_HWMGR_RSLT_ERR_INVALID;
+    }
+    return result;
 }
 
 static inline cy_rslt_t _cyhal_is_set(const uint8_t* used, cyhal_resource_t type, uint8_t block, uint8_t channel, bool* isSet)
@@ -174,11 +182,11 @@ cy_rslt_t cyhal_hwmgr_init(void)
     return CY_RSLT_SUCCESS;
 }
 
-cy_rslt_t cyhal_hwmgr_reserve(const cyhal_resource_inst_t* obj)
+cy_rslt_t cyhal_hwmgr_reserve(const cyhal_resource_inst_t* resource)
 {
     bool isSet;
     uint32_t state = cyhal_system_critical_section_enter();
-    cy_rslt_t rslt = _cyhal_is_set(cyhal_used, obj->type, obj->block_num, obj->channel_num, &isSet);
+    cy_rslt_t rslt = _cyhal_is_set(cyhal_used, resource->type, resource->block_num, resource->channel_num, &isSet);
     if (rslt == CY_RSLT_SUCCESS && isSet)
     {
         rslt = CYHAL_HWMGR_RSLT_ERR_INUSE;
@@ -186,32 +194,32 @@ cy_rslt_t cyhal_hwmgr_reserve(const cyhal_resource_inst_t* obj)
 
     if (rslt == CY_RSLT_SUCCESS)
     {
-        rslt = _cyhal_set_bit(cyhal_used, obj->type, obj->block_num, obj->channel_num);
+        rslt = _cyhal_set_bit(cyhal_used, resource->type, resource->block_num, resource->channel_num);
     }
     cyhal_system_critical_section_exit(state);
 
     return rslt;
 }
 
-void cyhal_hwmgr_free(const cyhal_resource_inst_t* obj)
+void cyhal_hwmgr_free(const cyhal_resource_inst_t* resource)
 {
     uint32_t state = cyhal_system_critical_section_enter();
-    cy_rslt_t rslt = _cyhal_clear_bit(cyhal_used, obj->type, obj->block_num, obj->channel_num);
+    cy_rslt_t rslt = _cyhal_clear_bit(cyhal_used, resource->type, resource->block_num, resource->channel_num);
     CY_UNUSED_PARAMETER(rslt); /* CY_ASSERT only processes in DEBUG, ignores for others */
     CY_ASSERT(CY_RSLT_SUCCESS == rslt);
     cyhal_system_critical_section_exit(state);
 }
 
 #if (CYHAL_DRIVER_AVAILABLE_INTERCONNECT)
-cy_rslt_t cyhal_hwmgr_allocate(cyhal_resource_t type, cyhal_resource_inst_t* obj)
+cy_rslt_t cyhal_hwmgr_allocate(cyhal_resource_t type, cyhal_resource_inst_t* resource)
 {
-    return _cyhal_hwmgr_allocate_with_connection(type, NULL, NULL, NULL, NULL, obj);
+    return _cyhal_hwmgr_allocate_with_connection(type, NULL, NULL, NULL, NULL, resource);
 }
 
 cy_rslt_t _cyhal_hwmgr_allocate_with_connection(cyhal_resource_t type, const cyhal_source_t *src, const cyhal_dest_t *dest,
-    _cyhal_hwmgr_get_output_source_t get_src, _cyhal_hwmgr_get_input_dest_t get_dest, cyhal_resource_inst_t *obj)
+    _cyhal_hwmgr_get_output_source_t get_src, _cyhal_hwmgr_get_input_dest_t get_dest, cyhal_resource_inst_t *resource)
 #else
-cy_rslt_t cyhal_hwmgr_allocate(cyhal_resource_t type, cyhal_resource_inst_t* obj)
+cy_rslt_t cyhal_hwmgr_allocate(cyhal_resource_t type, cyhal_resource_inst_t* resource)
 #endif
 {
     uint16_t offsetStartOfRsc = _cyhal_get_resource_offset(type);
@@ -219,10 +227,22 @@ cy_rslt_t cyhal_hwmgr_allocate(cyhal_resource_t type, cyhal_resource_inst_t* obj
         ? _cyhal_get_resource_offset((cyhal_resource_t)(type + 1))
         : CY_TOTAL_ALLOCATABLE_ITEMS;
     bool usesChannels = _cyhal_uses_channels(type);
+    const _cyhal_hwmgr_offset_t* blockOffsets = _cyhal_get_block_offsets(type);
+    uint16_t blocks = _cyhal_get_block_offset_length(type);
 
     uint16_t count = offsetEndOfRsc - offsetStartOfRsc;
     uint8_t block = 0;
     uint8_t channel = 0;
+
+    /* Get the first non-empty block number(Skip empty blocks) */
+    if (blockOffsets != NULL)
+    {
+        while (((block + 1) < blocks) && (blockOffsets[block] == blockOffsets[block + 1]))
+        {
+            block++;
+        }
+    }
+
     for (uint16_t i = 0; i < count; i++)
     {
 #if (CYHAL_DRIVER_AVAILABLE_INTERCONNECT)
@@ -243,29 +263,34 @@ cy_rslt_t cyhal_hwmgr_allocate(cyhal_resource_t type, cyhal_resource_inst_t* obj
             cyhal_resource_inst_t rsc = { type, block, channel };
             if (CY_RSLT_SUCCESS == cyhal_hwmgr_reserve(&rsc))
             {
-                obj->type = type;
-                obj->block_num = block;
-                obj->channel_num = channel;
+                resource->type = type;
+                resource->block_num = block;
+                resource->channel_num = channel;
                 return CY_RSLT_SUCCESS;
             }
         }
 
         if (usesChannels)
         {
-            const _cyhal_hwmgr_offset_t* blockOffsets = _cyhal_get_block_offsets(type);
-            uint16_t blocks = _cyhal_get_block_offset_length(type);
-            if ((block + 1) < blocks && blockOffsets[block + 1] <= (i + 1))
+            if (blockOffsets == NULL)
             {
-                channel = 0;
-                do
-                {
-                    block++;
-                }
-                while (((block + 1) < blocks) && (blockOffsets[block + 1] == blockOffsets[block])); /* Skip empty blocks */
+                return CYHAL_HWMGR_RSLT_ERR_INVALID;
             }
             else
             {
-                channel++;
+                if ((block + 1) < blocks && blockOffsets[block + 1] <= (i + 1))
+                {
+                    channel = 0;
+                    do
+                    {
+                        block++;
+                    }
+                    while (((block + 1) < blocks) && (blockOffsets[block + 1] == blockOffsets[block])); /* Skip empty blocks */
+                }
+                else
+                {
+                    channel++;
+                }
             }
         }
         else

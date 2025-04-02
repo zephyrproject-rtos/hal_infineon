@@ -31,7 +31,7 @@
 * \addtogroup group_hal_impl_lptimer LPTimer (Low-Power Timer)
 * \ingroup group_hal_impl
 * \{
-* The maximum number of ticks that can set to an LPTimer is 0xFFF0FFFF for non MCWDT-B devices.
+* The maximum number of ticks that can set to an LPTimer is 0xFFF0FFFF for non MCWDT-B devices  (e.g. XMC7/TVII B-E).
 * It is not recommended to use 0xFFFFFFFF. This is to avoid overflowing both C0 and C1.
 * For MCWDT-B devices, the maximum number of ticks that can be set to an LPTimer is 0xFFFFFFFF
 * since C0 and C1 do not cascade.

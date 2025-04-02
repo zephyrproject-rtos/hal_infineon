@@ -54,10 +54,9 @@ typedef double cy_float64_t; /**< Specific-length typedef for the basic numerica
 
 /** Halt the processor in the debug state
  */
-static inline void CY_HALT(void)
-{
-    __asm("    bkpt    1");
-}
+#define CY_HALT()   do {                        \
+                        __asm("    bkpt    1");  \
+                    } while(false)
 
 
 /** Default assert handler.
@@ -83,13 +82,10 @@ void CY_ASSERT_HANDLER(void);
 /** Assert an argument is true, else call assert handler and return a value */
     #define CY_ASSERT_AND_RETURN(condition, value)      \
                             do {                        \
-                                (void)(condition);      \
-                                (void)(value);          \
                             } while(false)
 /** Assert an argument is true, else call assert handler and return */
     #define CY_ASSERT_AND_RETURN_VOID(condition)        \
                             do {                        \
-                                (void)(condition);      \
                             } while(false)
 #else // if defined(NDEBUG) || defined(CY_NO_ASSERT)
 /** Assert an argument is true, else call assert handler */

@@ -41,4 +41,6 @@
 
 #define cyhal_system_clear_reset_reason()       Cy_SysLib_ClearResetReason()
 
+#define cyhal_system_reset_device()             __NVIC_SystemReset()
+
 #endif /* defined(CY_IP_MXS40SRSS) || defined(CY_IP_S8SRSSLT) || defined(CY_IP_MXS28SRSS) || defined(CY_IP_MXS40SSRSS) */

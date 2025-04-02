@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_hkdf_v2.h
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides constants and function prototypes
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -42,22 +42,22 @@ extern "C" {
 #include "cy_crypto_core_hmac_v2.h"
 
 
-cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Extract(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Extract(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t  const *salt,
                                           uint32_t saltLength,
                                           uint8_t  const *ikm,
                                           uint32_t ikmLength,
                                           uint8_t *prk);
 
-cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Expand(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Expand(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t  const *prk,
                                           uint32_t prkLength,
                                           uint8_t  const *info,
                                           uint32_t infoLength,
                                           uint8_t *okm,
                                           uint32_t okmLength);
-                                                                                   
-cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t  const *salt,
                                           uint32_t saltLength,
                                           uint8_t  const *ikm,

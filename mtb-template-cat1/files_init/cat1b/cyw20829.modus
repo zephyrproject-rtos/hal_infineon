@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration app="BACKEND" formatVersion="13" lastSavedWith="Configurator Backend" lastSavedWithVersion="3.0.0" toolsPackage="ModusToolbox 3.0.0" xmlns="http://cypress.com/xsd/cydesignfile_v4">
     <Devices>
-        <Device mpn="CYW20829A0KML">
+        <Device mpn="CYW20829B0LKML">
             <BlockConfig>
                 <Block location="cpuss[0].dap[0]">
                     <Personality template="dap" version="2.0">

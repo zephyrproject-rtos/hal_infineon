@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_lin.c
-* \version 1.1
+* \version 1.2
 *
 * \brief
 * Provides an API declaration of the LIN driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2020-2021, Cypress Semiconductor Corporation. All rights reserved.
+* Copyright 2020-2025, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -294,7 +294,7 @@ cy_en_lin_status_t Cy_LIN_SetBreakWakeupFieldLength(LIN_CH_Type* base, uint8_t l
     }
     else
     {
-        LIN_CH_CTL0(base) |= _VAL2FLD(LIN_CH_CTL0_BREAK_WAKEUP_LENGTH, (((uint32_t)length) - 1U));
+        CY_REG32_CLR_SET(LIN_CH_CTL0(base), LIN_CH_CTL0_BREAK_WAKEUP_LENGTH, (((uint32_t)length) - 1U));
     }
 
     return ret;
@@ -315,7 +315,7 @@ cy_en_lin_status_t Cy_LIN_SetChecksumType(LIN_CH_Type* base, cy_en_lin_checksum_
     }
     else
     {
-        LIN_CH_CTL1(base) |= _VAL2FLD(LIN_CH_CTL1_CHECKSUM_ENHANCED, type);
+        CY_REG32_CLR_SET(LIN_CH_CTL1(base), LIN_CH_CTL1_CHECKSUM_ENHANCED, type);
     }
     return ret;
 }
@@ -337,7 +337,7 @@ cy_en_lin_status_t Cy_LIN_SetDataLength(LIN_CH_Type* base, uint8_t length)
     }
     else
     {
-        LIN_CH_CTL1(base) |= _VAL2FLD(LIN_CH_CTL1_DATA_NR, (((uint32_t)length) - 1U));
+        CY_REG32_CLR_SET(LIN_CH_CTL1(base), LIN_CH_CTL1_DATA_NR, (((uint32_t)length) - 1U));
     }
     return ret;
 }

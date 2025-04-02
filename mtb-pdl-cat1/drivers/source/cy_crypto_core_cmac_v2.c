@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_cmac_v2.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the source code to the API for the CMAC method
@@ -11,7 +11,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -294,6 +294,8 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Update(CRYPTO_Type *base,
 }
 
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 9.3', 2, \
+    'Partial initialization is intentional')
 
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_V2_Cmac_Finish
@@ -319,7 +321,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Finish(CRYPTO_Type *base, cy_stc_cr
 {
 
 #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE) static const uint8_t p_padding[16] =
+    CRYPTO_MEM_ALIGN static const uint8_t p_padding[CY_CRYPTO_ALIGN_CACHE_LINE(16)] =
     {
         0x80u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u,
         0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u
@@ -364,6 +366,8 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Finish(CRYPTO_Type *base, cy_stc_cr
     Cy_Crypto_Core_V2_FFContinue(base, CY_CRYPTO_V2_RB_FF_LOAD0, kRemap, CY_CRYPTO_AES_BLOCK_SIZE);
     Cy_Crypto_Core_V2_BlockXor  (base, CY_CRYPTO_V2_RB_BLOCK0, CY_CRYPTO_V2_RB_FF_LOAD0,
                                        CY_CRYPTO_V2_RB_BLOCK0, CY_CRYPTO_AES_BLOCK_SIZE);
+
+    Cy_Crypto_Core_V2_Aes_LoadEncKey(base, &cmacState->aesState);
     Cy_Crypto_Core_V2_RunAes(base);
 
     Cy_Crypto_Core_V2_FFStart   (base, CY_CRYPTO_V2_RB_FF_STORE, cmacRemap, CY_CRYPTO_AES_BLOCK_SIZE);
@@ -376,7 +380,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Finish(CRYPTO_Type *base, cy_stc_cr
     return (CY_CRYPTO_SUCCESS);
 }
 
-
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 9.3')
 
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_V2_Cmac_Free
@@ -476,39 +480,33 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac(CRYPTO_Type *base,
                                           cy_stc_crypto_aes_state_t *aesState)
 {
     (void)aesState;
-#if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
     /* Allocate space for the structure which stores the CMAC context */
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE) static cy_stc_crypto_v2_cmac_buffers_t  cmacBuffersData;
-    CY_ALIGN(__SCB_DCACHE_LINE_SIZE) static cy_stc_crypto_v2_cmac_state_t  cmacStateLoc = {{CY_CRYPTO_KEY_AES_128, NULL,0u,0u,0u,CY_CRYPTO_ENCRYPT}, NULL, NULL};
+    uint8_t  cmacStateLoc_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_v2_cmac_state_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
+    uint8_t  cmacBuffersData_t[CY_CRYPTO_ALIGN_CACHE_LINE(sizeof(cy_stc_crypto_v2_cmac_buffers_t)) + CY_CRYPTO_DCAHCE_PADDING_SIZE];
 
-#else
-    /* Allocate space for the structure which stores the CMAC context */
-    cy_stc_crypto_v2_cmac_buffers_t  cmacBuffersData = {0u};
-    cy_stc_crypto_v2_cmac_state_t  cmacStateLoc = {{CY_CRYPTO_KEY_AES_128, NULL,0u,0u,0u,CY_CRYPTO_ENCRYPT}, NULL, NULL};
-
-#endif
-
+    cy_stc_crypto_v2_cmac_buffers_t *cmacBuffersData = (cy_stc_crypto_v2_cmac_buffers_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(cmacBuffersData_t);
+    cy_stc_crypto_v2_cmac_state_t *cmacStateLoc = (cy_stc_crypto_v2_cmac_state_t *)CY_CRYPTO_DCAHCE_ALIGN_ADDRESS(cmacStateLoc_t);
 
     cy_en_crypto_status_t status = CY_CRYPTO_BAD_PARAMS;
 
-    Cy_Crypto_Core_V2_MemSet(base, CY_REMAP_ADDRESS_FOR_CRYPTO(&cmacBuffersData), 0, (uint16_t)sizeof(cy_stc_crypto_v2_cmac_buffers_t));
-    Cy_Crypto_Core_V2_MemSet(base, CY_REMAP_ADDRESS_FOR_CRYPTO(&cmacStateLoc), 0, (uint16_t)sizeof(cy_stc_crypto_v2_cmac_state_t));
+    Cy_Crypto_Core_V2_MemSet(base, CY_REMAP_ADDRESS_FOR_CRYPTO(cmacBuffersData), 0, (uint16_t)sizeof(cy_stc_crypto_v2_cmac_buffers_t));
+    Cy_Crypto_Core_V2_MemSet(base, CY_REMAP_ADDRESS_FOR_CRYPTO(cmacStateLoc), 0, (uint16_t)sizeof(cy_stc_crypto_v2_cmac_state_t));
 
-    status = Cy_Crypto_Core_V2_Cmac_Init  (base, &cmacStateLoc, &cmacBuffersData);
+    status = Cy_Crypto_Core_V2_Cmac_Init  (base, cmacStateLoc, cmacBuffersData);
 
     if(CY_CRYPTO_SUCCESS == status)
     {
-        status = Cy_Crypto_Core_V2_Cmac_Start (base, &cmacStateLoc, key, keyLength);
+        status = Cy_Crypto_Core_V2_Cmac_Start (base, cmacStateLoc, key, keyLength);
     }
 
     if(CY_CRYPTO_SUCCESS == status)
     {
-        status = Cy_Crypto_Core_V2_Cmac_Update(base, &cmacStateLoc,  message, messageSize);
+        status = Cy_Crypto_Core_V2_Cmac_Update(base, cmacStateLoc,  message, messageSize);
     }
-    
+
     if(CY_CRYPTO_SUCCESS == status)
     {
-        status = Cy_Crypto_Core_V2_Cmac_Finish(base, &cmacStateLoc, cmac);
+        status = Cy_Crypto_Core_V2_Cmac_Finish(base, cmacStateLoc, cmac);
     }
 
     return (CY_CRYPTO_SUCCESS);

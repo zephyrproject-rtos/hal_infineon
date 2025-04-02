@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -234,72 +234,84 @@ typedef enum {
 #define CY_CAN0MRAM_BASE                0x40530000UL
 #define CY_CAN0MRAM_SIZE                0x00010000UL
 
-#include "system_psoc6.h"                       /*!< PSoC 6 System */
 
 /* IP List */
-#define CY_IP_MXTTCANFD                 1u
-#define CY_IP_MXTTCANFD_INSTANCES       1u
-#define CY_IP_MXTTCANFD_VERSION         1u
 #define CY_IP_M4CPUSS                   1u
 #define CY_IP_M4CPUSS_INSTANCES         1u
 #define CY_IP_M4CPUSS_VERSION           2u
+#define CY_IP_M4CPUSS_VERSION_MINOR     0u
 #define CY_IP_M4CPUSS_DMAC              1u
 #define CY_IP_M4CPUSS_DMAC_INSTANCES    1u
 #define CY_IP_M4CPUSS_DMAC_VERSION      2u
+#define CY_IP_M4CPUSS_DMAC_VERSION_MINOR 0u
 #define CY_IP_M4CPUSS_DMA               1u
 #define CY_IP_M4CPUSS_DMA_INSTANCES     2u
 #define CY_IP_M4CPUSS_DMA_VERSION       2u
+#define CY_IP_M4CPUSS_DMA_VERSION_MINOR 0u
 #define CY_IP_MXCSDV2                   1u
 #define CY_IP_MXCSDV2_INSTANCES         1u
 #define CY_IP_MXCSDV2_VERSION           1u
+#define CY_IP_MXCSDV2_VERSION_MINOR     0u
 #define CY_IP_MXEFUSE                   1u
 #define CY_IP_MXEFUSE_INSTANCES         1u
 #define CY_IP_MXEFUSE_VERSION           1u
+#define CY_IP_MXEFUSE_VERSION_MINOR     0u
 #define CY_IP_MXS40IOSS                 1u
 #define CY_IP_MXS40IOSS_INSTANCES       1u
 #define CY_IP_MXS40IOSS_VERSION         2u
+#define CY_IP_MXS40IOSS_VERSION_MINOR   0u
 #define CY_IP_MXLCD                     1u
 #define CY_IP_MXLCD_INSTANCES           1u
 #define CY_IP_MXLCD_VERSION             2u
+#define CY_IP_MXLCD_VERSION_MINOR       0u
 #define CY_IP_MXLPCOMP                  1u
 #define CY_IP_MXLPCOMP_INSTANCES        1u
 #define CY_IP_MXLPCOMP_VERSION          1u
+#define CY_IP_MXLPCOMP_VERSION_MINOR    0u
 #define CY_IP_MXS40PASS                 1u
 #define CY_IP_MXS40PASS_INSTANCES       1u
 #define CY_IP_MXS40PASS_VERSION         1u
+#define CY_IP_MXS40PASS_VERSION_MINOR   0u
 #define CY_IP_MXS40PASS_SAR             1u
 #define CY_IP_MXS40PASS_SAR_INSTANCES   1u
 #define CY_IP_MXS40PASS_SAR_VERSION     1u
+#define CY_IP_MXS40PASS_SAR_VERSION_MINOR 0u
 #define CY_IP_MXPERI                    1u
 #define CY_IP_MXPERI_INSTANCES          1u
 #define CY_IP_MXPERI_VERSION            2u
+#define CY_IP_MXPERI_VERSION_MINOR      0u
 #define CY_IP_MXPERI_TR                 1u
 #define CY_IP_MXPERI_TR_INSTANCES       1u
 #define CY_IP_MXPERI_TR_VERSION         2u
+#define CY_IP_MXPERI_TR_VERSION_MINOR   0u
 #define CY_IP_MXSCB                     1u
 #define CY_IP_MXSCB_INSTANCES           5u
 #define CY_IP_MXSCB_VERSION             1u
+#define CY_IP_MXSCB_VERSION_MINOR       0u
 #define CY_IP_MXSDHC                    1u
 #define CY_IP_MXSDHC_INSTANCES          1u
 #define CY_IP_MXSDHC_VERSION            1u
+#define CY_IP_MXSDHC_VERSION_MINOR      0u
 #define CY_IP_MXSMIF                    1u
 #define CY_IP_MXSMIF_INSTANCES          1u
 #define CY_IP_MXSMIF_VERSION            1u
+#define CY_IP_MXSMIF_VERSION_MINOR      0u
 #define CY_IP_MXS40SRSS                 1u
 #define CY_IP_MXS40SRSS_INSTANCES       1u
 #define CY_IP_MXS40SRSS_VERSION         1u
+#define CY_IP_MXS40SRSS_VERSION_MINOR   0u
 #define CY_IP_MXS40SRSS_RTC             1u
 #define CY_IP_MXS40SRSS_RTC_INSTANCES   1u
 #define CY_IP_MXS40SRSS_RTC_VERSION     1u
+#define CY_IP_MXS40SRSS_RTC_VERSION_MINOR 0u
 #define CY_IP_MXS40SRSS_MCWDT           1u
 #define CY_IP_MXS40SRSS_MCWDT_INSTANCES 2u
 #define CY_IP_MXS40SRSS_MCWDT_VERSION   1u
+#define CY_IP_MXS40SRSS_MCWDT_VERSION_MINOR 0u
 #define CY_IP_MXTCPWM                   1u
 #define CY_IP_MXTCPWM_INSTANCES         2u
 #define CY_IP_MXTCPWM_VERSION           1u
-
-#include "psoc6_03_config.h"
-#include "gpio_psoc6_03_49_wlcsp.h"
+#define CY_IP_MXTCPWM_VERSION_MINOR     0u
 
 #define CY_DEVICE_PSOC6A512K
 #define CY_DEVICE_SERIES_PSOC_61
@@ -307,6 +319,11 @@ typedef enum {
 #define CY_HF_CLK_MAX_FREQ              150000000UL
 
 #define CPUSS_FLASHC_PA_SIZE_LOG2       0x7UL
+
+#include "system_psoc6.h"                       /*!< PSoC 6 System */
+
+#include "psoc6_03_config.h"
+#include "gpio_psoc6_03_49_wlcsp.h"
 
 /*******************************************************************************
 *                                    SFLASH
@@ -919,15 +936,6 @@ typedef enum {
 #define SDHC0                                   ((SDHC_Type*) SDHC0_BASE)                                         /* 0x40460000 */
 #define SDHC0_WRAP                              ((SDHC_WRAP_Type*) &SDHC0->WRAP)                                  /* 0x40460000 */
 #define SDHC0_CORE                              ((SDHC_CORE_Type*) &SDHC0->CORE)                                  /* 0x40461000 */
-
-/*******************************************************************************
-*                                    CANFD
-*******************************************************************************/
-
-#define CANFD0_BASE                             0x40520000UL
-#define CANFD0                                  ((CANFD_Type*) CANFD0_BASE)                                       /* 0x40520000 */
-#define CANFD0_CH0                              ((CANFD_CH_Type*) &CANFD0->CH[0])                                 /* 0x40520000 */
-#define CANFD0_CH0_M_TTCAN                      ((CANFD_CH_M_TTCAN_Type*) &CANFD0->CH[0].M_TTCAN)                 /* 0x40520000 */
 
 /*******************************************************************************
 *                                     SCB

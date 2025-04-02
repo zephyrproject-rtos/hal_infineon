@@ -345,7 +345,7 @@ static cyhal_pdm_pcm_t* _cyhal_pdm_pcm_find_existing_obj(uint8_t block_num)
 {
     cyhal_pdm_pcm_t* existing_obj = NULL;
     /* Reserve this instance if there are no existing channels */
-    for(int i = 0; NULL == existing_obj && i < _cyhal_pdm_num_channels[block_num]; ++i)
+    for(uint32_t i = 0; NULL == existing_obj && i < _cyhal_pdm_num_channels[block_num]; ++i)
     {
         existing_obj = _cyhal_pdm_pcm_config_structs[block_num][i];
     }
@@ -619,7 +619,7 @@ static void _cyhal_pdm_pcm_hw_irq_handler(void)
                 event &= ~(CYHAL_PDM_PCM_RX_HALF_FULL | CYHAL_PDM_PCM_RX_OVERFLOW);
                 // The PDM/PCM block alternates between left and right in stereo.
                 // To preserve oddness and eveness of left and right, removes an even number of elements.
-                for (int i = 0; i < _CYHAL_PDM_PCM_STABILIZATION_FS; i++)
+                for (uint32_t i = 0; i < _CYHAL_PDM_PCM_STABILIZATION_FS; i++)
                 {
 #if defined(CY_IP_MXAUDIOSS)
                     (void)Cy_PDM_PCM_ReadFifo(obj->base);
@@ -778,7 +778,7 @@ static inline cy_rslt_t _cyhal_pdm_pcm_convert_decim_rate(uint8_t decim_rate, cy
     return CY_RSLT_SUCCESS;
 }
 
-static inline int _cyhal_pdm_pcm_gain_to_scale(int16_t gain_val)
+static inline int32_t _cyhal_pdm_pcm_gain_to_scale(int16_t gain_val)
 {
     /* This IP version doesn't support directly configuring the gain, but we can manipulate the FIR scale
      * The formula for gain in db is db = 20 * log_10(FIR1_GAIN / 2^scale), where FIR1_GAIN = 13921
@@ -786,12 +786,12 @@ static inline int _cyhal_pdm_pcm_gain_to_scale(int16_t gain_val)
      */
 
      /* Cmath only provides ln and log10, need to compute log_2 in terms of those */
-     const int FIR1_GAIN = 13921;
+     const int32_t FIR1_GAIN = 13921;
      /* Gain is specified in 0.5 db steps in the interface */
      float desired_gain = ((float)gain_val) * 0.5f;
      float inner_value = FIR1_GAIN / (powf(10, (desired_gain / 20)));
      float scale = logf(inner_value) / logf(2);
-     int scale_rounded = (uint8_t)(scale + 0.5f);
+     int32_t scale_rounded = (uint8_t)(scale + 0.5f);
      return scale_rounded;
 }
 
@@ -837,7 +837,7 @@ static inline cy_rslt_t _cyhal_pdm_pcm_set_pdl_config_struct(cyhal_pdm_pcm_t* ob
 
     // sinc_rate = decimation_rate / 2
     // decimation rate is always valid. The max value for sync rate is 0x7F
-    pdl_config->sincDecRate = (cfg->decimation_rate) / 2;
+    pdl_config->sincDecRate = (uint8_t)((cfg->decimation_rate) / 2);
 
     switch(cfg->mode)
     {
@@ -886,7 +886,7 @@ static inline cy_rslt_t _cyhal_pdm_pcm_set_pdl_config_struct(cyhal_pdm_pcm_t* ob
 
 static inline cy_rslt_t _cyhal_pdm_pcm_set_pdl_config_struct(cyhal_pdm_pcm_t* obj, const cyhal_pdm_pcm_cfg_t *cfg,
                                                              bool found_existing,
-                                                             cy_stc_pdm_pcm_config_v2_t  *pdl_config,
+                                                             cy_stc_pdm_pcm_config_v2_t *pdl_config,
                                                              cy_stc_pdm_pcm_channel_config_t* pdl_chan_config,
                                                              cy_stc_pdm_pcm_channel_config_t* pdl_chan_config_paired)
 {
@@ -900,7 +900,7 @@ static inline cy_rslt_t _cyhal_pdm_pcm_set_pdl_config_struct(cyhal_pdm_pcm_t* ob
     {
         result = CYHAL_PDM_PCM_RSLT_ERR_INVALID_CONFIG_PARAM;
     }
-    int fir1_scale = _cyhal_pdm_pcm_gain_to_scale(cfg->left_gain);
+    int32_t fir1_scale = _cyhal_pdm_pcm_gain_to_scale(cfg->left_gain);
     if(CY_RSLT_SUCCESS == result && (fir1_scale < 0 || fir1_scale > _CYHAL_PDM_PCM_MAX_FIR1_SCALE))
     {
         result = CYHAL_PDM_PCM_RSLT_ERR_INVALID_CONFIG_PARAM;
@@ -972,7 +972,7 @@ static inline cy_rslt_t _cyhal_pdm_pcm_set_pdl_config_struct(cyhal_pdm_pcm_t* ob
 
     if(CY_RSLT_SUCCESS == result && NULL != pdl_chan_config_paired)
     {
-        int fir1_scale_paired = _cyhal_pdm_pcm_gain_to_scale(cfg->right_gain);
+        int32_t fir1_scale_paired = _cyhal_pdm_pcm_gain_to_scale(cfg->right_gain);
         if(CY_RSLT_SUCCESS == result && (fir1_scale_paired < 0 || fir1_scale_paired > _CYHAL_PDM_PCM_MAX_FIR1_SCALE))
         {
             result = CYHAL_PDM_PCM_RSLT_ERR_INVALID_CONFIG_PARAM;
@@ -1093,7 +1093,7 @@ static void _cyhal_pdm_pcm_arrays_init( void )
 
 }
 
-static cy_rslt_t _cyhal_pdm_pcm_init_hw(cyhal_pdm_pcm_t *obj, int paired_channel, cyhal_pdm_pcm_t* existing_obj,
+static cy_rslt_t _cyhal_pdm_pcm_init_hw(cyhal_pdm_pcm_t *obj, int16_t paired_channel, cyhal_pdm_pcm_t* existing_obj,
 #if defined(CY_IP_MXAUDIOSS_INSTANCES)
                                         const cy_stc_pdm_pcm_config_t* pdl_struct)
 #elif defined(CY_IP_MXTDM_INSTANCES)
@@ -1224,7 +1224,7 @@ cy_rslt_t cyhal_pdm_pcm_init(cyhal_pdm_pcm_t *obj, cyhal_gpio_t pin_data, cyhal_
     }
 
     cyhal_pdm_pcm_t* existing_obj = NULL;
-    int paired_channel = _CYHAL_PDM_PCM_UNPAIRED;
+    int16_t paired_channel = _CYHAL_PDM_PCM_UNPAIRED;
     if(CY_RSLT_SUCCESS == result)
     {
         _CYHAL_UTILS_ASSIGN_RESOURCE(obj->resource, CYHAL_RSC_PDM, data_map);
@@ -1364,7 +1364,7 @@ void cyhal_pdm_pcm_free(cyhal_pdm_pcm_t *obj)
         int16_t paired_channel = _cyhal_pdm_pcm_get_paired_channel(obj, true);
 #endif
         bool last_remaining = true;
-        for(int i = 0; last_remaining && i < _cyhal_pdm_num_channels[obj->resource.block_num]; ++i)
+        for(uint16_t i = 0; last_remaining && i < _cyhal_pdm_num_channels[obj->resource.block_num]; ++i)
         {
             cyhal_pdm_pcm_t* existing = _cyhal_pdm_pcm_config_structs[obj->resource.block_num][i];
             last_remaining &= (NULL == existing || obj == existing);
@@ -1505,13 +1505,13 @@ cy_rslt_t cyhal_pdm_pcm_set_gain(cyhal_pdm_pcm_t *obj, int16_t gain_left, int16_
 #elif defined(CY_IP_MXPDM)
     int16_t paired_channel = _cyhal_pdm_pcm_get_paired_channel(obj, true);
 
-    int fir1_scale_left = _cyhal_pdm_pcm_gain_to_scale(gain_left);
+    int32_t fir1_scale_left = _cyhal_pdm_pcm_gain_to_scale(gain_left);
     if(CY_RSLT_SUCCESS == result && (fir1_scale_left < 0 || fir1_scale_left > _CYHAL_PDM_PCM_MAX_FIR1_SCALE))
     {
         result = CYHAL_PDM_PCM_RSLT_ERR_INVALID_CONFIG_PARAM;
     }
 
-    int fir1_scale_right = _cyhal_pdm_pcm_gain_to_scale(gain_right);
+    int32_t fir1_scale_right = _cyhal_pdm_pcm_gain_to_scale(gain_right);
     if(CY_RSLT_SUCCESS == result && (fir1_scale_right < 0 || fir1_scale_right > _CYHAL_PDM_PCM_MAX_FIR1_SCALE))
     {
         result = CYHAL_PDM_PCM_RSLT_ERR_INVALID_CONFIG_PARAM;

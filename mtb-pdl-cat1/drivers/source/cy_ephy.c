@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_ephy.c
-* \version 1.20
+* \version 1.30
 *
 * Provides an API implementation of the Ethernet PHY driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2020, Cypress Semiconductor Corporation
+* Copyright 2020-2024, Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -364,12 +364,12 @@ cy_en_ephy_status_t Cy_EPHY_getLinkPartnerCapabilities(cy_stc_ephy_t *phy, cy_st
     {
         /* 1. check gigabit is supported or not */
         phy->fnPhyRead( phyAddress, PHYREG_10_MSSR, &reg);
-        if (_FLD2VAL( MSSR_1000BASE_T_FULLDUPLEX, reg) == 1UL)
+        if ((_FLD2VAL( MSSR_1000BASE_T_FULLDUPLEX, reg) == 1UL) && (PHYREG_INVALID_VALUE != reg))
         {
             lpConfig->speed = (uint32_t)CY_EPHY_SPEED_1000;
             lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_FULL;
         }
-        else if (_FLD2VAL( MSSR_1000BASE_T_HALFDUPLEX, reg) == 1UL)
+        else if ((_FLD2VAL( MSSR_1000BASE_T_HALFDUPLEX, reg) == 1UL)  && (PHYREG_INVALID_VALUE != reg))
         {
             lpConfig->speed = (uint32_t)CY_EPHY_SPEED_1000;
             lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_HALF;
@@ -378,25 +378,32 @@ cy_en_ephy_status_t Cy_EPHY_getLinkPartnerCapabilities(cy_stc_ephy_t *phy, cy_st
         {
             /* 2. if not then check 10 and 100 Mbps */
             phy->fnPhyRead( phyAddress, PHYREG_05_ANLPAR, &reg);
-            if (_FLD2VAL( ANLPAR_TXFD, reg) == 1UL)
+            if (PHYREG_INVALID_VALUE != reg)
             {
-                lpConfig->speed = (uint32_t)CY_EPHY_SPEED_100;
-                lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_FULL;
-            }
-            else if ((_FLD2VAL( ANLPAR_T4, reg) == 1UL) || (_FLD2VAL( ANLPAR_TX, reg) == 1UL))
-            {
-                lpConfig->speed = (uint32_t)CY_EPHY_SPEED_100;
-                lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_HALF;
-            }
-            else if (_FLD2VAL( ANLPAR_10FD, reg) == 1UL)
-            {
-                lpConfig->speed = (uint32_t)CY_EPHY_SPEED_10;
-                lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_FULL;
-            }
-            else if (_FLD2VAL( ANLPAR_10, reg) == 1UL)
-            {
-                lpConfig->speed = (uint32_t)CY_EPHY_SPEED_10;
-                lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_HALF;
+                if (_FLD2VAL( ANLPAR_TXFD, reg) == 1UL)
+                {
+                    lpConfig->speed = (uint32_t)CY_EPHY_SPEED_100;
+                    lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_FULL;
+                }
+                else if ((_FLD2VAL( ANLPAR_T4, reg) == 1UL) || (_FLD2VAL( ANLPAR_TX, reg) == 1UL))
+                {
+                    lpConfig->speed = (uint32_t)CY_EPHY_SPEED_100;
+                    lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_HALF;
+                }
+                else if (_FLD2VAL( ANLPAR_10FD, reg) == 1UL)
+                {
+                    lpConfig->speed = (uint32_t)CY_EPHY_SPEED_10;
+                    lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_FULL;
+                }
+                else if (_FLD2VAL( ANLPAR_10, reg) == 1UL)
+                {
+                    lpConfig->speed = (uint32_t)CY_EPHY_SPEED_10;
+                    lpConfig->duplex = (uint32_t)CY_EPHY_DUPLEX_HALF;
+                }
+                else
+                {
+                    ret = CY_EPHY_ERROR;
+                }
             }
             else
             {

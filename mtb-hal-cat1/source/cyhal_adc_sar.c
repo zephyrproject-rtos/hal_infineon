@@ -490,7 +490,7 @@ static uint8_t _cyhal_adc_last_enabled(const cyhal_adc_t* obj) /* Or last channe
 {
     uint8_t last_enabled = CY_SAR_MAX_NUM_CHANNELS - 1u;
     /* NOT uint, or the loop will never terminate */
-    for(int i = CY_SAR_MAX_NUM_CHANNELS - 1; i >= 0; --i)
+    for(int16_t i = CY_SAR_MAX_NUM_CHANNELS - 1; i >= 0; --i)
     {
         if(NULL != obj->channel_config[i] && obj->base->CH[i].ENABLE)
         {
@@ -1255,7 +1255,7 @@ cy_rslt_t cyhal_adc_init_cfg(cyhal_adc_t *adc, cyhal_adc_channel_t** channels, u
     {
         /* config_hw will have initialized the channels in the ADC HW and the configurator will
          * have set up the routing, but we need to initialize the channel structs */
-        for(int i = 0; i < *num_channels; ++i)
+        for(uint16_t i = 0; i < *num_channels; ++i)
         {
             cyhal_adc_channel_t* channel = channels[i];
             memset(channel, 0, sizeof(cyhal_adc_channel_t));
@@ -1809,7 +1809,7 @@ cy_rslt_t cyhal_adc_set_power(cyhal_adc_t *obj, cyhal_power_level_t power)
     return CY_RSLT_SUCCESS;
 }
 
-static uint16_t _cyhal_adc_get_average_count(cyhal_adc_t* obj, int channel_idx)
+static uint16_t _cyhal_adc_get_average_count(cyhal_adc_t* obj, uint32_t channel_idx)
 {
 #if defined(CY_IP_MXS40EPASS_ESAR)
     return _FLD2VAL(PASS_SAR_CH_POST_CTL_AVG_CNT, obj->base->CH[channel_idx].POST_CTL);
@@ -2388,7 +2388,7 @@ int32_t cyhal_adc_read(const cyhal_adc_channel_t *obj)
 
 #if defined(CY_IP_MXS40EPASS_ESAR)
     /* Cy_SAR2_Channel_GetResult returns 12-bit unsigned value, which represent ADC count value in range from 0V to 3.3V/5V
-    *  (depends on VDDA). Casting it to signed 32 bit int as per cyhal_adc_read return value description.  */
+    *  (depends on VDDA). Casting it to signed 32 bit uint32_t as per cyhal_adc_read return value description.  */
     int32_t result = (int32_t)(Cy_SAR2_Channel_GetResult(obj->adc->base, obj->channel_idx, NULL /* We don't need the status bits */));
     obj->adc->vbg_last_value = Cy_SAR2_Channel_GetResult(obj->adc->base, _CYHAL_ADC_VBG_CHANNEL_IDX, NULL /* We don't need the status bits */);
 #else

@@ -143,7 +143,7 @@ static cy_rslt_t _cyhal_flash_run_operation(
         status = (_cyhal_flash_is_sram_address((uint32_t)data))
             ? (cy_rslt_t)_cyhal_flash_convert_status((cy_rslt_t)operation(address, data))
             : CYHAL_NVM_RSLT_ERR_ADDRESS;
-#if defined(CY_IP_M7CPUSS) /* PDL automatically clears cache when necessary in M7 devices */
+#if defined(CY_IP_M7CPUSS) || defined (CY_IP_MXS40FLASHC) /* PDL automatically clears cache when necessary */
         CY_UNUSED_PARAMETER(clearCache);
 #else
         if (clearCache)
@@ -577,7 +577,7 @@ cy_rslt_t cyhal_nvm_erase(cyhal_nvm_t *obj, uint32_t address)
                 status = (cy_rslt_t)_cyhal_flash_convert_status(Cy_Flash_EraseRow(address));
             #endif
 			
-			#if !defined(CY_IP_M7CPUSS)
+        #if !defined(CY_IP_M7CPUSS) && !defined (CY_IP_MXS40FLASHC)
 				Cy_SysLib_ClearFlashCacheAndBuffer();
 			#endif
 			/* PDL automatically clears cache when necessary in M7 devices */
@@ -904,7 +904,7 @@ bool cyhal_nvm_is_operation_complete(cyhal_nvm_t *obj)
 
 #if (defined(CY_IP_MXS40SRSS) || (_CYHAL_USES_ECT_FLASH) || CY_FLASH_NON_BLOCKING_SUPPORTED) && (_CYHAL_DRIVER_AVAILABLE_NVM_FLASH)
     complete = (CY_FLASH_DRV_SUCCESS == Cy_Flash_IsOperationComplete());
-    #if !defined(CY_IP_M7CPUSS) /* PDL automatically clears cache when necessary in M7 devices */
+    #if !defined(CY_IP_M7CPUSS) && !defined (CY_IP_MXS40FLASHC) /* PDL automatically clears cache when necessary */
         if (complete)
             Cy_SysLib_ClearFlashCacheAndBuffer();
     #endif

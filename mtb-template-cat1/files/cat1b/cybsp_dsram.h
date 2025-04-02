@@ -44,6 +44,7 @@ extern "C" {
  */
 void cybsp_syspm_do_warmboot(void);
 
+#if !defined(CYBSP_SKIP_PM_REGISTRATION)
 /**
  * \brief Initializes the deepsleep ram setup.
  * \returns CY_RSLT_SUCCESS if the board is successfully initialized, if there is
@@ -51,7 +52,7 @@ void cybsp_syspm_do_warmboot(void);
  *          to the hardware module that had a problem.
  */
 cy_rslt_t cybsp_syspm_dsram_init(void);
-
+#endif //#if !defined(CYBSP_SKIP_PM_REGISTRATION)
 
 extern cy_stc_syspm_warmboot_entrypoint_t syspmBspDeepSleepEntryPoint; ///< DS entry point
 

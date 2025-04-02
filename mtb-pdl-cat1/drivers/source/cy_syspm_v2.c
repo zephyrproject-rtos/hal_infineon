@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syspm_v2.c
-* \version 5.150
+* \version 5.180
 *
 * This driver provides the source code for API power management.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2023), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -238,6 +238,7 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterSleep(cy_en_syspm_waitfor_t waitFor)
 
         /* The CPU enters the Sleep power mode upon execution of WFI/WFE */
         SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
+        __DSB();                   /* Ensure completion of memory access */
 
         if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
         {
@@ -247,6 +248,10 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterSleep(cy_en_syspm_waitfor_t waitFor)
         {
             __WFE();
         }
+
+        /* Clear SCB_SCR_SLEEPDEEP flag */
+        SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
+
         Cy_SysLib_ExitCriticalSection(interruptState);
 
         /* Call the registered callback functions with the
@@ -596,25 +601,63 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
             {
                 (void) Cy_SysPm_ExecuteCallback((cy_en_syspm_callback_type_t)cbDeepSleepRootIdx, CY_SYSPM_BEFORE_TRANSITION);
             }
-                /* The CPU enters Deep Sleep mode upon execution of WFI/WFE
-                 * use Cy_SysPm_SetDeepSleepMode to set various deepsleep modes TBD*/
-                SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
-                if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
+            /* Clear Reset reason before entering DS */
+            Cy_SysLib_ClearResetReason();
+
+            /* The CPU enters Deep Sleep mode upon execution of WFI/WFE
+                * use Cy_SysPm_SetDeepSleepMode to set various deepsleep modes TBD*/
+            SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
+            __DSB();                   /* Ensure completion of memory access */
+
+        #if defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)
+            /* Disable FPU for CM33 for DS-RAM/DS-OFF Entry to work.
+             * FPU power domain is enabled by HW and SW should always disable it to
+             * enter into DS_RAM/OFF modes.
+             */
+            if(((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM == cbDeepSleepRootIdx) || ((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF == cbDeepSleepRootIdx))
+            {
+                SCS_CPPWR |= (SCS_ENABLE_CPPWR_SU10_SU11);
+                SCB_CPACR &= ~(SCB_ENABLE_CPACR_CP10_CP11);
+                __DSB();                   /* Ensure completion of memory access */
+            }
+        #endif /* defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U) */
+
+            if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
+            {
+                if (cbDeepSleepRootIdx == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM)
                 {
-                    if (cbDeepSleepRootIdx == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM)
-                    {
-                        Cy_SysPm_StoreDSContext_Wfi();
-                    }
-                    else
-                    {
-                        __WFI();
-                    }
+                    Cy_SysPm_StoreDSContext_Wfi();
                 }
                 else
                 {
-                    __WFE();
+                    __WFI();
                 }
+            }
+            else
+            {
+                __WFE();
+            }
+
+        #if defined (__FPU_USED) && (__FPU_USED == 1U)
+
+            /* Enable back FPU if it was used for CM33 in case of DS-RAM/DS-OFF.
+             *
+             * This is not required for DS-RAM/DS-OFF  because device should goes to reset after __WFI.
+             * If requirements for entering into DS-RAM/DS-OFF were not met (for example, active debug session),
+             * the device will operate as in normal deep sleep mode.
+             * Because of that FPU is re-enabling.
+             */
+            if(((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM == cbDeepSleepRootIdx) || ((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF == cbDeepSleepRootIdx))
+            {
+                SCS_CPPWR &= ~(SCS_ENABLE_CPPWR_SU10_SU11);
+                SCB->CPACR |= SCB_ENABLE_CPACR_CP10_CP11;
+                __DSB();                   /* Ensure completion of memory access */
+            }
+        #endif /* defined (__FPU_USED) && (__FPU_USED == 1U) */
+
+            /* Clear SCB_SCR_SLEEPDEEP flag */
+            SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
 
             /* Call the registered callback functions with the CY_SYSPM_AFTER_DS_WFI_TRANSITION
             *  parameter
@@ -697,6 +740,7 @@ cy_en_syspm_status_t Cy_SysPm_SetupDeepSleepRAM(cy_en_syspm_dsram_checks_t dsram
                     /* The CPU enters Deep Sleep mode upon execution of WFI/WFE
                      * use Cy_SysPm_SetDeepSleepMode to set various deepsleep modes TBD*/
                     SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
+                    __DSB();                   /* Ensure completion of memory access */
 
             }
             else
@@ -713,6 +757,9 @@ cy_en_syspm_status_t Cy_SysPm_SetupDeepSleepRAM(cy_en_syspm_dsram_checks_t dsram
         }
         else
         {
+            /* Clear SCB_SCR_SLEEPDEEP flag */
+            SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
+
             /* Call the registered callback functions with the CY_SYSPM_AFTER_DS_WFI_TRANSITION
             *  parameter
             */
@@ -973,7 +1020,7 @@ cy_en_syspm_status_t Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
 
         if (CY_SYSPM_LDO_VOLTAGE_0_9V == voltage)
         {
-            SRSS_PWR_TRIM_WAKE_CTL = 0UL;
+            SRSS_PWR_TRIM_WAKE_CTL = _FLD2VAL(SFLASH_PWR_TRIM_WAKE_CTL_WAKE_DELAY_0P9V, SFLASH_PWR_TRIM_WAKE_CTL);
 
             trimVoltage =  SFLASH_LDO_0P9V_TRIM;
 
@@ -988,7 +1035,7 @@ cy_en_syspm_status_t Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
             }
             else
             {
-                SRSS_PWR_TRIM_WAKE_CTL = SFLASH_PWR_TRIM_WAKE_CTL;
+                SRSS_PWR_TRIM_WAKE_CTL = _FLD2VAL(SFLASH_PWR_TRIM_WAKE_CTL_WAKE_DELAY_1P0V, SFLASH_PWR_TRIM_WAKE_CTL);
             }
 
             trimVoltage = SFLASH_LDO_1P0V_TRIM;
@@ -1015,7 +1062,7 @@ cy_en_syspm_status_t Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
             }
             else
             {
-                SRSS_PWR_TRIM_WAKE_CTL = SFLASH_PWR_TRIM_WAKE_CTL;
+                SRSS_PWR_TRIM_WAKE_CTL = _FLD2VAL(SFLASH_PWR_TRIM_WAKE_CTL_WAKE_DELAY_1P1V, SFLASH_PWR_TRIM_WAKE_CTL);
             }
 
             trimVoltage = SFLASH_LDO_1P1V_TRIM;
@@ -1041,7 +1088,7 @@ cy_en_syspm_status_t Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
             }
             else
             {
-                SRSS_PWR_TRIM_WAKE_CTL = SFLASH_PWR_TRIM_WAKE_CTL;
+                SRSS_PWR_TRIM_WAKE_CTL = _FLD2VAL(SFLASH_PWR_TRIM_WAKE_CTL_WAKE_DELAY_1P2V, SFLASH_PWR_TRIM_WAKE_CTL);
             }
 
             trimVoltage = SFLASH_LDO_1P2V_TRIM;
@@ -1119,7 +1166,7 @@ cy_en_syspm_ldo_voltage_t Cy_SysPm_LdoGetVoltage(void)
     curVoltage = _FLD2VAL(SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM, SRSS_PWR_TRIM_PWRSYS_CTL);
 
     return ((curVoltage == (SFLASH_LDO_0P9V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_ULP :
-            (curVoltage == (SFLASH_LDO_1P1V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_MF :
+            (curVoltage == (SFLASH_LDO_1P0V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_MF :
             (curVoltage == (SFLASH_LDO_1P2V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_OD :
                                                                                  CY_SYSPM_LDO_VOLTAGE_LP);
 
@@ -2232,6 +2279,7 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterRAMOffDeepSleep(void)
             /* The CPU enters Deep Sleep mode upon execution of WFI/WFE
              * use Cy_SysPm_SetDeepSleepMode to set various deepsleep modes TBD*/
             SCB_SCR |= SCB_SCR_SLEEPDEEP_Msk;
+            __DSB();                   /* Ensure completion of memory access */
 
             /* Disable SRAM Macros to save power */
             (void)Cy_SysPm_SetSRAMMacroPwrModeInline(CY_SYSPM_SRAM0_MEMORY, (uint32_t)CY_SYSPM_SRAM0_MACRO_0, CY_SYSPM_SRAM_PWR_MODE_OFF);
@@ -2240,6 +2288,9 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterRAMOffDeepSleep(void)
 
             /* Enable SRAM Macros as DEEPSLEEP_RAM might have failed if we reach this point */
             (void)Cy_SysPm_SetSRAMMacroPwrModeInline(CY_SYSPM_SRAM0_MEMORY, (uint32_t)CY_SYSPM_SRAM0_MACRO_0, CY_SYSPM_SRAM_PWR_MODE_ON);
+
+            /* Clear SCB_SCR_SLEEPDEEP flag */
+            SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
 
             /* Jump to HCI ROM app Reset handler */
             Cy_SysPm_Dsramoff_Entry();
@@ -2339,7 +2390,7 @@ static void SetMemoryVoltageTrims(cy_en_syspm_sdr_voltage_t voltage)
 static void SetReadMarginTrimUlp(void)
 {
     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
     SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_ULP;
 }
@@ -2356,10 +2407,10 @@ static void SetReadMarginTrimUlp(void)
 *******************************************************************************/
 static void SetReadMarginTrimLp(void)
 {
-        SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                             (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-        SRSS_TRIM_ROM_CTL =  SFLASH_CPUSS_TRIM_ROM_CTL_LP;
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_LP;
 
 }
 
@@ -2375,10 +2426,10 @@ static void SetReadMarginTrimLp(void)
 *******************************************************************************/
 static void SetReadMarginTrimMf(void)
 {
-        SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                             (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_MF & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-        SRSS_TRIM_ROM_CTL =  SFLASH_CPUSS_TRIM_ROM_CTL_LP;
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_MF;
 }
 
 
@@ -2393,10 +2444,10 @@ static void SetReadMarginTrimMf(void)
 *******************************************************************************/
 static void SetReadMarginTrimOd(void)
 {
-        SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                             (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_OD & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-        SRSS_TRIM_ROM_CTL =  SFLASH_CPUSS_TRIM_ROM_CTL_LP;
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_OD;
 }
 
 
@@ -2412,7 +2463,7 @@ static void SetReadMarginTrimOd(void)
 static void SetWriteAssistTrimUlp(void)
 {
     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 }
 
 
@@ -2427,8 +2478,8 @@ static void SetWriteAssistTrimUlp(void)
 *******************************************************************************/
 static void SetWriteAssistTrimLp(void)
 {
-     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
     SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP;
 }
@@ -2445,10 +2496,10 @@ static void SetWriteAssistTrimLp(void)
 *******************************************************************************/
 static void SetWriteAssistTrimMf(void)
 {
-     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_MF & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP;
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_MF;
 }
 
 
@@ -2463,10 +2514,10 @@ static void SetWriteAssistTrimMf(void)
 *******************************************************************************/
 static void SetWriteAssistTrimOd(void)
 {
-     SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
-                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
+    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_OD & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+                        (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP;
+    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_OD;
 }
 #endif
 
@@ -2507,7 +2558,7 @@ static bool IsVoltageChangePossible(void)
 }
 
 
-#if (defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)) 
+#if (defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL))
 
 uint32_t Cy_SysPm_ReadStatus(void)
 {
@@ -2601,7 +2652,7 @@ cy_en_syspm_status_t Cy_SysPm_SystemEnterLp(void)
         }
 
         /* Read current active regulator and set LP voltage*/
-        if (Cy_SysPm_LdoIsEnabled()) // Comment : Is this check req for PSoC C3 (CAT1B)
+        if (Cy_SysPm_LdoIsEnabled()) // Comment : Is this check req for PSOC C3
         {
             /* Current active regulator is LDO */
             if (Cy_SysPm_LdoGetVoltage() != CY_SYSPM_LDO_VOLTAGE_LP)

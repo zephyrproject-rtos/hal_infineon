@@ -784,10 +784,10 @@ static cy_rslt_t _cyhal_uart_init_hw(cyhal_uart_t *obj)
         obj->callback_data.callback_arg = NULL;
         obj->irq_cause = CYHAL_UART_IRQ_NONE;
 
-        #if defined (COMPONENT_CAT5)
-            Cy_SCB_RegisterInterruptCallback(obj->base, _cyhal_irq_cb[_CYHAL_SCB_IRQ_N[scb_arr_index]]);
-            Cy_SCB_EnableInterrupt(obj->base);
-        #endif
+    #if defined (COMPONENT_CAT5)
+        Cy_SCB_RegisterInterruptCallback(obj->base, _cyhal_irq_cb[_CYHAL_SCB_IRQ_N[scb_arr_index]]);
+        Cy_SCB_EnableInterrupt(obj->base);
+    #endif
 
         _cyhal_irq_register(_CYHAL_SCB_IRQ_N[scb_arr_index], CYHAL_ISR_PRIORITY_DEFAULT, (cy_israddress)_cyhal_uart_irq_handler);
         _cyhal_irq_enable(_CYHAL_SCB_IRQ_N[scb_arr_index]);

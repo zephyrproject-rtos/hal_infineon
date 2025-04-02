@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_crypto_core_des_v2.c
-* \version 2.120
+* \version 2.150
 *
 * \brief
 *  This file provides the source code fro the API for the DES method
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2024), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -53,9 +53,11 @@ typedef enum
     CY_CRYPTO_DES_MODE_TRIPLE = 1
 } cy_en_crypto_des_mode_t;
 
+CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 9.3', 2, \
+    'Partial initialization is intentional')
 /* Table with DES weak keys */
 CY_ALIGN(4)
-static uint8_t const cy_desWeakKeys[CY_CRYPTO_DES_WEAK_KEY_COUNT][CY_CRYPTO_DES_KEY_BYTE_LENGTH] =
+static uint8_t const cy_desWeakKeys[CY_CRYPTO_DES_WEAK_KEY_COUNT][CY_CRYPTO_ALIGN_CACHE_LINE(CY_CRYPTO_DES_KEY_BYTE_LENGTH)] =
 {
     { 0x01u, 0x01u, 0x01u, 0x01u, 0x01u, 0x01u, 0x01u, 0x01u },
     { 0xFEu, 0xFEu, 0xFEu, 0xFEu, 0xFEu, 0xFEu, 0xFEu, 0xFEu },
@@ -76,7 +78,7 @@ static uint8_t const cy_desWeakKeys[CY_CRYPTO_DES_WEAK_KEY_COUNT][CY_CRYPTO_DES_
     { 0xFEu, 0xE0u, 0xFEu, 0xE0u, 0xFEu, 0xF1u, 0xFEu, 0xF1u }
 };
 
-
+CY_MISRA_BLOCK_END('MISRA C-2012 Rule 9.3')
 /*******************************************************************************
 * Function Name: Cy_Crypto_Core_V2_Des
 ****************************************************************************//**

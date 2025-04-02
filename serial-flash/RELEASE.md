@@ -8,6 +8,8 @@ Provides functions for interacting with an external flash connected through its 
 * Allows for providing information to the programming tool to program the external memory.
 
 ### What Changed?
+#### v1.4.3
+* Added support d-cache.
 #### v1.4.2
 * Added support for CAT1C devices.
 #### v1.3.0
@@ -37,7 +39,7 @@ This version of the Serial Flash library was validated for compatibility with th
 | :---                                      | :----:  |
 | ModusToolbox™ Software Environment        | 3.0.0   |
 | GCC Compiler                              | 11.3.1  |
-| IAR Compiler                              | 9.30.1  |
+| IAR Compiler                              | 9.40.2  |
 | ARM Compiler 6                            | 6.11    |
 
 Minimum required ModusToolbox™ Software Environment: v2.0

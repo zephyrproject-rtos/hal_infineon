@@ -247,8 +247,6 @@ typedef struct {
 #define SCB_UART_RX_CTRL_LIN_MODE_Msk           0x1000UL
 #define SCB_UART_RX_CTRL_SKIP_START_Pos         13UL
 #define SCB_UART_RX_CTRL_SKIP_START_Msk         0x2000UL
-#define SCB_UART_RX_CTRL_HDRXEN_Pos             14UL
-#define SCB_UART_RX_CTRL_HDRXEN_Msk             0x4000UL
 #define SCB_UART_RX_CTRL_BREAK_WIDTH_Pos        16UL
 #define SCB_UART_RX_CTRL_BREAK_WIDTH_Msk        0xF0000UL
 #define SCB_UART_RX_CTRL_BREAK_LEVEL_Pos        24UL

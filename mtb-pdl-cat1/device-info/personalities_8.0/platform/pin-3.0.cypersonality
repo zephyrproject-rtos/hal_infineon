@@ -35,6 +35,7 @@
   </Dependencies>
   <ExposedMembers>
     <ExposedMember key="halPortPin" paramId="pinPort" />
+    <ExposedMember key="driveMode" paramId="DriveModes" />
   </ExposedMembers>
   <Parameters>
     <!-- PDL documentation -->
@@ -202,12 +203,12 @@
     <ConfigDefine name="`${blockName . &quot;_HSIOM&quot;}`" value="`${hasSmifConn ? &quot;HSIOM_SEL_ACT_15&quot; : &quot;HSIOM_SEL_GPIO&quot;}`" public="true" include="true" preventOverride="true" />
     <ConfigDefine name="`${INST_NAME}`_HSIOM" value="`${blockName . &quot;_HSIOM&quot;}`" public="true" include="`${!(INST_NAME eq blockName)}`" />
     <ConfigDefine name="`${INST_NAME}`_IRQ" value="`${(nonSec eq 1) ? &quot;ioss_interrupts_&quot; : &quot;ioss_interrupts_sec_&quot;}`gpio_`${port}`_IRQn" public="true" include="`${hasIRQ}`" />
-    <ConfigDefine name="`${INST_NAME}`_HAL_PORT_PIN" value="P`${port}`_`${pin}`" public="true" include="true" guard="defined (CY_USING_HAL)"/>
-    <ConfigDefine name="`${INST_NAME}`" value="P`${port}`_`${pin}`" public="true" include="true" guard="defined (CY_USING_HAL)" />
+    <ConfigDefine name="`${INST_NAME}`_HAL_PORT_PIN" value="P`${port}`_`${pin}`" public="true" include="true" guard="defined (CY_USING_HAL) || (CY_USING_HAL_LITE)"/>
+    <ConfigDefine name="`${INST_NAME}`" value="P`${port}`_`${pin}`" public="true" include="true" guard="defined (CY_USING_HAL) || (CY_USING_HAL_LITE)" />
     <ConfigDefine name="`${INST_NAME}`_HAL_IRQ" value="`${(isrTrigger eq CY_GPIO_INTR_DISABLE) ? &quot;CYHAL_GPIO_IRQ_NONE&quot; :
                                                           (isrTrigger eq CY_GPIO_INTR_RISING) ? &quot;CYHAL_GPIO_IRQ_RISE&quot; : 
                                                           (isrTrigger eq CY_GPIO_INTR_FALLING) ? &quot;CYHAL_GPIO_IRQ_FALL&quot; : &quot;CYHAL_GPIO_IRQ_BOTH&quot;}`" 
-                                                public="true" include="true" guard="defined (CY_USING_HAL)" />
+                                                public="true" include="true" guard="defined (CY_USING_HAL) || (CY_USING_HAL_LITE)" />
     <ConfigDefine name="`${INST_NAME}`_HAL_DIR" value="`${((DriveModes eq CY_GPIO_DM_HIGHZ) || (DriveModes eq CY_GPIO_DM_ANALOG)) ? &quot;CYHAL_GPIO_DIR_INPUT &quot; :
                                                           ((DriveModes eq CY_GPIO_DM_STRONG_IN_OFF) ||
                                                            (DriveModes eq CY_GPIO_DM_OD_DRIVESLOW_IN_OFF) ||
@@ -215,7 +216,7 @@
                                                            (DriveModes eq CY_GPIO_DM_PULLUP_IN_OFF) ||
                                                            (DriveModes eq CY_GPIO_DM_PULLDOWN_IN_OFF) ||
                                                            (DriveModes eq CY_GPIO_DM_PULLUP_DOWN_IN_OFF)) ? &quot;CYHAL_GPIO_DIR_OUTPUT &quot; : &quot;CYHAL_GPIO_DIR_BIDIRECTIONAL &quot;}`" 
-                                                public="true" include="true" guard="defined (CY_USING_HAL)" />
+                                                public="true" include="true" guard="defined (CY_USING_HAL) || (CY_USING_HAL_LITE)" />
     <ConfigDefine name="`${INST_NAME}`_HAL_DRIVEMODE" value="`${(DriveModes eq CY_GPIO_DM_HIGHZ) ? &quot;CYHAL_GPIO_DRIVE_NONE&quot; :
                                                                 (DriveModes eq CY_GPIO_DM_ANALOG) ? &quot;CYHAL_GPIO_DRIVE_ANALOG&quot; :
                                                                ((DriveModes eq CY_GPIO_DM_PULLUP_IN_OFF) ||
@@ -228,7 +229,7 @@
                                                                 (DriveModes eq CY_GPIO_DM_OD_DRIVESHIGH)) ? &quot;CYHAL_GPIO_DRIVE_OPENDRAINDRIVESHIGH&quot; :
                                                                ((DriveModes eq CY_GPIO_DM_STRONG_IN_OFF) ||
                                                                 (DriveModes eq CY_GPIO_DM_STRONG)) ? &quot;CYHAL_GPIO_DRIVE_STRONG&quot; : &quot;CYHAL_GPIO_DRIVE_PULLUPDOWN&quot;}`"
-                                                      public="true" include="true" guard="defined (CY_USING_HAL)" />
+                                                      public="true" include="true" guard="defined (CY_USING_HAL) || (CY_USING_HAL_LITE)" />
     
     <ConfigStruct name="`${INST_NAME}`_config" type="cy_stc_gpio_pin_config_t" const="`${inFlash}`" public="true" include="true" >
       <Member name="outVal" value="`${initialState}`" />
@@ -250,7 +251,7 @@
       <Member name="nonSec" value="`${(secExtAvailable eq 1) ? nonSec : &quot;1UL&quot;}`" include="`${secExtAvailable ne -1}`"/>
     </ConfigStruct>
 
-    <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL)">
+    <ConfigStruct name="`${INST_NAME}`_obj" type="cyhal_resource_inst_t" const="true" public="true" include="true" guard="defined (CY_USING_HAL) || (CY_USING_HAL_LITE)">
       <Member name="type" value="CYHAL_RSC_GPIO" />
       <Member name="block_num" value="`${INST_NAME}`_PORT_NUM" />
       <Member name="channel_num" value="`${INST_NAME}`_PIN" />

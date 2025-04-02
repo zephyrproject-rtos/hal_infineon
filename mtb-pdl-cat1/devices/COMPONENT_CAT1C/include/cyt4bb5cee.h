@@ -635,7 +635,7 @@ typedef enum {
 
 /* IP List */
 #define CY_IP_MXAUDIOSS                 1u
-#define CY_IP_MXAUDIOSS_INSTANCES       3u
+#define CY_IP_MXAUDIOSS_INSTANCES       2u
 #define CY_IP_MXAUDIOSS_VERSION         2u
 #define CY_IP_MXAUDIOSS_VERSION_MINOR   0u
 #define CY_IP_MXTTCANFD                 1u
@@ -738,7 +738,7 @@ typedef enum {
 
 #define CPUSS_FLASHC_PA_SIZE_LOG2       0x7UL
 
-#include "system_cat1c.h"                       /*!< Category 1C System */
+#include "system_cat1c.h"
 
 #include "xmc7100_config.h"
 #include "gpio_xmc7100_100_teqfp.h"
@@ -1527,21 +1527,21 @@ typedef enum {
 
 #define SRSS_BASE                               0x40260000UL
 #define SRSS                                    ((SRSS_Type*) SRSS_BASE)                                          /* 0x40260000 */
-#define CSV_HF                                  ((CSV_HF_Type*) &SRSS->CSV_HF)                                    /* 0x40261400 */
-#define CSV_HF_CSV0                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[0])                         /* 0x40261400 */
-#define CSV_HF_CSV1                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[1])                         /* 0x40261410 */
-#define CSV_HF_CSV2                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[2])                         /* 0x40261420 */
-#define CSV_HF_CSV3                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[3])                         /* 0x40261430 */
-#define CSV_HF_CSV4                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[4])                         /* 0x40261440 */
-#define CSV_HF_CSV5                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[5])                         /* 0x40261450 */
-#define CSV_HF_CSV6                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[6])                         /* 0x40261460 */
-#define CSV_HF_CSV7                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF.CSV[7])                         /* 0x40261470 */
-#define CSV_REF                                 ((CSV_REF_Type*) &SRSS->CSV_REF)                                  /* 0x40261710 */
-#define CSV_REF_CSV                             ((CSV_REF_CSV_Type*) &SRSS->CSV_REF.CSV)                          /* 0x40261710 */
-#define CSV_LF                                  ((CSV_LF_Type*) &SRSS->CSV_LF)                                    /* 0x40261720 */
-#define CSV_LF_CSV                              ((CSV_LF_CSV_Type*) &SRSS->CSV_LF.CSV)                            /* 0x40261720 */
-#define CSV_ILO                                 ((CSV_ILO_Type*) &SRSS->CSV_ILO)                                  /* 0x40261730 */
-#define CSV_ILO_CSV                             ((CSV_ILO_CSV_Type*) &SRSS->CSV_ILO.CSV)                          /* 0x40261730 */
+#define CSV_HF                                  ((CSV_HF_Type*) &SRSS->CSV_HF_STRUCT)                             /* 0x40261400 */
+#define CSV_HF_CSV0                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[0])                  /* 0x40261400 */
+#define CSV_HF_CSV1                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[1])                  /* 0x40261410 */
+#define CSV_HF_CSV2                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[2])                  /* 0x40261420 */
+#define CSV_HF_CSV3                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[3])                  /* 0x40261430 */
+#define CSV_HF_CSV4                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[4])                  /* 0x40261440 */
+#define CSV_HF_CSV5                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[5])                  /* 0x40261450 */
+#define CSV_HF_CSV6                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[6])                  /* 0x40261460 */
+#define CSV_HF_CSV7                             ((CSV_HF_CSV_Type*) &SRSS->CSV_HF_STRUCT.CSV[7])                  /* 0x40261470 */
+#define CSV_REF                                 ((CSV_REF_Type*) &SRSS->CSV_REF_STRUCT)                           /* 0x40261710 */
+#define CSV_REF_CSV                             ((CSV_REF_CSV_Type*) &SRSS->CSV_REF_STRUCT.CSV)                   /* 0x40261710 */
+#define CSV_LF                                  ((CSV_LF_Type*) &SRSS->CSV_LF_STRUCT)                             /* 0x40261720 */
+#define CSV_LF_CSV                              ((CSV_LF_CSV_Type*) &SRSS->CSV_LF_STRUCT.CSV)                     /* 0x40261720 */
+#define CSV_ILO                                 ((CSV_ILO_Type*) &SRSS->CSV_ILO_STRUCT)                           /* 0x40261730 */
+#define CSV_ILO_CSV                             ((CSV_ILO_CSV_Type*) &SRSS->CSV_ILO_STRUCT.CSV)                   /* 0x40261730 */
 #define CLK_PLL400M0                            ((CLK_PLL400M_Type*) &SRSS->CLK_PLL400M[0])                       /* 0x40261900 */
 #define CLK_PLL400M1                            ((CLK_PLL400M_Type*) &SRSS->CLK_PLL400M[1])                       /* 0x40261910 */
 #define MCWDT0                                  ((MCWDT_Type*) &SRSS->MCWDT[0])                                   /* 0x40268000 */

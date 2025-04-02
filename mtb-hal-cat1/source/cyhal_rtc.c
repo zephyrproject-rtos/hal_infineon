@@ -113,22 +113,22 @@ static const uint32_t _CYHAL_RTC_RETRY_DELAY_MS = 1;
 // Note: Use PDL directly rather than HAL. RTOS-aware delay is not needed and actually breaks functionality.
 #define _CYHAL_RTC_WAIT_ONE_MS()   Cy_SysLib_Delay(_CYHAL_RTC_RETRY_DELAY_MS);
 
-static void _cyhal_rtc_from_pdl_time(cy_stc_rtc_config_t *pdlTime, const int year, struct tm *time) {
+static void _cyhal_rtc_from_pdl_time(cy_stc_rtc_config_t *pdlTime, const uint16_t year, struct tm *time) {
     CY_ASSERT(NULL != pdlTime);
     CY_ASSERT(NULL != time);
 
     // The number of days that precede each month of the year, not including Feb 29
     static const uint16_t CUMULATIVE_DAYS[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 
-    time->tm_sec = (int)pdlTime->sec;
-    time->tm_min = (int)pdlTime->min;
-    time->tm_hour = (int)pdlTime->hour;
-    time->tm_mday = (int)pdlTime->date;
-    time->tm_mon = (int)(pdlTime->month - 1u);
-    time->tm_year = (int)(year - _CYHAL_RTC_TM_YEAR_BASE);
-    time->tm_wday = (int)(pdlTime->dayOfWeek - 1u);
-    time->tm_yday = (int)CUMULATIVE_DAYS[time->tm_mon] + (int)pdlTime->date - 1 +
-        (((int)(pdlTime->month) >= 3 && (int)(Cy_RTC_IsLeapYear((uint32_t)year) ? 1u : 0u)));
+    time->tm_sec = (int32_t)pdlTime->sec;
+    time->tm_min = (int32_t)pdlTime->min;
+    time->tm_hour = (int32_t)pdlTime->hour;
+    time->tm_mday = (int32_t)pdlTime->date;
+    time->tm_mon = (int32_t)(pdlTime->month - 1u);
+    time->tm_year = (int32_t)(year - _CYHAL_RTC_TM_YEAR_BASE);
+    time->tm_wday = (int32_t)(pdlTime->dayOfWeek - 1u);
+    time->tm_yday = (int32_t)CUMULATIVE_DAYS[time->tm_mon] + (int32_t)pdlTime->date - 1 +
+        (((int32_t)(pdlTime->month) >= 3 && (int32_t)(Cy_RTC_IsLeapYear((uint32_t)year) ? 1u : 0u)));
     time->tm_isdst = -1;
 }
 
@@ -312,7 +312,7 @@ cy_rslt_t cyhal_rtc_read(cyhal_rtc_t *obj, struct tm *time)
     cy_stc_rtc_config_t dateTime = { .hrFormat = CY_RTC_24_HOURS };
     uint32_t savedIntrStatus = cyhal_system_critical_section_enter();
     Cy_RTC_GetDateAndTime(&dateTime);
-    const int year = (int)(dateTime.year + _cyhal_rtc_get_century());
+    const uint16_t year = (uint16_t)(dateTime.year + _cyhal_rtc_get_century());
     cyhal_system_critical_section_exit(savedIntrStatus);
 
     _cyhal_rtc_from_pdl_time(&dateTime, year, time);
@@ -454,7 +454,7 @@ cy_rslt_t cyhal_rtc_set_alarm_by_seconds(cyhal_rtc_t *obj, const uint32_t second
     cy_stc_rtc_config_t now;
     uint32_t savedIntrStatus = cyhal_system_critical_section_enter();
     Cy_RTC_GetDateAndTime(&now);
-    const int year = (int)(now.year + _cyhal_rtc_get_century());
+    const uint16_t year = (uint16_t)(now.year + _cyhal_rtc_get_century());
     cyhal_system_critical_section_exit(savedIntrStatus);
 
     bool nowDst = (NULL != _cyhal_rtc_dst) && Cy_RTC_GetDstStatus(_cyhal_rtc_dst, &now);

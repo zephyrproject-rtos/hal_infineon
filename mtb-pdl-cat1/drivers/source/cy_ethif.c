@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_ethif.c
-* \version 1.20
+* \version 1.30
 *
 * Provides an API implementation of the ETHIF driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2021 Cypress Semiconductor Corporation
+* Copyright 2021-2024 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@
 #include "cdn_errno.h"
 #include "cedi.h"
 #include "edd_int.h"
+#include "cy_syspm.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -83,6 +84,22 @@ static cy_stc_ethif_queue_disablestatus_t stcQueueDisStatus[CY_ETH_DEFINE_NUM_IP
 CY_SECTION_SHAREDMEM
 CY_ALIGN(32) static volatile uint8_t g_tx_bdcount[CY_ETH_DEFINE_NUM_IP] = {0,};
 
+/* Deep sleep */
+typedef struct
+{
+    uint8_t copy_all_frames;
+    uint8_t no_broadcast;
+    cy_stc_ethif_filter_config_t fileter1Config;
+    uint16_t *ptrRxBufs[CY_ETH_DEFINE_NUM_RXQS];
+
+} cy_stc_ethif_dsreg_t;
+
+static cy_stc_ethif_dsreg_t g_ds_regs[CY_ETH_DEFINE_NUM_IP];
+
+static cy_stc_syspm_callback_params_t g_ds_params[CY_ETH_DEFINE_NUM_IP];
+static cy_stc_syspm_callback_t g_ds_cbHandler[CY_ETH_DEFINE_NUM_IP];
+static cy_ethif_buffpool_t *g_pRxQbuffPool[CY_ETH_DEFINE_NUM_IP][CY_ETH_DEFINE_NUM_RXQS];
+
 /*****************************************************************************
 * Local function prototypes ('static')
 *****************************************************************************/
@@ -111,7 +128,7 @@ static void Cy_ETHIF_IPEnable(ETH_Type *base);
 static void Cy_ETHIF_IPDisable(ETH_Type *base);
 static cy_en_ethif_status_t Cy_ETHIF_TSUInit(uint8_t u8EthIfInstance, cy_stc_ethif_tsu_config_t * pstcTSUConfig);
 static cy_en_ethif_status_t Cy_ETHIF_DisableQueues(ETH_Type *base, cy_stc_ethif_mac_config_t * pstcEthIfConfig);
-
+static cy_en_syspm_status_t Cy_ETHIF_DSCallbackFunc(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
 /*****************************************************************************
 * Local Call back function supplied to Cadence driver
 *****************************************************************************/
@@ -378,6 +395,8 @@ cy_en_ethif_status_t Cy_ETHIF_Init(ETH_Type *base, cy_stc_ethif_mac_config_t * p
     {
         if (pstcEthIfConfig->pRxQbuffPool[u8tmpcounter] != NULL)
         {
+            g_pRxQbuffPool[u8EthIfInstance][u8tmpcounter] = pstcEthIfConfig->pRxQbuffPool[u8tmpcounter];
+
             for (u8tmpintrcntr = 0; u8tmpintrcntr < cy_ethif_cfg[u8EthIfInstance].rxQLen[u8tmpcounter]; u8tmpintrcntr++)
             {
                 rx_buff_addr.vAddr = (uintptr_t)((*pstcEthIfConfig->pRxQbuffPool)[u8tmpcounter][u8tmpintrcntr]);
@@ -400,6 +419,21 @@ cy_en_ethif_status_t Cy_ETHIF_Init(ETH_Type *base, cy_stc_ethif_mac_config_t * p
 
     // Optional: Setting Filter configuration
     // Optional: setting screen registers
+
+    // Register Deep Sleep Callbacks
+    g_ds_params[u8EthIfInstance].base = base;
+
+    g_ds_cbHandler[u8EthIfInstance].callback = Cy_ETHIF_DSCallbackFunc;
+    g_ds_cbHandler[u8EthIfInstance].type = CY_SYSPM_DEEPSLEEP;
+    g_ds_cbHandler[u8EthIfInstance].skipMode = 0;
+    g_ds_cbHandler[u8EthIfInstance].callbackParams = &g_ds_params[u8EthIfInstance];
+    g_ds_cbHandler[u8EthIfInstance].prevItm = NULL;
+    g_ds_cbHandler[u8EthIfInstance].nextItm = NULL;
+    g_ds_cbHandler[u8EthIfInstance].order = 0;
+
+    (void)Cy_SysPm_RegisterCallback(&g_ds_cbHandler[u8EthIfInstance]);
+
+
 
     /* Enable MDIO */
     cyp_ethif_gemgxlobj->setMdioEnable((void *)(void *)cyp_ethif_pd[u8EthIfInstance], CY_ETH_ENABLE_1);
@@ -1956,6 +1990,145 @@ static void Cy_ETHIF_EventLpi(void * pcy_privatedata)
 {
     CY_UNUSED_PARAMETER(pcy_privatedata); /* Suppress a compiler warning about unused variables */
 }
+
+
+static cy_en_syspm_status_t Cy_ETHIF_DSCallbackFunc(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
+{
+    cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
+
+    CY_UNUSED_PARAMETER(callbackParams);
+
+    switch(mode)
+    {
+        case CY_SYSPM_CHECK_READY:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        case CY_SYSPM_CHECK_FAIL:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        case CY_SYSPM_BEFORE_TRANSITION:
+        {
+            uint8_t u8EthIfInstance, u8tmpcounter;
+            ETH_Type *base;
+
+            base = (ETH_Type *)callbackParams->base;
+            if (!CY_ETHIF_IS_IP_INSTANCE_VALID(base))
+            {
+                return CY_SYSPM_BAD_PARAM;
+            }
+
+            u8EthIfInstance = CY_ETHIF_IP_INSTANCE(base);
+
+            (void)cyp_ethif_gemgxlobj->getCopyAllFrames((void *)cyp_ethif_pd[u8EthIfInstance], &(g_ds_regs[u8EthIfInstance].copy_all_frames));
+            (void)cyp_ethif_gemgxlobj->getNoBroadcast((void *)cyp_ethif_pd[u8EthIfInstance], &(g_ds_regs[u8EthIfInstance].no_broadcast));
+
+            CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 1, 'Intentional typecast of &config->filterAddr to CEDI_MacAddress* struct type.')
+            (void)emacGetSpecificAddr((void *)cyp_ethif_pd[u8EthIfInstance],
+                                (uint8_t)CY_ETHIF_FILTER_NUM_1,
+                                (CEDI_MacAddress*)&(g_ds_regs[u8EthIfInstance].fileter1Config.filterAddr),
+                                (uint8_t *)&(g_ds_regs[u8EthIfInstance].fileter1Config.typeFilter),
+                                (uint8_t *)&(g_ds_regs[u8EthIfInstance].fileter1Config.ignoreBytes));
+            CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
+
+            for (u8tmpcounter = 0; u8tmpcounter < cy_ethif_cfg[u8EthIfInstance].rxQs; u8tmpcounter++)
+            {
+                (void)emacNumRxBufs((void *)cyp_ethif_pd[u8EthIfInstance], 0, g_ds_regs[u8EthIfInstance].ptrRxBufs[u8tmpcounter]);
+            }
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        case CY_SYSPM_AFTER_TRANSITION:
+        {
+            uint32_t u32RetValue;
+            uint8_t u8EthIfInstance;
+            uint8_t u8tmpcounter=0, u8tmpintrcntr=0;
+            CEDI_BuffAddr rx_buff_addr;
+            ETH_Type *base;
+
+            base = (ETH_Type *)callbackParams->base;
+
+            /* check for arguments */
+            if (!CY_ETHIF_IS_IP_INSTANCE_VALID(base))
+            {
+                retVal = CY_SYSPM_BAD_PARAM;
+                break;
+            }
+
+            u8EthIfInstance = CY_ETHIF_IP_INSTANCE(base);
+            /* Restore registers */
+            /* Enable the IP to access EMAC registers set */
+			Cy_ETHIF_IPEnable(base);
+
+            /* Initialization EMAC registers */
+            u32RetValue = cyp_ethif_gemgxlobj->init((void *)cyp_ethif_pd[u8EthIfInstance], &cy_ethif_cfg[u8EthIfInstance], &Cy_ETHIF_Callbacks);
+            if (u32RetValue == ((uint32_t)EINVAL) || u32RetValue == ((uint32_t)ENOTSUP))
+            {
+                Cy_ETHIF_IPDisable(base);
+                retVal = CY_SYSPM_BAD_PARAM;
+                break;
+            }
+
+            for (u8tmpcounter = 0; u8tmpcounter < cy_ethif_cfg[u8EthIfInstance].rxQs; u8tmpcounter++)
+            {
+                if (g_pRxQbuffPool[u8EthIfInstance][u8tmpcounter] != NULL)
+                {
+                    for (u8tmpintrcntr = 0; u8tmpintrcntr < cy_ethif_cfg[u8EthIfInstance].rxQLen[u8tmpcounter]; u8tmpintrcntr++)
+                    {
+                        rx_buff_addr.vAddr = (uintptr_t)((*g_pRxQbuffPool[u8EthIfInstance])[u8tmpcounter][u8tmpintrcntr]);
+                        rx_buff_addr.pAddr = rx_buff_addr.vAddr;
+                        (void)cyp_ethif_gemgxlobj->addRxBuf((void *)cyp_ethif_pd[u8EthIfInstance],
+                                                        u8tmpcounter,
+                                                    (CEDI_BuffAddr *)&rx_buff_addr,
+                                                        0);
+                    }
+                }
+            }
+
+
+            /* additional Receive configurations */
+            cyp_ethif_gemgxlobj->setCopyAllFrames((void *)cyp_ethif_pd[u8EthIfInstance], CY_ETH_ENABLE_1);
+            cyp_ethif_gemgxlobj->setRxBadPreamble((void *)cyp_ethif_pd[u8EthIfInstance], CY_ETH_ENABLE_1);
+
+            /* Do not drop frames with CRC error */
+            cyp_ethif_gemgxlobj->setIgnoreFcsRx((void *)cyp_ethif_pd[u8EthIfInstance], CY_ETH_ENABLE_1);
+
+            /* Enable MDIO */
+            cyp_ethif_gemgxlobj->setMdioEnable((void *)(void *)cyp_ethif_pd[u8EthIfInstance], CY_ETH_ENABLE_1);
+
+            /* driver start */
+            cyp_ethif_gemgxlobj->start((void *)cyp_ethif_pd[u8EthIfInstance]);
+
+
+            /* set config reg */
+            cyp_ethif_gemgxlobj->setCopyAllFrames((void *)cyp_ethif_pd[u8EthIfInstance], g_ds_regs[u8EthIfInstance].copy_all_frames);
+
+            /* Reject Broad cast frames */
+            cyp_ethif_gemgxlobj->setNoBroadcast((void *)cyp_ethif_pd[u8EthIfInstance], g_ds_regs[u8EthIfInstance].no_broadcast);
+
+            CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 1, 'Intentional typecast of &config->filterAddr to CEDI_MacAddress* struct type.')
+            /* Apply filter */
+            (void)cyp_ethif_gemgxlobj->setSpecificAddr((void *)cyp_ethif_pd[u8EthIfInstance],
+                                        CY_ETHIF_FILTER_NUM_1,
+                                        (CEDI_MacAddress*)&(g_ds_regs[u8EthIfInstance].fileter1Config.filterAddr),
+                                        g_ds_regs[u8EthIfInstance].fileter1Config.typeFilter,
+                                        g_ds_regs[u8EthIfInstance].fileter1Config.ignoreBytes);
+            CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
+
+            retVal = CY_SYSPM_SUCCESS;
+        }
+        break;
+        default:
+            /* default case */
+            break;
+    }
+
+    return retVal;
+}
+
 
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 18.1')
 CY_MISRA_BLOCK_END('OVERRUN')

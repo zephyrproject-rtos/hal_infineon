@@ -117,10 +117,10 @@
     <!--Config-->
     <ParamBool id="inFlash" name="Store Config in Flash" group="Advanced" default="true" visible="true" editable="true" desc="Controls whether the configuration structure is stored in flash (const, true) or SRAM (not const, false)." />
     
-    <ParamString id="HWbase" name="base address" group="Internal" default="`${&quot;SAXI_DMAC&quot;}`" visible="false" editable="false" desc="" />
+    <ParamString id="HWbase" name="base address" group="Internal" default="`${(&quot;mxaxidmac&quot; eq getIpBlockName()) ? &quot;AXI_DMAC&quot; : &quot;SAXI_DMAC&quot;}`" visible="false" editable="false" desc="" />
     <ParamString id="descriptor_struct" name="descriptor struct" group="Internal" default="CY_ALIGN(8) CY_SECTION(&quot;.cy_socmem_data&quot;) cy_stc_axidmac_descriptor_t" visible="false" editable="false" desc="" />
 
-    <ParamString id="m7cpussAxiDmacIrq" name="M7 AXI DMAC IRQ" group="Internal" default="axi_dmac_0_interrupts_`${channel}`_IRQn" visible="false" editable="false" desc="" />
+    <ParamString id="mxaxidmacIrq" name="MXAXIDMAC IRQ" group="Internal" default="axi_dmac_0_interrupts_`${channel}`_IRQn" visible="false" editable="false" desc="" />
     <ParamString id="m55cpussAxiDmacIrq" name="M55 AXI DMAC IRQ" group="Internal" default="m55appcpuss_interrupts_axidmac_`${channel}`_IRQn" visible="false" editable="false" desc="" />
   </Parameters>
   
@@ -133,7 +133,7 @@
 
     <ConfigDefine name="`${INST_NAME . &quot;_HW&quot;}`" value="`${HWbase}`" public="true" include="true" />
     <ConfigDefine name="`${INST_NAME . &quot;_CHANNEL&quot;}`" value="`${channel}`U" public="true" include="true" />
-    <ConfigDefine name="`${INST_NAME}`_IRQ" value="`${(&quot;m7cpuss&quot; eq getIpBlockName()) ? (m7cpussAxiDmacIrq) : (m55cpussAxiDmacIrq)}`" public="true" include="true" />
+    <ConfigDefine name="`${INST_NAME}`_IRQ" value="`${(&quot;mxaxidmac&quot; eq getIpBlockName()) ? (mxaxidmacIrq) : (m55cpussAxiDmacIrq)}`" public="true" include="true" />
 
     <ConfigStruct name="`${INST_NAME . &quot;_&quot; . DESCR_NAME_$idx . &quot;_config&quot;}`" type="cy_stc_axidmac_descriptor_config_t" const="`${inFlash}`" public="true" include="`${NUM_OF_DESCRIPTORS > $idx}`" repeatCount="8" >
       <Member name="retrigger" value="`${TRIG_DEACT_$idx}`" />

@@ -42,7 +42,7 @@ extern "C" {
 
 #if defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC)
 #define DMAC0_IRQn                  (cpuss_interrupts_dmac_0_IRQn)
-#define GET_RESOURCE_DATA(x)        (x.dmac)
+#define GET_RESOURCE_DATA(x)        ((x).dmac)
 typedef DMAC_Type                   cyhal_dmac_hw_type;
 #elif defined(CY_IP_M0S8CPUSSV3_DMAC)
 #define DMAC0_IRQn                  (cpuss_interrupt_dma_IRQn)
@@ -52,12 +52,12 @@ typedef DMAC_Type                   cyhal_dmac_hw_type;
 #elif defined(CY_IP_MXAHBDMAC)
 #define DMAC0_IRQn                  (cpuss_interrupts_dmac0_0_IRQn)
 #define DMAC1_IRQn                  (cpuss_interrupts_dmac1_0_IRQn)
-#define GET_RESOURCE_DATA(x)        (x.dmac)
+#define GET_RESOURCE_DATA(x)        ((x).dmac)
 typedef MXAHBDMAC_Type              cyhal_dmac_hw_type;
 #elif defined(CY_IP_MXSAXIDMAC)
 #define DMAC0_IRQn                  (m55appcpuss_interrupts_axidmac_0_IRQn)
 typedef SAXI_DMAC_Type              cyhal_dmac_hw_type;
-#define GET_RESOURCE_DATA(x)        (x.dmac)
+#define GET_RESOURCE_DATA(x)        ((x).dmac)
 #endif
 
 #if defined (AXI_DMAC_CH_NR)
@@ -81,9 +81,9 @@ typedef SAXI_DMAC_Type              cyhal_dmac_hw_type;
 
 //Wrappers for PDL functions and Macros for AXI DMAC differences
 #if defined(CY_IP_MXSAXIDMAC)
-#define _cyhal_dmac_channel_enable(base, channel)   Cy_AXIDMAC_Channel_Enable(base, channel)
-#define _cyhal_dmac_channel_disable(base, channel)  Cy_AXIDMAC_Channel_Disable(base, channel)
-#define _cyhal_dmac_get_active_channel(base)        Cy_AXIDMAC_GetActiveChannel(base)
+#define _cyhal_dmac_channel_enable(base, channel)   Cy_AXIDMAC_Channel_Enable((base), (channel))
+#define _cyhal_dmac_channel_disable(base, channel)  Cy_AXIDMAC_Channel_Disable((base), (channel))
+#define _cyhal_dmac_get_active_channel(base)        Cy_AXIDMAC_GetActiveChannel((base))
 #define _cyhal_dmac_channel_get_interrupt_status_masked(base, channel) Cy_AXIDMAC_Channel_GetInterruptStatusMasked(base, channel)
 #define _CYHAL_DMAC_CHANNEL_ENABLED        (CY_AXIDMAC_CHANNEL_ENABLED)
 #define _CYHAL_DMAC_CHANNEL_DISABLED       (CY_AXIDMAC_CHANNEL_DISABLED)
@@ -97,10 +97,10 @@ typedef SAXI_DMAC_Type              cyhal_dmac_hw_type;
 #define _CYHAL_DMAC_CH_DESCR_CTL_TR_OUT_TYPE_Pos    (SAXI_DMAC_CH_DESCR_CTL_TR_OUT_TYPE_Pos)
 #define _CYHAL_TRIGGER_CPUSS_ZERO                  (CYHAL_TRIGGER_M33SYSCPUSS_ZERO)
 #elif defined(CY_IP_MXAHBDMAC) || defined(CY_IP_M0S8CPUSSV3_DMAC) || defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC)
-#define _cyhal_dmac_channel_enable(base, channel)   Cy_DMAC_Channel_Enable(base, channel)
-#define _cyhal_dmac_channel_disable(base, channel)  Cy_DMAC_Channel_Disable(base, channel)
-#define _cyhal_dmac_get_active_channel(base)        Cy_DMAC_GetActiveChannel(base)
-#define _cyhal_dmac_channel_get_interrupt_status_masked(base, channel) Cy_DMAC_Channel_GetInterruptStatusMasked(base, channel)
+#define _cyhal_dmac_channel_enable(base, channel)   Cy_DMAC_Channel_Enable((base), (channel))
+#define _cyhal_dmac_channel_disable(base, channel)  Cy_DMAC_Channel_Disable((base), (channel))
+#define _cyhal_dmac_get_active_channel(base)        Cy_DMAC_GetActiveChannel((base))
+#define _cyhal_dmac_channel_get_interrupt_status_masked(base, channel) Cy_DMAC_Channel_GetInterruptStatusMasked((base), (channel))
 #define _CYHAL_DMAC_CHANNEL_ENABLED        (CY_DMAC_CHANNEL_ENABLED)
 #define _CYHAL_DMAC_CHANNEL_DISABLED       (CY_DMAC_CHANNEL_DISABLED)
 #define _CYHAL_DMAC_DESCR            (CY_DMAC_DESCR)
@@ -459,7 +459,7 @@ static void _cyhal_dma_dmac_irq_handler(void)
 #endif
 #elif defined(CY_IP_M0S8CPUSSV3_DMAC)
     uint32_t channels = Cy_DMAC_GetInterruptStatusMasked(base);
-    for(int i = 0 ; ((uint32_t)(1 << i)) <= channels ; i++)
+    for(uint8_t i = 0 ; ((uint32_t)(1 << i)) <= channels ; i++)
     {
         cyhal_dma_t *obj = _cyhal_dma_dmac_get_obj(block, i);
         if (obj != NULL)
@@ -497,16 +497,16 @@ static cy_rslt_t _cyhal_dma_dmac_stage(cyhal_dma_t *obj)
     cyhal_dmac_hw_type* base = _cyhal_dma_dmac_get_base(obj->resource.block_num);
 #if defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC) || defined(CY_IP_MXAHBDMAC) || defined(CY_IP_MXSAXIDMAC)
 #if defined(CY_IP_MXSAXIDMAC)
-    cy_en_axidmac_descriptor_type_t descr_type = GET_RESOURCE_DATA(&obj->descriptor_config)->descriptorType;
-    GET_RESOURCE_DATA(&obj->descriptor_config)->descriptorType = CY_AXIDMAC_3D_MEMORY_COPY;
-    cy_rslt_t rslt = Cy_AXIDMAC_Descriptor_Init(GET_RESOURCE_DATA(&obj->descriptor), GET_RESOURCE_DATA(&obj->descriptor_config));
-    Cy_AXIDMAC_Descriptor_SetDescriptorType(GET_RESOURCE_DATA(&obj->descriptor), descr_type);
-    GET_RESOURCE_DATA(&obj->descriptor_config)->descriptorType = descr_type;
+    cy_en_axidmac_descriptor_type_t descr_type = GET_RESOURCE_DATA(obj->descriptor_config).descriptorType;
+    GET_RESOURCE_DATA(obj->descriptor_config).descriptorType = CY_AXIDMAC_3D_MEMORY_COPY;
+    cy_rslt_t rslt = Cy_AXIDMAC_Descriptor_Init(&(GET_RESOURCE_DATA(obj->descriptor)), &(GET_RESOURCE_DATA(obj->descriptor_config)));
+    Cy_AXIDMAC_Descriptor_SetDescriptorType(&(GET_RESOURCE_DATA(obj->descriptor)), descr_type);
+    GET_RESOURCE_DATA(obj->descriptor_config).descriptorType = descr_type;
 #else
-    cy_rslt_t rslt = Cy_DMAC_Descriptor_Init(GET_RESOURCE_DATA(&obj->descriptor), GET_RESOURCE_DATA(&obj->descriptor_config));
+    cy_rslt_t rslt = Cy_DMAC_Descriptor_Init(&(GET_RESOURCE_DATA(obj->descriptor)), &(GET_RESOURCE_DATA(obj->descriptor_config)));
 #endif
 #elif defined(CY_IP_M0S8CPUSSV3_DMAC)
-    cy_rslt_t rslt = Cy_DMAC_Descriptor_Init(base, obj->resource.channel_num, obj->descriptor, GET_RESOURCE_DATA(&obj->descriptor_config));
+    cy_rslt_t rslt = Cy_DMAC_Descriptor_Init(base, obj->resource.channel_num, obj->descriptor, &(GET_RESOURCE_DATA(obj->descriptor_config)));
 #endif
 #if defined(CY_IP_MXSAXIDMAC)
     if(CY_AXIDMAC_SUCCESS != rslt)
@@ -517,9 +517,9 @@ static cy_rslt_t _cyhal_dma_dmac_stage(cyhal_dma_t *obj)
 
     /* Setup channel and enable */
 #if defined(CY_IP_MXSAXIDMAC)
-    if(CY_AXIDMAC_SUCCESS != Cy_AXIDMAC_Channel_Init(base, obj->resource.channel_num, GET_RESOURCE_DATA(&obj->channel_config)))
+    if(CY_AXIDMAC_SUCCESS != Cy_AXIDMAC_Channel_Init(base, obj->resource.channel_num, &(GET_RESOURCE_DATA(obj->channel_config))))
 #else
-    if(CY_DMAC_SUCCESS != Cy_DMAC_Channel_Init(base, obj->resource.channel_num, GET_RESOURCE_DATA(&obj->channel_config)))
+    if(CY_DMAC_SUCCESS != Cy_DMAC_Channel_Init(base, obj->resource.channel_num, &(GET_RESOURCE_DATA(obj->channel_config))))
 #endif
         return CYHAL_DMA_RSLT_ERR_INVALID_PARAMETER;
 
@@ -600,7 +600,7 @@ cy_rslt_t _cyhal_dma_dmac_init(cyhal_dma_t *obj, cyhal_source_t *src, cyhal_dest
     GET_RESOURCE_DATA(obj->descriptor_config) = _cyhal_dma_dmac_default_descriptor_config;
     GET_RESOURCE_DATA(obj->channel_config) = _cyhal_dma_dmac_default_channel_config;
 #if defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC) || defined(CY_IP_MXAHBDMAC) || defined(CY_IP_MXSAXIDMAC)
-    GET_RESOURCE_DATA(obj->channel_config).descriptor = GET_RESOURCE_DATA(&obj->descriptor);
+    GET_RESOURCE_DATA(obj->channel_config).descriptor = &(GET_RESOURCE_DATA(obj->descriptor));
 #elif defined(CY_IP_M0S8CPUSSV3_DMAC)
     obj->descriptor = obj->channel_config.descriptor;
 #endif
@@ -632,7 +632,7 @@ cy_rslt_t _cyhal_dma_dmac_init_cfg(cyhal_dma_t *obj, const cyhal_dma_configurato
 #if defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC) || defined(CY_IP_MXAHBDMAC) || defined(CY_IP_MXSAXIDMAC)
     obj->descriptor_config.dmac = *(cfg->dmac_descriptor_config);
     obj->channel_config.dmac = *(cfg->dmac_channel_config);
-    GET_RESOURCE_DATA(obj->channel_config).descriptor = GET_RESOURCE_DATA(&obj->descriptor);
+    GET_RESOURCE_DATA(obj->channel_config).descriptor = &(GET_RESOURCE_DATA(obj->descriptor));
     #if defined(CY_IP_MXSAXIDMAC)
         obj->expected_bursts = cfg->dmac_descriptor_config->xCount;
     #else
@@ -661,13 +661,13 @@ void _cyhal_dma_dmac_free(cyhal_dma_t *obj)
 {
     cyhal_dmac_hw_type* base = _cyhal_dma_dmac_get_base(obj->resource.block_num);
 #if defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC) || defined(CY_IP_MXAHBDMAC)
-    Cy_DMAC_Descriptor_DeInit(GET_RESOURCE_DATA(&obj->descriptor));
+    Cy_DMAC_Descriptor_DeInit(&(GET_RESOURCE_DATA(obj->descriptor)));
     Cy_DMAC_Channel_DeInit(base, obj->resource.channel_num);
 #elif defined(CY_IP_M0S8CPUSSV3_DMAC)
     Cy_DMAC_Descriptor_DeInit(base, obj->resource.channel_num, obj->descriptor);
     Cy_DMAC_Channel_DeInit(base, obj->resource.channel_num);
 #elif defined(CY_IP_MXSAXIDMAC)
-    Cy_AXIDMAC_Descriptor_DeInit(GET_RESOURCE_DATA(&obj->descriptor));
+    Cy_AXIDMAC_Descriptor_DeInit(&(GET_RESOURCE_DATA(obj->descriptor)));
     Cy_AXIDMAC_Channel_DeInit(base, obj->resource.channel_num);
 #endif
 
@@ -729,8 +729,8 @@ cy_rslt_t _cyhal_dma_dmac_configure(cyhal_dma_t *obj, const cyhal_dma_cfg_t *cfg
 
     /* By default, transfer what the user set for dataSize. However, if transfering between memory
      * and a peripheral, make sure the peripheral access is using words. */
-    GET_RESOURCE_DATA(obj->descriptor_config).srcTransferSize =
-        GET_RESOURCE_DATA(obj->descriptor_config).dstTransferSize = CY_DMAC_TRANSFER_SIZE_DATA;
+    GET_RESOURCE_DATA(obj->descriptor_config).srcTransferSize = CY_DMAC_TRANSFER_SIZE_DATA;
+    GET_RESOURCE_DATA(obj->descriptor_config).dstTransferSize = CY_DMAC_TRANSFER_SIZE_DATA;
     if (obj->direction == CYHAL_DMA_DIRECTION_PERIPH2MEM)
         GET_RESOURCE_DATA(obj->descriptor_config).srcTransferSize = CY_DMAC_TRANSFER_SIZE_WORD;
     else if (obj->direction == CYHAL_DMA_DIRECTION_MEM2PERIPH)
@@ -745,7 +745,7 @@ cy_rslt_t _cyhal_dma_dmac_configure(cyhal_dma_t *obj, const cyhal_dma_cfg_t *cfg
 #endif
 
 #if defined(CY_IP_M4CPUSS_DMAC) || defined(CY_IP_M7CPUSS_DMAC) || defined(CY_IP_MXAHBDMAC) || defined(CY_IP_MXSAXIDMAC)
-    GET_RESOURCE_DATA(obj->descriptor_config).nextDescriptor = GET_RESOURCE_DATA(&obj->descriptor);
+    GET_RESOURCE_DATA(obj->descriptor_config).nextDescriptor = &(GET_RESOURCE_DATA(obj->descriptor));
     if ((cfg->action == CYHAL_DMA_TRANSFER_BURST) || (cfg->action == CYHAL_DMA_TRANSFER_FULL))
     {
         GET_RESOURCE_DATA(obj->descriptor_config).channelState = _CYHAL_DMAC_CHANNEL_ENABLED;

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_seglcd.h
-* \version 1.10
+* \version 1.10.1
 *
 * \brief
 * Provides an API declaration of the Segment LCD driver.
@@ -197,7 +197,9 @@
 * When the block is configured, for further work with display, a display structure is needed:
 * \snippet seglcd/snippet/SegLCD_Snpt.c snippet_Cy_SegLCD_Display
 * \note Using the SegLCD Configurator, display structures and the commons array are generated automatically into the 
-* GeneratedSource/cycfg_seglcd.h/.c files. All you need is just to include cycfg_seglcd.h into your application code.
+* GeneratedSource/cycfg_seglcd.h/.c files.
+* \note Using SegLCD personality version 2.0 or later there is no more need to include cycfg_seglcd.h
+* into the application code - it is already included into the generated cycfg.h file.
 *
 * And now you can write multi-digit decimal and hexadecimal numbers and strings onto the initiated 7-segment display:
 * \snippet seglcd/snippet/SegLCD_Snpt.c snippet_Cy_SegLCD_DecNum
@@ -252,6 +254,11 @@
 * \section group_seglcd_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.10.1</td>
+*     <td>Updated note about include cycfg_seglcd.h</td>
+*     <td>User experience improvement</td>
+*   </tr>
 *   <tr>
 *     <td>1.10</td>
 *     <td>Fixed/Documented MISRA 2012 violations.</td>

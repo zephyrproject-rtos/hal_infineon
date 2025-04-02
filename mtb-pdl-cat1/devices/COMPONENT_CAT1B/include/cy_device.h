@@ -14,7 +14,7 @@
 
 #include "cy_utils.h"
 
-#ifndef BOY2_UUT
+#ifndef PSC3_UUT
 #include "cy_device_headers.h"
 #endif
 
@@ -84,16 +84,18 @@ extern const cy_stc_device_t* cy_device;
 #if (__SAUREGION_PRESENT==1)
   #define SECURE_ALIAS_OFFSET                   (0x10000000UL)
   #ifdef CY_PDL_TZ_ENABLED
-    #define GET_ALIAS_ADDRESS(addr)             (uint32_t)(((uint32_t)(addr)) | SECURE_ALIAS_OFFSET)
+    #define GET_ALIAS_ADDRESS(addr)             ((uint32_t)(((uint32_t)(addr)) | SECURE_ALIAS_OFFSET))
   #else
-    #define GET_ALIAS_ADDRESS(addr)             (uint32_t)(((uint32_t)(addr)) & ~SECURE_ALIAS_OFFSET)
+    #define GET_ALIAS_ADDRESS(addr)             ((uint32_t)(((uint32_t)(addr)) & ~SECURE_ALIAS_OFFSET))
   #endif
+  #define GET_NSALIAS_ADDRESS(addr)             ((uint32_t)((uint32_t)(addr) & ~(SECURE_ALIAS_OFFSET)))
 #else
-  #define GET_ALIAS_ADDRESS(addr)               (uint32_t)(addr)
+  #define GET_ALIAS_ADDRESS(addr)               ((uint32_t)(addr))
+  #define GET_NSALIAS_ADDRESS(addr)             ((uint32_t)(addr))
 #endif /* (__SAUREGION_PRESENT==1) */
 
 
-#if defined(CY_DEVICE_BOY2)
+#if defined(CY_DEVICE_PSC3)
     #ifndef NORMAL_PROVISIONED_LCS
     #define CM33_NS_PC_VALUE            (1u)
     #define CM33_S_PC_VALUE             (0u)
@@ -101,6 +103,17 @@ extern const cy_stc_device_t* cy_device;
     #define CM33_NS_PC_VALUE            (3u)
     #define CM33_S_PC_VALUE             (2u)
     #endif
+#endif
+
+/* For BWC with applications that expect SRAM0 instead of SRAM */
+#if defined (CY_DEVICE_CYW20829) || defined (CY_DEVICE_PSC3)
+#define CY_SRAM0_BASE                   CY_SRAM_BASE
+#define CY_SRAM0_CBUS_BASE              CY_SRAM_CBUS_BASE
+#define CY_SRAM0_SIZE                   CY_SRAM_SIZE
+#define CY_SRAM0_NS_SBUS_BASE           CY_SRAM_NS_SBUS_BASE
+#define CY_SRAM0_NS_CBUS_BASE           CY_SRAM_NS_CBUS_BASE
+#define CY_SRAM0_S_SBUS_BASE            CY_SRAM_S_SBUS_BASE
+#define CY_SRAM0_S_CBUS_BASE            CY_SRAM_S_CBUS_BASE
 #endif
 
 /*******************************************************************************
@@ -450,7 +463,14 @@ typedef MXAHBDMAC_Type DMAC_Type;
 #define CY_PLATFORM_REMAP_ADDRESS_CRYPTOLITE(addr)               (Cy_Platform_RemapAddr(addr))
 
 
-#if defined(CY_DEVICE_BOY2)
+#if defined(CY_DEVICE_PSC3)
+#define CY_DUAL_FLASH_S_SBUS_BASE  0x32800000UL
+#define CY_DUAL_FLASH_S_SIZE       0x00020000UL
+#define CY_DUAL_FLASH_S_CBUS_BASE  0x12800000UL
+#define CY_DUAL_FLASH_NS_SBUS_BASE  0x22800000UL
+#define CY_DUAL_FLASH_NS_SIZE       0x00020000UL
+#define CY_DUAL_FLASH_NS_CBUS_BASE  0x02800000UL
+
 static inline void * Cy_Platform_RemapAddr(const void *addr)
 {
   uint32_t remapAddr, offset;
@@ -462,7 +482,14 @@ static inline void * Cy_Platform_RemapAddr(const void *addr)
   {
     offset = (uint32_t)addr - CY_FLASH_S_SBUS_BASE;
     remapAddr = CY_FLASH_S_CBUS_BASE + offset;
-  } 
+  }
+  /* DUAL FLASH Address Secure */
+  else if (((uint32_t)addr >= CY_DUAL_FLASH_S_SBUS_BASE) &&
+      ((uint32_t)addr < (CY_DUAL_FLASH_S_SBUS_BASE + CY_DUAL_FLASH_S_SIZE)))
+  {
+    offset = (uint32_t)addr - CY_DUAL_FLASH_S_SBUS_BASE;
+    remapAddr = CY_DUAL_FLASH_S_CBUS_BASE + offset;
+  }
   /* SFLASH Address Secure */
   else if (((uint32_t)addr >= CY_SFLASH_S_SBUS_BASE) &&
       ((uint32_t)addr < (CY_SFLASH_S_SBUS_BASE + CY_SFLASH_SIZE)))
@@ -471,11 +498,11 @@ static inline void * Cy_Platform_RemapAddr(const void *addr)
     remapAddr = CY_SFLASH_S_CBUS_BASE + offset;
   }
   /* SRAM Address Secure */
-  else if (((uint32_t)addr >= CY_SRAM0_S_CBUS_BASE) &&
-      ((uint32_t)addr < (CY_SRAM0_S_CBUS_BASE + CY_SRAM0_SIZE)))
+  else if (((uint32_t)addr >= CY_SRAM_S_CBUS_BASE) &&
+      ((uint32_t)addr < (CY_SRAM_S_CBUS_BASE + CY_SRAM_SIZE)))
   {
-    offset = (uint32_t)addr - CY_SRAM0_S_CBUS_BASE;
-    remapAddr = CY_SRAM0_S_SBUS_BASE + offset;
+    offset = (uint32_t)addr - CY_SRAM_S_CBUS_BASE;
+    remapAddr = CY_SRAM_S_SBUS_BASE + offset;
   }
   #else
   /* FLASH Address Non-Secure */
@@ -484,7 +511,14 @@ static inline void * Cy_Platform_RemapAddr(const void *addr)
   {
     offset = (uint32_t)addr - CY_FLASH_NS_SBUS_BASE;
     remapAddr = CY_FLASH_NS_CBUS_BASE + offset;
-  } 
+  }
+  /* DUAL FLASH Address Non-Secure */
+  else if (((uint32_t)addr >= CY_DUAL_FLASH_NS_SBUS_BASE) &&
+      ((uint32_t)addr < (CY_DUAL_FLASH_NS_SBUS_BASE + CY_DUAL_FLASH_NS_SIZE)))
+  {
+    offset = (uint32_t)addr - CY_DUAL_FLASH_NS_SBUS_BASE;
+    remapAddr = CY_DUAL_FLASH_NS_CBUS_BASE + offset;
+  }
   /* SFLASH Address Non-Secure */
   else if (((uint32_t)addr >= CY_SFLASH_NS_SBUS_BASE) &&
       ((uint32_t)addr < (CY_SFLASH_NS_SBUS_BASE + CY_SFLASH_SIZE)))
@@ -493,11 +527,11 @@ static inline void * Cy_Platform_RemapAddr(const void *addr)
     remapAddr = CY_SFLASH_NS_CBUS_BASE + offset;
   }
   /* SRAM Address Non-Secure */
-  else if (((uint32_t)addr >= CY_SRAM0_NS_CBUS_BASE) &&
-      ((uint32_t)addr < (CY_SRAM0_NS_CBUS_BASE + CY_SRAM0_SIZE)))
+  else if (((uint32_t)addr >= CY_SRAM_NS_CBUS_BASE) &&
+      ((uint32_t)addr < (CY_SRAM_NS_CBUS_BASE + CY_SRAM_SIZE)))
   {
-    offset = (uint32_t)addr - CY_SRAM0_NS_CBUS_BASE;
-    remapAddr = CY_SRAM0_NS_SBUS_BASE + offset;
+    offset = (uint32_t)addr - CY_SRAM_NS_CBUS_BASE;
+    remapAddr = CY_SRAM_NS_SBUS_BASE + offset;
   }
   #endif
   else
@@ -517,13 +551,13 @@ static inline void * Cy_Platform_RemapAddr(const void *addr)
   {
     offset = (uint32_t)addr - CY_XIP_NS_CBUS_BASE;
     remapAddr = CY_XIP_NS_SBUS_BASE + offset;
-  } 
+  }
   /* SRAM Address*/
-  else if (((uint32_t)addr >= CY_SRAM0_NS_CBUS_BASE) &&
-      ((uint32_t)addr < (CY_SRAM0_NS_CBUS_BASE + CY_SRAM0_SIZE)))
+  else if (((uint32_t)addr >= CY_SRAM_NS_CBUS_BASE) &&
+      ((uint32_t)addr < (CY_SRAM_NS_CBUS_BASE + CY_SRAM_SIZE)))
   {
-    offset = (uint32_t)addr - CY_SRAM0_NS_CBUS_BASE;
-    remapAddr = CY_SRAM0_NS_SBUS_BASE + offset;
+    offset = (uint32_t)addr - CY_SRAM_NS_CBUS_BASE;
+    remapAddr = CY_SRAM_NS_SBUS_BASE + offset;
   }
   else
   {
@@ -796,6 +830,7 @@ static inline void * Cy_Platform_RemapAddr(const void *addr)
 #define FAULT_INTR_MASK(base)                   (((FAULT_STRUCT_Type *)(base))->INTR_MASK)
 #define FAULT_INTR_MASKED(base)                 (((FAULT_STRUCT_Type *)(base))->INTR_MASKED)
 
+#if defined (CY_DEVICE_CYW20829)
 /**
   * \brief Instances of Fault data register.
   */
@@ -880,7 +915,8 @@ typedef enum
     CY_SYSFAULT_SRSS_MCWDT2          =  94,     /* SRSS Multi-Counter Watch Dog Timer (MCWDT) #2 violation detected. See SRSS_MCWDT0 description. */
     CY_SYSFAULT_SRSS_MCWDT3          =  95,     /* SRSS Multi-Counter Watch Dog Timer (MCWDT) #3 violation detected. See SRSS_MCWDT0 description. */
     CY_SYSFAULT_NO_FAULT             =  96
-} cy_en_SysFault_source_t;
+} en_sysfault_source_t;
+#endif /* defined (CY_DEVICE_CYW20829) */
 
 /*******************************************************************************
 *                PROFILE
@@ -903,7 +939,7 @@ typedef enum
 
 #define CY_SRSS_NUM_PLL400M                 0
 #define CY_SRSS_PLL400M_PRESENT             0
-#if defined (CY_DEVICE_BOY2)
+#if defined (CY_DEVICE_PSC3)
 #define CY_SRSS_DPLL_LP_PRESENT             SRSS_NUM_DPLL250
 #define SRSS_NUM_DPLL_LP                    SRSS_NUM_DPLL250
 #define SRSS_PLL_250M_0_PATH_NUM            (1UL)
@@ -1127,6 +1163,8 @@ typedef enum
 #define CSV_LF_CSV_REF_LIMIT_CSV_LOWER           CSV_LF_CSV_REF_LIMIT_LOWER
 #define CSV_LF_CSV_REF_LIMIT_CSV_UPPER           CSV_LF_CSV_REF_LIMIT_UPPER
 #define CSV_LF_CSV_MON_CTL_CSV_PERIOD            CSV_LF_CSV_MON_CTL_PERIOD
+
+#define SRSS_BOOT_ENTRY                         (((SRSS_Type *) SRSS)->BOOT_ENTRY)
 
 /*******************************************************************************
 *                PERI
@@ -1404,12 +1442,12 @@ typedef enum
 /*******************************************************************************
 *                PERI-GROUP
 *******************************************************************************/
-#if defined (CY_DEVICE_BOY2)
+#if defined (CY_DEVICE_PSC3)
 #define CY_PERI_GROUP_NR                        6
 #else
 #define CY_PERI_GROUP_NR                        4
 #define CY_PERI_BLESS_GROUP_NR                  3
-#endif /* CY_DEVICE_BOY2 */
+#endif /* CY_DEVICE_PSC3 */
 
 #ifndef PERI0_BASE
 #define PERI0_BASE PERI_BASE
@@ -1479,7 +1517,7 @@ typedef enum
 #define PERI0_PCLK_GR_NUM_3_CLK_HF_NUM              (1U)
 #define PERI0_PCLK_GR_NUM_4_CLK_HF_NUM              (2U)
 #define PERI0_PCLK_GR_NUM_5_CLK_HF_NUM              (3U)
-#if defined (CY_DEVICE_BOY2)
+#if defined (CY_DEVICE_PSC3)
 #define PERI0_PCLK_GR_NUM_6_CLK_HF_NUM              (4U)
 #else
 #define PERI0_PCLK_GR_NUM_6_CLK_HF_NUM              (1U)
@@ -1487,7 +1525,11 @@ typedef enum
 
 
 #if defined (CY_IP_MXS40SSRSS)
+#if defined (CY_DEVICE_PSC3)
+#define CY_SYSPM_BOOTROM_ENTRYPOINT_ADDR        ((uint32_t)&(SRSS_BOOT_ENTRY)) /* Boot ROM will check this address for locating the entry point after Warm Boot */
+#else
 #define CY_SYSPM_BOOTROM_ENTRYPOINT_ADDR        ((uint32_t)(&BACKUP_BREG_SET1[0])) /* Boot ROM will check this address for locating the entry point after Warm Boot */
+#endif /* defined (CY_DEVICE_PSC3) */
 #define CY_SYSPM_BOOTROM_DSRAM_DBG_ENABLE_MASK 0x00000001U
 #endif
 #if defined (CY_DEVICE_CYW20829)
@@ -1516,54 +1558,62 @@ typedef enum
 #define MCWDT_LOCK(base)        (((MCWDT_STRUCT_Type *)(base))->MCWDT_LOCK)
 #define MCWDT_LOWER_LIMIT(base) (((MCWDT_STRUCT_Type *)(base))->MCWDT_LOWER_LIMIT)
 
-#if defined (CY_DEVICE_BOY2)
+#if defined (CY_DEVICE_PSC3)
 /*******************************************************************************
 *                SFLASH
 *******************************************************************************/
-#define SFLASH_CPUSS_TRIM_ROM_CTL_LP        (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_ROM_CTL_LP)
-#define SFLASH_CPUSS_TRIM_RAM_CTL_LP        (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_RAM_CTL_LP)
-#define SFLASH_CPUSS_TRIM_ROM_CTL_ULP       (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_ROM_CTL_ULP)
-#define SFLASH_CPUSS_TRIM_RAM_CTL_ULP       (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_RAM_CTL_ULP)
-#define SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP   (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_ROM_CTL_HALF_LP)
-#define SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP   (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_RAM_CTL_HALF_LP)
-#define SFLASH_CPUSS_TRIM_ROM_CTL_HALF_ULP  (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_ROM_CTL_HALF_ULP)
-#define SFLASH_CPUSS_TRIM_RAM_CTL_HALF_ULP  (((SFLASH_Type *) SFLASH)->CPUSS_TRIM_RAM_CTL_HALF_ULP)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_LP        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_LP)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_LP        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_LP)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_MF        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_MF)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_MF        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_MF)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_OD        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_OD)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_OD        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_OD)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_ULP       (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_ULP)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_ULP       (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_ULP)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP   (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_HALF_LP)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP   (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_HALF_LP)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_HALF_MF   (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_HALF_MF)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_HALF_MF   (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_HALF_MF)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_HALF_OD   (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_HALF_OD)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_HALF_OD   (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_HALF_OD)
+#define SFLASH_CPUSS_TRIM_ROM_CTL_HALF_ULP  (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_ROM_CTL_HALF_ULP)
+#define SFLASH_CPUSS_TRIM_RAM_CTL_HALF_ULP  (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->CPUSS_TRIM_RAM_CTL_HALF_ULP)
 
-#define SFLASH_LDO_0P9V_TRIM                (((SFLASH_Type *) SFLASH)->LDO_0P9V_TRIM)
-#define SFLASH_LDO_1P0V_TRIM                (((SFLASH_Type *) SFLASH)->LDO_1P0V_TRIM)
-#define SFLASH_LDO_1P1V_TRIM                (((SFLASH_Type *) SFLASH)->LDO_1P1V_TRIM)
-#define SFLASH_LDO_1P2V_TRIM                (((SFLASH_Type *) SFLASH)->LDO_1P2V_TRIM)
-#define SFLASH_PWR_TRIM_WAKE_CTL            (((SFLASH_Type *) SFLASH)->PWR_TRIM_WAKE_CTL)
+#define SFLASH_LDO_0P9V_TRIM                (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->LDO_0P9V_TRIM)
+#define SFLASH_LDO_1P0V_TRIM                (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->LDO_1P0V_TRIM)
+#define SFLASH_LDO_1P1V_TRIM                (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->LDO_1P1V_TRIM)
+#define SFLASH_LDO_1P2V_TRIM                (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->LDO_1P2V_TRIM)
+#define SFLASH_PWR_TRIM_WAKE_CTL            (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->PWR_TRIM_WAKE_CTL)
 
-#define SFLASH_DIE_YEAR                     (((SFLASH_Type *) SFLASH)->DIE_YEAR)
-#define SFLASH_DIE_MINOR                    (((SFLASH_Type *) SFLASH)->DIE_MINOR)
-#define SFLASH_DIE_SORT                     (((SFLASH_Type *) SFLASH)->DIE_SORT)
-#define SFLASH_DIE_Y                        (((SFLASH_Type *) SFLASH)->DIE_Y)
-#define SFLASH_DIE_X                        (((SFLASH_Type *) SFLASH)->DIE_X)
-#define SFLASH_DIE_WAFER                    (((SFLASH_Type *) SFLASH)->DIE_WAFER)
-#define SFLASH_DIE_LOT(val)                 (((SFLASH_Type *) SFLASH)->DIE_LOT[(val)])
+#define SFLASH_DIE_YEAR                     (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->DIE_YEAR)
+#define SFLASH_DIE_MINOR                    (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->DIE_MINOR)
+#define SFLASH_DIE_SORT                     (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->DIE_SORT)
+#define SFLASH_DIE_Y                        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->DIE_Y)
+#define SFLASH_DIE_X                        (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->DIE_X)
+#define SFLASH_DIE_WAFER                    (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->DIE_WAFER)
+#define SFLASH_DIE_LOT(val)                 (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->DIE_LOT[(val)])
 
-#define SFLASH_SAR_CALOFFST_0_N40C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_0_N40C)
-#define SFLASH_SAR_CALOFFST_1_N40C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_1_N40C)
-#define SFLASH_SAR_CALOFFST_2_N40C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_2_N40C)
-#define SFLASH_SAR_CALOFFST_3_N40C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_3_N40C)
-#define SFLASH_SAR_CALOFFST_0_125C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_0_125C)
-#define SFLASH_SAR_CALOFFST_1_125C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_1_125C)
-#define SFLASH_SAR_CALOFFST_2_125C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_2_125C)
-#define SFLASH_SAR_CALOFFST_3_125C          (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_3_125C)
-#define SFLASH_SAR_CALOFFST_0_25C           (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_0_25C)
-#define SFLASH_SAR_CALOFFST_1_25C           (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_1_25C)
-#define SFLASH_SAR_CALOFFST_2_25C           (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_2_25C)
-#define SFLASH_SAR_CALOFFST_3_25C           (((SFLASH_Type *) SFLASH)->SAR_CALOFFST_3_25C)
-#define SFLASH_SAR_CALREFPT                 (((SFLASH_Type *) SFLASH)->SAR_CALREFPT)
-#define SFLASH_SAR_TEMP_COEF_A              (((SFLASH_Type *) SFLASH)->SAR_TEMP_COEF_A)
-#define SFLASH_SAR_TEMP_COEF_B              (((SFLASH_Type *) SFLASH)->SAR_TEMP_COEF_B)
-#define SFLASH_SAR_TEMP_COEF_C              (((SFLASH_Type *) SFLASH)->SAR_TEMP_COEF_C)
-#define SFLASH_SAR_TEMP_COEF_D              (((SFLASH_Type *) SFLASH)->SAR_TEMP_COEF_D)
-#define SFLASH_SAR_CAL_LIN_TABLE(val)       (((SFLASH_Type *) SFLASH)->SAR_CAL_LIN_TABLE[(val)])
-#define SFLASH_SAR_CALGAINC                 (((SFLASH_Type *) SFLASH)->SAR_CALGAINC)
-#define SFLASH_SAR_CALGAINF                 (((SFLASH_Type *) SFLASH)->SAR_CALGAINF)
-#define SFLASH_SAR_INFRA_TRIM_TABLE         (((SFLASH_Type *) SFLASH)->SAR_INFRA_TRIM_TABLE)
+#define SFLASH_SAR_CALOFFST_0_N40C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_0_N40C)
+#define SFLASH_SAR_CALOFFST_1_N40C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_1_N40C)
+#define SFLASH_SAR_CALOFFST_2_N40C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_2_N40C)
+#define SFLASH_SAR_CALOFFST_3_N40C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_3_N40C)
+#define SFLASH_SAR_CALOFFST_0_125C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_0_125C)
+#define SFLASH_SAR_CALOFFST_1_125C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_1_125C)
+#define SFLASH_SAR_CALOFFST_2_125C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_2_125C)
+#define SFLASH_SAR_CALOFFST_3_125C          (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_3_125C)
+#define SFLASH_SAR_CALOFFST_0_25C           (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_0_25C)
+#define SFLASH_SAR_CALOFFST_1_25C           (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_1_25C)
+#define SFLASH_SAR_CALOFFST_2_25C           (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_2_25C)
+#define SFLASH_SAR_CALOFFST_3_25C           (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALOFFST_3_25C)
+#define SFLASH_SAR_CALREFPT                 (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALREFPT)
+#define SFLASH_SAR_TEMP_COEF_A              (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_TEMP_COEF_A)
+#define SFLASH_SAR_TEMP_COEF_B              (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_TEMP_COEF_B)
+#define SFLASH_SAR_TEMP_COEF_C              (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_TEMP_COEF_C)
+#define SFLASH_SAR_TEMP_COEF_D              (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_TEMP_COEF_D)
+#define SFLASH_SAR_CAL_LIN_TABLE(val)       (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CAL_LIN_TABLE[(val)])
+#define SFLASH_SAR_CALGAINC                 (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALGAINC)
+#define SFLASH_SAR_CALGAINF                 (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_CALGAINF)
+#define SFLASH_SAR_INFRA_TRIM_TABLE         (((SFLASH_Type *) CY_SFLASH_NS_SBUS_BASE)->SAR_INFRA_TRIM_TABLE)
 #endif
 
 /*******************************************************************************
@@ -1586,6 +1636,13 @@ typedef enum
 #define SYSTICK_NS_LOAD                     (((SysTick_Type *)SysTick_NS)->LOAD)
 #define SYSTICK_NS_VAL                      (((SysTick_Type *)SysTick_NS)->VAL)
 #define SCB_SCR                             (((SCB_Type *)SCB)->SCR)
+
+#define SCS_CPPWR                           (((SCnSCB_Type *)SCnSCB)->CPPWR)
+#define SCS_ENABLE_CPPWR_SU10_SU11          (0xFUL << 20u)
+#define SCS_CPPWR_SU10_Msk                  (0x100000U)
+
+#define SCB_ENABLE_CPACR_CP10_CP11          (0xFUL << 20u)
+#define SCB_CPACR                           (((SCB_Type *)SCB)->CPACR)
 
 #if defined (CY_DEVICE_CYW20829)
 #define CY_UNIQE_DEVICE_ID_PRESENT_SFLASH      0u
@@ -1617,7 +1674,7 @@ typedef enum
 *******************************************************************************/
 
 #if defined CY_IP_MXS40TCPWM
-/* CY_IP_MXS40TCPWM is nothing but the CY_IP_MXTCPWM version 3. In BOY-II it is called CY_IP_MXS40TCPWM */
+/* CY_IP_MXS40TCPWM is nothing but the CY_IP_MXTCPWM version 3. In PSOC C3 it is called CY_IP_MXS40TCPWM */
 #define CY_IP_MXTCPWM                   1u
 #define CY_IP_MXTCPWM_VERSION           3u
 #endif /* defined CY_IP_MXS40TCPWM */
@@ -1643,6 +1700,10 @@ typedef enum
 #define TCPWM_CNT_TR_CTRL0(base, cntNum)     (((TCPWM_Type *)(base))->CNT[cntNum].TR_CTRL0)
 #define TCPWM_CNT_TR_CTRL1(base, cntNum)     (((TCPWM_Type *)(base))->CNT[cntNum].TR_CTRL1)
 #define TCPWM_CNT_TR_CTRL2(base, cntNum)     (((TCPWM_Type *)(base))->CNT[cntNum].TR_CTRL2)
+
+#if defined(CY_DEVICE_PSC3)
+#define CY_SYSTEM_TCPWM_DISABLE_ADDR        (0x52a90800UL)
+#endif
 
 #if defined (CY_DEVICE_CYW20829)
 #define TCPWM_GRP_CC1_PRESENT_STATUS (TCPWM_GRP_NR0_CNT_GRP_CC1_PRESENT | TCPWM_GRP_NR1_CNT_GRP_CC1_PRESENT << 1)
@@ -2186,19 +2247,6 @@ we need to define this for version 2 only. */
 #define MXOTPC_BOOT_ROW_FOUT_ECC_DED_STATUS_Msk    0x00070000UL
 
 /*******************************************************************************
-*                MXCONNBRIDGE
-*******************************************************************************/
-
-#define MXCONNBRIDGE_CTL(base)                    (((MXCONNBRIDGE_Type *)(base))->CTL)
-#define MXCONNBRIDGE_INTR_STATUS(base)            (((MXCONNBRIDGE_Type *)(base))->INTERRUPT_STATUS)
-#define MXCONNBRIDGE_INTR_MASK(base)              (((MXCONNBRIDGE_Type *)(base))->INTERRUPT_MASK)
-#define MXCONNBRIDGE_RF_SWITCH_CTRL(base)         (((MXCONNBRIDGE_Type *)(base))->RF_SWITCH_CTRL)
-#define MXCONNBRIDGE_GPIO_IN(base)                (((MXCONNBRIDGE_Type *)(base))->GPIO_IN)
-#define MXCONNBRIDGE_GPIO_OUT(base)               (((MXCONNBRIDGE_Type *)(base))->GPIO_OUT)
-#define MXCONNBRIDGE_DEV_WAKE(base)               (((MXCONNBRIDGE_Type *)(base))->DEV_WAKE)
-#define MXCONNBRIDGE_AP_WLAN_CTL(base)               (((MXCONNBRIDGE_Type *)(base))->AP_WLAN_CTL)
-
-/*******************************************************************************
 *                MXSDIODEV
 *******************************************************************************/
 
@@ -2323,7 +2371,7 @@ we need to define this for version 2 only. */
 #define cpuss_interrupts_ipc_0_IRQn cpuss_interrupts_ipc_dpslp_0_IRQn
 #define cpuss_interrupts_ipc_1_IRQn cpuss_interrupts_ipc_dpslp_1_IRQn
 
-#if defined (CY_DEVICE_BOY2)
+#if defined (CY_DEVICE_PSC3)
 /* Reserve Channels are Interrupts for CM33-S and Cm33-NS */
 #define CM33_S_IPC_CH_NUM                 (0x0u)
 #define CM33_S_IPC_CH_MASK                (CY_IPC_CH_MASK(CM33_S_IPC_CH_NUM))
@@ -2420,11 +2468,11 @@ we need to define this for version 2 only. */
 /*******************************************************************************
 *                MS_CTL
 *******************************************************************************/
-#ifdef _CYIP_MS_CTL_2_1_V2_H_
+#if defined (CY_IP_M33SYSCPUSS_VERSION) && (CY_IP_M33SYSCPUSS_VERSION > 1U)
 
 #define MS_CTL_PC_CTL_VX(index)          (((MS_CTL_2_1_Type*) MS_CTL_2_1_BASE)->MS[(index)].CTL)
 #define MS_CTL_PC_VAL_VX(index)          (((MS_CTL_2_1_Type*) MS_CTL_2_1_BASE)->MS_PC[(index)].PC)
-#define MS_CTL_PC_READ_MIRROR_VX(index)  (((MS_CTL_2_1_Type*) MS_CTL_2_1_BASE)->MS_PC[(index)].PC_READ_MIR)
+#define MS_CTL_PC_READ_MIRROR_VX(index)  (((MS_CTL_2_1_Type*) GET_NSALIAS_ADDRESS(MS_CTL_2_1_BASE))->MS_PC[(index)].PC_READ_MIR)
 #define MS_CTL_CODE_MS0_MSC_ACG_CTL_VX   (((MS_CTL_2_1_Type*) MS_CTL_2_1_BASE)->CODE_MS0_MSC_ACG_CTL)
 #define MS_CTL_SYS_MS0_MSC_ACG_CTL_VX    (((MS_CTL_2_1_Type*) MS_CTL_2_1_BASE)->SYS_MS0_MSC_ACG_CTL)
 #define MS_CTL_SYS_MS1_MSC_ACG_CTL_VX    (((MS_CTL_2_1_Type*) MS_CTL_2_1_BASE)->SYS_MS1_MSC_ACG_CTL)
@@ -2467,7 +2515,7 @@ we need to define this for version 2 only. */
 
 #define MS_CTL_PC_CTL_VX(index)          (((MS_CTL_1_2_Type*) MS_CTL_1_2_BASE)->MS[(index)].CTL)
 #define MS_CTL_PC_VAL_VX(index)          (((MS_CTL_1_2_Type*) MS_CTL_1_2_BASE)->MS_PC[(index)].PC)
-#define MS_CTL_PC_READ_MIRROR_VX(index)  (((MS_CTL_1_2_Type*) MS_CTL_1_2_BASE)->MS_PC[(index)].PC_READ_MIR)
+#define MS_CTL_PC_READ_MIRROR_VX(index)  (((MS_CTL_1_2_Type*) GET_NSALIAS_ADDRESS(MS_CTL_1_2_BASE))->MS_PC[(index)].PC_READ_MIR)
 #define MS_CTL_CODE_MS0_MSC_ACG_CTL_VX   (((MS_CTL_1_2_Type*) MS_CTL_1_2_BASE)->CODE_MS0_MSC_ACG_CTL)
 #define MS_CTL_SYS_MS0_MSC_ACG_CTL_VX    (((MS_CTL_1_2_Type*) MS_CTL_1_2_BASE)->SYS_MS0_MSC_ACG_CTL)
 #define MS_CTL_SYS_MS1_MSC_ACG_CTL_VX    (((MS_CTL_1_2_Type*) MS_CTL_1_2_BASE)->SYS_MS1_MSC_ACG_CTL)
@@ -2531,16 +2579,22 @@ we need to define this for version 2 only. */
 #define FLASHC_FLASH_ECC_INJ_EN             (((FLASHC_Type *)(FLASHC))->ECC_INJ_EN)
 #define FLASHC_FLASH_ECC_INJ_CTL            (((FLASHC_Type *)(FLASHC))->ECC_INJ_CTL)
 
+#if defined (CY_DEVICE_PSC3)
+#define SBUS_ALIAS_OFFSET                   (0x20000000UL)
+#define FLASH_SBUS_ALIAS_ADDRESS(addr)      (uint32_t)(((uint32_t)(addr)) | SBUS_ALIAS_OFFSET)
+#define IS_FLASH_ADDRESS_IN_SFLASH_SECNUM(addr)      ((((addr) >= CY_FLASH_BASE + 0x00020000UL) && ((addr) < CY_FLASH_BASE + CY_FLASH_SIZE))? true : false)
+#endif  /* CY_DEVICE_PSC3 */
+
 /*******************************************************************************
 *                PPC
 *******************************************************************************/
-#if defined (CY_DEVICE_BOY2)
+#if defined (CY_DEVICE_PSC3)
 #define PPC_VALIDATE(ipInst, regionID)                  ((((ipInst) == PPC) && ((regionID) <= (uint32_t)PROT_MCPASS))? true : false)
 #else
 #define PPC_VALIDATE(ipInst, regionID)                  ((((ipInst) == PPC) && ((regionID) <= (uint32_t)PROT_BTSS_SECURE))? true : false)
-#endif /* CY_DEVICE_BOY2 */
+#endif /* CY_DEVICE_PSC3 */
 
-#ifdef _CYIP_PPC_V2_H_
+#if defined (CY_IP_MXSPERI_VERSION) && (CY_IP_MXSPERI_VERSION > 1U)
 #define PPC_Type PPC_PPC_Type
 #define PPC_CTL_RESP_CFG_Msk PPC_PPC_CTL_RESP_CFG_Msk
 #endif
@@ -2549,7 +2603,7 @@ we need to define this for version 2 only. */
 /*******************************************************************************
 *            CORDIC
 *******************************************************************************/
-#if defined (CY_DEVICE_BOY2)
+#if defined (CY_DEVICE_PSC3)
 typedef MXCORDIC_1_0_Type MXCORDIC_Type;
 
 #define MXCORDIC    MXCORDIC_1_0
@@ -2591,7 +2645,7 @@ typedef MXCORDIC_1_0_Type MXCORDIC_Type;
 #define MXCORDIC_KEEP_KEEPY_Msk                MXCORDIC_1_0_KEEP_KEEPY_Msk
 #define MXCORDIC_KEEP_KEEPZ_Pos                MXCORDIC_1_0_KEEP_KEEPZ_Pos
 #define MXCORDIC_KEEP_KEEPZ_Msk                MXCORDIC_1_0_KEEP_KEEPZ_Msk
-/* MXCORDIC.CON */                             
+/* MXCORDIC.CON */
 #define MXCORDIC_CON_MODE_Pos                  MXCORDIC_1_0_CON_MODE_Pos
 #define MXCORDIC_CON_MODE_Msk                  MXCORDIC_1_0_CON_MODE_Msk
 #define MXCORDIC_CON_ROTVEC_Pos                MXCORDIC_1_0_CON_ROTVEC_Pos
@@ -2604,28 +2658,28 @@ typedef MXCORDIC_1_0_Type MXCORDIC_Type;
 #define MXCORDIC_CON_MPS_Msk                   MXCORDIC_1_0_CON_MPS_Msk
 #define MXCORDIC_CON_N_ITER_Pos                MXCORDIC_1_0_CON_N_ITER_Pos
 #define MXCORDIC_CON_N_ITER_Msk                MXCORDIC_1_0_CON_N_ITER_Msk
-/* MXCORDIC.CORDX */                           
+/* MXCORDIC.CORDX */
 #define MXCORDIC_CORDX_DATA_Pos                MXCORDIC_1_0_CORDX_DATA_Pos
 #define MXCORDIC_CORDX_DATA_Msk                MXCORDIC_1_0_CORDX_DATA_Msk
-/* MXCORDIC.CORDY */                           
+/* MXCORDIC.CORDY */
 #define MXCORDIC_CORDY_DATA_Pos                MXCORDIC_1_0_CORDY_DATA_Pos
 #define MXCORDIC_CORDY_DATA_Msk                MXCORDIC_1_0_CORDY_DATA_Msk
-/* MXCORDIC.CORDZ */                           
+/* MXCORDIC.CORDZ */
 #define MXCORDIC_CORDZ_DATA_Pos                MXCORDIC_1_0_CORDZ_DATA_Pos
 #define MXCORDIC_CORDZ_DATA_Msk                MXCORDIC_1_0_CORDZ_DATA_Msk
-/* MXCORDIC.CORRX */                           
+/* MXCORDIC.CORRX */
 #define MXCORDIC_CORRX_RESULT_Pos              MXCORDIC_1_0_CORRX_RESULT_Pos
 #define MXCORDIC_CORRX_RESULT_Msk              MXCORDIC_1_0_CORRX_RESULT_Msk
-/* MXCORDIC.CORRY */                           
+/* MXCORDIC.CORRY */
 #define MXCORDIC_CORRY_RESULT_Pos              MXCORDIC_1_0_CORRY_RESULT_Pos
 #define MXCORDIC_CORRY_RESULT_Msk              MXCORDIC_1_0_CORRY_RESULT_Msk
-/* MXCORDIC.CORRZ */                           
+/* MXCORDIC.CORRZ */
 #define MXCORDIC_CORRZ_RESULT_Pos              MXCORDIC_1_0_CORRZ_RESULT_Pos
 #define MXCORDIC_CORRZ_RESULT_Msk              MXCORDIC_1_0_CORRZ_RESULT_Msk
-/* MXCORDIC.STAT */                            
+/* MXCORDIC.STAT */
 #define MXCORDIC_STAT_BSY_Pos                  MXCORDIC_1_0_STAT_BSY_Pos
 #define MXCORDIC_STAT_BSY_Msk                  MXCORDIC_1_0_STAT_BSY_Msk
-/* MXCORDIC.START_CMD */                       
+/* MXCORDIC.START_CMD */
 #define MXCORDIC_START_CMD_ST_Pos              MXCORDIC_1_0_START_CMD_ST_Pos
 #define MXCORDIC_START_CMD_ST_Msk              MXCORDIC_1_0_START_CMD_ST_Msk
 
@@ -2649,105 +2703,105 @@ typedef MXCORDIC_1_0_Type MXCORDIC_Type;
 
 
 /*******************************************************************************
-*                MCPASS
+*                HPPASS
 *******************************************************************************/
 
 #ifdef CY_IP_MXS40MCPASS
-#define MCPASS_AC_CTRL(base)                         (((MCPASS_Type *)(base))->ACTRLR.CTRL)
-#define MCPASS_AC_BLOCK_STATUS(base)                 (((MCPASS_Type *)(base))->ACTRLR.BLOCK_STATUS)
-#define MCPASS_AC_STATUS(base)                       (((MCPASS_Type *)(base))->ACTRLR.STATUS)
-#define MCPASS_AC_CMD_RUN(base)                      (((MCPASS_Type *)(base))->ACTRLR.CMD_RUN)
-#define MCPASS_AC_CMD_STATE(base)                    (((MCPASS_Type *)(base))->ACTRLR.CMD_STATE)
-#define MCPASS_AC_CFG(base)                          (((MCPASS_Type *)(base))->ACTRLR.CFG)
-#define MCPASS_AC_CNTR_STATUS(base, cntIdx)          (((MCPASS_Type *)(base))->ACTRLR.CNTR_STATUS[cntIdx])
-#define MCPASS_AC_TT_CFG0(base, rowIdx)              (((MCPASS_ACTRLR_TTCFG_Type *)(&((MCPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG0)
-#define MCPASS_AC_TT_CFG1(base, rowIdx)              (((MCPASS_ACTRLR_TTCFG_Type *)(&((MCPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG1)
-#define MCPASS_AC_TT_CFG2(base, rowIdx)              (((MCPASS_ACTRLR_TTCFG_Type *)(&((MCPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG2)
-#define MCPASS_AC_TT_CFG3(base, rowIdx)              (((MCPASS_ACTRLR_TTCFG_Type *)(&((MCPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG3)
-#define MCPASS_FIFO_INTR(base)                       (((MCPASS_Type *)(base))->MMIO.FIFO_INTR)
-#define MCPASS_FIFO_INTR_SET(base)                   (((MCPASS_Type *)(base))->MMIO.FIFO_INTR_SET)
-#define MCPASS_FIFO_INTR_MASK(base)                  (((MCPASS_Type *)(base))->MMIO.FIFO_INTR_MASK)
-#define MCPASS_FIFO_INTR_MASKED(base)                (((MCPASS_Type *)(base))->MMIO.FIFO_INTR_MASKED)
-#define MCPASS_MMIO_INTR(base)                       (((MCPASS_Type *)(base))->MMIO.MCPASS_INTR)
-#define MCPASS_MMIO_INTR_SET(base)                   (((MCPASS_Type *)(base))->MMIO.MCPASS_INTR_SET)
-#define MCPASS_MMIO_INTR_MASK(base)                  (((MCPASS_Type *)(base))->MMIO.MCPASS_INTR_MASK)
-#define MCPASS_MMIO_TR_LEVEL_CFG(base)               (((MCPASS_Type *)(base))->MMIO.TR_LEVEL_CFG)
-#define MCPASS_MMIO_TR_LEVEL_OUT(base, trigIdx)      (((MCPASS_Type *)(base))->MMIO.TR_LEVEL_OUT[trigIdx])
-#define MCPASS_MMIO_TR_PULSE_OUT(base, trigIdx)      (((MCPASS_Type *)(base))->MMIO.TR_PULSE_OUT[trigIdx])
-#define MCPASS_MMIO_INTR_MASKED(base)                (((MCPASS_Type *)(base))->MMIO.MCPASS_INTR_MASKED)
-#define MCPASS_MMIO_FIFO_CFG(base)                   (((MCPASS_Type *)(base))->MMIO.FIFO.CFG)
-#define MCPASS_MMIO_FIFO_LEVEL(base, fifoIdx)        (((MCPASS_Type *)(base))->MMIO.FIFO.LEVEL[fifoIdx])
-#define MCPASS_MMIO_FIFO_USED(base, fifoIdx)         (((MCPASS_Type *)(base))->MMIO.FIFO.USED[fifoIdx])
-#define MCPASS_MMIO_FIFO_RD_DATA(base, fifoIdx)      (((MCPASS_Type *)(base))->MMIO.FIFO.RD_DATA[fifoIdx])
-#define MCPASS_SAR_CALOFFST(base, idx)               (((MCPASS_Type *)(base))->SARADC.CALOFFST[idx])
-#define MCPASS_SAR_CALLIN(base, idx)                 (((MCPASS_Type *)(base))->SARADC.CALLIN[idx])
-#define MCPASS_SAR_CALGAINC(base)                    (((MCPASS_Type *)(base))->SARADC.CALGAINC)
-#define MCPASS_SAR_CALGAINF(base)                    (((MCPASS_Type *)(base))->SARADC.CALGAINF)
-#define MCPASS_SAR_CTRL(base)                        (((MCPASS_Type *)(base))->SAR.CFG.CTRL)
-#define MCPASS_SAR_RESULT_INTR(base)                 (((MCPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR)
-#define MCPASS_SAR_RESULT_INTR_SET(base)             (((MCPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR_SET)
-#define MCPASS_SAR_RESULT_INTR_MASK(base)            (((MCPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR_MASK)
-#define MCPASS_SAR_RESULT_INTR_MASKED(base)          (((MCPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR_MASKED)
-#define MCPASS_SAR_LIMIT_INTR(base)                  (((MCPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR)
-#define MCPASS_SAR_LIMIT_INTR_SET(base)              (((MCPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR_SET)
-#define MCPASS_SAR_LIMIT_INTR_MASK(base)             (((MCPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR_MASK)
-#define MCPASS_SAR_LIMIT_INTR_MASKED(base)           (((MCPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR_MASKED)
-#define MCPASS_SAR_GROUP_HOLD_VIOLATION(base)        (((MCPASS_Type *)(base))->SAR.CFG.ENTRY_HOLD_VIOLATION)
-#define MCPASS_SAR_GROUP_HOLD_CNT(base)              (((MCPASS_Type *)(base))->SAR.CFG.ENTRY_HOLD_CNT)
-#define MCPASS_SAR_LIMIT_STATUS(base)                (((MCPASS_Type *)(base))->SAR.CFG.RANGE_STATUS)
-#define MCPASS_SAR_STATUS(base)                      (((MCPASS_Type *)(base))->SAR.CFG.SAR_STATUS)
-#define MCPASS_SAR_RESULT_STATUS(base)               (((MCPASS_Type *)(base))->SAR.CFG.RESULT_UPDATED)
-#define MCPASS_SAR_RESULT_OVERFLOW(base)             (((MCPASS_Type *)(base))->SAR.CFG.RESULT_OVERFLOW)
-#define MCPASS_SAR_RESULT_MASK(base)                 (((MCPASS_Type *)(base))->SAR.CFG.RESULT_MASK)
-#define MCPASS_SAR_CHAN_RESULT(base, chanIdx)        (((MCPASS_Type *)(base))->SAR.CFG.CHAN_RESULT[chanIdx])
-#define MCPASS_SAR_CHAN_RESULT_PACKED(base, chanIdx) (((MCPASS_Type *)(base))->SAR.CFG.CHAN_RESULT_PACKED[chanIdx])
-#define MCPASS_SAR_FIR_RESULT(base, firIdx)          (((MCPASS_Type *)(base))->SAR.CFG.FIR_RESULT[firIdx])
-#define MCPASS_SAR_LIMIT_CFG(base, limIdx)           (((MCPASS_Type *)(base))->SAR.CFG.RANGE_CFG[limIdx])
-#define MCPASS_SAR_LIMIT_LOW(base, limIdx)           (((MCPASS_Type *)(base))->SAR.CFG.RANGE_LOW[limIdx])
-#define MCPASS_SAR_LIMIT_HIGH(base, limIdx)          (((MCPASS_Type *)(base))->SAR.CFG.RANGE_HIGH[limIdx])
-#define MCPASS_SAR_AROUTE_STATUS(base)               (((MCPASS_Type *)(base))->SAR.CFG.AROUTE_STATUS)
-#define MCPASS_SAR_AROUTE_CTRL_MODE(base)            (((MCPASS_Type *)(base))->SAR.CFG.AROUTE_CTRL_MODE)
-#define MCPASS_SAR_AROUTE_FW_CTRL(base)              (((MCPASS_Type *)(base))->SAR.CFG.AROUTE_FW_CTRL)
-#define MCPASS_SAR_AROUTE_FW_CTRL_CLR(base)          (((MCPASS_Type *)(base))->SAR.CFG.AROUTE_FW_CTRL_CLR)
-#define MCPASS_SAR_TEMPSENSE_CTRL(base)              (((MCPASS_Type *)(base))->SAR.CFG.TEMPSENSE_CTRL)
-#define MCPASS_SAR_SAMP_EN(base)                     (((MCPASS_Type *)(base))->SAR.CFG.SAMP_EN)
-#define MCPASS_SAR_SAMP_GAIN(base)                   (((MCPASS_Type *)(base))->SAR.CFG.SAMP_GAIN)
-#define MCPASS_SAR_SAMPLE_TIME(base, timIdx)         (((MCPASS_Type *)(base))->SAR.CFG.SAMPLE_TIME[timIdx])
-#define MCPASS_SAR_CHAN_CFG(base, chanIdx)           (((MCPASS_Type *)(base))->SAR.CFG.CHAN_CFG[chanIdx])
-#define MCPASS_SAR_CHAN_COEFF(base, coefIdx)         (((MCPASS_Type *)(base))->SAR.CFG.CHAN_COEFF[coefIdx])
-#define MCPASS_SAR_FIR_CFG(base, firIdx)             (((MCPASS_Type *)(base))->SAR.CFG.FIR_CFG[firIdx])
-#define MCPASS_SAR_SEQ_GROUP(base, grpIdx)           (((MCPASS_Type *)(base))->SAR.SEQ_ENTRY[grpIdx])
-#define MCPASS_SAR_FIR_COEFS(base, firIdx, coefIdx)  (((MCPASS_Type *)(base))->SAR.FIR[firIdx].FIR_COEFS[coefIdx])
-#define MCPASS_CSG_SLICE_CMP_CFG(base, slcIdx)       (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].CMP_CFG)
-#define MCPASS_CSG_SLICE_DAC_CFG(base, slcIdx)       (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_CFG)
-#define MCPASS_CSG_SLICE_DAC_PARAM_SYNC(base, slcIdx)   (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_PARAM_SYNC)
-#define MCPASS_CSG_SLICE_DAC_MODE_START(base, slcIdx)   (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_MODE_START)
-#define MCPASS_CSG_SLICE_DAC_VAL_A(base, slcIdx)     (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_VAL_A)
-#define MCPASS_CSG_SLICE_DAC_VAL_B(base, slcIdx)     (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_VAL_B)
-#define MCPASS_CSG_SLICE_DAC_PERIOD(base, slcIdx)    (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_PERIOD)
-#define MCPASS_CSG_SLICE_DAC_VAL(base, slcIdx)       (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_VAL)
-#define MCPASS_CSG_SLICE_DAC_STATUS(base, slcIdx)    (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_STATUS)
-#define MCPASS_CSG_SLICE_CMP_STATUS(base, slcIdx)    (((MCPASS_Type *)(base))->CSG.SLICE[slcIdx].CMP_STATUS)
-#define MCPASS_CSG_LUT_CFG(base, lutIdx, dataIdx)    (((MCPASS_Type *)(base))->CSG.LUT_CFG[lutIdx].LUT_DATA[dataIdx])
-#define MCPASS_CSG_CTRL(base)                        (((MCPASS_Type *)(base))->CSG.CSG_CTRL)
-#define MCPASS_CSG_DAC_INTR(base)                    (((MCPASS_Type *)(base))->CSG.DAC_INTR)
-#define MCPASS_CSG_DAC_INTR_SET(base)                (((MCPASS_Type *)(base))->CSG.DAC_INTR_SET)
-#define MCPASS_CSG_DAC_INTR_MASK(base)               (((MCPASS_Type *)(base))->CSG.DAC_INTR_MASK)
-#define MCPASS_CSG_DAC_INTR_MASKED(base)             (((MCPASS_Type *)(base))->CSG.DAC_INTR_MASKED)
-#define MCPASS_CSG_CMP_INTR(base)                    (((MCPASS_Type *)(base))->CSG.CMP_INTR)
-#define MCPASS_CSG_CMP_INTR_SET(base)                (((MCPASS_Type *)(base))->CSG.CMP_INTR_SET)
-#define MCPASS_CSG_CMP_INTR_MASK(base)               (((MCPASS_Type *)(base))->CSG.CMP_INTR_MASK)
-#define MCPASS_CSG_CMP_INTR_MASKED(base)             (((MCPASS_Type *)(base))->CSG.CMP_INTR_MASKED)
+#define HPPASS_AC_CTRL(base)                         (((HPPASS_Type *)(base))->ACTRLR.CTRL)
+#define HPPASS_AC_BLOCK_STATUS(base)                 (((HPPASS_Type *)(base))->ACTRLR.BLOCK_STATUS)
+#define HPPASS_AC_STATUS(base)                       (((HPPASS_Type *)(base))->ACTRLR.STATUS)
+#define HPPASS_AC_CMD_RUN(base)                      (((HPPASS_Type *)(base))->ACTRLR.CMD_RUN)
+#define HPPASS_AC_CMD_STATE(base)                    (((HPPASS_Type *)(base))->ACTRLR.CMD_STATE)
+#define HPPASS_AC_CFG(base)                          (((HPPASS_Type *)(base))->ACTRLR.CFG)
+#define HPPASS_AC_CNTR_STATUS(base, cntIdx)          (((HPPASS_Type *)(base))->ACTRLR.CNTR_STATUS[cntIdx])
+#define HPPASS_AC_TT_CFG0(base, rowIdx)              (((HPPASS_ACTRLR_TTCFG_Type *)(&((HPPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG0)
+#define HPPASS_AC_TT_CFG1(base, rowIdx)              (((HPPASS_ACTRLR_TTCFG_Type *)(&((HPPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG1)
+#define HPPASS_AC_TT_CFG2(base, rowIdx)              (((HPPASS_ACTRLR_TTCFG_Type *)(&((HPPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG2)
+#define HPPASS_AC_TT_CFG3(base, rowIdx)              (((HPPASS_ACTRLR_TTCFG_Type *)(&((HPPASS_Type *)base)->ACTRLR.TTCFG[rowIdx]))->TT_CFG3)
+#define HPPASS_FIFO_INTR(base)                       (((HPPASS_Type *)(base))->MMIO.FIFO_INTR)
+#define HPPASS_FIFO_INTR_SET(base)                   (((HPPASS_Type *)(base))->MMIO.FIFO_INTR_SET)
+#define HPPASS_FIFO_INTR_MASK(base)                  (((HPPASS_Type *)(base))->MMIO.FIFO_INTR_MASK)
+#define HPPASS_FIFO_INTR_MASKED(base)                (((HPPASS_Type *)(base))->MMIO.FIFO_INTR_MASKED)
+#define HPPASS_MMIO_INTR(base)                       (((HPPASS_Type *)(base))->MMIO.HPPASS_INTR)
+#define HPPASS_MMIO_INTR_SET(base)                   (((HPPASS_Type *)(base))->MMIO.HPPASS_INTR_SET)
+#define HPPASS_MMIO_INTR_MASK(base)                  (((HPPASS_Type *)(base))->MMIO.HPPASS_INTR_MASK)
+#define HPPASS_MMIO_TR_LEVEL_CFG(base)               (((HPPASS_Type *)(base))->MMIO.TR_LEVEL_CFG)
+#define HPPASS_MMIO_TR_LEVEL_OUT(base, trigIdx)      (((HPPASS_Type *)(base))->MMIO.TR_LEVEL_OUT[trigIdx])
+#define HPPASS_MMIO_TR_PULSE_OUT(base, trigIdx)      (((HPPASS_Type *)(base))->MMIO.TR_PULSE_OUT[trigIdx])
+#define HPPASS_MMIO_INTR_MASKED(base)                (((HPPASS_Type *)(base))->MMIO.HPPASS_INTR_MASKED)
+#define HPPASS_MMIO_FIFO_CFG(base)                   (((HPPASS_Type *)(base))->MMIO.FIFO.CFG)
+#define HPPASS_MMIO_FIFO_LEVEL(base, fifoIdx)        (((HPPASS_Type *)(base))->MMIO.FIFO.LEVEL[fifoIdx])
+#define HPPASS_MMIO_FIFO_USED(base, fifoIdx)         (((HPPASS_Type *)(base))->MMIO.FIFO.USED[fifoIdx])
+#define HPPASS_MMIO_FIFO_RD_DATA(base, fifoIdx)      (((HPPASS_Type *)(base))->MMIO.FIFO.RD_DATA[fifoIdx])
+#define HPPASS_SAR_CALOFFST(base, idx)               (((HPPASS_Type *)(base))->SARADC.CALOFFST[idx])
+#define HPPASS_SAR_CALLIN(base, idx)                 (((HPPASS_Type *)(base))->SARADC.CALLIN[idx])
+#define HPPASS_SAR_CALGAINC(base)                    (((HPPASS_Type *)(base))->SARADC.CALGAINC)
+#define HPPASS_SAR_CALGAINF(base)                    (((HPPASS_Type *)(base))->SARADC.CALGAINF)
+#define HPPASS_SAR_CTRL(base)                        (((HPPASS_Type *)(base))->SAR.CFG.CTRL)
+#define HPPASS_SAR_RESULT_INTR(base)                 (((HPPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR)
+#define HPPASS_SAR_RESULT_INTR_SET(base)             (((HPPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR_SET)
+#define HPPASS_SAR_RESULT_INTR_MASK(base)            (((HPPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR_MASK)
+#define HPPASS_SAR_RESULT_INTR_MASKED(base)          (((HPPASS_Type *)(base))->SAR.CFG.SAR_RESULT_INTR_MASKED)
+#define HPPASS_SAR_LIMIT_INTR(base)                  (((HPPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR)
+#define HPPASS_SAR_LIMIT_INTR_SET(base)              (((HPPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR_SET)
+#define HPPASS_SAR_LIMIT_INTR_MASK(base)             (((HPPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR_MASK)
+#define HPPASS_SAR_LIMIT_INTR_MASKED(base)           (((HPPASS_Type *)(base))->SAR.CFG.SAR_RANGE_INTR_MASKED)
+#define HPPASS_SAR_GROUP_HOLD_VIOLATION(base)        (((HPPASS_Type *)(base))->SAR.CFG.ENTRY_HOLD_VIOLATION)
+#define HPPASS_SAR_GROUP_HOLD_CNT(base)              (((HPPASS_Type *)(base))->SAR.CFG.ENTRY_HOLD_CNT)
+#define HPPASS_SAR_LIMIT_STATUS(base)                (((HPPASS_Type *)(base))->SAR.CFG.RANGE_STATUS)
+#define HPPASS_SAR_STATUS(base)                      (((HPPASS_Type *)(base))->SAR.CFG.SAR_STATUS)
+#define HPPASS_SAR_RESULT_STATUS(base)               (((HPPASS_Type *)(base))->SAR.CFG.RESULT_UPDATED)
+#define HPPASS_SAR_RESULT_OVERFLOW(base)             (((HPPASS_Type *)(base))->SAR.CFG.RESULT_OVERFLOW)
+#define HPPASS_SAR_RESULT_MASK(base)                 (((HPPASS_Type *)(base))->SAR.CFG.RESULT_MASK)
+#define HPPASS_SAR_CHAN_RESULT(base, chanIdx)        (((HPPASS_Type *)(base))->SAR.CFG.CHAN_RESULT[chanIdx])
+#define HPPASS_SAR_CHAN_RESULT_PACKED(base, chanIdx) (((HPPASS_Type *)(base))->SAR.CFG.CHAN_RESULT_PACKED[chanIdx])
+#define HPPASS_SAR_FIR_RESULT(base, firIdx)          (((HPPASS_Type *)(base))->SAR.CFG.FIR_RESULT[firIdx])
+#define HPPASS_SAR_LIMIT_CFG(base, limIdx)           (((HPPASS_Type *)(base))->SAR.CFG.RANGE_CFG[limIdx])
+#define HPPASS_SAR_LIMIT_LOW(base, limIdx)           (((HPPASS_Type *)(base))->SAR.CFG.RANGE_LOW[limIdx])
+#define HPPASS_SAR_LIMIT_HIGH(base, limIdx)          (((HPPASS_Type *)(base))->SAR.CFG.RANGE_HIGH[limIdx])
+#define HPPASS_SAR_AROUTE_STATUS(base)               (((HPPASS_Type *)(base))->SAR.CFG.AROUTE_STATUS)
+#define HPPASS_SAR_AROUTE_CTRL_MODE(base)            (((HPPASS_Type *)(base))->SAR.CFG.AROUTE_CTRL_MODE)
+#define HPPASS_SAR_AROUTE_FW_CTRL(base)              (((HPPASS_Type *)(base))->SAR.CFG.AROUTE_FW_CTRL)
+#define HPPASS_SAR_AROUTE_FW_CTRL_CLR(base)          (((HPPASS_Type *)(base))->SAR.CFG.AROUTE_FW_CTRL_CLR)
+#define HPPASS_SAR_TEMPSENSE_CTRL(base)              (((HPPASS_Type *)(base))->SAR.CFG.TEMPSENSE_CTRL)
+#define HPPASS_SAR_SAMP_EN(base)                     (((HPPASS_Type *)(base))->SAR.CFG.SAMP_EN)
+#define HPPASS_SAR_SAMP_GAIN(base)                   (((HPPASS_Type *)(base))->SAR.CFG.SAMP_GAIN)
+#define HPPASS_SAR_SAMPLE_TIME(base, timIdx)         (((HPPASS_Type *)(base))->SAR.CFG.SAMPLE_TIME[timIdx])
+#define HPPASS_SAR_CHAN_CFG(base, chanIdx)           (((HPPASS_Type *)(base))->SAR.CFG.CHAN_CFG[chanIdx])
+#define HPPASS_SAR_CHAN_COEFF(base, coefIdx)         (((HPPASS_Type *)(base))->SAR.CFG.CHAN_COEFF[coefIdx])
+#define HPPASS_SAR_FIR_CFG(base, firIdx)             (((HPPASS_Type *)(base))->SAR.CFG.FIR_CFG[firIdx])
+#define HPPASS_SAR_SEQ_GROUP(base, grpIdx)           (((HPPASS_Type *)(base))->SAR.SEQ_ENTRY[grpIdx])
+#define HPPASS_SAR_FIR_COEFS(base, firIdx, coefIdx)  (((HPPASS_Type *)(base))->SAR.FIR[firIdx].FIR_COEFS[coefIdx])
+#define HPPASS_CSG_SLICE_CMP_CFG(base, slcIdx)       (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].CMP_CFG)
+#define HPPASS_CSG_SLICE_DAC_CFG(base, slcIdx)       (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_CFG)
+#define HPPASS_CSG_SLICE_DAC_PARAM_SYNC(base, slcIdx)   (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_PARAM_SYNC)
+#define HPPASS_CSG_SLICE_DAC_MODE_START(base, slcIdx)   (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_MODE_START)
+#define HPPASS_CSG_SLICE_DAC_VAL_A(base, slcIdx)     (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_VAL_A)
+#define HPPASS_CSG_SLICE_DAC_VAL_B(base, slcIdx)     (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_VAL_B)
+#define HPPASS_CSG_SLICE_DAC_PERIOD(base, slcIdx)    (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_PERIOD)
+#define HPPASS_CSG_SLICE_DAC_VAL(base, slcIdx)       (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_VAL)
+#define HPPASS_CSG_SLICE_DAC_STATUS(base, slcIdx)    (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].DAC_STATUS)
+#define HPPASS_CSG_SLICE_CMP_STATUS(base, slcIdx)    (((HPPASS_Type *)(base))->CSG.SLICE[slcIdx].CMP_STATUS)
+#define HPPASS_CSG_LUT_CFG(base, lutIdx, dataIdx)    (((HPPASS_Type *)(base))->CSG.LUT_CFG[lutIdx].LUT_DATA[dataIdx])
+#define HPPASS_CSG_CTRL(base)                        (((HPPASS_Type *)(base))->CSG.CSG_CTRL)
+#define HPPASS_CSG_DAC_INTR(base)                    (((HPPASS_Type *)(base))->CSG.DAC_INTR)
+#define HPPASS_CSG_DAC_INTR_SET(base)                (((HPPASS_Type *)(base))->CSG.DAC_INTR_SET)
+#define HPPASS_CSG_DAC_INTR_MASK(base)               (((HPPASS_Type *)(base))->CSG.DAC_INTR_MASK)
+#define HPPASS_CSG_DAC_INTR_MASKED(base)             (((HPPASS_Type *)(base))->CSG.DAC_INTR_MASKED)
+#define HPPASS_CSG_CMP_INTR(base)                    (((HPPASS_Type *)(base))->CSG.CMP_INTR)
+#define HPPASS_CSG_CMP_INTR_SET(base)                (((HPPASS_Type *)(base))->CSG.CMP_INTR_SET)
+#define HPPASS_CSG_CMP_INTR_MASK(base)               (((HPPASS_Type *)(base))->CSG.CMP_INTR_MASK)
+#define HPPASS_CSG_CMP_INTR_MASKED(base)             (((HPPASS_Type *)(base))->CSG.CMP_INTR_MASKED)
 
-#define MCPASS_SAR_GROUP_TR_COLLISION(base)          (((MCPASS_Type *)(base))->SAR.CFG.ENTRY_TR_COLLISION)
-#define MCPASS_INFRA_TR_IN_SEL(base)                 (((MCPASS_Type *)(base))->INFRA.TR_IN_SEL)
-#define MCPASS_INFRA_HW_TR_MODE(base)                (((MCPASS_Type *)(base))->INFRA.HW_TR_MODE)
-#define MCPASS_INFRA_FW_TR_PULSE(base)               (((MCPASS_Type *)(base))->INFRA.FW_TR_PULSE)
-#define MCPASS_INFRA_FW_TR_LEVEL(base)               (((MCPASS_Type *)(base))->INFRA.FW_TR_LEVEL)
-#define MCPASS_INFRA_CLOCK_STARTUP_DIV(base)         (((MCPASS_Type *)(base))->INFRA.CLOCK_STARTUP_DIV)
-#define MCPASS_INFRA_STARTUP_CFG(base, cfg)          (((MCPASS_Type *)(base))->INFRA.STARTUP_CFG[cfg])
-#define MCPASS_INFRA_AREF_CTRL(base)                 (((MCPASS_Type *)(base))->INFRA.AREFV2.AREF_CTRL)
-#define MCPASS_INFRA_VDDA_STATUS(base)               (((MCPASS_Type *)(base))->INFRA.VDDA_STATUS)
+#define HPPASS_SAR_GROUP_TR_COLLISION(base)          (((HPPASS_Type *)(base))->SAR.CFG.ENTRY_TR_COLLISION)
+#define HPPASS_INFRA_TR_IN_SEL(base)                 (((HPPASS_Type *)(base))->INFRA.TR_IN_SEL)
+#define HPPASS_INFRA_HW_TR_MODE(base)                (((HPPASS_Type *)(base))->INFRA.HW_TR_MODE)
+#define HPPASS_INFRA_FW_TR_PULSE(base)               (((HPPASS_Type *)(base))->INFRA.FW_TR_PULSE)
+#define HPPASS_INFRA_FW_TR_LEVEL(base)               (((HPPASS_Type *)(base))->INFRA.FW_TR_LEVEL)
+#define HPPASS_INFRA_CLOCK_STARTUP_DIV(base)         (((HPPASS_Type *)(base))->INFRA.CLOCK_STARTUP_DIV)
+#define HPPASS_INFRA_STARTUP_CFG(base, cfg)          (((HPPASS_Type *)(base))->INFRA.STARTUP_CFG[cfg])
+#define HPPASS_INFRA_AREF_CTRL(base)                 (((HPPASS_Type *)(base))->INFRA.AREFV2.AREF_CTRL)
+#define HPPASS_INFRA_VDDA_STATUS(base)               (((HPPASS_Type *)(base))->INFRA.VDDA_STATUS)
 
 #define CY_HPPASS_FIFO_RD_DATA_RESULT_Pos    (0UL)
 #define CY_HPPASS_FIFO_RD_DATA_RESULT_Msk    (0xFFFFUL)

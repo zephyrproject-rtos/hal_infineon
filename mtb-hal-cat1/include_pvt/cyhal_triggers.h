@@ -89,6 +89,10 @@ extern "C" {
 #include "triggers/cyhal_triggers_xmc7100.h"
 #elif defined(CY_DEVICE_TVIIBH8M)
 #include "triggers/cyhal_triggers_xmc7200.h"
+#elif defined(CY_DEVICE_PSE84)
+#include "triggers/cyhal_triggers_pse84.h"
+#elif defined(CY_DEVICE_PSC3)
+#include "triggers/cyhal_triggers_psc3.h"
 #elif defined(CY_DEVICE_TVIIBE1M)
 #include "triggers/cyhal_triggers_tviibe1m.h"
 #elif defined(CY_DEVICE_TVIIBE2M)

@@ -28,7 +28,7 @@
 
 <Personality id="eeprom" name="eeprom" version="2.1" xmlns="http://cypress.com/xsd/cyhwpersonality_v7">
   <Dependencies>
-    <IpBlock name="mxs40srss" />
+    <IpBlock name="mxs40srss,mxs40ssrss" />
     <Resource name="srss\.eeprom" />
   </Dependencies>
 
@@ -36,7 +36,7 @@
 
   <Parameters>
     <!-- EM_EEPROM documentation -->
-    <ParamDoc id="doc" name="Configuration Help" group="Overview" default="https://Infineon.github.io/emeeprom/em_eeprom_api_reference_manual/html/index.html" linkText="Em_EEPROM Middleware Library Documentation" visible="true" desc="Opens the Em_EEPROM Middleware Library Documentation." />
+    <ParamDoc id="doc" name="Configuration Help" group="Overview" default="https://infineon.github.io/emeeprom/html/index.html" linkText="Em_EEPROM Middleware Library Documentation" visible="true" desc="Opens the Em_EEPROM Middleware Library Documentation." />
 
     <ParamRange id="eeprom_size" name="EEPROM Size" group="General" default="2048" min="1" max="65535" resolution="1" visible="true" editable="true" desc="Emulated EEPROM size" />
     <ParamBool id="simpleMode" name="Simple Mode" group="General" default="false" visible="true" editable="true" desc="Emulated EEPROM SimpleMode" />

@@ -45,7 +45,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.1', 1, \
 *
 * Initialize the PDM-PCM Channel
 *
-* \pre Make sure PDM-PCM is intialized before calling this function. \ref Cy_PDM_PCM_Init
+* \pre Make sure PDM-PCM is initialized before calling this function. \ref Cy_PDM_PCM_Init
 * 
 * \param  base The pointer to the PDM-PCM instance address
 * \param  channel_config The pointer to a configuration structure.

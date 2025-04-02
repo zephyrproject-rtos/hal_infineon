@@ -144,11 +144,6 @@ extern "C" {
 #define CYHAL_IPC_IMPL_HEADER          "cyhal_ipc_impl.h"       //!< Implementation specific header for IPC
 #endif
 
-//TODO REMOVE this once PDL provides the missing items
-#if defined(COMPONENT_CAT1B)
-#include "cyhal_missing_pdl.h"
-#endif
-
 /** \endcond */
 
 /** Callbacks for Sleep and Deepsleep APIs */
@@ -179,7 +174,7 @@ typedef struct {
 } _cyhal_buffer_info_t;
 
 /**
- * @brief Shared data between timer/counter and PWM
+ * @brief Shared TCPWM data between timer/counter, PWM, and Quaddec
  *
  * Application code should not rely on the specific content of this struct.
  * They are considered an implementation detail which is subject to change
@@ -521,7 +516,7 @@ typedef struct
 #if defined(CY_IP_MXS40PASS_SAR)
     cy_stc_sar_config_t const*          config;
 #elif defined(CY_IP_MXS40EPASS_ESAR_INSTANCES)
-    cy_stc_sar2_config_t const*          config;
+    cy_stc_sar2_config_t const*         config;
 #elif defined(CY_IP_MXS40ADCMIC_INSTANCES)
     cy_stc_adcmic_config_t const*       config;
 #endif

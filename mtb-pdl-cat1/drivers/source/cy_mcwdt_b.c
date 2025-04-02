@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_mcwdt_b.c
-* \version 1.80
+* \version 1.90
 *
 *  Description:
 *   Provides a system API for the MCWDT driver.
@@ -50,6 +50,9 @@ extern "C" {
 *  \note
 *  This API should not be called when the counters are running. Prior to calling
 *  this API the counter should be disabled.
+*
+* \funcusage
+* \snippet mcwdt_b/snippet/main.c snippet_Cy_MCWDT_Init
 *
 *******************************************************************************/
 cy_en_mcwdt_status_t Cy_MCWDT_Init(MCWDT_Type *base, cy_stc_mcwdt_config_t const *config)
@@ -110,6 +113,9 @@ cy_en_mcwdt_status_t Cy_MCWDT_Init(MCWDT_Type *base, cy_stc_mcwdt_config_t const
 *  \note
 *  This API should not be called when the counters are running. Prior to calling
 *  this API the counter should be disabled.
+*
+* \funcusage
+* \snippet mcwdt_b/snippet/main.c snippet_Cy_MCWDT_DeInit
 *
 *******************************************************************************/
 void Cy_MCWDT_DeInit(MCWDT_Type *base)

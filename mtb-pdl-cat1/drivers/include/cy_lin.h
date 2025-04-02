@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_lin.h
-* \version 1.1
+* \version 1.2
 *
 * \brief
 * Provides an API declaration of the LIN driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2020-2021, Cypress Semiconductor Corporation. All rights reserved.
+* Copyright 2020-2025, Cypress Semiconductor Corporation. All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -22,27 +22,29 @@
 * You can include cy_pdl.h to get access to all functions
 * and declarations in the PDL.
 *
-* The Local Interconnect Network (LIN) bus was developed to create a standard for low-cost, low-end multiplexed communication. The use of a standard * bus protocol promotes the interoperability of network nodes.
-* The LIN bus is a sub-bus system based on a serial communications protocol. The bus is a single master / multiple slave bus that uses a single wire * to transmit data.
-* A LIN cluster exchanges messages with a pre-defined message frame format. The master node initiates a message exchange. Both the master node and   * the slave nodes can transmit (TX) and receive (RX).
-* The LIN protocol is half-duplex: a LIN node is either transmitting or receiving, but it cannot transmit and receive at the same time. Messages are * exchanged when the LIN cluster is in operational mode.
-* A LIN cluster also exchanges wake-up signals. Both the master node and the slave nodes can initiate a wake-up. Wake-up signals are exchanged when   * the LIN cluster is in sleep mode.
-* The LIN bus can have a length of 10's of meters and has a bit-rate in the range of 1 kbps to 20 kbps. Most bus timing is expressed in bit periods  * (e.g. a 20 kbps LIN bus has a 50 us bit period).
-* The LIN bus uses single wire communication using a "lin" line with an operating Voltage of 12 V. Most master and slave nodes use discrete           * transceiver devices.
+* The Local Interconnect Network (LIN) bus was developed to create a standard for low-cost, low-end multiplexed communication. The use of a standard bus protocol promotes the interoperability of network nodes.
+* The LIN bus is a sub-bus system based on a serial communications protocol. The bus is a single master / multiple slave bus that uses a single wire to transmit data.
+* A LIN cluster exchanges messages with a pre-defined message frame format. The master node initiates a message exchange. Both the master node and the slave nodes can transmit (TX) and receive (RX).
+* The LIN protocol is half-duplex: a LIN node is either transmitting or receiving, but it cannot transmit and receive at the same time. Messages are exchanged when the LIN cluster is in operational mode.
+* A LIN cluster also exchanges wake-up signals. Both the master node and the slave nodes can initiate a wake-up. Wake-up signals are exchanged when the LIN cluster is in sleep mode.
+* The LIN bus can have a length of 10's of meters and has a bit-rate in the range of 1 kbps to 20 kbps. Most bus timing is expressed in bit periods (e.g. a 20 kbps LIN bus has a 50 us bit period).
+* The LIN bus uses single wire communication using a "lin" line with an operating Voltage of 12 V. Most master and slave nodes use discrete transceiver devices.
 *
 * Features:
 * * Single LIN hardware unit supporting multiple LIN channels.
 * * Unified interrupt model.
-* * Per LIN channel:
-* * * Master and slave functionality.
-* * * Master node autonomous header transmission. Master node autonomous response transmission and reception.
-* * * Slave node autonomous header reception. Slave node autonomous response transmission and reception.
-* * * Message buffer for PID, data and checksum fields.
-* * * Break detection during message reception.
-* * * Classic and enhanced checksum.
-* * * Wakeup signaling.
-* * * Timeout detection.
-* * * Error detection.
+* @details  Per LIN channel:
+* - Master and slave functionality.
+* - Master node autonomous header transmission.
+* - Master node autonomous response transmission and reception.
+* - Slave node autonomous header reception.
+* - Slave node autonomous response transmission and reception.
+* - Message buffer for PID, data, and checksum fields.
+* - Break detection during message reception.
+* - Classic and enhanced checksum.
+* - Wakeup signaling.
+* - Timeout detection.
+* - Error detection.
 *
 * The LIN bus is an industry standard.
 *
@@ -147,6 +149,19 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="3">1.2</td>
+*     <td>Sets LIN break/wakeup field length updated in the \ref Cy_LIN_SetBreakWakeupFieldLength function</td>
+*     <td>Bug fix</td>
+*   </tr>
+*   <tr>
+*     <td>Sets LIN response field data length updated in the \ref Cy_LIN_SetDataLength function</td>
+*     <td>Bug fix</td>
+*   </tr>
+*   <tr>
+*     <td>Sets LIN checksum type setting updated in the \ref Cy_LIN_SetChecksumType function</td>
+*     <td>Bug fix</td>
+*   </tr>
+*   <tr>
 *     <td>1.1</td>
 *     <td>Fixed MISRA 2012 violations.</td>
 *     <td>MISRA 2012 compliance.</td>
@@ -199,7 +214,7 @@ extern "C" {
 #define CY_LIN_DRV_VERSION_MAJOR    1
 
 /** Driver minor version */
-#define CY_LIN_DRV_VERSION_MINOR    1
+#define CY_LIN_DRV_VERSION_MINOR    2
 
 /** LIN driver ID */
 #define CY_LIN_ID CY_PDL_DRV_ID(0x37u)

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_lvd_ht.c
-* \version 1.10
+* \version 1.20
 *
 * The source code file for the LVD HT driver.
 *
