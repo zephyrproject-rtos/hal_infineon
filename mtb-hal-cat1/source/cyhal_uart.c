@@ -151,6 +151,8 @@ static volatile cyhal_uart_t* _cyhal_uart_irq_obj = NULL;
 
 #if defined (COMPONENT_CAT5)
 static void _cyhal_uart_irq_handler(_cyhal_system_irq_t irqn)
+#elif defined (COMPONENT_CAT1C)
+void cyhal_uart_irq_handler(cyhal_uart_t* cyhal_uart_irq_obj)
 #else
 static void _cyhal_uart_irq_handler(void)
 #endif
@@ -161,6 +163,8 @@ static void _cyhal_uart_irq_handler(void)
     cyhal_uart_t* old_irq_obj = (cyhal_uart_t*)_cyhal_uart_irq_obj;
 #if defined (COMPONENT_CAT5)
     _cyhal_uart_irq_obj = (cyhal_uart_t*) _cyhal_scb_get_irq_obj(irqn);
+#elif defined (COMPONENT_CAT1C)
+    _cyhal_uart_irq_obj = cyhal_uart_irq_obj;
 #else
     _cyhal_uart_irq_obj = (cyhal_uart_t*) _cyhal_scb_get_irq_obj();
 #endif
@@ -789,8 +793,10 @@ static cy_rslt_t _cyhal_uart_init_hw(cyhal_uart_t *obj)
         Cy_SCB_EnableInterrupt(obj->base);
     #endif
 
+        #if !defined (COMPONENT_CAT1C)
         _cyhal_irq_register(_CYHAL_SCB_IRQ_N[scb_arr_index], CYHAL_ISR_PRIORITY_DEFAULT, (cy_israddress)_cyhal_uart_irq_handler);
         _cyhal_irq_enable(_CYHAL_SCB_IRQ_N[scb_arr_index]);
+        #endif
 
         _cyhal_scb_update_instance_data(obj->resource.block_num, (void*)obj, &_cyhal_uart_pm_callback_instance);
 
@@ -1674,7 +1680,9 @@ void cyhal_uart_enable_event(cyhal_uart_t *obj, cyhal_uart_event_t event, uint8_
         Cy_SCB_SetTxInterruptMask(obj->base, Cy_SCB_GetTxInterruptMask(obj->base) & ~CY_SCB_TX_INTR_MASK);
     }
 
+    #if !defined (COMPONENT_CAT1C)
     _cyhal_irq_set_priority(_CYHAL_SCB_IRQ_N[scb_arr_index], intr_priority);
+    #endif
     _cyhal_irq_enable(_CYHAL_SCB_IRQ_N[scb_arr_index]);
     #if defined(COMPONENT_CAT5)
     // The above Cy_SCB_DisableInterrupt also disconnects all the callback functions. They need to be registered again
