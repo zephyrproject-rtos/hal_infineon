@@ -150,7 +150,9 @@ struct whd_bus_priv
 static whd_result_t whd_spi_download_firmware(whd_driver_t whd_driver);
 static whd_result_t whd_bus_spi_transfer_buffer(whd_driver_t whd_driver, whd_bus_transfer_direction_t direction,
                                                 whd_bus_function_t function, uint32_t address, whd_buffer_t buffer);
+#ifdef BLHS_SUPPORT
 static whd_result_t whd_bus_spi_blhs(whd_driver_t whd_driver, whd_bus_blhs_stage_t stage);
+#endif
 static whd_result_t whd_bus_spi_download_resource(whd_driver_t whd_driver, whd_resource_type_t resource,
                                                   whd_bool_t direct_resource, uint32_t address, uint32_t image_size);
 static whd_result_t whd_bus_spi_write_wifi_nvram_image(whd_driver_t whd_driver);
@@ -240,10 +242,11 @@ whd_result_t whd_bus_spi_attach(whd_driver_t whd_driver, whd_spi_config_t *whd_s
     whd_bus_info->whd_bus_reinit_stats_fptr = whd_bus_spi_reinit_stats;
     whd_bus_info->whd_bus_irq_register_fptr = whd_bus_spi_irq_register;
     whd_bus_info->whd_bus_irq_enable_fptr = whd_bus_spi_irq_enable;
+#ifdef BLHS_SUPPORT
     whd_bus_info->whd_bus_blhs_fptr = whd_bus_spi_blhs;
+#endif
     whd_bus_info->whd_bus_download_resource_fptr = whd_bus_spi_download_resource;
     whd_bus_info->whd_bus_set_backplane_window_fptr = whd_bus_spi_set_backplane_window;
-
     return WHD_SUCCESS;
 }
 
@@ -1226,10 +1229,12 @@ whd_result_t whd_bus_spi_irq_enable(whd_driver_t whd_driver, whd_bool_t enable)
 }
 #endif /* ifndef WHD_USE_CUSTOM_HAL_IMPL */
 
+#ifdef BLHS_SUPPORT
 static whd_result_t whd_bus_spi_blhs(whd_driver_t whd_driver, whd_bus_blhs_stage_t stage)
 {
     return WHD_SUCCESS;
 }
+#endif
 
 static whd_result_t whd_bus_spi_download_resource(whd_driver_t whd_driver, whd_resource_type_t resource,
                                                   whd_bool_t direct_resource, uint32_t address, uint32_t image_size)
