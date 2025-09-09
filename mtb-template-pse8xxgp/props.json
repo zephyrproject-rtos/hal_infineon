@@ -1,0 +1,175 @@
+{
+    "core": {
+        "id": "b9416fdf-7782-52c6-b5cb-4f2380a3ff69",
+        "name": "mtb-template-pse8xxgp",
+        "version": "1.0.0.464"
+    },
+    "opt": {
+        "props": {
+            "TemplateData": {
+                "udd_key": "DeviceDie",
+                "EXPLORER": {
+                    "udd_key": "DeviceSeries",
+                    "PSE8xxGP": {
+                        "udd_key": "Security",
+                        "EPC2": {
+                            "files": [
+                                "filelist/reserved-epc2.txt",
+                                "filelist/psoc_edge.txt",
+                                "filelist/pse84.txt"
+                            ],
+                            "deps": "pse8xxgp_dependencies",
+                            "components": [
+                                "connectivity_components"
+                            ],
+                            "defines": [
+                                "connectivity_defines"
+                            ],
+                            "makefile_vars": "pse8xxgp_vars",
+                            "files_init": "filelist/init_edge.txt"
+                        },
+                        "EPC4": {
+                            "files": [
+                                "filelist/reserved-epc4.txt",
+                                "filelist/psoc_edge.txt",
+                                "filelist/pse84.txt"
+                            ],
+                            "deps": "pse8xxgp_dependencies",
+                            "components": [
+                                "connectivity_components"
+                            ],
+                            "defines": [
+                                "connectivity_defines"
+                            ],
+                            "makefile_vars": "pse8xxgp_vars",
+                            "files_init": "filelist/init_edge.txt"
+                        }
+                    }
+                }
+            },
+            "dependency_sets": {
+                "pse8xxgp_dependencies": [
+                    "deps/core-lib.mtbx",
+                    "deps/core-make.mtbx",
+                    "deps/mtb-dsl-pse8xxgp.mtbx",
+                    "deps/se-rt-services-utils.mtbx"
+                ]
+            },
+            "component_sets": {
+                "connectivity_components": [
+                    {
+                        "description": "Bluetooth communication interface between the connectivity chip and the host MCU.",
+                        "display": "Bluetooth communication interface",
+                        "options": [
+                            {
+                                "default": true,
+                                "display": "The UART HCI mode used by bluetooth-freertos",
+                                "name": "HCI-UART"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "WIFI communication interface between the connectivity chip and the host MCU.",
+                        "display": "WIFI communication interface",
+                        "options": [
+                            {
+                                "default": true,
+                                "display": "The SDIO communication interface is used by the wifi-host-driver",
+                                "name": "WIFI_INTERFACE_SDIO"
+                            },
+                            {
+                                "display": "The SPI communication interface is used by the wifi-host-driver",
+                                "name": "WIFI_INTERFACE_SPI"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "define_sets": {
+                "connectivity_defines": [
+                    {
+                        "description": "Option to set the GPIO drive mode for the WL_REG_ON output.",
+                        "display": "WIFI WL_REG_ON GPIO Drive Mode",
+                        "options": [
+                            {
+                                "default": true,
+                                "define": "CYBSP_WIFI_WL_REG_ON_GPIO_DRIVE_MODE=MTB_HAL_GPIO_DRIVE_PULLUP",
+                                "display": "Pull up",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_WL_REG_ON_GPIO_DRIVE_MODE=MTB_HAL_GPIO_DRIVE_STRONG",
+                                "display": "Strong Drive",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    },
+                    {
+                        "description": "Option to set the GPIO drive mode for the WL_HOSTWAKE output.",
+                        "display": "WIFI WL_HOSTWAKE Drive Mode",
+                        "options": [
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_DRIVE_MODE=MTB_HAL_GPIO_DRIVE_OPENDRAINDRIVESLOW",
+                                "display": "Open Drain, drive slow",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_DRIVE_MODE=MTB_HAL_GPIO_DRIVE_NONE",
+                                "display": "High impedance digital",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    },
+                    {
+                        "description": "Option to set the Init State for the WL_HOSTWAKE output.",
+                        "display": "WIFI WL_HOSTWAKE Init State",
+                        "options": [
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_INIT_STATE=WHD_TRUE",
+                                "display": "True",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_WL_HOSTWAKE_INIT_STATE=WHD_FALSE",
+                                "display": "False",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    },
+                    {
+                        "description": "Option to set the IRQ Event for the WL_HOSTWAKE output.",
+                        "display": "WIFI WL_HOSTWAKE IRQ Event",
+                        "options": [
+                            {
+                                "define": "CYBSP_WIFI_HOST_WAKE_IRQ_EVENT=MTB_HAL_GPIO_IRQ_FALL",
+                                "display": "Fall",
+                                "value": ""
+                            },
+                            {
+                                "define": "CYBSP_WIFI_HOST_WAKE_IRQ_EVENT=MTB_HAL_GPIO_IRQ_RISE",
+                                "display": "Rise",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    }
+                ]
+            },
+            "makefile_var_sets": {
+                "pse8xxgp_vars": [
+                    {
+                        "name": "RECIPE_DIR",
+                        "value": "$(SEARCH_mtb-dsl-pse8xxgp)/make"
+                    },
+                    {
+                        "name": "BSP_DEVICE_SUPPORT_LIB",
+                        "value": "mtb-dsl-pse8xxgp"
+                    }
+                ]
+            }
+        }
+    }
+}
