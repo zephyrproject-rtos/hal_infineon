@@ -1,0 +1,3 @@
+#define WHD_VERSION "3.3.3.26653"
+#define WHD_BRANCH "WIFI5-v3.3.3"
+#define WHD_DATE "2025-04-14 03:18:50 +0000"

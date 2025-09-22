@@ -1,0 +1,9 @@
+[submodule "External/wifi-resources"]
+	path = External/wifi-resources
+	url = https://github.com/Infineon/wifi-resources.git
+[submodule "External/wpa3-external-supplicant"]
+	path = External/wpa3-external-supplicant
+	url = https://github.com/Infineon/wpa3-external-supplicant.git
+[submodule "External/mbedtls"]
+	path = External/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls.git
