@@ -1,0 +1,28 @@
+{
+    "configurator_support": true,
+    "core": {
+        "id": "51b3615a-7c24-483f-9db2-fcbd7b69ed80",
+        "name": "mtb-pdl-cat2"
+    },
+    "opt":{
+        "svd":{
+            "COMPONENT_CCG7D": "devices/svd/ccg7d.svd",
+            "COMPONENT_CCG7S": "devices/svd/ccg7s.svd",
+            "COMPONENT_PMG1S0": "devices/svd/pmg1s0.svd",
+            "COMPONENT_PMG1S1": "devices/svd/pmg1s1.svd",
+            "COMPONENT_PMG1S2": "devices/svd/pmg1s2.svd",
+            "COMPONENT_PMG1S3": "devices/svd/pmg1s3.svd",
+            "COMPONENT_PAG2S": "device/svd/pag2s.svd",
+            "COMPONENT_PSOC4000S": "devices/svd/psoc4000s.svd",
+            "COMPONENT_PSOC4000T": "devices/svd/psoc4000t.svd",
+            "COMPONENT_PSOC4HV144K": "devices/svd/psoc4hv144k.svd",
+            "COMPONENT_PSOC4HVMS64K": "devices/svd/psoc4hvms64k.svd",
+            "COMPONENT_PSOC4HVMS128K": "devices/svd/psoc4hvms128k.svd",
+            "COMPONENT_PSOC4100S": "devices/svd/psoc4100s.svd",
+            "COMPONENT_PSOC4100SMAX": "devices/svd/psoc4100smax.svd",
+            "COMPONENT_PSOC4100SP": "devices/svd/psoc4100sp.svd",
+            "COMPONENT_PSOC4100SP256KB":"devices/svd/psoc4100sp256kb.svd",
+            "COMPONENT_PSOC4NEXT":"devices/svd/psoc4100tp.svd"
+        }
+    }
+}
