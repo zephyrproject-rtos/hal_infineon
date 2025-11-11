@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass_sar.h
-* \version 1.30
+* \version 1.30.1
 *
 * Header file for the SAR ADC subsystem of the High Power Programmable Analog Sub-System.
 *

@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_04_80_m_csp.h
 *
 * \brief
-* PSoC6_04 device GPIO HAL header for 80-M-CSP package
+* PSOC6_04 device GPIO HAL header for 80-M-CSP package
 *
 ********************************************************************************
 * \copyright
@@ -30,10 +30,10 @@
 #include "cyhal_hw_resources.h"
 
 /**
- * \addtogroup group_hal_impl_pin_package_psoc6_04_80_m_csp PSoC6_04 80-M-CSP
+ * \addtogroup group_hal_impl_pin_package_psoc6_04_80_m_csp PSOC6_04 80-M-CSP
  * \ingroup group_hal_impl_pin_package
  * \{
- * Pin definitions and connections specific to the PSoC6_04 80-M-CSP package.
+ * Pin definitions and connections specific to the PSOC6_04 80-M-CSP package.
  */
 
 #if defined(__cplusplus)
@@ -48,7 +48,7 @@ extern "C" {
 /** Macro that, given a gpio, will extract the port number */
 #define CYHAL_GET_PORT(pin)         ((uint8_t)(((uint8_t)pin) >> 3U))
 
-/** Definitions for all of the pins that are bonded out on in the 80-M-CSP package for the PSoC6_04 series. */
+/** Definitions for all of the pins that are bonded out on in the 80-M-CSP package for the PSOC6_04 series. */
 typedef enum {
     NC = 0xFF, //!< No Connect/Invalid Pin
 

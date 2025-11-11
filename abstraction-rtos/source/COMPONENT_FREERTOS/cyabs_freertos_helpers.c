@@ -95,7 +95,9 @@
     #endif // if defined(_ABS_RTOS_DEEPSLEEP_ENABLED) || defined(_ABS_RTOS_SLEEP_ENABLED)
 #endif // if (configUSE_TICKLESS_IDLE != 0)
 
+#ifndef pdTICKS_TO_MS
 #define pdTICKS_TO_MS(xTicks)    ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
+#endif
 
 #if defined(MTB_HAL_API_VERSION) && ((MTB_HAL_API_VERSION) >= 3)
 #if defined(MTB_HAL_DRIVER_AVAILABLE_LPTIMER) && (MTB_HAL_DRIVER_AVAILABLE_LPTIMER)

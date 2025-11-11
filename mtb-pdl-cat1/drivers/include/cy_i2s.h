@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_i2s.h
-* \version 2.30
+* \version 2.40
 *
 * The header file of the I2S driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,6 +110,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.40</td>
+*     <td>Removed const qualifier for the \ref Cy_I2S_DeepSleepCallback callbackParams parameter for consistency with \ref Cy_SysPmCallback type.</td>
+*     <td>Defect fix.</td>
+*   </tr>
+*   <tr>
 *     <td>2.30</td>
 *     <td>Update to configure MCLK.</td>
 *     <td>Update to configure i2S on core CM7.</td>
@@ -187,7 +193,7 @@ extern "C" {
 #define CY_I2S_DRV_VERSION_MAJOR       2
 
 /** The driver minor version */
-#define CY_I2S_DRV_VERSION_MINOR       30
+#define CY_I2S_DRV_VERSION_MINOR       40
 
 /** The I2S driver identifier */
 #define CY_I2S_ID                      (CY_PDL_DRV_ID(0x20U))
@@ -519,7 +525,7 @@ typedef struct
 * The driver supports SysPm callback for Deep Sleep transition.
 * \{
 */
-cy_en_syspm_status_t     Cy_I2S_DeepSleepCallback(cy_stc_syspm_callback_params_t const * callbackParams, cy_en_syspm_callback_mode_t mode);
+cy_en_syspm_status_t     Cy_I2S_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
 /** \} */
 
 __STATIC_INLINE void     Cy_I2S_EnableTx(I2S_Type * base);

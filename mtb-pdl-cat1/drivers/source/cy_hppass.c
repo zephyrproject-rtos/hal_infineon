@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass.c
-* \version 1.20
+* \version 1.30.1
 *
 * \brief
 * Provides common public functions of the High Power Peripheral Analog Sub-System.

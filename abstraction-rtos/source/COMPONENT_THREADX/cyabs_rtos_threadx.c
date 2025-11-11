@@ -474,6 +474,33 @@ cy_rslt_t cy_rtos_scheduler_resume(void)
 }
 
 
+//--------------------------------------------------------------------------------------------------
+// cy_rtos_scheduler_get_state
+//--------------------------------------------------------------------------------------------------
+cy_rslt_t cy_rtos_scheduler_get_state(cy_scheduler_state_t* state)
+{
+    cy_rslt_t status;
+    if (state == NULL)
+    {
+        status = CY_RTOS_BAD_PARAM;
+    }
+    else
+    {
+        if (_cy_rtos_suspend_count > 0)
+        {
+            *state = CY_SCHEDULER_STATE_SUSPENDED;
+        }
+        else
+        {
+            // ThreadX scheduler is always running, if not suspended
+            *state = CY_SCHEDULER_STATE_RUNNING;
+        }
+        status = CY_RSLT_SUCCESS;
+    }
+    return status;
+}
+
+
 /******************************************************
 *                 Mutexes
 ******************************************************/

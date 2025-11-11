@@ -65,7 +65,14 @@ void Cy_SysPm_StoreDSContext_Wfi(void)
 {
     System_Store_NVIC_Reg();
     /* Clear the Warm Boot Entry status Flag */
+    #if !defined(CYBSP_FREERTOS_DSRAM_WARMBOOT_SUPPORT) || \
+    (defined(CYBSP_FREERTOS_DSRAM_WARMBOOT_SUPPORT) && \
+    (CYBSP_FREERTOS_DSRAM_WARMBOOT_SUPPORT))
     Cy_SysLib_ClearDSRAMWarmBootEntryStatus();
+    #endif \
+    // !defined(CYBSP_FREERTOS_DSRAM_WARMBOOT_SUPPORT) ||
+    // (defined(CYBSP_FREERTOS_DSRAM_WARMBOOT_SUPPORT) &&
+    // (CYBSP_FREERTOS_DSRAM_WARMBOOT_SUPPORT)
     vStoreDSRAMContextWithWFI();
     System_Restore_NVIC_Reg();
 }

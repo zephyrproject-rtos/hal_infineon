@@ -995,6 +995,23 @@ typedef enum
 #define CY_SRSS_IMO_PRESENT                 1
 #endif
 
+/* Recommended RAM and ROM trim values */
+#define CY_SRSS_TRIM_ROM_CTL_LP             (0x00000013UL)
+#define CY_SRSS_TRIM_RAM_CTL_LP             (0x00004013UL)
+#define CY_SRSS_TRIM_ROM_CTL_MF             (0x00000013UL)
+#define CY_SRSS_TRIM_RAM_CTL_MF             (0x00004013UL)
+#define CY_SRSS_TRIM_ROM_CTL_OD             (0x00000013UL)
+#define CY_SRSS_TRIM_RAM_CTL_OD             (0x00004013UL)
+#define CY_SRSS_TRIM_ROM_CTL_ULP            (0x00000012UL)
+#define CY_SRSS_TRIM_RAM_CTL_ULP            (0x00006012UL)
+#define CY_SRSS_TRIM_ROM_CTL_HALF_LP        (0x00000013UL)
+#define CY_SRSS_TRIM_RAM_CTL_HALF_LP        (0x00004013UL)
+#define CY_SRSS_TRIM_ROM_CTL_HALF_MF        (0x00000013UL)
+#define CY_SRSS_TRIM_RAM_CTL_HALF_MF        (0x00004013UL)
+#define CY_SRSS_TRIM_ROM_CTL_HALF_OD        (0x00000013UL)
+#define CY_SRSS_TRIM_RAM_CTL_HALF_OD        (0x00004013UL)
+#define CY_SRSS_TRIM_ROM_CTL_HALF_ULP       (0x00000012UL)
+#define CY_SRSS_TRIM_RAM_CTL_HALF_ULP       (0x00006012UL)
 
 /** HF PATH # used for PERI PCLK */
 #define CY_SYSCLK_CLK_PERI_HF_PATH_NUM     1U
@@ -2809,6 +2826,23 @@ typedef MXCORDIC_1_0_Type MXCORDIC_Type;
 #define CY_HPPASS_FIFO_RD_DATA_CHAN_ID_Pos   (16UL)
 #define CY_HPPASS_FIFO_RD_DATA_CHAN_ID_Msk   (0x1F0000UL)
 #endif
+
+/*******************************************************************************
+*                        Cross Trigger Interface (CTI)
+*******************************************************************************/
+#if defined (CY_IP_MXS40SSRSS)
+
+/* Number of CTIINEN and CTIOUTEN registers in the CTI block */
+#define DEBUG_TRC_CTI_CTIINEN_COUNT             (16UL)
+#define DEBUG_TRC_CTI_CTIOUTEN_COUNT            (16UL)
+/* Number of channels for each CTI MUX trigger */
+#define DEBUG_TRC_CTI_TR_CHANNEL_COUNT          (4UL)
+
+
+#define DEBUG_TRC_CTI_IN_CPU0_HALT               (8U)
+#define DEBUG_TRC_CTI_OUT_CTI_TR_OUT0            (7U)
+#define DEBUG_TRC_CTI_OUT_CTI_TR_OUT1            (8U)
+#endif /* defined (CY_IP_MXS40SSRSS) */
 
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 8.6')
 

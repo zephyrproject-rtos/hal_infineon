@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syslib.c
-* \version 3.80
+* \version 3.90
 *
 *  Description:
 *   Provides system API implementation for the SysLib driver.
 *
 ********************************************************************************
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -602,6 +602,41 @@ void Cy_SysLib_ClearDSRAMWarmBootEntryStatus(void)
 
 
 #if defined(CY_IP_MXS22SRSS) || defined(CY_IP_MXS40SSRSS)
+
+#if defined (CY_IP_MXS40SSRSS)
+bool Cy_SysLib_DebugSessionActive(SRSS_Type *base)
+{
+    CY_ASSERT_L2(base);
+    return ((bool)(_FLD2VAL(SRSS_PWR_CTL_DEBUG_SESSION, base->PWR_CTL)));
+}
+
+void Cy_SysLib_DebugCtiMuxConnect(cy_syslib_debug_cti_t *base, uint32_t inTrig, uint32_t outTrig, uint8_t channel, bool enable)
+{
+    CY_ASSERT_L2(base);
+    CY_ASSERT_L2(inTrig < DEBUG_TRC_CTI_CTIINEN_COUNT);
+    CY_ASSERT_L2(outTrig < DEBUG_TRC_CTI_CTIOUTEN_COUNT);
+    CY_ASSERT_L2(channel < DEBUG_TRC_CTI_TR_CHANNEL_COUNT);
+
+    cy_syslib_debug_cti_t *cti_obj = (cy_syslib_debug_cti_t *) GET_NSALIAS_ADDRESS(base);
+
+    /* Enable CTI */
+    cti_obj->CTICONTROL = 0x1U;
+
+    if (enable)
+    {
+        /* Enable the CTI connection for the selected channel */
+        cti_obj->CTIINEN[inTrig] |= (1UL << channel);
+        cti_obj->CTIOUTEN[outTrig] |= (1UL << channel);
+    }
+    else
+    {
+        /* Disable the CTI connection for the selected channel */
+        cti_obj->CTIINEN[inTrig] &= ~(1UL << channel);
+        cti_obj->CTIOUTEN[outTrig] &= ~(1UL << channel);
+    }
+}
+#endif /* defined (CY_IP_MXS40SSRSS) */
+
 cy_en_syslib_lcs_mode_t Cy_SysLib_GetDeviceLCS(cy_syslib_lcs_data_t *base)
 {
     CY_ASSERT_L2(base);

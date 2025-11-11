@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file system_psoc6_cm0plus.c
-* \version 2.100
+* \version 2.110
 *
 * The device system-source file.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2025 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,10 @@
 #include "cmsis_compiler.h"
 
 #include "tviibe_partition.h"
+
+#define FIXED_EXP_NR            (15u)
+#define VECTORTABLE_SIZE        (16u + FIXED_EXP_NR + 1u) /* +1 is for Stack pointer */
+#define VECTORTABLE_ALIGN       (128) /* alignment for 85 entries (32x4=128) is 2^7=128 bytes */
 
 #define CY_SYS_CM4_PWR_CTL_KEY_OPEN  (0x05FAUL)
 #define CY_SYS_CM4_PWR_CTL_KEY_CLOSE (0xFA05UL)
@@ -379,12 +383,13 @@ static void PrepareSystemCallInfrastructure(void)
 {
     const uint8_t u8Irq0Index = (uint8_t) (VECTOR_TABLE_OFFSET_IRQ0 / 4);
     const uint8_t u8Irq1Index = (uint8_t) (VECTOR_TABLE_OFFSET_IRQ1 / 4);
-    uint32_t * const pu32RamTable   = (uint32_t *) __ramVectors;
-    uint32_t * const pu32SromTable  = (uint32_t *) SROM_VECTOR_TABLE_BASE_ADDRESS;
+    volatile uint32_t * const ramTable   = (uint32_t *) __ramVectors;
+    /* The array syntax is necessary to avoid out-of-bounds warnings in some compilers. */
+    volatile uint32_t (* const sromTable)[VECTORTABLE_SIZE]  = (uint32_t (*)[VECTORTABLE_SIZE])SROM_VECTOR_TABLE_BASE_ADDRESS;
 
     // Use IRQ0 and IRQ1 handlers from SROM vector table
-    pu32RamTable[u8Irq0Index] = pu32SromTable[u8Irq0Index];
-    pu32RamTable[u8Irq1Index] = pu32SromTable[u8Irq1Index];
+    ramTable[u8Irq0Index] = (*sromTable)[u8Irq0Index];
+    ramTable[u8Irq1Index] = (*sromTable)[u8Irq1Index];
 
     NVIC_SetPriority(NvicMux0_IRQn, 1);
     NVIC_SetPriority(NvicMux1_IRQn, 0);

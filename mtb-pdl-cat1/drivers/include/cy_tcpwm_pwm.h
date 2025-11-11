@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_tcpwm_pwm.h
-* \version 1.80
+* \version 1.90
 *
 * \brief
 * The header file of the TCPWM PWM driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2016-2025 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -252,6 +252,8 @@ typedef struct cy_stc_tcpwm_pwm_config
     cy_en_gf_depth_value_t gf_depth;    /**< Glitch filter depth value. */
     bool        pwm_tc_sync_kill_dt;    /**< PWM output get suppressed at next tc event after kill input is active. If deadtime is enabled, output get suppressed after the tc event + deadtime. */
     bool        pwm_sync_kill_dt;       /**< PWM output line_out get suppressed immediately whereas line_compl_out get suppressed after dead time when kill input is active. */
+    bool        debug_freeze_enable;    /**< Specifies the counter behavior in debug mode. */
+    bool        debug_suspend_enable;   /**< Specifies the counter behavior in debug mode when suspend is enabled. */
 #endif /* defined (CY_IP_MXS40TCPWM) || defined (CY_DOXYGEN) */
 }cy_stc_tcpwm_pwm_config_t;
 /** \} group_tcpwm_data_structures_pwm */

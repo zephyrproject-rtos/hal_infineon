@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass_ac.h
-* \version 1.30
+* \version 1.30.1
 *
 * Header file for the Autonomous Controller (AC) subsystem of
 * the High Performance Programmable Analog Sub-System (HPPASS).

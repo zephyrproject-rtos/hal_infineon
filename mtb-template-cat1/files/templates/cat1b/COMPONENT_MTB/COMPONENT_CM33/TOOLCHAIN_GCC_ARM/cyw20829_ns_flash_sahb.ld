@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cyw20829_ns_flash_sahb.ld
-* \version 1.0.0
+* \version 1.1.0
 *
 * Linker file for the GNU C compiler.
 *
@@ -19,7 +19,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -45,6 +45,10 @@ ENTRY(Reset_Handler)
 /* Memory reserved for Bootstrap code and data */
 BOOTSTRAP_SIZE = DEFINED(APP_BOOTSTRAP_SIZE) ? APP_BOOTSTRAP_SIZE : 0x00002400 ;
 
+/* XIP memory size */
+XIP_FLASH_SIZE      = DEFINED(BSP_XIP_FLASH_KB) ? BSP_XIP_FLASH_KB*1024 : 0x00200000 ;
+
+
 /* The size of the stack section at the end of CM4 SRAM */
 STACK_SIZE = 0x1000;
 
@@ -56,7 +60,7 @@ RAM_END_ADDR_SAHB           = 0x20040000; /* 256K */
 RAM_START_ADDR_CBUS         = 0x20000000;
 RAM_END_ADDR_CBUS           = 0x20040000; /* 256K */
 
-FLASH_END_ADDR_SAHB         = 0x60080000; /* 512K */
+FLASH_END_ADDR_SAHB         = 0x60000000 + XIP_FLASH_SIZE;
 
 BOOTSTRAP_OFFSET_FLASH      = 0x00000050; /* toc2=0x10, l1_desc=0x1C, sign_header=0x20 */
 

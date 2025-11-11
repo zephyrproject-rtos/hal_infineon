@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass.h
-* \version 1.30
+* \version 1.30.1
 *
 * Header file for the High Performance Programmable Analog Sub-System driver.
 *
@@ -61,6 +61,11 @@
 *******************************************************************************
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td rowspan="1">1.30.1</td>
+*     <td>Updated CSG documentation.</td>
+*     <td>Documentation enhancement.</td>
+*   </tr>
 *   <tr>
 *     <td rowspan="2"> 1.30</td>
 *     <td>Added \ref Cy_HPPASS_SAR_CrossTalkAdjust function.</td>

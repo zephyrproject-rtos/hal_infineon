@@ -99,6 +99,26 @@ typedef enum
 #define P1_6_PIN                        6u
 #define P1_6_NUM                        6u
 
+/* PORT 2 (GPIO) */
+#define P2_0_PORT                       GPIO_PRT2
+#define P2_0_PIN                        0u
+#define P2_0_NUM                        0u
+#define P2_1_PORT                       GPIO_PRT2
+#define P2_1_PIN                        1u
+#define P2_1_NUM                        1u
+#define P2_2_PORT                       GPIO_PRT2
+#define P2_2_PIN                        2u
+#define P2_2_NUM                        2u
+#define P2_3_PORT                       GPIO_PRT2
+#define P2_3_PIN                        3u
+#define P2_3_NUM                        3u
+#define P2_4_PORT                       GPIO_PRT2
+#define P2_4_PIN                        4u
+#define P2_4_NUM                        4u
+#define P2_5_PORT                       GPIO_PRT2
+#define P2_5_PIN                        5u
+#define P2_5_NUM                        5u
+
 /* PORT 3 (GPIO) */
 #define P3_0_PORT                       GPIO_PRT3
 #define P3_0_PIN                        0u
@@ -379,6 +399,30 @@ typedef enum
     P1_6_SRSS_CAL_WAVE              = 15,       /* Digital Deep Sleep - srss.cal_wave */
     P1_6_LIN0_LIN_TX1               = 23,       /* Digital Active - lin[0].lin_tx[1]:0 */
     P1_6_BTSS_DEBUG11               = 26,       /* Digital Active - btss.debug[11] */
+
+    /* P2.0 */
+    P2_0_GPIO                       =  0,       /* GPIO controls 'out' */
+    P2_0_SMIF_SPIHB_SELECT0         = 27,       /* Digital Active - smif.spihb_select0 */
+
+    /* P2.1 */
+    P2_1_GPIO                       =  0,       /* GPIO controls 'out' */
+    P2_1_SMIF_SPIHB_DATA3           = 27,       /* Digital Active - smif.spihb_data3 */
+
+    /* P2.2 */
+    P2_2_GPIO                       =  0,       /* GPIO controls 'out' */
+    P2_2_SMIF_SPIHB_DATA2           = 27,       /* Digital Active - smif.spihb_data2 */
+
+    /* P2.3 */
+    P2_3_GPIO                       =  0,       /* GPIO controls 'out' */
+    P2_3_SMIF_SPIHB_DATA1           = 27,       /* Digital Active - smif.spihb_data1 */
+
+    /* P2.4 */
+    P2_4_GPIO                       =  0,       /* GPIO controls 'out' */
+    P2_4_SMIF_SPIHB_DATA0           = 27,       /* Digital Active - smif.spihb_data0 */
+
+    /* P2.5 */
+    P2_5_GPIO                       =  0,       /* GPIO controls 'out' */
+    P2_5_SMIF_SPIHB_CLK             = 27,       /* Digital Active - smif.spihb_clk */
 
     /* P3.0 */
     P3_0_GPIO                       =  0,       /* GPIO controls 'out' */

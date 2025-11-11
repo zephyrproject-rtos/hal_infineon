@@ -47,4 +47,4 @@ See the [PDL API Reference Manual Getting Started section](https://infineon.gith
 New versions of PDL from 2.0 onwards are now be available in [mtb-pdl-cat1](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/index.html) repo and [psoc6pdl](https://infineon.github.io/psoc6pdl/pdl_api_reference_manual/html/index.html) repo will no longer be updated in future.
 
 ---
-© Cypress Semiconductor Corporation (an Infineon company), 2020-2024.
+© Cypress Semiconductor Corporation (an Infineon company), 2020-2025.

@@ -1,6 +1,6 @@
 /*******************************************************************************
-* \file cyw20829_ns_flash_cbus.icf
-* \version 1.1.0
+* \file cyw20829_ns_flash_sahb.icf
+* \version 1.2.0
 *
 * Linker file for the IAR compiler.
 *
@@ -19,7 +19,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2022), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2020-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -50,13 +50,22 @@ if (!isdefinedsymbol(BOOTSTRAP_SIZE)) {
   define symbol BOOTSTRAP_SIZE   = APP_BOOTSTRAP_SIZE;
 }
 
+/* XIP memory size */
+if (!isdefinedsymbol(BSP_XIP_FLASH_KB)) {
+  define symbol BSP_XIP_FLASH_KB   = 2000;
+}
+
+if (!isdefinedsymbol(XIP_FLASH_SIZE)) {
+  define symbol XIP_FLASH_SIZE   = BSP_XIP_FLASH_KB*1024;
+}
+
 define symbol FLASH_START_ADDR_SAHB         = 0x60000000;
 define symbol FLASH_START_ADDR_CBUS         = 0x08000000;
 define symbol RAM_START_ADDR_SAHB           = 0x20000000;
 define symbol RAM_START_ADDR_CBUS           = 0x04000000;
 define symbol RAM_END_ADDR_SAHB             = 0x20040000; /* 256K */
 define symbol RAM_END_ADDR_CBUS             = 0x04040000; /* 256K */
-define symbol FLASH_END_ADDR_SAHB           = 0x60080000; /* 512K */
+define symbol FLASH_END_ADDR_SAHB           = 0x60000000 + XIP_FLASH_SIZE;
 
 define symbol BOOTSTRAP_OFFSET_FLASH        = 0x00000050; /* toc2=0x10, l1_desc=0x1C, sign_header=0x20 */
 define symbol RAMVECTORS_ALIGNMENT          = 512;

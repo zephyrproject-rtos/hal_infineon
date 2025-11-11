@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_rtc.h
-* \version 2.100
+* \version 2.110
 *
 * This file provides constants and parameter values for the APIs for the
 * Real-Time Clock (RTC).
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -226,6 +226,15 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="2">2.110</td>
+*     <td>Added run-time month check in \ref Cy_RTC_DaysInMonth.</td>
+*     <td>GCC 14 support.</td>
+*   </tr>
+*   <tr>
+*     <td>Removed const qualifier for the \ref Cy_RTC_DeepSleepCallback and \ref Cy_RTC_HibernateCallback callbackParams parameter for consistency with \ref Cy_SysPmCallback type.</td>
+*     <td>Defect fix.</td>
+*   </tr>
+*   <tr>
 *     <td>2.100</td>
 *     <td>Minor update in API \ref Cy_RTC_GetInterruptStatus.</td>
 *     <td>Code enhancement.</td>
@@ -381,7 +390,7 @@ extern "C" {
 #define CY_RTC_DRV_VERSION_MAJOR                    2
 
 /** Driver minor version */
-#define CY_RTC_DRV_VERSION_MINOR                    100
+#define CY_RTC_DRV_VERSION_MINOR                    110
 
 /** RTC driver retry macros */
 #define CY_RTC_ACCESS_BUSY_RETRY_COUNT    (200u)
@@ -674,8 +683,8 @@ void Cy_RTC_SetInterruptMask(uint32_t interruptMask);
 * \addtogroup group_rtc_low_power_functions
 * \{
 */
-cy_en_syspm_status_t Cy_RTC_DeepSleepCallback(const cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
-cy_en_syspm_status_t Cy_RTC_HibernateCallback(const cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
+cy_en_syspm_status_t Cy_RTC_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
+cy_en_syspm_status_t Cy_RTC_HibernateCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
 /** \} group_rtc_low_power_functions */
 
 /**
@@ -1088,23 +1097,26 @@ __STATIC_INLINE bool Cy_RTC_IsLeapYear(uint32_t year)
 * A year value. Valid range non-zero value.
 *
 * \return
-* A number of days in a month in the year passed through the parameters.
+* A number of days in a month in the year passed through the parameters
+* or zero in case an invalid month parameter is passed.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_RTC_DaysInMonth(uint32_t month, uint32_t year)
 {
-    uint32_t retVal;
+    uint32_t retVal = 0;
 
-    CY_ASSERT_L2(CY_RTC_IS_MONTH_VALID(month));
     CY_ASSERT_L2(CY_RTC_IS_YEAR_LONG_VALID(year));
 
-    retVal = cy_RTC_daysInMonthTbl[month - 1UL];
-
-    if (CY_RTC_FEBRUARY == month)
+    if(CY_RTC_IS_MONTH_VALID(month))
     {
-        if (Cy_RTC_IsLeapYear(year))
+        retVal = cy_RTC_daysInMonthTbl[month - 1UL];
+
+        if (CY_RTC_FEBRUARY == month)
         {
-            retVal++;
+            if (Cy_RTC_IsLeapYear(year))
+            {
+                retVal++;
+            }
         }
     }
     return(retVal);

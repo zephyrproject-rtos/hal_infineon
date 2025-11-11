@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_pdm_pcm.c
-* \version 2.30.1
+* \version 2.40
 *
 * The source code file for the PDM_PCM driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -212,7 +213,7 @@ cy_en_pdm_pcm_gain_t Cy_PDM_PCM_GetGain(PDM_Type const * base, cy_en_pdm_pcm_cha
 * syspm return status, see \ref cy_en_syspm_status_t
 *
 *******************************************************************************/
-cy_en_syspm_status_t Cy_PDM_PCM_DeepSleepCallback(cy_stc_syspm_callback_params_t const * callbackParams, cy_en_syspm_callback_mode_t mode)
+cy_en_syspm_status_t Cy_PDM_PCM_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
 {
     cy_en_syspm_status_t ret = CY_SYSPM_SUCCESS;
 

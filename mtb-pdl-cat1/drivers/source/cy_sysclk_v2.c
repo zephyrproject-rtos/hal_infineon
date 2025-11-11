@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_sysclk_v2.c
-* \version 3.140
+* \version 3.150
 *
 * Provides an API implementation of the sysclk driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -725,6 +725,51 @@ cy_en_clklf_in_sources_t Cy_SysClk_ClkLfGetSource(void)
     return ((cy_en_clklf_in_sources_t)(_FLD2VAL(SRSS_CLK_SELECT_LFCLK_SEL, SRSS_CLK_SELECT)));
 }
 
+#if ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 2)) && \
+    (defined (SRSS_HT_VARIANT) && (SRSS_HT_VARIANT == 1u)))
+uint32_t Cy_SysClk_ClkLfGetFrequency(void)
+{
+    uint32_t freq = 0UL;
+
+    cy_en_clklf_in_sources_t source = Cy_SysClk_ClkLfGetSource();
+
+    /* Get the frequency of the source  */
+    switch(source)
+     {
+#if (defined (SRSS_PILO_PRESENT) && (SRSS_PILO_PRESENT == 1u))
+        case CY_SYSCLK_CLKLF_IN_PILO:
+            freq = (0UL != (SRSS_CLK_PILO_CONFIG & SRSS_CLK_PILO_CONFIG_PILO_EN_Msk)) ? CY_SYSCLK_PILO_FREQ : 0UL;
+            break;
+#endif /* (defined (SRSS_PILO_PRESENT) && (SRSS_PILO_PRESENT == 1u)) */
+
+        case CY_SYSCLK_CLKLF_IN_WCO:
+            freq = (Cy_SysClk_WcoOkay()) ? CY_SYSCLK_WCO_FREQ : 0UL;
+            break;
+
+        case CY_SYSCLK_CLKLF_IN_ILO:
+            freq = (0UL != (SRSS_CLK_ILO_CONFIG & SRSS_CLK_ILO_CONFIG_ENABLE_Msk)) ? CY_SYSCLK_ILO_FREQ : 0UL;
+            break;
+
+#if (defined (SRSS_HT_VARIANT) && (SRSS_HT_VARIANT == 1u))
+        case CY_SYSCLK_CLKLF_IN_ILO1:
+            freq = (0UL != (SRSS_CLK_ILO1_CONFIG & SRSS_CLK_ILO1_CONFIG_ENABLE_Msk)) ? CY_SYSCLK_ILO_FREQ : 0UL;
+            break;
+#endif /* (defined (SRSS_HT_VARIANT) && (SRSS_HT_VARIANT == 1u))*/
+
+#if (defined (SRSS_ECO_PRESENT) && (SRSS_ECO_PRESENT == 1u))
+        case CY_SYSCLK_CLKLF_IN_ECO_PRESCALER:
+            freq = Cy_SysClk_EcoPrescaleGetFrequency();
+            break;
+#endif /* (defined (SRSS_ECO_PRESENT) && (SRSS_ECO_PRESENT == 1u))*/
+
+        default:
+            /* Don't know the frequency of dsi_out, leave freq = 0UL */
+            break;
+     }
+    return (freq);
+ }
+ #endif /* ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 2)) && \
+    (defined (SRSS_HT_VARIANT) && (SRSS_HT_VARIANT == 1u))) */
 
 #if defined (CY_IP_MXS22SRSS) || (defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)) || \
     (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3))

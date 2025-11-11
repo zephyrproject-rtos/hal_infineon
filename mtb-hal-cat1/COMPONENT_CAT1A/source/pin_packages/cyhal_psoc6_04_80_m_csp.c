@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_04_80_m_csp.c
 *
 * \brief
-* PSoC6_04 device GPIO HAL header for 80-M-CSP package
+* PSOC6_04 device GPIO HAL header for 80-M-CSP package
 *
 ********************************************************************************
 * \copyright

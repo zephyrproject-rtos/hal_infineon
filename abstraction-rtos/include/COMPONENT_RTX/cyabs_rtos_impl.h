@@ -6,7 +6,7 @@
  *
  ***************************************************************************************************
  * \copyright
- * Copyright 2019-2021 Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2019-2025 Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -31,6 +31,7 @@
 #if !defined (COMPONENT_CAT5)
 #include <cmsis_compiler.h>
 #endif
+#include "cyabs_rtos_types.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -44,37 +45,6 @@ extern "C"
 #define CY_RTOS_ALIGNMENT           0x00000008UL /** Minimum alignment for RTOS objects */
 #define CY_RTOS_ALIGNMENT_MASK      0x00000007UL /** Mask for checking the alignment of
                                                      created RTOS objects */
-
-
-/******************************************************
-*                 Type Definitions
-******************************************************/
-
-// RTOS thread priority
-typedef enum
-{
-    CY_RTOS_PRIORITY_MIN         = osPriorityNone,
-    CY_RTOS_PRIORITY_LOW         = osPriorityLow,
-    CY_RTOS_PRIORITY_BELOWNORMAL = osPriorityBelowNormal,
-    CY_RTOS_PRIORITY_NORMAL      = osPriorityNormal,
-    CY_RTOS_PRIORITY_ABOVENORMAL = osPriorityAboveNormal,
-    CY_RTOS_PRIORITY_HIGH        = osPriorityHigh,
-    CY_RTOS_PRIORITY_REALTIME    = osPriorityRealtime,
-    CY_RTOS_PRIORITY_MAX         = osPriorityRealtime7
-} cy_thread_priority_t;
-
-typedef osThreadId_t       cy_thread_t;             /** CMSIS definition of a thread handle */
-typedef void*              cy_thread_arg_t;         /** Argument passed to the entry function of
-                                                        a thread */
-typedef osMutexId_t        cy_mutex_t;              /** CMSIS definition of a mutex */
-typedef osSemaphoreId_t    cy_semaphore_t;          /** CMSIS definition of a semaphore */
-typedef osEventFlagsId_t   cy_event_t;              /** CMSIS definition of an event */
-typedef osMessageQueueId_t cy_queue_t;              /** CMSIS definition of a message queue */
-typedef osTimerId_t        cy_timer_t;              /** CMSIS definition of a timer */
-typedef void*              cy_timer_callback_arg_t; /** Argument passed to the timer callback
-                                                        function */
-typedef uint32_t           cy_time_t;               /** Time in milliseconds */
-typedef osStatus_t         cy_rtos_error_t;         /** CMSIS definition of a error status */
 
 #ifdef __cplusplus
 } // extern "C"

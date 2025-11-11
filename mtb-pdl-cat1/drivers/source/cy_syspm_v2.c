@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syspm_v2.c
-* \version 5.180
+* \version 5.190
 *
 * This driver provides the source code for API power management.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -1407,7 +1407,7 @@ cy_en_syspm_hibernate_wakeup_source_t Cy_SysPm_GetHibernateWakeupCause(void)
         break;
 
         default:
-            CY_ASSERT_L2(false);
+            /* No wakeup source found */
         break;
     }
 
@@ -2389,10 +2389,10 @@ static void SetMemoryVoltageTrims(cy_en_syspm_sdr_voltage_t voltage)
 *******************************************************************************/
 static void SetReadMarginTrimUlp(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_ULP;
+    SRSS_TRIM_ROM_CTL = CY_SRSS_TRIM_ROM_CTL_ULP;
 }
 
 
@@ -2407,11 +2407,10 @@ static void SetReadMarginTrimUlp(void)
 *******************************************************************************/
 static void SetReadMarginTrimLp(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_LP;
-
+    SRSS_TRIM_ROM_CTL = CY_SRSS_TRIM_ROM_CTL_LP;
 }
 
 
@@ -2426,10 +2425,10 @@ static void SetReadMarginTrimLp(void)
 *******************************************************************************/
 static void SetReadMarginTrimMf(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_MF & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_MF & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_MF;
+    SRSS_TRIM_ROM_CTL = CY_SRSS_TRIM_ROM_CTL_MF;
 }
 
 
@@ -2444,10 +2443,10 @@ static void SetReadMarginTrimMf(void)
 *******************************************************************************/
 static void SetReadMarginTrimOd(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_OD & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_OD & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_OD;
+    SRSS_TRIM_ROM_CTL = CY_SRSS_TRIM_ROM_CTL_OD;
 }
 
 
@@ -2462,7 +2461,7 @@ static void SetReadMarginTrimOd(void)
 *******************************************************************************/
 static void SetWriteAssistTrimUlp(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_HALF_ULP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 }
 
@@ -2478,10 +2477,10 @@ static void SetWriteAssistTrimUlp(void)
 *******************************************************************************/
 static void SetWriteAssistTrimLp(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_HALF_LP & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_LP;
+    SRSS_TRIM_ROM_CTL = CY_SRSS_TRIM_ROM_CTL_HALF_LP;
 }
 
 
@@ -2496,10 +2495,10 @@ static void SetWriteAssistTrimLp(void)
 *******************************************************************************/
 static void SetWriteAssistTrimMf(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_MF & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_HALF_MF & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_MF;
+    SRSS_TRIM_ROM_CTL = CY_SRSS_TRIM_ROM_CTL_HALF_MF;
 }
 
 
@@ -2514,10 +2513,10 @@ static void SetWriteAssistTrimMf(void)
 *******************************************************************************/
 static void SetWriteAssistTrimOd(void)
 {
-    SRSS_TRIM_RAM_CTL = (SFLASH_CPUSS_TRIM_RAM_CTL_HALF_OD & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
+    SRSS_TRIM_RAM_CTL = (CY_SRSS_TRIM_RAM_CTL_HALF_OD & ((uint32_t) ~SRSS_TRIM_RAM_CTL_RA_MASK)) |
                         (SRSS_TRIM_RAM_CTL & SRSS_TRIM_RAM_CTL_RA_MASK);
 
-    SRSS_TRIM_ROM_CTL = SFLASH_CPUSS_TRIM_ROM_CTL_HALF_OD;
+    SRSS_TRIM_ROM_CTL = CY_SRSS_TRIM_ROM_CTL_HALF_OD;
 }
 #endif
 

@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_03_49_wlcsp.c
 *
 * \brief
-* PSoC6_03 device GPIO HAL header for 49-WLCSP package
+* PSOC6_03 device GPIO HAL header for 49-WLCSP package
 *
 ********************************************************************************
 * \copyright

@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_scb_ezi2c.c
-* \version 3.30
+* \version 3.40
 *
 * Provides EZI2C API implementation of the SCB driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -818,9 +819,18 @@ void Cy_SCB_EZI2C_Interrupt(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *contex
     /* Handle the receive direction (master writes data) */
     if (0UL != (CY_SCB_RX_INTR_LEVEL & Cy_SCB_GetRxInterruptStatusMasked(base)))
     {
-        HandleDataReceive(base, context);
+        /* Check if the byte in RX FIFO is a new address or data byte. If the
+         * I2C interrupt is not handled in time, it is possible that RX INTR LEVEL,
+         * STOP and Address Match conditions are triggered before execution
+         * of this interrupt handler
+         */
+        if (!((0UL != context->address2) && (0UL != (CY_SCB_SLAVE_INTR_I2C_ADDR_MATCH & slaveIntrStatus)) &&
+              (Cy_SCB_GetNumInRxFifo(base) == 1UL)))
+        {
+            HandleDataReceive(base, context);
 
-        Cy_SCB_ClearRxInterrupt(base, CY_SCB_RX_INTR_LEVEL);
+            Cy_SCB_ClearRxInterrupt(base, CY_SCB_RX_INTR_LEVEL);
+        }
     }
 
     /* Handle the transaction completion */
@@ -931,7 +941,7 @@ static void HandleAddress(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
             cmd = SCB_I2C_S_CMD_S_NACK_Msk;
 
             /* Disable the stop interrupt source */
-            Cy_SCB_SetI2CInterruptMask(base, CY_SCB_EZI2C_SLAVE_INTR_NO_STOP);
+            Cy_SCB_SetSlaveInterruptMask(base, CY_SCB_EZI2C_SLAVE_INTR_NO_STOP);
         }
     }
 

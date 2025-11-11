@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_01_124_bga_sip.c
 *
 * \brief
-* PSoC6_01 device GPIO HAL header for 124-BGA-SIP package
+* PSOC6_01 device GPIO HAL header for 124-BGA-SIP package
 *
 ********************************************************************************
 * \copyright

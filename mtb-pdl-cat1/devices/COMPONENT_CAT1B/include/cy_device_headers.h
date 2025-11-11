@@ -104,20 +104,26 @@
 #else
 #if defined (CYW20829B0LKML)
     #include "cyw20829b0lkml.h"
-#elif defined (CYW89829B0022)
-    #include "cyw89829b0022.h"
 #elif defined (CYW89829B0232)
     #include "cyw89829b0232.h"
 #elif defined (CYW20829B0000)
     #include "cyw20829b0000.h"
 #elif defined (CYW20829B0010)
     #include "cyw20829b0010.h"
-#elif defined (CYW20829B0021)
-    #include "cyw20829b0021.h"
 #elif defined (CYW20829B1240)
     #include "cyw20829b1240.h"
 #elif defined (CYW20829B1340)
     #include "cyw20829b1340.h"
+#elif defined (CYW89829B0062)
+    #include "cyw89829b0062.h"
+#elif defined (CYW89829B1062)
+    #include "cyw89829b1062.h"
+#elif defined (CYW20829B1000)
+    #include "cyw20829b1000.h"
+#elif defined (CYW20829B1010)
+    #include "cyw20829b1010.h"
+#elif defined (CYW89829B1232)
+    #include "cyw89829b1232.h"
 #elif defined (PSC3M5FDS2AFQ1)
     #include "psc3m5fds2afq1.h"
 #elif defined (PSC3M5FDS2LGQ1)

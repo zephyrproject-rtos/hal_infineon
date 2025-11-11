@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_03_100_tqfp.h
 *
 * \brief
-* PSoC6_03 device GPIO HAL header for 100-TQFP package
+* PSOC6_03 device GPIO HAL header for 100-TQFP package
 *
 ********************************************************************************
 * \copyright
@@ -30,10 +30,10 @@
 #include "cyhal_hw_resources.h"
 
 /**
- * \addtogroup group_hal_impl_pin_package_psoc6_03_100_tqfp PSoC6_03 100-TQFP
+ * \addtogroup group_hal_impl_pin_package_psoc6_03_100_tqfp PSOC6_03 100-TQFP
  * \ingroup group_hal_impl_pin_package
  * \{
- * Pin definitions and connections specific to the PSoC6_03 100-TQFP package.
+ * Pin definitions and connections specific to the PSOC6_03 100-TQFP package.
  */
 
 #if defined(__cplusplus)
@@ -48,7 +48,7 @@ extern "C" {
 /** Macro that, given a gpio, will extract the port number */
 #define CYHAL_GET_PORT(pin)         ((uint8_t)(((uint8_t)pin) >> 3U))
 
-/** Definitions for all of the pins that are bonded out on in the 100-TQFP package for the PSoC6_03 series. */
+/** Definitions for all of the pins that are bonded out on in the 100-TQFP package for the PSOC6_03 series. */
 typedef enum {
     NC = 0xFF, //!< No Connect/Invalid Pin
 

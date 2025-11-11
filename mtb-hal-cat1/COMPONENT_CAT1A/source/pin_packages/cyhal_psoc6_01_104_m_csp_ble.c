@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_01_104_m_csp_ble.c
 *
 * \brief
-* PSoC6_01 device GPIO HAL header for 104-M-CSP-BLE package
+* PSOC6_01 device GPIO HAL header for 104-M-CSP-BLE package
 *
 ********************************************************************************
 * \copyright

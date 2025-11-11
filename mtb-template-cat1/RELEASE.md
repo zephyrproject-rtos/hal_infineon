@@ -1,6 +1,14 @@
 # ModusToolbox CAT1 BSP Template Library Release Notes
 
 ### What Changed?
+#### v1.7.5
+* Fixed an issue related to timeout error during erase flash operation on XMC7x00.
+#### v1.7.4
+* Bugfix for CM7 startup code to remove ARM compiler error.
+#### v1.7.3
+* Bugfix for CM0+ startup code to remove GCC14 warning.
+#### v1.7.2
+* Fix MTB-HAL dependency for Traveo II C-2D-6M devices.
 #### v1.7.1
 * Fix compilation error in cybsp_init when HAL is not present for CAT1A/CAT1C devices.
 #### v1.7.0
@@ -51,10 +59,10 @@ This version of mtb-template-cat1 was validated for compatibility with the follo
 
 | Software and Tools                        | Version |
 | :---                                      | :----:  |
-| ModusToolbox™ Software Environment        | 3.1.0   |
+| ModusToolbox™ Software Environment        | 3.5.0   |
 | GCC Compiler                              | 12.2.1  |
-| IAR Compiler                              | 9.40.2  |
-| ARM Compiler                              | 6.16    |
+| IAR Compiler                              | 9.50.2  |
+| ARM Compiler                              | 6.22    |
 
 Minimum required ModusToolbox™ Software Environment: v3.0.0
 
@@ -65,4 +73,4 @@ Minimum required ModusToolbox™ Software Environment: v3.0.0
 * [ModusToolbox™](https://www.cypress.com/products/modustoolbox-software-environment)
 
 ---
-© Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation, 2022-2023.
+© Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation, 2022-2025.

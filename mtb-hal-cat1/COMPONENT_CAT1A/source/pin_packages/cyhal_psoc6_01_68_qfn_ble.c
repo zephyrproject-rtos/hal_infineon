@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_01_68_qfn_ble.c
 *
 * \brief
-* PSoC6_01 device GPIO HAL header for 68-QFN-BLE package
+* PSOC6_01 device GPIO HAL header for 68-QFN-BLE package
 *
 ********************************************************************************
 * \copyright

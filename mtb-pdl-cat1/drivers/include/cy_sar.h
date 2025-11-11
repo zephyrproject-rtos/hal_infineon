@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_sar.h
-* \version 2.10
+* \version 2.20
 *
 * Header file for the SAR driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2017-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2017-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +26,7 @@
 /**
 * \addtogroup group_sar
 * \{
-* This driver configures and controls the SAR ADC subsystem block, which is a 
+* This driver configures and controls the SAR ADC subsystem block, which is a
 * part of \ref group_pass_structure "PASS" hardware block.
 *
 * The functions and other declarations used in this driver are in cy_sar.h.
@@ -77,11 +78,11 @@
 * To configure the SAR subsystem, call \ref Cy_SAR_Init. Pass in a pointer to the \ref SAR_Type
 * structure for the base hardware register address and pass in the configuration structure,
 * \ref cy_stc_sar_config_t.
-* 
-* \note Make sure to choose correct hardware identifiers, taking into account the indexing in the used device:
-* \snippet sar/snippet/main.c SNIPPET_SAR_HW_COMPATIBILITY 
 *
-* 
+* \note Make sure to choose correct hardware identifiers, taking into account the indexing in the used device:
+* \snippet sar/snippet/main.c SNIPPET_SAR_HW_COMPATIBILITY
+*
+*
 * After initialization, call \ref Cy_SAR_Enable to enable the hardware.
 *
 * Here is guidance on how to set the data fields of the configuration structure:
@@ -263,7 +264,7 @@
 * is used for converting counts to volts in the \ref Cy_SAR_CountsTo_Volts, \ref Cy_SAR_CountsTo_mVolts, and
 * \ref Cy_SAR_CountsTo_uVolts functions.
 *
-* The rest of the \ref cy_stc_sar_config_t fields starting from \ref cy_stc_sar_config_t::clock affects 
+* The rest of the \ref cy_stc_sar_config_t fields starting from \ref cy_stc_sar_config_t::clock affects
 * SAR ADC configuration only for PASS_ver2. Refer to \ref cy_stc_sar_config_t for details.
 *
 * \section group_sar_trigger_conversions Triggering Conversions
@@ -361,7 +362,7 @@
 * \section group_sar_fifo_usage FIFO Usage
 *
 * The PASS_ver2 SAR can operate in the system Deep Sleep power mode.
-* To do so the SAR should be clocked by the \ref group_sysanalog_dpslp, 
+* To do so the SAR should be clocked by the \ref group_sysanalog_dpslp,
 * triggered by the \ref group_sysanalog_timer, and use the FIFO:
 * \snippet sar/snippet/main.c SNIPPET_FIFO_ISR
 * \snippet sar/snippet/main.c SNIPPET_FIFO_OPERATE
@@ -374,7 +375,7 @@
 * a maximum frequency of 18 MHz.
 *
 * For PASS_ver2 the maximum clock frequency is 36 MHz.
-* Also, the SAR clock could be switched to the \ref group_sysanalog_dpslp to operate in 
+* Also, the SAR clock could be switched to the \ref group_sysanalog_dpslp to operate in
 * the system Deep Sleep power mode using \ref cy_stc_sar_config_t::clock.
 *
 * \snippet sar/snippet/main.c SAR_SNIPPET_CONFIGURE_CLOCK
@@ -563,6 +564,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.20</td>
+*     <td>Removed const qualifier for the \ref Cy_SAR_DeepSleepCallback callbackParams parameter for consistency with \ref Cy_SysPmCallback type.</td>
+*     <td>Defect fix.</td>
+*   </tr>
+*   <tr>
 *     <td>2.10</td>
 *     <td>The FIFO level validation in debug mode is fixed in the Cy_SAR_FifoSetLevel().</td>
 *     <td>Bug fixing.</td>
@@ -696,7 +702,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 27, \
 #define CY_SAR_DRV_VERSION_MAJOR        2
 
 /** Driver minor version */
-#define CY_SAR_DRV_VERSION_MINOR        10
+#define CY_SAR_DRV_VERSION_MINOR        20
 
 /** SAR driver identifier */
 #define CY_SAR_ID                       CY_PDL_DRV_ID(0x01u)
@@ -1575,7 +1581,7 @@ __STATIC_INLINE void Cy_SAR_EnableInjection(SAR_Type *base, bool tailgating);
 * This set of functions is for Deep Sleep entry and exit
 * \{
 */
-cy_en_syspm_status_t Cy_SAR_DeepSleepCallback(const cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
+cy_en_syspm_status_t Cy_SAR_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
 void Cy_SAR_DeepSleep(SAR_Type *base);
 void Cy_SAR_Wakeup(SAR_Type *base);
 /** \} */

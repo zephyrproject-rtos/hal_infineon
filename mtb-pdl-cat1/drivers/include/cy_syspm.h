@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syspm.h
-* \version 5.180
+* \version 5.190
 *
 * Provides the function definitions for the power management API.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -846,6 +846,12 @@
 * \section group_syspm_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>5.190</td>
+*     <td>Updated \ref Cy_SysPm_GetHibernateWakeupCause and added new wake event
+*         to \ref cy_en_syspm_hibernate_wakeup_source_t.</td>
+*     <td>Code enhancements.</td>
+*   </tr>
 *   <tr>
 *     <td>5.180</td>
 *     <td>Updated APIs:
@@ -1759,7 +1765,7 @@ extern "C" {
 #define CY_SYSPM_DRV_VERSION_MAJOR       5
 
 /** Driver minor version */
-#define CY_SYSPM_DRV_VERSION_MINOR       180
+#define CY_SYSPM_DRV_VERSION_MINOR       190
 
 /** SysPm driver identifier */
 #define CY_SYSPM_ID                      (CY_PDL_DRV_ID(0x10U))
@@ -2608,6 +2614,8 @@ typedef enum
 
 typedef enum
 {
+    CY_SYSPM_HIBERNATE_NO_SRC       = 0UL,
+
     /** Wake on a low logic level for the LPComp0. */
     CY_SYSPM_HIBERNATE_LPCOMP0_LOW  = 0x1U,
 
@@ -2734,6 +2742,8 @@ typedef enum
 **/
 typedef enum
 {
+    CY_SYSPM_HIBERNATE_NO_SRC       = 0UL,
+
     /** Wake on a low logic level for the LPComp0. */
     CY_SYSPM_HIBERNATE_LPCOMP0_LOW  = CY_SYSPM_HIB_WAKEUP_LPCOMP0_MASK,
 

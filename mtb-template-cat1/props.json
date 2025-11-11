@@ -2,7 +2,7 @@
     "core": {
         "id": "a76a909a-61d7-56ca-96ca-378d4e732287",
         "name": "mtb-template-cat1",
-        "version": "1.7.1.44929"
+        "version": "1.7.5.47855"
     },
     "opt": {
         "props": {
@@ -19,21 +19,41 @@
                 },
                 "CYW20829": {
                     "20829": {
-                        "components": "cat1b_components",
-                        "defines": [
-                            "hal_defines",
-                            "cat1b_defines",
-                            "connectivity_defines"
-                        ],
-                        "deps": [
-                            "cat1b_dependencies",
-                            "20829_dependencies"
-                        ],
-                        "files": [
-                            "filelist/cat1b.txt",
-                            "filelist/cyw20829.txt"
-                        ],
-                        "files_init": "filelist/init_cyw20829.txt"
+                        "0x21": {
+                            "components": "cat1b_components",
+                            "defines": [
+                                "hal_defines",
+                                "cat1b_defines",
+                                "connectivity_defines"
+                            ],
+                            "deps": [
+                                "cat1b_dependencies",
+                                "20829b0_dependencies"
+                            ],
+                            "files": [
+                                "filelist/cat1b.txt",
+                                "filelist/cyw20829.txt"
+                            ],
+                            "files_init": "filelist/init_cyw20829.txt"
+                        },
+                        "0x22": {
+                            "components": "cat1b_components",
+                            "defines": [
+                                "hal_defines",
+                                "cat1b_defines",
+                                "connectivity_defines"
+                            ],
+                            "deps": [
+                                "cat1b_dependencies",
+                                "20829b1_dependencies"
+                            ],
+                            "files": [
+                                "filelist/cat1b.txt",
+                                "filelist/cyw20829.txt"
+                            ],
+                            "files_init": "filelist/init_cyw20829.txt"
+                        },
+                        "udd_key": "Silicon_Revision"
                     },
                     "89829": {
                         "components": "cat1b_components",
@@ -1134,7 +1154,7 @@
                             "hal_defines",
                             "connectivity_defines"
                         ],
-                        "deps": "cat1c_dependencies",
+                        "deps": "cat1c_tviic2d6m_dependencies",
                         "files": [
                             "filelist/cat1c.txt",
                             "filelist/cyt4dn6336.txt"
@@ -1151,7 +1171,7 @@
                             "hal_defines",
                             "connectivity_defines"
                         ],
-                        "deps": "cat1c_dependencies",
+                        "deps": "cat1c_tviic2d6m_dependencies",
                         "files": [
                             "filelist/cat1c.txt",
                             "filelist/cyt4dn6336.txt"
@@ -1468,8 +1488,11 @@
                 ]
             },
             "dependency_sets": {
-                "20829_dependencies": [
+                "20829b0_dependencies": [
                     "deps/cat1b/fw-cyw20829b0.mtbx"
+                ],
+                "20829b1_dependencies": [
+                    "deps/cat1b/fw-cyw20829b1.mtbx"
                 ],
                 "89829_dependencies": [
                     "deps/cat1b/fw-cyw89829b0.mtbx"
@@ -1502,7 +1525,6 @@
                     "deps/cat1b/core-lib.mtbx",
                     "deps/cat1b/core-make.mtbx",
                     "deps/cat1b/mtb-hal-cat1.mtbx",
-                    "deps/cat1b/fw-cyw20829b0.mtbx",
                     "deps/cat1b/mtb-pdl-cat1.mtbx",
                     "deps/cat1b/recipe-make-cat1b.mtbx"
                 ],
@@ -1524,6 +1546,14 @@
                 "cat1c_dependencies_no_hal": [
                     "deps/cat1c/core-lib.mtbx",
                     "deps/cat1c/core-make.mtbx",
+                    "deps/cat1c/cat1cm0p.mtbx",
+                    "deps/cat1c/mtb-pdl-cat1.mtbx",
+                    "deps/cat1c/recipe-make-cat1c.mtbx"
+                ],
+                "cat1c_tviic2d6m_dependencies": [
+                    "deps/cat1c/core-lib.mtbx",
+                    "deps/cat1c/core-make.mtbx",
+                    "deps/cat1c/mtb-hal-t2gc2d6m.mtbx",
                     "deps/cat1c/cat1cm0p.mtbx",
                     "deps/cat1c/mtb-pdl-cat1.mtbx",
                     "deps/cat1c/recipe-make-cat1c.mtbx"

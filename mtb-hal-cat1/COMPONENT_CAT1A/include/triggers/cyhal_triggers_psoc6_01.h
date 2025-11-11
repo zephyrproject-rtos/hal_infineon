@@ -2,7 +2,7 @@
 * \file cyhal_triggers_psoc6_01.h
 *
 * \brief
-* PSoC6_01 family HAL triggers header
+* PSOC6_01 family HAL triggers header
 *
 ********************************************************************************
 * \copyright

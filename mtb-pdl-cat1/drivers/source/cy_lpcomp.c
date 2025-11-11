@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_lpcomp.c
-* \version 1.80.1
+* \version 1.90
 *
 * \brief
 *  This file provides the driver code to the API for the Low Power Comparator
@@ -8,7 +8,7 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -232,7 +232,18 @@ void Cy_LPComp_Enable_Ext(LPCOMP_Type* base, cy_en_lpcomp_channel_t channel, cy_
 
     CY_ASSERT_L3(CY_LPCOMP_IS_CHANNEL_VALID(channel));
 
-    powerSpeed = context->power[(uint8_t)channel - 1u];
+    switch (channel)
+    {
+        case CY_LPCOMP_CHANNEL_0:
+            powerSpeed = context->power[0];
+            break;
+        case CY_LPCOMP_CHANNEL_1:
+            powerSpeed = context->power[1];
+            break;
+        default:
+            powerSpeed = CY_LPCOMP_MODE_OFF;
+            break;
+    }
 
     /* Set power */
     Cy_LPComp_SetPower_Ext(base, channel, powerSpeed, context);

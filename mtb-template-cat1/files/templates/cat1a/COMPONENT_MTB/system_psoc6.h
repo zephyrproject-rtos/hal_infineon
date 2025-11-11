@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file system_psoc6.h
-* \version 2.100
+* \version 2.110
 *
 * \brief Device system header file.
 *
@@ -333,6 +333,11 @@
 *       <th>Changes</th>
 *       <th>Reason for Change</th>
 *   </tr>
+*   <tr>
+*       <td rowspan="1">2.110</td>
+*       <td>Added new defines for TRAVEO&trade; II Body Entry devices.</td>
+*       <td>Code enhancement.</td>
+*   </tr> 
 *   <tr>
 *       <td rowspan="1">2.100</td>
 *       <td>Added support for TRAVEO&trade; II Body Entry devices.</td>

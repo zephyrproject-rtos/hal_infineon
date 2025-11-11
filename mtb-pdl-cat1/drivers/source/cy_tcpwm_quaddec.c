@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_tcpwm_quaddec.c
-* \version 1.80
+* \version 1.90
 *
 * \brief
 *  The source file of the tcpwm driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2016-2025 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *

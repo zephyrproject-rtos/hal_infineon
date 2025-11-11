@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_scb_common.h
-* \version 3.30
+* \version 3.40
 *
 * Provides common API declarations of the SCB driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,6 +57,27 @@
 *******************************************************************************
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td rowspan="3">3.40</td>
+*     <td>Added new I2C Callback Events and I2C Slave Status macros:
+*       - \ref CY_SCB_I2C_SLAVE_RESTART_EVENT.
+*       - \ref CY_SCB_I2C_SLAVE_STOP_ANY_EVENT.
+*       - \ref CY_SCB_I2C_SLAVE_ARB_LOST_EVENT.
+*       - \ref CY_SCB_I2C_SLAVE_RESTART.
+*     </td>
+*     <td>Enhanced I2C event handling and status reporting capabilities.</td>
+*   </tr>
+*   <tr>
+*     <td>Added Byte Received Callback support for I2C. Added new API \ref Cy_SCB_I2C_RegisterByteReceivedCallback.</td>
+*     <td>Enhanced I2C data handling capabilities.</td>
+*   </tr>
+*   <tr>
+*     <td>Fixed EZI2C: The address is interpreted as a data byte if the interrupt is
+*         not handled in time, particularly when the transfer has a Repeated Start
+*         or when several transfers are initiated one-by-one with the minimal time
+*         interval. Applicable only if two addresses are enabled.</td>
+*     <td>Bug fix.</td>
+*   </tr>
 *   <tr>
 *     <td>3.30</td>
 *     <td>Updated internal macro to enable UART Half Duplex APIs only on supported devices.</td>
@@ -478,7 +500,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 #define CY_SCB_DRV_VERSION_MAJOR    (3)
 
 /** Driver minor version */
-#define CY_SCB_DRV_VERSION_MINOR    (30)
+#define CY_SCB_DRV_VERSION_MINOR    (40)
 
 /** SCB driver identifier */
 #define CY_SCB_ID           CY_PDL_DRV_ID(0x2AU)
@@ -625,6 +647,11 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 
 /** The I2C slave bus error (detection of unexpected Start or Stop condition) */
 #define CY_SCB_SLAVE_INTR_I2C_BUS_ERROR     SCB_INTR_S_I2C_BUS_ERROR_Msk
+
+#if (CY_IP_MXSCB_VERSION == 4U) && (CY_IP_MXSCB_VERSION_MINOR >= 2U) || defined (CY_DOXYGEN)
+/** The I2C slave received a Restart condition */
+#define CY_SCB_SLAVE_INTR_I2C_RESTART       SCB_INTR_S_I2C_RESTART_Msk
+#endif
 
 /**
 * The SPI slave select line is deselected at an expected time during an
@@ -831,11 +858,18 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
                                  CY_SCB_RX_INTR_UART_FRAME_ERROR  | CY_SCB_RX_INTR_UART_PARITY_ERROR               | \
                                  CY_SCB_RX_INTR_UART_BREAK_DETECT)
 
-
+#if (CY_IP_MXSCB_VERSION == 4U) && (CY_IP_MXSCB_VERSION_MINOR >= 2U)
 #define CY_SCB_SLAVE_INTR_MASK  (CY_SCB_SLAVE_INTR_I2C_ARB_LOST   | CY_SCB_SLAVE_INTR_I2C_NACK | CY_SCB_SLAVE_INTR_I2C_ACK   | \
-                                 CY_SCB_SLAVE_INTR_I2C_WRITE_STOP | CY_SCB_SLAVE_INTR_I2C_STOP | CY_SCB_SLAVE_INTR_I2C_START | \
+                                 CY_SCB_SLAVE_INTR_I2C_WRITE_STOP | CY_SCB_SLAVE_INTR_I2C_STOP                               | \
+                                 CY_SCB_SLAVE_INTR_I2C_ADDR_MATCH | CY_SCB_SLAVE_INTR_I2C_GENERAL_ADDR                       | \
+                                 CY_SCB_SLAVE_INTR_I2C_BUS_ERROR  | CY_SCB_SLAVE_INTR_SPI_BUS_ERROR                          | \
+                                 CY_SCB_SLAVE_INTR_I2C_RESTART)
+#else
+#define CY_SCB_SLAVE_INTR_MASK  (CY_SCB_SLAVE_INTR_I2C_ARB_LOST   | CY_SCB_SLAVE_INTR_I2C_NACK | CY_SCB_SLAVE_INTR_I2C_ACK   | \
+                                 CY_SCB_SLAVE_INTR_I2C_WRITE_STOP | CY_SCB_SLAVE_INTR_I2C_STOP                               | \
                                  CY_SCB_SLAVE_INTR_I2C_ADDR_MATCH | CY_SCB_SLAVE_INTR_I2C_GENERAL_ADDR                       | \
                                  CY_SCB_SLAVE_INTR_I2C_BUS_ERROR  | CY_SCB_SLAVE_INTR_SPI_BUS_ERROR)
+#endif
 
 #define CY_SCB_MASTER_INTR_MASK (CY_SCB_MASTER_INTR_I2C_ARB_LOST  | CY_SCB_MASTER_INTR_I2C_NACK | \
                                  CY_SCB_MASTER_INTR_I2C_ACK       | CY_SCB_MASTER_INTR_I2C_STOP | \

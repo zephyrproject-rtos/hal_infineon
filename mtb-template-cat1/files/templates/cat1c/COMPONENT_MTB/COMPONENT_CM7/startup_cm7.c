@@ -49,7 +49,7 @@ void FpuEnable(void);
 
 #if defined(__ARMCC_VERSION)
 extern unsigned int Image$$ARM_LIB_STACK$$ZI$$Limit;
-interrupt_type extern void __main(void);
+extern void __main(void);
 cy_israddress __ramVectors[VECTORTABLE_SIZE] __attribute__( ( section(".bss.noinit.RESET_RAM"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
 #elif defined (__GNUC__)
 extern unsigned int __StackTop;
@@ -57,7 +57,7 @@ extern uint32_t __StackLimit;
 cy_israddress __ramVectors[VECTORTABLE_SIZE]   __attribute__( ( section(".ram_vectors"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
 #elif defined (__ICCARM__)
 extern unsigned int CSTACK$$Limit;
-interrupt_type extern void  __cmain();
+extern void  __cmain();
 cy_israddress __ramVectors[VECTORTABLE_SIZE]   __attribute__( ( section(".intvec_ram"))) __attribute__((aligned(VECTORTABLE_ALIGN)));
 #else
     #error "An unsupported toolchain"
@@ -368,7 +368,7 @@ int __low_level_init(void)
 
 #if !defined(CY_DEVICE_TVIIC2D6M)
 #ifdef ENABLE_CM7_DATA_CACHE
-void config_noncaheable_region(void)
+static void config_noncacheable_region(void)
 {
 
     ARM_MPU_Disable();
@@ -391,7 +391,7 @@ void Reset_Handler(void)
     __disable_irq();
 #if !defined(CY_DEVICE_TVIIC2D6M)
 #ifdef ENABLE_CM7_DATA_CACHE
-    config_noncaheable_region();
+    config_noncacheable_region();
 #endif /* ENABLE_CM7_DATA_CACHE */
 #endif
 

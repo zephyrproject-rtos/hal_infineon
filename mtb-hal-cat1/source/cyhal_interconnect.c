@@ -246,11 +246,23 @@ static cy_rslt_t _cyhal_interconnect_check_connection(cyhal_source_t source, cyh
     // cyhal_dest_to_mux stores 1to1 triggers with bit 8 set and the lower 7
     // bits as the offset into the 1to1 triggers (so 128 is 1to1 mux index 0)
     // but here we need the actual group offset for all the triggers.
+
+    // Ensure dest is within the range of cyhal_dest_to_mux to avoid
+    // out-of-bounds indexing. By construction, the other destination-indexed
+    // arrays (e.g. cyhal_mux_dest_index) are always the same size as this one,
+    // so this check covers those too
+    if (dest >= (sizeof(cyhal_dest_to_mux) / sizeof(cyhal_dest_to_mux[0])))
+    {
+        return CYHAL_INTERCONNECT_RSLT_INVALID_CONNECTION;
+    }
+
     uint8_t mux_group = cyhal_dest_to_mux[dest];
     if(mux_group & 0x80)
         mux_group = mux_group_1to1_offset + (mux_group & ~0x80);
     // Ensure mux_group is within the range of cyhal_mux_to_sources to avoid
-    // out-of-bounds indexing
+    // out-of-bounds indexing. By construction, the other mux-indexed arrays
+    // (e.g. cyhal_is_mux_1to1) are always the same size as this one,
+    // so this check covers those too
     if (mux_group >= (sizeof(cyhal_mux_to_sources) / sizeof(cyhal_mux_to_sources[0])))
     {
         return CYHAL_INTERCONNECT_RSLT_INVALID_CONNECTION;

@@ -42,13 +42,18 @@ extern "C"
 #endif
 
 /**
- * \addtogroup group_abstraction_rtos_port RTOS Specific Types and Defines
+ * \addtogroup group_abstraction_rtos_port RTOS Specific Types, Defines and Statuses
  * \ingroup group_abstraction_rtos_common
  * \{
- * The following defines and types have values that are specific to each RTOS port.
+ * The following defines, types and return statuses have values that are specific to each RTOS port.
  * The define values are specific to each RTOS. The types are simple aliases that
  * wrap RTOS specifc types. Code cannot assume anything about the values or internals
  * of any types.
+ *
+ * Due to the differences in RTOSes, the return statuses are not the same across all RTOSes.
+ * We recomend to control only "CY_RSLT_SUCCESS" status.
+ * And only if status not "CY_RSLT_SUCCESS" use "cy_rtos_last_error()" to get the last error from
+ * the RTOS.
  */
 
 /******************************************************

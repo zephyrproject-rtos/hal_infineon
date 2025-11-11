@@ -248,23 +248,48 @@ static inline uint8_t _cyhal_dma_dmac_get_cfg_offset(const cyhal_dma_t* obj)
 /** Sets the dmac configuration struct */
 static inline void _cyhal_dma_dmac_set_obj(cyhal_dma_t *obj)
 {
-    _cyhal_dma_dmac_config_structs[_cyhal_dma_dmac_get_cfg_offset(obj)] = obj;
+    if((_cyhal_dma_dmac_get_cfg_offset(obj)) < NUM_DMAC_CHANNELS)
+    {
+        _cyhal_dma_dmac_config_structs[_cyhal_dma_dmac_get_cfg_offset(obj)] = obj;
+    }
+    else
+    {
+        // It should not be possible to get here
+        CY_ASSERT(false);  
+    }
 }
 
 /** Zeros the dmac configuration struct */
 static inline void _cyhal_dma_dmac_free_obj(cyhal_dma_t *obj)
 {
-    _cyhal_dma_dmac_config_structs[_cyhal_dma_dmac_get_cfg_offset(obj)] = NULL;
+    if((_cyhal_dma_dmac_get_cfg_offset(obj)) < NUM_DMAC_CHANNELS)
+    {
+        _cyhal_dma_dmac_config_structs[_cyhal_dma_dmac_get_cfg_offset(obj)] = NULL;
+    }
+    else
+    {
+        // It should not be possible to get here
+        CY_ASSERT(false);  
+    }
 }
 
 /** Gets the dmac configuration struct from block and channel */
 static inline cyhal_dma_t* _cyhal_dma_dmac_get_obj(uint8_t block, uint8_t channel)
 {
 #if defined(CY_IP_MXSAXIDMAC)
-    return _cyhal_dma_dmac_config_structs[(block * APPCPUSS_AXIDMAC0_CH_NR) + channel];
+    if(((block * APPCPUSS_AXIDMAC0_CH_NR) + channel) < NUM_DMAC_CHANNELS)
+    {
+        return _cyhal_dma_dmac_config_structs[(block * APPCPUSS_AXIDMAC0_CH_NR) + channel];
+    }
 #else
-    return _cyhal_dma_dmac_config_structs[(block * CPUSS_DMAC0_CH_NR) + channel];
+    if(((block * CPUSS_DMAC0_CH_NR) + channel) < NUM_DMAC_CHANNELS)
+    {
+        return _cyhal_dma_dmac_config_structs[(block * CPUSS_DMAC0_CH_NR) + channel];
+    }
 #endif
+    // It should not be possible to get here
+    CY_ASSERT(false);
+    return NULL;
 }
 
 /** Gets the dmac block number from irq number */

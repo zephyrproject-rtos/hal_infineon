@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_sysclk.h
-* \version 3.140
+* \version 3.150
 *
 * Provides an API declaration of the sysclk driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -78,6 +78,11 @@
 * \section group_sysclk_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>3.150</td>
+*     <td>Added support of \ref Cy_SysClk_ClkLfGetFrequency API for MXS40SRSS ver. 2.</td>
+*     <td></td>
+*   </tr>
 *   <tr>
 *     <td>3.140</td>
 *     <td>Update PLL configuration for CAT1D devices.</td>
@@ -983,7 +988,7 @@ extern "C" {
 /** Driver major version */
 #define  CY_SYSCLK_DRV_VERSION_MAJOR   3
 /** Driver minor version */
-#define  CY_SYSCLK_DRV_VERSION_MINOR   140
+#define  CY_SYSCLK_DRV_VERSION_MINOR   150
 /** Sysclk driver identifier */
 #define CY_SYSCLK_ID   CY_PDL_DRV_ID(0x12U)
 
@@ -7858,7 +7863,9 @@ cy_en_clklf_in_sources_t Cy_SysClk_ClkLfGetSource(void);
 
 
 #if defined (CY_IP_MXS22SRSS) || (defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)) || \
-    (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3))
+    (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)) || \
+    ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 2)) && \
+    (defined (SRSS_HT_VARIANT) && (SRSS_HT_VARIANT == 1u)))
 
 /*******************************************************************************
 * Function Name: Cy_SysClk_ClkLfGetFrequency
@@ -7874,7 +7881,9 @@ cy_en_clklf_in_sources_t Cy_SysClk_ClkLfGetSource(void);
 *******************************************************************************/
 uint32_t Cy_SysClk_ClkLfGetFrequency(void);
 #endif /* defined (CY_IP_MXS22SRSS) || (defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)) || \
-    (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)) */
+    (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)) || \
+    ((defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION == 2)) && \
+    (defined (SRSS_HT_VARIANT) && (SRSS_HT_VARIANT == 1u))) */
 
 
 #if defined (CY_IP_MXS22SRSS) || (defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)) || \

@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file system_psoc6_cm4.c
-* \version 2.100
+* \version 2.110
 *
 * The device system-source file.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2025 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -291,7 +291,7 @@ void SystemCoreClockUpdate (void)
     /* The CM4 core's clock source is the fast clock. */
     SystemCoreClock = Cy_SysClk_ClkFastGetFrequency();
 
-    /* Get frequency for the high-frequency clock # 2 , whcih is used for PERI PCLK*/
+    /* Get frequency for the high-frequency clock # 2 , which is used for PERI PCLK*/
     cy_PeriClkFreqHz = Cy_SysClk_ClkHfGetFrequency(CY_SYSCLK_CLK_PERI_HF_PATH_NUM);
 
     /* Sets clock frequency for Delay API */

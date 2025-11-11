@@ -43,12 +43,22 @@
  *   there are 8 CPU interrupts. Any system interrupt can be assigned to any CPU interrupt. In the event
  *   that more than one system interrupt fires at the same time for a given CPU interrupt, the interrupts
  *   are serviced in ascending numerical order (see the device datasheet for numeric IRQ values). This
- *   means that the above error case where all CPU interrupts have been consumed does not apply. The HAL
- *   automatically divides the system interrupts across the CPU interrupts.
+ *   means that the above error case where all CPU interrupts have been consumed does not apply.
+ *   The HAL automatically distributes the system interrupts evenly across the CPU interrupts in chunks based
+ *   on the system interrupt number. The number of system interrupts assigned to each CPU interrupt is determined
+ *   by the formula system_irq_per_cpu_irq = (CPUSS_SYSTEM_INT_NR  + 7) / 8 (the value 8 corresponds to the number
+ *   of CPU interrupts).The CPU interrupt associated with a particular system interrupt is determined by the
+ *   formula cpu_irq = system_irq / system_irq_per_cpu_irq.  CPUSS_SYSTEM_INT_NR is a macro (provided through
+ *   cy_device_headers.h) that specifies the number of system interrupts on the selected device.
  *   However, it is only possible to assign one priority per CPU interrupt, even though the HAL APIs expose
  *   the interrupt priority per system interrupt. The CAT1 HAL handles this situation by tracking the requested
  *   priority for each system interrupt, then setting the priority for each CPU interrupt as the lowest
  *   (i.e. most important) value requested across all of its associated system interrupts.
+ *   This means that changing the priority of one HAL event could impact the priority of events for an unrelated
+ *   HAL driver instance. For example, consider a device with 80 system interrupts. System interrupt 20 through 29
+ *   would all map to CPU interrupt 2. If one HAL driver instance requests priority 4 for system interrupt 26,
+ *   and a second HAL driver instance requests priority 2 for system interrupt 22, the priority of CPU interrupt 2
+ *   would be set to 2.
  * \}
  */
 

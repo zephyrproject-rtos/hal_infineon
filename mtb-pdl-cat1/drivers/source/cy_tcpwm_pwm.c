@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_tcpwm_pwm.c
-* \version 1.80
+* \version 1.90
 *
 * \brief
 *  The source file of the tcpwm driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2016-2025 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -362,6 +362,10 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
                                                   _VAL2FLD(TCPWM_GRP_CNT_V3_LFSR_LIMITER, config->limiter));
             }
             TCPWM_GRP_CNT_PS(base, grp, cntNum) = (_VAL2FLD(TCPWM_GRP_CNT_PS_PS_DIV, config->clockPrescaler));
+
+            /* Configure debug mode */
+            (void)Cy_TCPWM_SetDebugFreeze(base, cntNum, config->debug_freeze_enable);
+            Cy_TCPWM_SetDebugSuspend(base, cntNum, config->debug_suspend_enable);
 #endif /*defined (CY_IP_MXS40TCPWM)*/
 #endif /* (CY_IP_MXTCPWM_VERSION == 1U) */
     }
