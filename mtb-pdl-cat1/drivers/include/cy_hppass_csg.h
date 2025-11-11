@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass_csg.h
-* \version 1.30
+* \version 1.30.1
 *
 * Header file for the Comparator Slope Generator (CSG) subsystem of the High Power Programmable Analog Sub-System.
 *
@@ -29,6 +29,117 @@
 * This driver provides API functions to configure the Comparator Slope Generator
 * within High Power Programmable Analog Sub-System.
 *
+* The CSG is a flexible block which compares a 10-bit DAC value with
+* a selected analog input signal or compares two analog inputs. The output
+* of this block is the 1-bit digital compare value that can be used for
+* controlling the behavior of the TCPWM in a motor control, power conversion
+* and other applications.
+*
+* The CSG block contains 5 CSG slices (for PSOC C3 devices), each of which can be
+* configured and used independently. Each slice contains a DAC and a comparator with
+* the dedicated control logic.
+* The internal structure and external HW interface of the CSG slice are shown below.
+*
+* \image html hppass_csg_slice.png width=60%
+*
+* \section group_hppass_csg_dac DAC
+*
+* The user has various options to control the DAC data:
+* * Single value buffered mode 
+* * Two value hysteretic buffered mode
+* * Slope mode (rising, falling, triangular) with programmable slope rate
+* * Look-Up Table (LUT) mode with programmable data (128 samples).
+*
+* DAC data update can be triggered by either a HW or FW trigger.
+* Available HW DAC trigger sources:
+* * Any of the 8 HPPASS triggers
+* * DAC divider
+* * CSG comparator local output
+* * AC trigger.
+*
+* \section group_hppass_csg_comp Comparator
+*
+* The Comparator can be configured to compare a signal from the dedicated analog
+* input or from the DAC output to another selected analog input.
+*
+* The CSG comparator output signal has the following post-processing options:
+* * Direct output/inverted output
+* * Gated output by the blanking trigger
+* * Edge detection for the interrupt generation
+* * Trigger generation for the Autonomous Controller.
+* 
+* \section group_hppass_csg_config CSG Configuration
+*
+* To configure the CSG, the driver uses a configuration structure of type
+* \ref cy_stc_hppass_csg_t that must be predefined. This structure holds the
+* pointer to the array of CSG slices configuration structures
+* \ref cy_stc_hppass_slice_t, as well the pointer to the array of the CSG LUT
+* configuration structures \ref cy_stc_hppass_lut_t. Also, this structure
+* contains the DAC output selector field \ref cy_en_hppass_dac_out_t, which
+* routes the selected DAC output to the HPPASS SAR input for debugging purposes.
+*
+* \note The total number of LUTs is 2 for the PSOC C3 devices, but the same LUT
+* can be used by multiple CSG slices. LUT 0 can be used by CSG slices 0, 1, and 2;
+* LUT 1 by slices 3 and 4.
+*
+* Each instance of the \ref cy_stc_hppass_slice_t contains the comparator
+* configuration structure \ref cy_stc_hppass_comp_t and the DAC configuration
+* structure \ref cy_stc_hppass_dac_t.
+*
+* Refer to the Technical Reference Manual for detailed information.
+*
+* \section group_hppass_csg_code_snippets Code Snippets
+* \subsection group_hppass_csg_pwm_slice CSG Analog to PWM conversion
+* 
+* The example below shows how to configure the CSG slice to generate PWM signal
+* on P7_0 with the duty cycle proportional to the analog input voltage
+* on the AN_A0 pin.
+*
+* - Configure the CSG slice 0 to:
+*   - Generate a repeating rising slope from 0 to VDDA on DAC 0
+*   - Use AN_A0 pin as the positive comparator input and the DAC output as the negative comparator input.
+*
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_SLICE_CFG
+*
+* \note The cy_stc_hppass_slice_t::dac::period field is calculated to update the DAC
+*       at the frequency of 10240 kHz for CSG clock = 120 MHz. For the the 1024 rising slope values (0 to 1023),
+*       the slope period will be 10240 kHz / 1024 = 10 kHz. The HPPASS CSG Slice Personality
+*       in the <b>Device Configurator</b> includes the calculator for the DAC period value.
+*
+* - Configure the CSG block with the CSG slice 0 configuration:
+* 
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_CSG_CFG
+*
+* - Configure the Autonomous Controller (AC) STT to start the CSG slice 0 and then stop the AC:
+*
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_STT_CFG
+*
+* - Complete the HPPASS configuration with the HPPASS startup and triggers configuration.
+*   The output level trigger 0 is used to route the CSG Slice 0 comparator output
+*   to the output pin:
+*
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_HPPASS_CFG
+* 
+* \note Only usage of the startup parameters recommended by the vendor guarantees the reliable operation
+* of the Autonomous Controller.<br>
+* Please use the <b>Device Configurator</b> tool to make configurations or refer to the 
+* <b>Technical Reference Manual</b> for detailed information.
+*
+* - Configure the GPIO pin P7_0 as an output and connect it to the HPPASS Output Level Trigger 0 using TrigMux:
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_GPIO_INIT
+*
+* - Enable and assign divider 1 to the CSG with the frequency = CLK_HF3 / 2:
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_CSG_CLK
+*
+* - Initialize the HPPASS block and the Autonomous Controller:
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_HPPASS_INIT_AC_START
+*
+* - Wait for the Autonomous Controller to be ready:
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_AC_READY
+*
+* - Start DAC 0 slope generation:
+* \snippet hppass_csg_pwm/main.c SNIPPET_HPPASS_CSG_PWM_DAC_START
+*
 * \defgroup group_hppass_csg_macros Macros
 * \{
 *     \defgroup group_csg_cmp_interrupts Comparator Interrupt Masks
@@ -42,6 +153,7 @@
 * \defgroup group_hppass_csg_data_structures Data Structures
 * \defgroup group_hppass_csg_enums Enumerated Types
 */
+
 
 #if !defined(CY_HPPASS_CSG_H)
 #define CY_HPPASS_CSG_H

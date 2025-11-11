@@ -401,6 +401,7 @@ cy_rslt_t cy_rtos_thread_get_name(cy_thread_t* thread, const char** thread_name)
 *                 Scheduler
 ******************************************************/
 static uint16_t _cy_rtos_suspend_count = 0;
+static uint32_t _cy_rtos_suspend_ticks = 0;
 
 //--------------------------------------------------------------------------------------------------
 // cy_rtos_scheduler_suspend
@@ -408,6 +409,7 @@ static uint16_t _cy_rtos_suspend_count = 0;
 cy_rslt_t cy_rtos_scheduler_suspend(void)
 {
     ++_cy_rtos_suspend_count;
+    _cy_rtos_suspend_ticks = osKernelSuspend();
     osKernelLock();
 
     return CY_RSLT_SUCCESS;
@@ -424,6 +426,7 @@ cy_rslt_t cy_rtos_scheduler_resume(void)
     {
         --_cy_rtos_suspend_count;
         osKernelUnlock();
+        osKernelResume(_cy_rtos_suspend_ticks);
         status = CY_RSLT_SUCCESS;
     }
     else
@@ -431,6 +434,54 @@ cy_rslt_t cy_rtos_scheduler_resume(void)
         status = CY_RTOS_BAD_PARAM;
     }
 
+    return status;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// cy_rtos_scheduler_get_state
+//--------------------------------------------------------------------------------------------------
+cy_rslt_t cy_rtos_scheduler_get_state(cy_scheduler_state_t* state)
+{
+    cy_rslt_t status;
+    if (state == NULL)
+    {
+        status = CY_RTOS_BAD_PARAM;
+    }
+    else
+    {
+        osKernelState_t st = osKernelGetState();
+        switch (st)
+        {
+            case osKernelInactive:
+                *state = CY_SCHEDULER_STATE_INACTIVE;
+                break;
+
+            case osKernelLocked:
+                *state = CY_SCHEDULER_STATE_LOCKED;
+                break;
+
+            case osKernelReady:
+                *state = CY_SCHEDULER_STATE_READY;
+                break;
+
+            case osKernelSuspended:
+                *state = CY_SCHEDULER_STATE_SUSPENDED;
+                break;
+
+            case osKernelRunning:
+                *state = CY_SCHEDULER_STATE_RUNNING;
+                break;
+
+            case osKernelError:
+            case osKernelReserved:
+            default:
+                *state = CY_SCHEDULER_STATE_UNKNOWN;
+                break;
+        }
+
+        status = CY_RSLT_SUCCESS;
+    }
     return status;
 }
 

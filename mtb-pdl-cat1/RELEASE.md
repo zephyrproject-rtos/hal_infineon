@@ -1,58 +1,31 @@
-# MTB CAT1 Peripheral Driver Library v3.16.0
+# MTB CAT1 Peripheral Driver Library v3.18.0
 
 Please refer to the [README.md](./README.md) and the
 [PDL API Reference Manual](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/index.html)
 for a complete description of the Peripheral Driver Library.
 
-
 ## Implementation Details
-* CAT1B: Added support for ED25519 DSA and EC25519 ECDH for CYW20829 device
-* Personality re-structuring: Personality supporting Schema v10 added. Personalities_10.0 is a copy of ‘personalities_9.0’ with needed personalities updated to use schema v10. These personalities are available in folder device-info/personalities_10.0. Personalities supporting schema v10 are visible in MTB 3.4. For backward compatibility with MTB 3.3, this release will also have older personalities in folder device-info/personalities.
+* SCB I2C enhancements: added new callback events and I2C Slave Status macros, added support for the I2C Byte Received callback.
 
 ## Build Changes
 
-## Personality Changes in personalities_10:
-
-Newly added personalities: 
-* hppass_sar_seq_grp-2.0.cypersonality, 
- 
-Updated personalities: 
-* Hppass: hppass_sar_chan-1.0.cypersonality, hppass_sar_limit-1.0.cypersonality, hppass_sar_seq_grp-1.0.cypersonality,        hppass_sar-1.0.cypersonality.
-
-* Peripheral: connectivity_bt_intrinsic-1.0.cypersonality, connectivity_bt-1.0.cypersonality, connectivity_wifi-1.0.cypersonality, counter_v2-1.0.cypersonality, counter-1.0.cypersonality, emusb_v2-1.0.cypersonality, eth-1.0.cypersonality, 
-lpcomp-3.0.cypersonality, motif_mcp_quaddec-1.0.cypersonality, pdm_pcm_v2-4.0.cypersonality, pwm_v2-1.0.cypersonality,
-pwm-1.0.cypersonality, quaddec_v2-1.0.cypersonality, sd_host-1.0.cypersonality, smif_core-1.0.cypersonality, smif_v2-1.0.cypersonality, spi-3.0.cypersonality, uart-3.0.cypersonality.
-
-* Platform: axidmac-1.0.cypersonality, debug-2.0.cypersonality, dmac-1.0.cypersonality, dmac-2.0.cypersonality, em_eeprom-2.1.cypersonality, hfclk_v2-1.0.cypersonality, hfclk-3.0.cypersonality, lfclk-3.0.cypersonality, pll250-1.0.cypersonality, sysclock-3.0.cypersonality, tickclk-3.0.cypersonality.
-
+## Personality Changes
+* Updated Personalities (in 10.0 folder):
+  * peripheral:
+    * mcwdt_v2-1.0.cypersonality
+    * mcwdt-3.0.cypersonality
+    * uart-3.0.cypersonality
+  * platform:
+    * axidmac-1.0.cypersonality
 
 ## Added Drivers
 
 ## Updated Drivers
-* [CORDIC 2.10](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__cordic.html)
-* [CRYPTO 2.150](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__crypto.html)
-* [CRYPTOLITE 2.80](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__cryptolite.html)
-* [GPIO 1.140](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__gpio.html)
-* [FLASH 3.130](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__flash.html)
-* [HPPASS 1.30](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__hppass.html)
-* [IPC 1.140](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__ipc.html)
-* [MPC 1.10](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__mpc.html)
-* [MSCTL 1.20](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__ms__ctl.html)
-* [SCB 3.30](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__scb.html)
-* [SYSCLK 3.140](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__sysclk.html)
-* [SYSLIB 3.80](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__syslib.html)
-* [SYSPM 5.180](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__syspm.html)
-* [SD HOST 2.40](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__sd__host.html)
-* [SMIF 2.130](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__smif.html)
-* [SMARTIO 1.0.4](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__smartio.html)
-
-
+* [SCB 3.40](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__scb.html)
 
 ### Drivers with patch version updates
 
-
 ### Obsoleted part numbers
-
 
 ## Known Issues
 
@@ -78,6 +51,9 @@ pwm-1.0.cypersonality, quaddec_v2-1.0.cypersonality, sd_host-1.0.cypersonality, 
 
 
 ## Defect Fixes
+* axidmac-1.0.cypersonality - fixed macros code generation for the TRAVEO™ T2G devices.
+* uart-3.0.cypersonality - fixed code generation error for the TRAVEO™ T2G devices.
+* Fixed address handling in the SCB EZI2C driver.
 
 See the Changelog section of each Driver in the [PDL API Reference](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/modules.html) for all fixes and updates.
 
@@ -88,13 +64,13 @@ This version of PDL was validated for compatibility with the following Software 
 
 | Software and Tools                                                            | Version      |
 | :---                                                                          | :----        |
-| [Infineon Core Library](https://github.com/Infineon/core-lib)                 | 1.4.3        |
+| [Infineon Core Library](https://github.com/Infineon/core-lib)                 | 1.4.4        |
 | CMSIS                                                                         | 5.8.2        |
-| GCC Compiler                                                                  | 11.3.1       |
+| GCC Compiler                                                                  | 14.2.1       |
 | IAR Compiler                                                                  | 9.50.2       |
 | ARM Compiler 6                                                                | 6.22         |
 | FreeRTOS                                                                      | 10.4.305     |
-| [Device Database](https://github.com/Infineon/device-db)                      | 4.22.0       |
+| [Device Database](https://github.com/Infineon/device-db)                      | 4.26.0       |
 
 ## More information
 

@@ -39,6 +39,7 @@ __WEAK void SecureWeakFunc(void)
 void test_stub_handler (void) {
     static int a;
     a++;
+    CY_UNUSED_PARAMETER(a);
 }
 
 

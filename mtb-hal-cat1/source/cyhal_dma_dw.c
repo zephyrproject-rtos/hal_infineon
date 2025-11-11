@@ -144,19 +144,42 @@ static bool _cyhal_dma_dw_pm_callback(cyhal_syspm_callback_state_t state, cyhal_
 /** Sets the dw configuration struct */
 static inline void _cyhal_dma_dw_set_obj(cyhal_dma_t *obj)
 {
-    _cyhal_dma_dw_config_structs[obj->resource.block_num * CPUSS_DW0_CH_NR + obj->resource.channel_num] = obj;
+    if(((obj->resource.block_num * CPUSS_DW0_CH_NR) + obj->resource.channel_num) < _CYHAL_DMA_DW_NUM_CHANNELS)
+    {
+        _cyhal_dma_dw_config_structs[(obj->resource.block_num * CPUSS_DW0_CH_NR) + obj->resource.channel_num] = obj;
+    }
+    else
+    {
+        // It should not be possible to get here
+        CY_ASSERT(false);  
+    }
 }
 
 /** Zeros the dw configuration struct */
 static inline void _cyhal_dma_dw_free_obj(cyhal_dma_t *obj)
 {
-    _cyhal_dma_dw_config_structs[obj->resource.block_num * CPUSS_DW0_CH_NR + obj->resource.channel_num] = NULL;
+    if(((obj->resource.block_num * CPUSS_DW0_CH_NR) + obj->resource.channel_num) < _CYHAL_DMA_DW_NUM_CHANNELS)
+    {
+        _cyhal_dma_dw_config_structs[(obj->resource.block_num * CPUSS_DW0_CH_NR) + obj->resource.channel_num] = NULL;
+    }
+    else
+    {
+        // It should not be possible to get here
+        CY_ASSERT(false);  
+    }
 }
 
 /** Gets the dw configuration struct from block and channel */
 static inline cyhal_dma_t* _cyhal_dma_dw_get_obj(uint8_t block, uint8_t channel)
 {
-    return _cyhal_dma_dw_config_structs[block * CPUSS_DW0_CH_NR + channel];
+    if((block * CPUSS_DW0_CH_NR + channel) < _CYHAL_DMA_DW_NUM_CHANNELS)
+    {
+        return _cyhal_dma_dw_config_structs[(block ? CPUSS_DW0_CH_NR : 0) + channel];
+    }
+
+    // It should not be possible to get here
+    CY_ASSERT(false);
+    return NULL;
 }
 
 /** Gets the dw block number from irq number */

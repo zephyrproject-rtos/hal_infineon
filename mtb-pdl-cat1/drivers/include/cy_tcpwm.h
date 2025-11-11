@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_tcpwm.h
-* \version 1.80
+* \version 1.90
 *
 * The header file of the TCPWM driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2016-2025 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -231,6 +231,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.90</td>
+*     <td>Added new parameters to \ref cy_stc_tcpwm_pwm_config_t structure.</td>
+*     <td>Enhancements for Debug Freeze feature configuration.</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="2">1.80</td>
 *     <td>Newly added Motion Interface (MOTIF) functionality.</td>
 *     <td>Added the new Motion Interface for the PSOC C3 (CAT1B) device.</td>
@@ -397,7 +402,7 @@ extern "C" {
 #define CY_TCPWM_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_TCPWM_DRV_VERSION_MINOR       80
+#define CY_TCPWM_DRV_VERSION_MINOR       90
 
 /******************************************************************************
 * API Constants

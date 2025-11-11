@@ -374,6 +374,7 @@ SECTIONS
     {
         __cy_xip_start = .;
         KEEP(*(.cy_xip))
+        KEEP(*(.cy_xip.*))
         __cy_xip_end = .;
     } > xip
 

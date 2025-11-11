@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syslib.h
-* \version 3.80
+* \version 3.90
 *
 * Provides an API declaration of the SysLib driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -76,7 +76,7 @@
 *   <tr>
 *     <td>CY_ASSERT_CLASS_1</td>
 *     <td>CY_ASSERT_L1</td>
-*     <td>A parameter that could change between different PSoC devices
+*     <td>A parameter that could change between different PSOC devices
 *         (e.g. the number of clock paths)</td>
 *   </tr>
 *   <tr>
@@ -133,8 +133,16 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>3.90</td>
+*     <td>Added new APIs for PSOC C3 devices:
+*         \ref Cy_SysLib_DebugSessionActive
+*         \ref Cy_SysLib_DebugCtiMuxConnect
+*     </td>
+*     <td>New functionality.</td>
+*   </tr>
+*   <tr>
 *     <td>3.80</td>
-*     <td>Coverity fixes and added new API \ref Cy_SysLib_GetDeviceLCS for PSoC C3 (CAT1B).</td>
+*     <td>Coverity fixes and added new API \ref Cy_SysLib_GetDeviceLCS for PSOC C3 (CAT1B).</td>
 *     <td>Code enhancement and new functionality.</td>
 *   </tr>
 *   <tr>
@@ -145,7 +153,7 @@
 *   <tr>
 *     <td>3.60</td>
 *     <td>Updated API \ref Cy_SysLib_GetUniqueId, added section for unified linker script update</td>
-*     <td>Code enhancement and bug fixes to enable API compilation for PSoC C3 (CAT1B).</td>
+*     <td>Code enhancement and bug fixes to enable API compilation for PSOC C3 (CAT1B).</td>
 *   </tr>
 *   <tr>
 *     <td>3.50</td>
@@ -241,10 +249,10 @@
 *   </tr>
 *   <tr>
 *     <td rowspan="2">2.60</td>
-*     <td>Updated the following functions for the PSoC 64 devices:
+*     <td>Updated the following functions for the PSOC 64 devices:
 *         \ref Cy_SysLib_ClearFlashCacheAndBuffer, \ref Cy_SysLib_ClearResetReason,
 *         \ref Cy_SysLib_SetWaitStates.
-*     <td>Added PSoC 64 device support.</td>
+*     <td>Added PSOC 64 device support.</td>
 *   </tr>
 *   <tr>
 *     <td>Minor documentation updates.</td>
@@ -637,7 +645,7 @@ typedef enum
 #define CY_SYSLIB_DRV_VERSION_MAJOR    3
 
 /** The driver minor version */
-#define CY_SYSLIB_DRV_VERSION_MINOR    80
+#define CY_SYSLIB_DRV_VERSION_MINOR    90
 
 /** Define start of the function placed to the SRAM area by the linker */
 #ifndef CY_SECTION_RAMFUNC_BEGIN
@@ -844,6 +852,12 @@ typedef SRSS_Type  cy_syslib_lcs_data_t;    /**< Type of block with LCS data */
 typedef uint32_t   cy_syslib_lcs_data_t;    /**< Type of block with LCS data */
 #endif /* defined(CY_IP_MXS40SSRSS) */
 
+#if defined(CY_IP_MXS40SSRSS)
+typedef CM33_TRC_CTI_Type cy_syslib_debug_cti_t;    /**< Type of CTI block */
+#else
+typedef void              cy_syslib_debug_cti_t;    /**< Type of CTI block */
+#endif /* defined(CY_IP_MXS40SSRSS) */
+
 typedef void (* cy_israddress)(void);   /**< Type of ISR callbacks */
 #if defined (__ICCARM__)
     typedef union { cy_israddress __fun; void * __ptr; } cy_intvec_elem;
@@ -907,7 +921,7 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 
 /**
 * Class 1 - The highest class, safety-critical functions which rely on parameters that could be
-* changed between different PSoC devices
+* changed between different PSOC devices
 */
 #define CY_ASSERT_CLASS_1           (1U)
 
@@ -1671,7 +1685,50 @@ uint8_t Cy_SysLib_GetDeviceRevision(void);
 uint16_t Cy_SysLib_GetDevice(void);
 
 
-#if  defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS) || defined (CY_DOXYGEN)
+#if defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS) || defined (CY_DOXYGEN)
+
+#if defined (CY_IP_MXS40SSRSS)
+/*******************************************************************************
+* Function Name: Cy_SysLib_DebugSessionActive
+****************************************************************************//**
+*
+* Indicates whether a debug session is active.
+*
+* \param base The pointer to the SRSS instance.
+*
+* \return true if a debug session is active, false otherwise.
+*
+*******************************************************************************/
+bool Cy_SysLib_DebugSessionActive(SRSS_Type *base);
+
+/*******************************************************************************
+* Function Name: Cy_SysLib_DebugCtiMuxConnect
+****************************************************************************//**
+*
+* Connects or disconnects a Cross Trigger Interface (CTI) input trigger to a
+* CTI output trigger through a specified channel.
+*
+* \note Refer to the device TRM for the CTI input and output trigger indexes.
+*
+* \param base
+* Pointer to the CTI instance \ref cy_syslib_debug_cti_t.
+*
+* \param inTrig
+* Index of the CTI input trigger to be connected.
+*
+* \param outTrig
+* Index of the CTI output trigger to be connected.
+*
+* \param channel
+* Channel number to use for the connection.
+*
+* \param enable
+* Set to true to connect the input and output triggers; false to disconnect.
+*
+*******************************************************************************/
+void Cy_SysLib_DebugCtiMuxConnect(cy_syslib_debug_cti_t *base, uint32_t inTrig, uint32_t outTrig, uint8_t channel, bool enable);
+#endif /* defined (CY_IP_MXS40SSRSS) */
+
 /*******************************************************************************
 * Function Name: Cy_SysLib_GetDeviceLCS
 ****************************************************************************//**
@@ -1758,7 +1815,7 @@ bool Cy_Syslib_IsMemCacheable(MPU_Type* mpu, uint32_t addr, uint32_t size);
 
 /** \cond INTERNAL */
 #define CY_SYSLIB_DEVICE_REV_0A       (0x21U)  /**< The device TO *A Revision ID */
-#define CY_SYSLIB_DEVICE_PSOC6ABLE2   (0x100U) /**< The PSoC6 BLE2 device Family ID */
+#define CY_SYSLIB_DEVICE_PSOC6ABLE2   (0x100U) /**< The PSOC6 BLE2 device Family ID */
 
 #define CY_SYSLIB_COEFFICIENT_ULP     (80U) /**< Wait states coefficient for ULP mode  */
 #define CY_SYSLIB_COEFFICIENT         (60U) /**< Wait states coefficient for general mode  */

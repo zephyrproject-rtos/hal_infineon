@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_04_68_qfn.c
 *
 * \brief
-* PSoC6_04 device GPIO HAL header for 68-QFN package
+* PSOC6_04 device GPIO HAL header for 68-QFN package
 *
 ********************************************************************************
 * \copyright

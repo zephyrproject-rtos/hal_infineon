@@ -49,6 +49,11 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// BSP PM callbacks order values //////////////////////////////////////
 
+// The CYBSP_HW_ALLOC_CALLBACK_ORDER execute prior to CYBSP_EXT_MEMORY_PM_CALLBACK_ORDER
+// because it needs to run before the external memory is disabled and after external memory enabled.
+#ifndef CYBSP_HW_ALLOC_CALLBACK_ORDER
+    #define CYBSP_HW_ALLOC_CALLBACK_ORDER      (253u)
+#endif
 // CAT1B device QSPI memory power-down / power-up PM callback order.
 #ifndef CYBSP_EXT_MEMORY_PM_CALLBACK_ORDER
     #define CYBSP_EXT_MEMORY_PM_CALLBACK_ORDER  (254u)
@@ -59,6 +64,8 @@ extern "C" {
 #ifndef CYBSP_SYSCLK_PM_CALLBACK_ORDER
     #define CYBSP_SYSCLK_PM_CALLBACK_ORDER      (255u)
 #endif
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// BSP PM callbacks ///////////////////////////////////////////////////
@@ -131,13 +138,12 @@ cy_en_syspm_status_t cybsp_smif_power_up_callback(cy_stc_syspm_callback_params_t
 
 
 CY_RAMFUNC_END
-#endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
 
 // CAT1B device QSPI memory power-down / power-up PM callback.
 // Intended to put external QSPI memory in low power state
 // upon device transition to DeepsleepRam power mode and to wake up
 // external QSPI device from low power mode upon device wakeup
-#if defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
+
 CY_RAMFUNC_BEGIN
 cy_en_syspm_status_t cybsp_dsram_smif_power_up_callback(
     cy_stc_syspm_callback_params_t* callbackParams,
@@ -203,48 +209,11 @@ cy_en_syspm_status_t cybsp_dsram_smif_power_up_callback(
 
 
 CY_RAMFUNC_END
-#endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
-
-//--------------------------------------------------------------------------------------------------
-// cybsp_deepsleep_ram_callback
-//--------------------------------------------------------------------------------------------------
-cy_en_syspm_status_t cybsp_deepsleep_ram_callback(cy_stc_syspm_callback_params_t* callbackParams,
-                                                  cy_en_syspm_callback_mode_t mode)
-{
-    cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
-
-    CY_UNUSED_PARAMETER(callbackParams);
-
-    switch (mode)
-    {
-        case CY_SYSPM_CHECK_READY:
-        case CY_SYSPM_CHECK_FAIL:
-        case CY_SYSPM_BEFORE_TRANSITION:
-        {
-            retVal = CY_SYSPM_SUCCESS;
-            break;
-        }
-
-        case CY_SYSPM_AFTER_TRANSITION:
-        {
-            Cy_Syslib_SetWarmBootEntryPoint((uint32_t*)&syspmBspDeepSleepEntryPoint, true);
-
-            retVal = CY_SYSPM_SUCCESS;
-            break;
-        }
-
-        default:
-            break;
-    }
-
-    return retVal;
-}
-
 
 //--------------------------------------------------------------------------------------------------
 // cybsp_hibernate_callback
 //--------------------------------------------------------------------------------------------------
-#if defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
+
 CY_SECTION_RAMFUNC_BEGIN
 cy_en_syspm_status_t cybsp_hibernate_callback(cy_stc_syspm_callback_params_t* callbackParams,
                                               cy_en_syspm_callback_mode_t mode)
@@ -302,7 +271,115 @@ cy_en_syspm_status_t cybsp_hibernate_callback(cy_stc_syspm_callback_params_t* ca
 
 
 CY_SECTION_RAMFUNC_END
+
+//--------------------------------------------------------------------------------------------------
+// cybsp_deepsleep_ram_rsc_alloc_callback
+//--------------------------------------------------------------------------------------------------
+
+cy_en_syspm_status_t cybsp_deepsleep_ram_rsc_alloc_callback(
+    cy_stc_syspm_callback_params_t* callbackParams,
+    cy_en_syspm_callback_mode_t mode)
+{
+    cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
+    CY_UNUSED_PARAMETER(callbackParams);
+
+    switch (mode)
+    {
+        case CY_SYSPM_CHECK_READY:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+            break;
+        }
+
+        case CY_SYSPM_CHECK_FAIL:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+            break;
+        }
+
+        case CY_SYSPM_BEFORE_TRANSITION:
+        {
+            // Free the resource before entering the DSRAM
+            cyhal_hwmgr_free(&srss_0_clock_0_pathmux_0_obj);
+
+            cyhal_hwmgr_free(&srss_0_clock_0_pathmux_1_obj);
+
+            cyhal_hwmgr_free(&srss_0_clock_0_pathmux_2_obj);
+
+            cyhal_hwmgr_free(&srss_0_clock_0_pathmux_3_obj);
+            break;
+        }
+
+        case CY_SYSPM_AFTER_TRANSITION:
+        {
+            // Reserve the resource after exiting the DSRAM
+            if (!Cy_SysLib_IsDSRAMWarmBootEntry())
+            {
+                if (CY_RSLT_SUCCESS != (cyhal_hwmgr_reserve(&srss_0_clock_0_pathmux_0_obj)))
+                {
+                    CY_HALT();
+                }
+                if (CY_RSLT_SUCCESS != (cyhal_hwmgr_reserve(&srss_0_clock_0_pathmux_1_obj)))
+                {
+                    CY_HALT();
+                }
+                if (CY_RSLT_SUCCESS != (cyhal_hwmgr_reserve(&srss_0_clock_0_pathmux_2_obj)))
+                {
+                    CY_HALT();
+                }
+                if (CY_RSLT_SUCCESS != (cyhal_hwmgr_reserve(&srss_0_clock_0_pathmux_3_obj)))
+                {
+                    CY_HALT();
+                }
+            }
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return retVal;
+}
+
+
 #endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
+
+//--------------------------------------------------------------------------------------------------
+// cybsp_deepsleep_ram_callback
+//--------------------------------------------------------------------------------------------------
+cy_en_syspm_status_t cybsp_deepsleep_ram_callback(cy_stc_syspm_callback_params_t* callbackParams,
+                                                  cy_en_syspm_callback_mode_t mode)
+{
+    cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
+
+    CY_UNUSED_PARAMETER(callbackParams);
+
+    switch (mode)
+    {
+        case CY_SYSPM_CHECK_READY:
+        case CY_SYSPM_CHECK_FAIL:
+        case CY_SYSPM_BEFORE_TRANSITION:
+        {
+            retVal = CY_SYSPM_SUCCESS;
+            break;
+        }
+
+        case CY_SYSPM_AFTER_TRANSITION:
+        {
+            Cy_Syslib_SetWarmBootEntryPoint((uint32_t*)&syspmBspDeepSleepEntryPoint, true);
+
+            retVal = CY_SYSPM_SUCCESS;
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return retVal;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////// BSP PM callbacks config structures ////////////////////////////////////
@@ -349,6 +426,15 @@ static cy_stc_syspm_callback_t        cybsp_hibernate_pm_callback       =
     .callbackParams = &cybsp_hibernate_pm_callback_param,
     .order          = CYBSP_EXT_MEMORY_PM_CALLBACK_ORDER
 };
+
+static cy_stc_syspm_callback_params_t cybsp_ds_ram_rsc_alloc_callback_param = { NULL, NULL };
+static cy_stc_syspm_callback_t        cybsp_ds_ram_rsc_alloc_callback       =
+{
+    .callback       = &cybsp_deepsleep_ram_rsc_alloc_callback,
+    .type           = CY_SYSPM_DEEPSLEEP_RAM,
+    .callbackParams = &cybsp_ds_ram_rsc_alloc_callback_param,
+    .order          = CYBSP_HW_ALLOC_CALLBACK_ORDER
+};
 #endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
 
 static cy_stc_syspm_callback_params_t cybsp_ds_ram_pm_callback_param = { NULL, NULL };
@@ -372,6 +458,7 @@ cy_stc_syspm_callback_t* _cybsp_callbacks_array[] =
     &cybsp_smif_pu_callback,
     &cybsp_dsram_smif_pu_callback,
     &cybsp_hibernate_pm_callback,
+    &cybsp_ds_ram_rsc_alloc_callback,
     #endif // defined(CY_EXT_MEM_POWER_DOWN_SUPPORTED)
     &cybsp_ds_ram_pm_callback
 };

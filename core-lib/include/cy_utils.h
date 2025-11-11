@@ -115,6 +115,8 @@ void CY_ASSERT_HANDLER(void);
                             } while (false)
 #endif // defined(NDEBUG)
 
+/** SuperVisorCall macro */
+#define CY_SVC_CALL()        ( asm("svc #0") )
 
 /*******************************************************************************
 *  Data manipulation defines
@@ -167,16 +169,25 @@ void CY_ASSERT_HANDLER(void);
     #define CY_RAMFUNC_END
 #elif defined (__GNUC__)
     #if defined (__clang__)
-        #define CY_NOINIT           __attribute__ ((section("__DATA, __noinit")))
-        #define CY_SECTION(name)    __attribute__ ((section("__DATA, "name)))
-        #define CY_RAMFUNC_BEGIN    __attribute__ ((section("__DATA, .cy_ramfunc")))
-        #define CY_RAMFUNC_END
-    #else
+        #if defined(__llvm__)
+/* LLVM Embedded for ARM */
+            #define CY_NOINIT           __attribute__ ((section(".noinit")))
+            #define CY_SECTION(name)    __attribute__ ((section(name)))
+            #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".cy_ramfunc")))
+            #define CY_RAMFUNC_END
+        #else // if defined(__llvm__)
+/* A_Clang */
+            #define CY_NOINIT           __attribute__ ((section("__DATA, __noinit")))
+            #define CY_SECTION(name)    __attribute__ ((section("__DATA, "name)))
+            #define CY_RAMFUNC_BEGIN    __attribute__ ((section("__DATA, .cy_ramfunc")))
+            #define CY_RAMFUNC_END
+        #endif // if defined(__llvm__)
+    #else // if defined (__clang__)
         #define CY_NOINIT           __attribute__ ((section(".noinit")))
         #define CY_SECTION(name)    __attribute__ ((section(name)))
         #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".cy_ramfunc")))
         #define CY_RAMFUNC_END
-    #endif
+    #endif // if defined (__clang__)
 
     #define CY_UNUSED           __attribute__ ((unused))
     #define CY_NOINLINE         __attribute__ ((noinline))

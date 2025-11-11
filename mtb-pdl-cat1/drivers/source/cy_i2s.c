@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_i2s.c
-* \version 2.30
+* \version 2.40
 *
 * The source code file for the I2S driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2020 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +68,7 @@ cy_en_i2s_status_t Cy_I2S_Init(I2S_Type * base, cy_stc_i2s_config_t const * conf
         REG_I2S_CTL(base) = 0UL; /* Disable TX/RX sub-blocks before clock changing */
 
         /* The clock setting */
-       
+
 #if (CY_IP_MXAUDIOSS_VERSION>=2)
         REG_I2S_CLOCK_CTL(base) = _VAL2FLD(I2S_CLOCK_CTL_CLOCK_DIV, clockDiv) |
                                   _BOOL2FLD(I2S_CLOCK_CTL_CLOCK_SEL, config->extClk) |
@@ -247,7 +248,7 @@ void Cy_I2S_DeInit(I2S_Type * base)
 * \snippet i2s/snippet/main.c snippet_Cy_I2S_DeepSleepCallback
 *
 *******************************************************************************/
-cy_en_syspm_status_t Cy_I2S_DeepSleepCallback (cy_stc_syspm_callback_params_t const *callbackParams, cy_en_syspm_callback_mode_t mode)
+cy_en_syspm_status_t Cy_I2S_DeepSleepCallback (cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
 {
     cy_en_syspm_status_t ret = CY_SYSPM_SUCCESS;
     CY_ASSERT_L1(NULL != callbackParams->context);

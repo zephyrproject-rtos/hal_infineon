@@ -31,18 +31,31 @@ BSP_COMPONENTS:=
 # Any additional defines to apply when using this board.
 BSP_DEFINES:=
 
+# Set a custom XIP flash memory size
+BSP_XIP_FLASH_KB:=
+
 # APP_IMAGE_TYPE
 APPTYPE?=flash
 # Set APP_SECURITY_TYPE to NORMAL_NO_SECURE for un-signed image
 # Set APP_SECURITY_TYPE to SECURE for signed image
 APP_SECURITY_TYPE?=NORMAL_NO_SECURE
 
+# Pass a variable XIP flash size to the linker script
+ifneq ($(BSP_XIP_FLASH_KB),)
+BSP_FLASH_KB=$(BSP_XIP_FLASH_KB)
+else
+BSP_FLASH_KB=$(if $(call mtb_equals,$(DEVICE_$(MPN_LIST)_FLASH_KB),0), ,$(DEVICE_$(MPN_LIST)_FLASH_KB))
+endif
+
 # Specify the path to the linker script to use
 ifeq ($(TOOLCHAIN),GCC_ARM)
+	LDFLAGS+=-Wl,--defsym=BSP_XIP_FLASH_KB=$(BSP_FLASH_KB)
 	BSP_LINKER_SCRIPT_EXT:=ld
 else ifeq ($(TOOLCHAIN),ARM)
+	LDFLAGS+=--predefine="-DBSP_XIP_FLASH_KB=$(BSP_FLASH_KB)"
 	BSP_LINKER_SCRIPT_EXT:=sct
 else ifeq ($(TOOLCHAIN),IAR)
+	LDFLAGS+=--config_def BSP_XIP_FLASH_KB=$(BSP_FLASH_KB)
 	BSP_LINKER_SCRIPT_EXT:=icf
 endif
 MTB_BSP__LINKER_SCRIPT:=$(MTB_TOOLS__TARGET_DIR)/TOOLCHAIN_$(TOOLCHAIN)/linker_ns_$(APPTYPE).$(BSP_LINKER_SCRIPT_EXT)

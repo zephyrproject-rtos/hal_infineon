@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_02_100_wlcsp.c
 *
 * \brief
-* PSoC6_02 device GPIO HAL header for 100-WLCSP package
+* PSOC6_02 device GPIO HAL header for 100-WLCSP package
 *
 ********************************************************************************
 * \copyright

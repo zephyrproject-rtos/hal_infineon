@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_scb_i2c.h
-* \version 3.30
+* \version 3.40
 *
 * Provides I2C API declarations of the SCB driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -460,6 +461,15 @@ typedef void (* cy_cb_scb_i2c_handle_events_t)(uint32_t event);
 */
 typedef cy_en_scb_i2c_command_t (* cy_cb_scb_i2c_handle_addr_t)(uint32_t event);
 
+/**
+* Provides the typedef for the callback function called in the
+* \ref Cy_SCB_I2C_Interrupt to notify the user about the occurrence of
+* a byte received event.
+* This callback must return a decision to ACK (continue transaction) or
+* NAK (end transaction) the received byte.
+*/
+typedef cy_en_scb_i2c_command_t (* cy_cb_scb_i2c_handle_byte_t)(uint8_t byteReceived);
+
 /** I2C configuration structure */
 typedef struct cy_stc_scb_i2c_config
 {
@@ -628,6 +638,13 @@ typedef struct cy_stc_scb_i2c_context
     */
     cy_cb_scb_i2c_handle_addr_t   cbAddr;
 
+    /**
+    * The pointer to a byte received callback that is called when a byte
+    * received event occurs (applicable only for the slave)
+    */
+    cy_cb_scb_i2c_handle_byte_t    cbByte;
+
+
     /** \endcond */
 } cy_stc_scb_i2c_context_t;
 
@@ -761,6 +778,9 @@ __STATIC_INLINE void Cy_SCB_I2C_RegisterEventCallback(CySCB_Type const *base, cy
                                                       cy_stc_scb_i2c_context_t *context);
 __STATIC_INLINE void Cy_SCB_I2C_RegisterAddrCallback (CySCB_Type const *base, cy_cb_scb_i2c_handle_addr_t callback,
                                                       cy_stc_scb_i2c_context_t *context);
+__STATIC_INLINE void Cy_SCB_I2C_RegisterByteReceivedCallback(CySCB_Type const *base, cy_cb_scb_i2c_handle_byte_t callback, 
+                                                      cy_stc_scb_i2c_context_t *context);
+
 /** \} group_scb_i2c_interrupt_functions */
 
 /**
@@ -790,49 +810,56 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 * \{
 */
 /** There is a read transaction in progress */
-#define CY_SCB_I2C_SLAVE_RD_BUSY       (0x00000001UL)
+#define CY_SCB_I2C_SLAVE_RD_BUSY         (0x00000001UL)
 
 /**
 * All read data has been loaded into the TX FIFO, applicable only if
 * the TX FIFO is used
 */
-#define CY_SCB_I2C_SLAVE_RD_IN_FIFO    (0x00000002UL)
+#define CY_SCB_I2C_SLAVE_RD_IN_FIFO      (0x00000002UL)
 
 /**
 * The master has finished reading data from the slave
 */
-#define CY_SCB_I2C_SLAVE_RD_CMPLT      (0x00000004UL)
+#define CY_SCB_I2C_SLAVE_RD_CMPLT        (0x00000004UL)
 
 /**
 * Set when the master tried to read more bytes than available in the configured
 * read buffer. The slave is not able to finish the transaction and sends
 * \ref CY_SCB_I2C_DEFAULT_TX.
 */
-#define CY_SCB_I2C_SLAVE_RD_UNDRFL     (0x00000008UL)
+#define CY_SCB_I2C_SLAVE_RD_UNDRFL       (0x00000008UL)
 
 /** There is a write transaction in progress */
-#define CY_SCB_I2C_SLAVE_WR_BUSY       (0x00000010UL)
+#define CY_SCB_I2C_SLAVE_WR_BUSY         (0x00000010UL)
 
 /**
 * The master has finished writing data into the slave
 */
-#define CY_SCB_I2C_SLAVE_WR_CMPLT      (0x00000020UL)
+#define CY_SCB_I2C_SLAVE_WR_CMPLT        (0x00000020UL)
 
 /**
 * The master attempted to write more bytes than space available in the
 * configured Write buffer. Note that all subsequent bytes are dropped.
 */
-#define CY_SCB_I2C_SLAVE_WR_OVRFL      (0x00000040UL)
+#define CY_SCB_I2C_SLAVE_WR_OVRFL        (0x00000040UL)
 
 /** The slave lost arbitration, and the transaction was aborted */
-#define CY_SCB_I2C_SLAVE_ARB_LOST      (0x00000080UL)
+#define CY_SCB_I2C_SLAVE_ARB_LOST        (0x00000080UL)
 
 /**
 * The slave captured an error on the bus during a master transaction (source
 * of error is misplaced Start or Stop).
 */
-#define CY_SCB_I2C_SLAVE_BUS_ERR       (0x00000100UL)
+#define CY_SCB_I2C_SLAVE_BUS_ERR         (0x00000100UL)
+
+/**
+* The slave captured a repeated start condition.
+*/
+#define CY_SCB_I2C_SLAVE_RESTART         (0x00000200UL)
 /** \} group_scb_i2c_macros_slave_status */
+
+
 
 /**
 * \defgroup group_scb_i2c_macros_master_status I2C Master Status
@@ -927,6 +954,27 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 */
 #define CY_SCB_I2C_SLAVE_ERR_EVENT             (0x00000040UL)
 
+#if (CY_IP_MXSCB_VERSION == 4U) && (CY_IP_MXSCB_VERSION_MINOR >= 2U) || defined (CY_DOXYGEN)
+/**
+* Indicates the I2C hardware detected a repeated start event.
+* \note This event is only applicable for devices with SCB version 4. For details see
+*       the device catalog CAT1B.
+*/
+#define CY_SCB_I2C_SLAVE_RESTART_EVENT         (0x00000080UL)
+
+/**
+* Indicates the I2C hardware detected a stop event on address match, or
+* at the end of multiple restarts with address matching at least once.
+* \note This event is only applicable for devices with SCB version 4. For details see
+*       the device catalog CAT1B.
+*/
+#define CY_SCB_I2C_SLAVE_STOP_ANY_EVENT        (0x00000100UL)
+#endif
+/**
+* Indicates the I2C hardware has detected an arbitration lost event.
+*/
+#define CY_SCB_I2C_SLAVE_ARB_LOST_EVENT        (0x00000200UL)
+
 /**
 * All data specified by \ref Cy_SCB_I2C_MasterWrite has been loaded
 * into the TX FIFO. The content of the master write buffer can be modified.
@@ -1017,9 +1065,15 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 #define CY_SCB_I2C_MASTER_TIMEOUT_DONE (0x80000000UL)
 
 /* The slave interrupt mask */
+#if (CY_IP_MXSCB_VERSION == 4U) && (CY_IP_MXSCB_VERSION_MINOR >= 2U)
+#define CY_SCB_I2C_SLAVE_INTR      (CY_SCB_SLAVE_INTR_I2C_ADDR_MATCH | CY_SCB_SLAVE_INTR_I2C_GENERAL_ADDR | \
+                                    CY_SCB_SLAVE_INTR_I2C_STOP       | CY_SCB_SLAVE_INTR_I2C_BUS_ERROR    | \
+                                    CY_SCB_SLAVE_INTR_I2C_ARB_LOST   | CY_SCB_SLAVE_INTR_I2C_RESTART)
+#else
 #define CY_SCB_I2C_SLAVE_INTR      (CY_SCB_SLAVE_INTR_I2C_ADDR_MATCH | CY_SCB_SLAVE_INTR_I2C_GENERAL_ADDR | \
                                     CY_SCB_SLAVE_INTR_I2C_STOP       | CY_SCB_SLAVE_INTR_I2C_BUS_ERROR    | \
                                     CY_SCB_SLAVE_INTR_I2C_ARB_LOST)
+#endif
 
 #define CY_SCB_I2C_SLAVE_INTR_NO_STOP   (CY_SCB_I2C_SLAVE_INTR & (uint32_t) ~CY_SCB_SLAVE_INTR_I2C_STOP)
 
@@ -1027,7 +1081,8 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 
 #define CY_SCB_I2C_SLAVE_ADDR_DONE      (CY_SCB_I2C_SLAVE_INTR_ADDR)
 
-#define CY_SCB_I2C_SLAVE_INTR_NO_ADDR   (CY_SCB_I2C_SLAVE_INTR & (uint32_t) ~CY_SCB_I2C_SLAVE_INTR_ADDR)
+#define CY_SCB_I2C_SLAVE_INTR_NO_ADDR   (CY_SCB_I2C_SLAVE_INTR & (uint32_t) ~(CY_SCB_I2C_SLAVE_INTR_ADDR | \
+                                                                              CY_SCB_SLAVE_INTR_I2C_START))
 
 #define CY_SCB_I2C_SLAVE_INTR_TX        (CY_SCB_TX_INTR_LEVEL | CY_SCB_TX_INTR_UNDERFLOW)
 
@@ -1374,7 +1429,7 @@ __STATIC_INLINE void Cy_SCB_I2C_RegisterEventCallback(CySCB_Type const *base,
             cy_cb_scb_i2c_handle_events_t callback, cy_stc_scb_i2c_context_t *context)
 {
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     context->cbEvents = callback;
 }
@@ -1409,10 +1464,44 @@ __STATIC_INLINE void Cy_SCB_I2C_RegisterAddrCallback(CySCB_Type const *base,
               cy_cb_scb_i2c_handle_addr_t callback, cy_stc_scb_i2c_context_t *context)
 {
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     context->cbAddr = callback;
 }
+
+/*******************************************************************************
+* Function Name: Cy_SCB_I2C_RegisterByteReceivedCallback
+****************************************************************************//**
+*
+* Registers a callback function that notifies that a byte received event 
+* occurred in the \ref Cy_SCB_I2C_Interrupt.
+*
+* \param base
+* The pointer to the I2C SCB instance.
+*
+* \param callback
+* The pointer to a callback function.
+* See \ref cy_cb_scb_i2c_handle_byte_t for the function prototype.
+*
+* \param context
+* The pointer to context structure \ref cy_stc_scb_i2c_context_t allocated by
+* the user. The structure is used during the I2C operation for internal
+* configuration and data retention. The user should not modify anything in
+* this structure.
+*
+* \note
+* To remove the callback, pass NULL as the pointer to a callback function.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SCB_I2C_RegisterByteReceivedCallback(CySCB_Type const *base,
+    cy_cb_scb_i2c_handle_byte_t callback, cy_stc_scb_i2c_context_t *context)
+{
+    /* Suppress a compiler warning about unused variables */
+    CY_UNUSED_PARAMETER(base);
+
+    context->cbByte = callback;
+}
+
 /** \} group_scb_i2c_interrupt_functions */
 
 #if defined(__cplusplus)

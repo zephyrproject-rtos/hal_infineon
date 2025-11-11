@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_lpcomp.h
-* \version 1.80.1
+* \version 1.90
 *
 *  This file provides constants and parameter values for the Low Power Comparator driver.
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 *
 * SPDX-License-Identifier: Apache-2.0
@@ -117,6 +117,11 @@
 * \section group_lpcomp_Changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.90</td>
+*     <td>Fixed the GCC 14 linker warning in the \ref Cy_LPComp_Enable_Ext function.</td>
+*     <td>Defect fix.</td>
+*   </tr>
 *   <tr>
 *     <td>1.80.1</td>
 *     <td>Added the note about using \ref Cy_LPComp_UlpReferenceEnable()
@@ -249,7 +254,7 @@ extern "C"
 #define CY_LPCOMP_DRV_VERSION_MAJOR       1
 
 /** Driver minor version. */
-#define CY_LPCOMP_DRV_VERSION_MINOR       80
+#define CY_LPCOMP_DRV_VERSION_MINOR       90
 
 /******************************************************************************
 * API Constants

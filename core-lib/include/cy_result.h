@@ -8,7 +8,7 @@
  *
  ***************************************************************************************************
  * \copyright
- * Copyright 2018-2022 Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2018-2025 Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -94,6 +94,8 @@ extern "C" {
 #define CY_RSLT_CODE_POSITION              (0U)
 /** Bit width of the result code */
 #define CY_RSLT_CODE_WIDTH                 (16U)
+/** Bit width of the result code when a submodule is also present in the result code */
+#define CY_RSLT_CODE_WIDTH_EX              (8U)
 
 /** Mask for the result type */
 #define CY_RSLT_TYPE_MASK                  CY_BIT_MASK(CY_RSLT_TYPE_WIDTH)
@@ -101,6 +103,8 @@ extern "C" {
 #define CY_RSLT_MODULE_MASK                CY_BIT_MASK(CY_RSLT_MODULE_WIDTH)
 /** Mask for the result code */
 #define CY_RSLT_CODE_MASK                  CY_BIT_MASK(CY_RSLT_CODE_WIDTH)
+/** Mask for the result code when a submodule is also present in the result code */
+#define CY_RSLT_CODE_MASK_EX               CY_BIT_MASK(CY_RSLT_CODE_WIDTH_EX)
 /** Mask for submodule identifier */
 #define CY_RSLT_SUBMODULE_MASK             CY_BIT_MASK(CY_RSLT_SUBMODULE_WIDTH)
 
@@ -128,6 +132,18 @@ extern "C" {
  * @param x the @ref cy_rslt_t value from which to extract the result code
  */
 #define CY_RSLT_GET_CODE(x)                (((x) >> CY_RSLT_CODE_POSITION) & CY_RSLT_CODE_MASK)
+/**
+ * @brief Get the value of the result submodule field
+ * @param x the @ref cy_rslt_t value from which to extract the result code
+ */
+#define CY_RSLT_GET_EX_SUBMODULE(x)         \
+    (((x) >> CY_RSLT_SUBMODULE_POSITION) & CY_RSLT_SUBMODULE_MASK)
+/**
+ * @brief Get the value of the result code field, when the result contains a submodule
+ * @param x the @ref cy_rslt_t value from which to extract the result code
+ */
+#define CY_RSLT_GET_EX_CODE(x)          ((x) & CY_RSLT_CODE_MASK_EX)
+
 
 /** \} fields */
 
@@ -300,6 +316,12 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_EVTGEN = 0x004a,
     /** Module identifier for the SAR v2 driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_SAR2 = 0x004b,
+    /** Module identifier for the delta-sigma ADC driver. Asset(s): (mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_DSADC = 0x0050,
+    /** Module identifier for the CAN2.0B driver. Asset(s): (mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_CAN2B = 0x0051,
+    /** Module identifier for the ISOUART driver. Asset(s): (mtb-pdl-cat2) */
+    CY_RSLT_MODULE_DRIVER_ISOUART = 0x0052,
     /** Module identifier for the Key Scan driver. Asset(s): (mtb-pdl-cat1) */
     CY_RSLT_MODULE_DRIVER_KEYSCAN = 0x0072,
     /** Module identifier for the PDM-PCM v2 driver. Asset(s): (mtb-pdl-cat1) */
@@ -312,6 +334,8 @@ typedef enum
     CY_RSLT_MODULE_DRIVER_LVD_HT = 0x0078,
     /** Module identifier for the WiFi Host Driver. Asset(s): (wifi-host-driver) */
     CY_RSLT_MODULE_DRIVER_WHD = 0x0080,
+    /** Module identifier for the BTSS HCI Driver. Asset(s): (mtb-cpuss-bthci) */
+    CY_RSLT_MODULE_DRIVER_BTHCI = 0x0081,
 
     /** Module identifier for the Hardware Abstraction Layer.
        Asset(s): (mtb-hal-cat1, mtb-hal-cat2, ...) */
@@ -436,7 +460,15 @@ typedef enum
     /** Module identifier for the Power Conversion Middleware. Asset(s): (mtb-pwrconv) */
     CY_RSLT_MODULE_MIDDLEWARE_PWRCONV = 0x0255,
     /** Module identifier for the Async Transfer Utility Library. Asset(s): (async-transfer) */
-    CY_RSLT_MODULE_MIDDLEWARE_ASYNC_TRANSFER = 0x0256
+    CY_RSLT_MODULE_MIDDLEWARE_ASYNC_TRANSFER = 0x0256,
+    /** Module identifier for the MTB IPC Utility Library. Asset(s): (mtb-ipc) */
+    CY_RSLT_MODULE_MIDDLEWARE_IPC = 0x0257,
+    /** Module identifier for the MTB AFX Library. Asset(s): (afx) */
+    CY_RSLT_MODULE_MIDDLEWARE_AFX = 0x0258,
+    /** Module identifier for the MTB Secure Request Framework. Asset(s): (mtb-srf) */
+    CY_RSLT_MODULE_MIDDLEWARE_SRF = 0x0259,
+    /** Module identifier for the MTB PMBus Middleware Library. Asset(s): (mtb-pmbus) */
+    CY_RSLT_MODULE_MIDDLEWARE_PMBUS = 0x025a
 } cy_en_rslt_module_t;
 
 /** \} modules */

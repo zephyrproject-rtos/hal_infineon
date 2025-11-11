@@ -45,6 +45,12 @@ The HAL public interface is consistent across all platforms that the HAL support
 ## Event Handling
 Many HAL drivers provide an API for registering a callback which is invoked when certain (driver-specific) events occur. These drivers also often provide an API for enabling or disabling specific types of events. Unless otherwise documented, the callback will only be invoked for events that occur while that event type is enabled. Specifically, events that occur while a given event type is disabled are not queued and will not trigger a callback when that event type is (re)enabled.
 
+Event callbacks are usually invoked within the context of an interrupt handler. Callbacks should therefore take care not to perform long-running operations which could interfere with the ability of the device to service other interrupts.
+
+The `cyhal_<driver>_enable_event` functions accept a priority argument. The macro `CYHAL_ISR_PRIORITY_DEFAULT` can be used as a default priority by software which does not have more specific needs. Generally a given HAL driver instance supports only a single priority which is shared among all event types; a second call to `cyhal_<driver>_enable_event` with a different priority will supercede the previous priority.
+
+Event priorities map to interrupt priorities in the underlying hardware. On CAT1C devices, priorities are shared among multiple interrupt sources, so changing the event priority for one HAL driver instance may impact the event priority of other unrelated HAL driver instances. For details, see [IRQ Muxing](docs/html/group__group__hal__impl__irq.html).
+
 ## Error reporting
 The HAL uses the `cy_rslt_t` type (from the core-lib library) in all places where a HAL function might return an error code. This provides structured error reporting and makes it easy to determine the module from which the error arose, as well as the specific error cause. Macros are provided to help extract this information from a `cy_rslt_t` value.
 

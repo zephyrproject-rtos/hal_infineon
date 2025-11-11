@@ -16,6 +16,12 @@ The this release of the RTOS Abstraction API includes support for the following:
     * ThreadX
 
 ### What Changed?
+#### v1.12.0
+- Documentation updates
+#### v1.11.0
+FreeRTOS:
+- DSRAM Warmboot: added macro CYBSP_FREERTOS_DSRAM_WARMBOOT_SUPPORT support to avoid warmboot flag to be cleared.
+- Scheduler: added new scheduler function, cy_rtos_scheduler_get_state, to retrieve current scheduler state.
 #### v1.10.0
 FreeRTOS:
 - Enabled support for HAL interface 3.0 LPTimer to allow tickless (Deep)Sleep.

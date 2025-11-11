@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_pdm_pcm.h
-* \version 2.30.1
+* \version 2.40
 *
 * The header file of the PDM_PCM driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2022 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,6 +88,11 @@
 * \section group_pdm_pcm_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>2.40</td>
+*     <td>Removed const qualifier for the \ref Cy_PDM_PCM_DeepSleepCallback callbackParams parameter for consistency with \ref Cy_SysPmCallback type.</td>
+*     <td>Defect fix.</td>
+*   </tr>
 *   <tr>
 *     <td>2.30.1</td>
 *     <td>Added Note that this driver supports CAT1A devices only. </td>
@@ -210,7 +216,7 @@ extern "C"
 #define CY_PDM_PCM_DRV_VERSION_MAJOR       2
 
 /** The driver minor version */
-#define CY_PDM_PCM_DRV_VERSION_MINOR       30
+#define CY_PDM_PCM_DRV_VERSION_MINOR       40
 
 /** The PDM-PCM driver identifier */
 #define CY_PDM_PCM_ID                       CY_PDL_DRV_ID(0x26u)
@@ -476,7 +482,7 @@ cy_en_pdm_pcm_gain_t     Cy_PDM_PCM_GetGain(PDM_Type const * base, cy_en_pdm_pcm
 * The driver supports SysPm callback for Deep Sleep transition.
 * \{
 */
-cy_en_syspm_status_t     Cy_PDM_PCM_DeepSleepCallback(cy_stc_syspm_callback_params_t const * callbackParams, cy_en_syspm_callback_mode_t mode);
+cy_en_syspm_status_t     Cy_PDM_PCM_DeepSleepCallback(cy_stc_syspm_callback_params_t * callbackParams, cy_en_syspm_callback_mode_t mode);
 /** \} */
 
 __STATIC_INLINE void     Cy_PDM_PCM_Enable(PDM_Type * base);

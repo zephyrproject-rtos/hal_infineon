@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_tcpwm_motif.h
-* \version 1.80
+* \version 1.90
 *
 * The header file of the TCPWM  MOTIF driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2023-2024 Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2023-2025 Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *

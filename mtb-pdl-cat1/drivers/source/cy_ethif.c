@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_ethif.c
-* \version 1.30
+* \version 1.40
 *
 * Provides an API implementation of the ETHIF driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2021-2024 Cypress Semiconductor Corporation
+** Copyright (c) (2021-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -855,7 +856,7 @@ cy_en_ethif_status_t Cy_ETHIF_PhyRegWrite(ETH_Type *base, uint8_t u8RegNo, uint1
 
 
 /*******************************************************************************
-* Function Name: Cy_ETHIF_GetTimerValue
+* Function Name: Cy_ETHIF_Get1588TimerValue
 ****************************************************************************//**
 *
 * \brief Returns the current timer value from TSU register
@@ -865,6 +866,7 @@ cy_en_ethif_status_t Cy_ETHIF_PhyRegWrite(ETH_Type *base, uint8_t u8RegNo, uint1
 *
 * \return CY_ETHIF_SUCCESS Timer value is successfully retrieved
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
+* \return CY_ETHIF_NOT_INITIALIZED Ethernet Interface not initialized
 *
 *******************************************************************************/
 cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_1588_timer_val_t *stcRetTmrValue)
@@ -883,6 +885,10 @@ cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_158
     {
         return CY_ETHIF_BAD_PARAM;
     }
+    if (cyp_ethif_gemgxlobj == NULL || cyp_ethif_gemgxlobj->get1588Timer == NULL)
+    {
+        return CY_ETHIF_NOT_INITIALIZED;
+    }
 
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.3','Intentional typecast of stcRetTmrValue to CEDI_1588TimerVal* struct type.');
     (void)cyp_ethif_gemgxlobj->get1588Timer((void *)cyp_ethif_pd[u8EthIfInstance], (CEDI_1588TimerVal*)stcRetTmrValue);
@@ -891,7 +897,7 @@ cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_158
 }
 
 /*******************************************************************************
-* Function Name: Cy_ETHIF_SetTimerValue
+* Function Name: Cy_ETHIF_Set1588TimerValue
 ****************************************************************************//**
 *
 * \brief Setting the current timer value in TSU register
@@ -901,6 +907,7 @@ cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_158
 *
 * \return CY_ETHIF_SUCCESS Timer value is set
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
+* \return CY_ETHIF_NOT_INITIALIZED Ethernet Interface not initialized
 *
 *******************************************************************************/
 cy_en_ethif_status_t Cy_ETHIF_Set1588TimerValue(ETH_Type *base, cy_stc_ethif_1588_timer_val_t *pstcTmrValue)
@@ -919,7 +926,10 @@ cy_en_ethif_status_t Cy_ETHIF_Set1588TimerValue(ETH_Type *base, cy_stc_ethif_158
     {
         return CY_ETHIF_BAD_PARAM;
     }
-
+    if (cyp_ethif_gemgxlobj == NULL || cyp_ethif_gemgxlobj->get1588Timer == NULL)
+    {
+        return CY_ETHIF_NOT_INITIALIZED;
+    }
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.3','Intentional typecast of stcRetTmrValue to CEDI_1588TimerVal* struct type.');
     if (((uint32_t)EOK) != cyp_ethif_gemgxlobj->set1588Timer((void *)cyp_ethif_pd[u8EthIfInstance], (CEDI_1588TimerVal*)pstcTmrValue))
     {

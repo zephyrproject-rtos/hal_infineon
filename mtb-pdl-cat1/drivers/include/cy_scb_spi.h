@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_scb_spi.h
-* \version 3.30
+* \version 3.40
 *
 * Provides SPI API declarations of the SCB driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");

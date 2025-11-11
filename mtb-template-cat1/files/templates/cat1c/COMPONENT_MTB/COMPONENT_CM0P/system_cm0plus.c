@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file system_cm0plus.c
-* \version 1.1
+* \version 1.2
 *
 * The device system-source file.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2021-2024 Cypress Semiconductor Corporation
+* Copyright 2021-2025 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -289,12 +289,13 @@ static void PrepareSystemCallInfrastructure(void)
 {
     const uint8_t u8Irq0Index = (uint8_t) (VECTOR_TABLE_OFFSET_IRQ0 / 4);
     const uint8_t u8Irq1Index = (uint8_t) (VECTOR_TABLE_OFFSET_IRQ1 / 4);
-    volatile uint32_t * const ramTable   = (uint32_t *)__ramVectors;
-    volatile uint32_t * const sromTable  = (uint32_t *)SROM_VECTOR_TABLE_BASE_ADDRESS;
+    volatile uint32_t * const volatile ramTable   = (uint32_t *)__ramVectors;
+    /* The array syntax is necessary to avoid out-of-bounds warnings in some compilers. */
+    volatile uint32_t (* const volatile sromTable)[VECTORTABLE_SIZE]  = (uint32_t (*)[VECTORTABLE_SIZE])SROM_VECTOR_TABLE_BASE_ADDRESS;
 
     // Use IRQ0 and IRQ1 handlers from SROM vector table
-    ramTable[u8Irq0Index] = sromTable[u8Irq0Index];
-    ramTable[u8Irq1Index] = sromTable[u8Irq1Index];
+    ramTable[u8Irq0Index] = (*sromTable)[u8Irq0Index];
+    ramTable[u8Irq1Index] = (*sromTable)[u8Irq1Index];
 
     NVIC_SetPriority(NvicMux0_IRQn, 1);
     NVIC_SetPriority(NvicMux1_IRQn, 0);

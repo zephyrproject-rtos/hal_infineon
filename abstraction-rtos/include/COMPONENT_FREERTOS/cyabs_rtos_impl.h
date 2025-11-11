@@ -35,11 +35,8 @@
 #if !defined (COMPONENT_CAT5)
 #include <cmsis_compiler.h>
 #endif
-#if defined(CY_USING_HAL)
-#include "cyhal.h"
-#elif defined(COMPONENT_MTB_HAL)
-#include "mtb_hal.h"
-#endif
+#include "cyabs_rtos_types.h"
+#include "cyabs_rtos_hal_impl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,76 +53,6 @@ extern "C" {
 #define CY_RTOS_MAX_SUSPEND_NESTING 3              /**< Maximum nesting allowed for calls
                                                         to scheduler suspend from ISR */
 #endif
-/******************************************************
-*                   Enumerations
-******************************************************/
-
-typedef enum cy_thread_priority
-{
-    CY_RTOS_PRIORITY_MIN         = 0,
-    CY_RTOS_PRIORITY_LOW         = (configMAX_PRIORITIES * 1 / 7),
-    CY_RTOS_PRIORITY_BELOWNORMAL = (configMAX_PRIORITIES * 2 / 7),
-    CY_RTOS_PRIORITY_NORMAL      = (configMAX_PRIORITIES * 3 / 7),
-    CY_RTOS_PRIORITY_ABOVENORMAL = (configMAX_PRIORITIES * 4 / 7),
-    CY_RTOS_PRIORITY_HIGH        = (configMAX_PRIORITIES * 5 / 7),
-    CY_RTOS_PRIORITY_REALTIME    = (configMAX_PRIORITIES * 6 / 7),
-    CY_RTOS_PRIORITY_MAX         = configMAX_PRIORITIES - 1
-} cy_thread_priority_t;
-
-/******************************************************
-*                 Type Definitions
-******************************************************/
-
-typedef struct
-{
-    SemaphoreHandle_t mutex_handle;
-    bool              is_recursive;
-} cy_mutex_t;
-
-typedef QueueHandle_t      cy_queue_t;
-typedef SemaphoreHandle_t  cy_semaphore_t;
-typedef TaskHandle_t       cy_thread_t;
-typedef EventGroupHandle_t cy_event_t;
-typedef TimerHandle_t      cy_timer_t;
-typedef uint32_t           cy_timer_callback_arg_t;
-typedef void*              cy_thread_arg_t;
-typedef uint32_t           cy_time_t;
-typedef BaseType_t         cy_rtos_error_t;
-
-#if defined(CYHAL_DRIVER_AVAILABLE_LPTIMER) && (CYHAL_DRIVER_AVAILABLE_LPTIMER)
-/** Stores a reference to an lptimer instance for use with vApplicationSleep().
- *
- * @param[in] timer  Pointer to the lptimer handle
- */
-void cyabs_rtos_set_lptimer(cyhal_lptimer_t* timer);
-
-/** Gets a reference to the lptimer instance object used by vApplicationSleep(). This instance is
- * what was explicitly set by @ref cyabs_rtos_set_lptimer or, if none was set, what was
- * automatically allocated by the first call to vApplicationSleep().
- *
- * @return Pointer to the lptimer handle
- */
-cyhal_lptimer_t* cyabs_rtos_get_lptimer(void);
-
-#endif // defined(CYHAL_DRIVER_AVAILABLE_LPTIMER) && (CYHAL_DRIVER_AVAILABLE_LPTIMER)
-
-#if defined(MTB_HAL_DRIVER_AVAILABLE_LPTIMER) && (MTB_HAL_DRIVER_AVAILABLE_LPTIMER)
-/** Stores a reference to an lptimer instance for use with vApplicationSleep().
- *
- * @param[in] timer  Pointer to the lptimer handle
- */
-void cyabs_rtos_set_lptimer(mtb_hal_lptimer_t* timer);
-
-/** Gets a reference to the lptimer instance object used by vApplicationSleep(). This instance is
- * what was explicitly set by @ref cyabs_rtos_set_lptimer or, if none was set, what was
- * automatically allocated by the first call to vApplicationSleep().
- *
- * @return Pointer to the lptimer handle
- */
-mtb_hal_lptimer_t* cyabs_rtos_get_lptimer(void);
-
-#endif // defined(MTB_HAL_DRIVER_AVAILABLE_LPTIMER) && (MTB_HAL_DRIVER_AVAILABLE_LPTIMER)
-
 
 cy_time_t convert_ms_to_ticks(cy_time_t timeout_ms);
 

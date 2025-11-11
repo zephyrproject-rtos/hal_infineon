@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file system_cat1c.h
-* \version 1.0
+* \version 1.2
 *
 * \brief Device system header file.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2021 Cypress Semiconductor Corporation
+* Copyright 2021-2025 Cypress Semiconductor Corporation
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -348,6 +348,16 @@
 *       <th>Version</th>
 *       <th>Changes</th>
 *       <th>Reason for Change</th>
+*   </tr>
+*   <tr>
+*       <td>1.2</td>
+*       <td>Fixed warning for the GCC 14 compiler.</td>
+*       <td>Code improvements.</td>
+*   </tr>
+*   <tr>
+*       <td>1.1</td>
+*       <td>Restructured code.</td>
+*       <td>Code improvement.</td>
 *   </tr>
 *   <tr>
 *       <td>1.0</td>

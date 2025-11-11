@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_02_100_wlcsp.h
 *
 * \brief
-* PSoC6_02 device GPIO HAL header for 100-WLCSP package
+* PSOC6_02 device GPIO HAL header for 100-WLCSP package
 *
 ********************************************************************************
 * \copyright
@@ -30,10 +30,10 @@
 #include "cyhal_hw_resources.h"
 
 /**
- * \addtogroup group_hal_impl_pin_package_psoc6_02_100_wlcsp PSoC6_02 100-WLCSP
+ * \addtogroup group_hal_impl_pin_package_psoc6_02_100_wlcsp PSOC6_02 100-WLCSP
  * \ingroup group_hal_impl_pin_package
  * \{
- * Pin definitions and connections specific to the PSoC6_02 100-WLCSP package.
+ * Pin definitions and connections specific to the PSOC6_02 100-WLCSP package.
  */
 
 #if defined(__cplusplus)
@@ -48,7 +48,7 @@ extern "C" {
 /** Macro that, given a gpio, will extract the port number */
 #define CYHAL_GET_PORT(pin)         ((uint8_t)(((uint8_t)pin) >> 3U))
 
-/** Definitions for all of the pins that are bonded out on in the 100-WLCSP package for the PSoC6_02 series. */
+/** Definitions for all of the pins that are bonded out on in the 100-WLCSP package for the PSOC6_02 series. */
 typedef enum {
     NC = 0xFF, //!< No Connect/Invalid Pin
 

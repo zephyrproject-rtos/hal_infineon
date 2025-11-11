@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_sar.c
-* \version 2.10
+* \version 2.20
 *
 * Provides the public functions for the API for the SAR driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2017-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2017-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -736,7 +737,7 @@ void Cy_SAR_SetConvertMode(SAR_Type *base, cy_en_sar_sample_ctrl_trigger_mode_t 
 * This function reads the end of conversion status and clears it after.
 *
 * \note
-* \ref CY_SAR_WAIT_FOR_RESULT and \ref CY_SAR_WAIT_FOR_RESULT_INJ return modes are not recommended 
+* \ref CY_SAR_WAIT_FOR_RESULT and \ref CY_SAR_WAIT_FOR_RESULT_INJ return modes are not recommended
 * for use in RTOS environment.
 *
 * \funcusage
@@ -1542,7 +1543,7 @@ void Cy_SAR_SetSwitchSarSeqCtrl(SAR_Type *base, uint32_t switchMask, cy_en_sar_s
 * \snippet sar/snippet/main.c SNIPPET_SAR_DEEPSLEEP_CALLBACK
 *
 *******************************************************************************/
-cy_en_syspm_status_t Cy_SAR_DeepSleepCallback(const cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
+cy_en_syspm_status_t Cy_SAR_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
 {
     cy_en_syspm_status_t returnValue = CY_SYSPM_SUCCESS;
 

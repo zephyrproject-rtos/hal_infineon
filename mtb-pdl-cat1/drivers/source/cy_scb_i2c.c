@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_scb_i2c.c
-* \version 3.30
+* \version 3.40
 *
 * Provides I2C API implementation of the SCB driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,6 +158,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_Init(CySCB_Type *base, cy_stc_scb_i2c_config_t
     /* Unregister callbacks */
     context->cbEvents = NULL;
     context->cbAddr   = NULL;
+    context->cbByte   = NULL;
 
     return CY_SCB_I2C_SUCCESS;
 }
@@ -798,7 +800,7 @@ uint32_t Cy_SCB_I2C_GetDataRate(CySCB_Type const *base, uint32_t scbClockHz)
 uint32_t Cy_SCB_I2C_SlaveGetStatus(CySCB_Type const *base, cy_stc_scb_i2c_context_t const *context)
 {
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     return (context->slaveStatus);
 }
@@ -850,7 +852,7 @@ void Cy_SCB_I2C_SlaveConfigReadBuf(CySCB_Type const *base, uint8_t *buffer, uint
     CY_ASSERT_L1(CY_SCB_IS_I2C_BUFFER_VALID(buffer, size));
 
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     context->slaveTxBuffer     = buffer;
     context->slaveTxBufferSize = size;
@@ -891,7 +893,7 @@ void Cy_SCB_I2C_SlaveAbortRead(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
     uint32_t intrState;
 
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     intrState = Cy_SysLib_EnterCriticalSection();
 
@@ -939,7 +941,7 @@ void Cy_SCB_I2C_SlaveAbortRead(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
 uint32_t Cy_SCB_I2C_SlaveGetReadTransferCount(CySCB_Type const *base, cy_stc_scb_i2c_context_t const *context)
 {
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     return (context->slaveTxBufferCnt);
 }
@@ -972,7 +974,7 @@ uint32_t Cy_SCB_I2C_SlaveClearReadStatus(CySCB_Type const *base, cy_stc_scb_i2c_
     uint32_t retStatus;
 
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     retStatus = (context->slaveStatus & CY_SCB_I2C_SLAVE_RD_CLEAR);
     context->slaveStatus &= (uint32_t) ~CY_SCB_I2C_SLAVE_RD_CLEAR;
@@ -1029,7 +1031,7 @@ void Cy_SCB_I2C_SlaveConfigWriteBuf(CySCB_Type const *base, uint8_t *buffer, uin
     CY_ASSERT_L1(CY_SCB_IS_I2C_BUFFER_VALID(buffer, size));
 
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     context->slaveRxBuffer     = buffer;
     context->slaveRxBufferSize = size;
@@ -1064,7 +1066,7 @@ void Cy_SCB_I2C_SlaveAbortWrite(CySCB_Type *base,  cy_stc_scb_i2c_context_t *con
     uint32_t intrState;
 
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     intrState = Cy_SysLib_EnterCriticalSection();
 
@@ -1115,7 +1117,7 @@ void Cy_SCB_I2C_SlaveAbortWrite(CySCB_Type *base,  cy_stc_scb_i2c_context_t *con
 uint32_t Cy_SCB_I2C_SlaveGetWriteTransferCount(CySCB_Type const *base, cy_stc_scb_i2c_context_t const *context)
 {
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     return (context->slaveRxBufferIdx);
 }
@@ -1149,7 +1151,7 @@ uint32_t Cy_SCB_I2C_SlaveClearWriteStatus(CySCB_Type const *base, cy_stc_scb_i2c
     uint32_t retStatus;
 
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     retStatus = (context->slaveStatus & CY_SCB_I2C_SLAVE_WR_CLEAR);
     context->slaveStatus &= (uint32_t) ~CY_SCB_I2C_SLAVE_WR_CLEAR;
@@ -1191,7 +1193,7 @@ uint32_t Cy_SCB_I2C_SlaveClearWriteStatus(CySCB_Type const *base, cy_stc_scb_i2c
 uint32_t Cy_SCB_I2C_MasterGetStatus(CySCB_Type const *base, cy_stc_scb_i2c_context_t const *context)
 {
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     return (context->masterStatus);
 }
@@ -1696,7 +1698,7 @@ void Cy_SCB_I2C_MasterAbortWrite(CySCB_Type *base, cy_stc_scb_i2c_context_t *con
 uint32_t Cy_SCB_I2C_MasterGetTransferCount(CySCB_Type const *base, cy_stc_scb_i2c_context_t const *context)
 {
     /* Suppress a compiler warning about unused variables */
-    (void) base;
+    CY_UNUSED_PARAMETER(base);
 
     return (context->masterNumBytes);
 }
@@ -2221,13 +2223,10 @@ void Cy_SCB_I2C_SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
     {
         /* Update the status */
         context->slaveStatus |= (0UL != (CY_SCB_SLAVE_INTR_I2C_BUS_ERROR & slaveIntrStatus)) ?
-                                            CY_SCB_I2C_SLAVE_BUS_ERR : CY_SCB_I2C_SLAVE_ARB_LOST;
+                                         CY_SCB_I2C_SLAVE_BUS_ERR : CY_SCB_I2C_SLAVE_ARB_LOST;
 
         /* Disable the RX interrupt source to drop data into RX FIFO if any */
         Cy_SCB_SetRxInterruptMask(base, CY_SCB_CLEAR_ALL_INTR_SRC);
-
-        /* Add the stop status to back into the default state and set completion statuses */
-        slaveIntrStatus |= CY_SCB_SLAVE_INTR_I2C_STOP;
     }
     else
     {
@@ -2244,6 +2243,29 @@ void Cy_SCB_I2C_SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
         }
     }
 
+    /* Call low-level event callbacks before the high-level handling */
+    if (0UL != (slaveIntrStatus & CY_SCB_SLAVE_INTR_I2C_ARB_LOST))
+    {
+        Cy_SCB_ClearSlaveInterrupt(base, CY_SCB_SLAVE_INTR_I2C_ARB_LOST);
+        if (NULL != context->cbEvents)
+        {
+            context->cbEvents(CY_SCB_I2C_SLAVE_ARB_LOST_EVENT);
+        }
+    }
+
+    /* Handle start event - Session Start */
+#if (CY_IP_MXSCB_VERSION == 4U) && (CY_IP_MXSCB_VERSION_MINOR >= 2U)
+    if (0UL != (slaveIntrStatus & CY_SCB_SLAVE_INTR_I2C_RESTART))
+    {
+        context->slaveStatus |= CY_SCB_I2C_SLAVE_RESTART;
+        if (NULL != context->cbEvents)
+        {
+            context->cbEvents(CY_SCB_I2C_SLAVE_RESTART_EVENT);
+        }
+        Cy_SCB_ClearSlaveInterrupt(base, CY_SCB_SLAVE_INTR_I2C_RESTART);
+    }
+#endif
+
     /* Handle the receive direction (master writes data) */
     if (0UL != (CY_SCB_RX_INTR_LEVEL & Cy_SCB_GetRxInterruptStatusMasked(base)))
     {
@@ -2253,17 +2275,38 @@ void Cy_SCB_I2C_SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
     }
 
     /* Handle the transfer completion */
-    if (0UL != (CY_SCB_SLAVE_INTR_I2C_STOP & slaveIntrStatus))
+    if (0UL != ((CY_SCB_SLAVE_INTR_I2C_STOP | CY_SCB_I2C_SLAVE_INTR_ERROR) & slaveIntrStatus))
     {
-        SlaveHandleStop(base, context);
+        /* Handle STOP event only if it is not a RESTART and an error isn't occurred */
+#if (CY_IP_MXSCB_VERSION == 4U) && (CY_IP_MXSCB_VERSION_MINOR >= 2U)
+        if ((0UL == (slaveIntrStatus & CY_SCB_SLAVE_INTR_I2C_RESTART)) && 
+            (0UL == (slaveIntrStatus & CY_SCB_I2C_SLAVE_INTR_ERROR)))
+        {
+            if (NULL != context->cbEvents)
+            {
+                context->cbEvents(CY_SCB_I2C_SLAVE_STOP_ANY_EVENT);
+            }
+        }
+#endif
 
-        Cy_SCB_ClearSlaveInterrupt(base, CY_SCB_SLAVE_INTR_I2C_STOP);
+        /* Handle the transfer completion only if address ACKed or error occurred */
+        if ((CY_SCB_I2C_SLAVE_RX == context->state) ||
+            (CY_SCB_I2C_SLAVE_TX == context->state) ||
+            (0UL != (CY_SCB_I2C_SLAVE_INTR_ERROR & slaveIntrStatus)))
+        {
+            SlaveHandleStop(base, context);
+        }
 
-        /* Update the slave interrupt status */
+        if (0UL == (slaveIntrStatus & CY_SCB_I2C_SLAVE_INTR_ERROR))
+        {
+            Cy_SCB_ClearSlaveInterrupt(base, CY_SCB_SLAVE_INTR_I2C_STOP);
+        }
+
+        /* Update the slave interrupt status if needed */
         slaveIntrStatus = Cy_SCB_GetSlaveInterruptStatusMasked(base);
     }
 
-    /* Handle the address reception */
+    /* Handle the slave address and general address reception */
     if (0UL != (CY_SCB_I2C_SLAVE_INTR_ADDR & slaveIntrStatus))
     {
         SlaveHandleAddress(base, context);
@@ -2452,18 +2495,6 @@ static void SlaveHandleAddress(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
 
             /* Clear RX level interrupt after address reception */
             Cy_SCB_ClearRxInterrupt(base, CY_SCB_RX_INTR_LEVEL);
-
-            if (cmd == CY_SCB_I2C_ACK)
-            {
-                /* Clear the stall stop status and enable the stop interrupt source */
-                Cy_SCB_ClearSlaveInterrupt(base, CY_SCB_SLAVE_INTR_I2C_STOP);
-                Cy_SCB_SetSlaveInterruptMask(base, CY_SCB_I2C_SLAVE_INTR);
-            }
-            else
-            {
-                /* Disable the stop interrupt source */
-                Cy_SCB_SetSlaveInterruptMask(base, CY_SCB_I2C_SLAVE_INTR_NO_STOP);
-            }
         }
     }
 
@@ -2594,13 +2625,42 @@ static void SlaveHandleDataReceive(CySCB_Type *base, cy_stc_scb_i2c_context_t *c
         }
         else
         {
-            /* Continue the transfer: send an ACK */
-            SCB_I2C_S_CMD(base) = SCB_I2C_S_CMD_S_ACK_Msk;
+            /* Ignore for address match in repeated start scenario */
+            if ((CY_SCB_I2C_SLAVE_INTR_ADDR & Cy_SCB_GetSlaveInterruptStatusMasked(base)) == 0U)
+            {
+                /* Involve a byte received callback if registered */
+                if (NULL != context->cbByte)
+                {
+                    uint8_t rxData = (uint8_t) Cy_SCB_ReadRxFifo(base);
+                    cy_en_scb_i2c_command_t cmd = context->cbByte(rxData);
+                    if (cmd == CY_SCB_I2C_ACK)
+                    {
+                        /* Continue the transfer: send an ACK */
+                        SCB_I2C_S_CMD(base) = SCB_I2C_S_CMD_S_ACK_Msk;
 
-            /* Put data into the RX buffer */
-            context->slaveRxBuffer[context->slaveRxBufferIdx] = (uint8_t) Cy_SCB_ReadRxFifo(base);
-            ++context->slaveRxBufferIdx;
-            --context->slaveRxBufferSize;
+                        /* Put data into the RX buffer */
+                        context->slaveRxBuffer[context->slaveRxBufferIdx] = rxData;
+                        ++context->slaveRxBufferIdx;
+                        --context->slaveRxBufferSize;
+                    }
+                    else
+                    {
+                        /* Finish a transfer: send a NACK and discard the received byte */
+                        SCB_I2C_S_CMD(base) = SCB_I2C_S_CMD_S_NACK_Msk;
+                        Cy_SCB_SetRxInterruptMask(base, CY_SCB_CLEAR_ALL_INTR_SRC);
+                    }
+                }
+                else
+                {
+                    /* Continue the transfer: send an ACK */
+                    SCB_I2C_S_CMD(base) = SCB_I2C_S_CMD_S_ACK_Msk;
+
+                    /* Put data into the RX buffer */
+                    context->slaveRxBuffer[context->slaveRxBufferIdx] = (uint8_t) Cy_SCB_ReadRxFifo(base);
+                    ++context->slaveRxBufferIdx;
+                    --context->slaveRxBufferSize;
+                }
+            }
         }
     }
     else
@@ -2739,8 +2799,9 @@ static void SlaveHandleStop(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 
     if (CY_SCB_I2C_SLAVE_RX == context->state)
     {
-        /* If any data is left in RX FIFO, this is an overflow */
-        if (Cy_SCB_GetNumInRxFifo(base) > 0UL)
+
+        /* If any data is left in RX FIFO, this is an overflow. Ignore for address match in repeated start scenario */
+        if ((Cy_SCB_GetNumInRxFifo(base) > 0UL) && ((CY_SCB_I2C_SLAVE_INTR_ADDR & Cy_SCB_GetSlaveInterruptStatusMasked(base)) == 0U))
         {
             context->slaveStatus |= CY_SCB_I2C_SLAVE_WR_OVRFL;
 

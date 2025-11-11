@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_04_64_tqfp.c
 *
 * \brief
-* PSoC6_04 device GPIO HAL header for 64-TQFP package
+* PSOC6_04 device GPIO HAL header for 64-TQFP package
 *
 ********************************************************************************
 * \copyright

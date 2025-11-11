@@ -407,6 +407,8 @@ cy_rslt_t cy_rtos_scheduler_suspend(void)
     {
         if (_cy_rtos_suspend_count_from_ISR < (CY_RTOS_MAX_SUSPEND_NESTING -1))
         {
+            /* Suspend the Scheduler before interrupts are disabled */
+            vTaskSuspendAll();
             uxSavedInterruptStatus[_cy_rtos_suspend_count_from_ISR] = taskENTER_CRITICAL_FROM_ISR();
             ++_cy_rtos_suspend_count_from_ISR;
         }
@@ -417,6 +419,8 @@ cy_rslt_t cy_rtos_scheduler_suspend(void)
     }
     else
     {
+        /* Suspend the Scheduler before interrupts are disabled */
+        vTaskSuspendAll();
         taskENTER_CRITICAL();
     }
 
@@ -457,10 +461,50 @@ cy_rslt_t cy_rtos_scheduler_resume(void)
             status = CY_RSLT_SUCCESS;
         }
         --_cy_rtos_suspend_count;
+        /* Resume the Scheduler after interrupt are re-enabled */
+        xTaskResumeAll();
     }
     else
     {
         status = CY_RTOS_BAD_PARAM;
+    }
+    return status;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// cy_rtos_scheduler_get_state
+//--------------------------------------------------------------------------------------------------
+cy_rslt_t cy_rtos_scheduler_get_state(cy_scheduler_state_t* state)
+{
+    cy_rslt_t status;
+    if (state == NULL)
+    {
+        status = CY_RTOS_BAD_PARAM;
+    }
+    else
+    {
+        BaseType_t st = xTaskGetSchedulerState();
+        switch (st)
+        {
+            case taskSCHEDULER_NOT_STARTED:
+                *state = CY_SCHEDULER_STATE_NOT_STARTED;
+                break;
+
+            case taskSCHEDULER_SUSPENDED:
+                *state = CY_SCHEDULER_STATE_SUSPENDED;
+                break;
+
+            case taskSCHEDULER_RUNNING:
+                *state = CY_SCHEDULER_STATE_RUNNING;
+                break;
+
+            default:
+                *state = CY_SCHEDULER_STATE_UNKNOWN;
+                break;
+        }
+
+        status = CY_RSLT_SUCCESS;
     }
     return status;
 }

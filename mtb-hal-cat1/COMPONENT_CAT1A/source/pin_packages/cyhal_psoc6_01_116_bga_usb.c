@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_01_116_bga_usb.c
 *
 * \brief
-* PSoC6_01 device GPIO HAL header for 116-BGA-USB package
+* PSOC6_01 device GPIO HAL header for 116-BGA-USB package
 *
 ********************************************************************************
 * \copyright

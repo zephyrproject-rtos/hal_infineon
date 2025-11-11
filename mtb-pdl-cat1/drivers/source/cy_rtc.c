@@ -1,13 +1,13 @@
 /***************************************************************************//**
 * \file cy_rtc.c
-* \version 2.100
+* \version 2.110
 *
 * This file provides constants and parameter values for the APIs for the
 * Real-Time Clock (RTC).
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2024), Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -1486,7 +1486,7 @@ void Cy_RTC_Interrupt(cy_stc_rtc_dst_t const *dstTime, bool mode)
 * (cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
 *
 *******************************************************************************/
-cy_en_syspm_status_t Cy_RTC_DeepSleepCallback(const cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
+cy_en_syspm_status_t Cy_RTC_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
 {
     cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
 
@@ -1557,7 +1557,7 @@ cy_en_syspm_status_t Cy_RTC_DeepSleepCallback(const cy_stc_syspm_callback_params
 * (cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
 *
 *******************************************************************************/
-cy_en_syspm_status_t Cy_RTC_HibernateCallback(const cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
+cy_en_syspm_status_t Cy_RTC_HibernateCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
 {
     return (Cy_RTC_DeepSleepCallback(callbackParams, mode));
 }

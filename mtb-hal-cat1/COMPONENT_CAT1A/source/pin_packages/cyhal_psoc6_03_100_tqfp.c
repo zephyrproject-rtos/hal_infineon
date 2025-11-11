@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_03_100_tqfp.c
 *
 * \brief
-* PSoC6_03 device GPIO HAL header for 100-TQFP package
+* PSOC6_03 device GPIO HAL header for 100-TQFP package
 *
 ********************************************************************************
 * \copyright

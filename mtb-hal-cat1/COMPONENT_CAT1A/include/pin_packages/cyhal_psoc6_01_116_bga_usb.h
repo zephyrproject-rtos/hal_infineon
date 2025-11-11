@@ -2,7 +2,7 @@
 * \file cyhal_psoc6_01_116_bga_usb.h
 *
 * \brief
-* PSoC6_01 device GPIO HAL header for 116-BGA-USB package
+* PSOC6_01 device GPIO HAL header for 116-BGA-USB package
 *
 ********************************************************************************
 * \copyright
@@ -30,10 +30,10 @@
 #include "cyhal_hw_resources.h"
 
 /**
- * \addtogroup group_hal_impl_pin_package_psoc6_01_116_bga_usb PSoC6_01 116-BGA-USB
+ * \addtogroup group_hal_impl_pin_package_psoc6_01_116_bga_usb PSOC6_01 116-BGA-USB
  * \ingroup group_hal_impl_pin_package
  * \{
- * Pin definitions and connections specific to the PSoC6_01 116-BGA-USB package.
+ * Pin definitions and connections specific to the PSOC6_01 116-BGA-USB package.
  */
 
 #if defined(__cplusplus)
@@ -48,7 +48,7 @@ extern "C" {
 /** Macro that, given a gpio, will extract the port number */
 #define CYHAL_GET_PORT(pin)         ((uint8_t)(((uint8_t)pin) >> 3U))
 
-/** Definitions for all of the pins that are bonded out on in the 116-BGA-USB package for the PSoC6_01 series. */
+/** Definitions for all of the pins that are bonded out on in the 116-BGA-USB package for the PSOC6_01 series. */
 typedef enum {
     NC = 0xFF, //!< No Connect/Invalid Pin
 
