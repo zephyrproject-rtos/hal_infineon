@@ -205,6 +205,19 @@ void XMC_UART_CH_Transmit(XMC_USIC_CH_t *const channel, const uint16_t data)
 		/*Transmit data */
 		channel->TBUF[0U] = data;
 	} else {
+		/* That is probably equivalent to disable the FIFO, but as it
+		 * was before, the code was causing silent overruns to happen. */
+
+		/* Wait till the Transmit Buffer is free for transmission */
+		while (XMC_USIC_CH_GetTransmitBufferStatus(channel) ==
+		       XMC_USIC_CH_TBUF_STATUS_BUSY) {
+		}
+
+		/* Clear the Transmit Buffer indication flag */
+		XMC_UART_CH_ClearStatusFlag(
+			channel, (uint32_t)XMC_UART_CH_STATUS_FLAG_TRANSMIT_BUFFER_INDICATION);
+
+		/*Transmit data */
 		channel->IN[0U] = data;
 	}
 }
