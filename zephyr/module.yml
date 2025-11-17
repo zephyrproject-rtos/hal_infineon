@@ -643,65 +643,85 @@ blobs:
     doc-url: https://github.com/Infineon/btstack-integration
 
     #CYW208xx Device
-    #CYW20829 (BTFW-TX0 variant)
+    #CYW20829B0 (BTFW-TX0 variant)
   - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-TX0/bt_firmware.hcd
     sha256: b78ac9981bd15a986a977bba0b8d9021529ce14552fd263c17529e17be4935cb
     type: img
     version: '1.0.3.10058'
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/fw-cyw20829b0/raw/release-v1.0.3/COMPONENT_BTFW-TX0/btfw.hcd
-    description: "Bluetooth Controller FW for CYW20829. Contains FW patch for 0dBm TX Power"
+    description: "Bluetooth Controller FW for CYW20829B0. Contains FW patch for 0dBm TX Power"
     doc-url: https://github.com/Infineon/fw-cyw20829b0
 
-    #CYW20829 (BTFW-TX10 variant)
+    #CYW20829B0 (BTFW-TX10 variant)
   - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-TX10/bt_firmware.hcd
     sha256: 6244690051a1cf95fcad03401db0a4483f7f64f4b1834f534e0986c68ee5c919
     type: img
     version: '1.0.3.10058'
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/fw-cyw20829b0/raw/release-v1.0.3/COMPONENT_BTFW-TX10/btfw.hcd
-    description: "Bluetooth Controller FW for CYW20829. Contains FW patch for 10dBm TX Power"
+    description: "Bluetooth Controller FW for CYW20829B0. Contains FW patch for 10dBm TX Power"
     doc-url: https://github.com/Infineon/fw-cyw20829b0
 
-    #CYW20829 (BTFW-ISOC-TX0 variant)
+    #CYW20829B0 (BTFW-ISOC-TX0 variant)
   - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-ISOC-TX0/bt_firmware.hcd
     sha256: 3654cdd66f54d88a4b501ae7d0c79996ead720e542539f53ec2f7c4e1fac048e
     type: img
     version: '1.0.3.10058'
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/fw-cyw20829b0/raw/release-v1.0.3/COMPONENT_BTFW-ISOC-TX0/btfw.hcd
-    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with ISOC support for 0dBm TX Power."
+    description: "Bluetooth Controller FW for CYW20829B0. Contains FW patch with ISOC support for 0dBm TX Power."
     doc-url: https://github.com/Infineon/fw-cyw20829b0
 
-    #CYW20829 (BTFW-ISOC-TX10 variant)
+    #CYW20829B0 (BTFW-ISOC-TX10 variant)
   - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-ISOC-TX10/bt_firmware.hcd
     sha256: 2bfb1427663b9a895067113bbf4ce2df41ae2952c62ce8e208e88d0b78887e9a
     type: img
     version: '1.0.3.10058'
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/fw-cyw20829b0/raw/release-v1.0.3/COMPONENT_BTFW-ISOC-TX10/btfw.hcd
-    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with ISOC support for 10dBm TX Power."
+    description: "Bluetooth Controller FW for CYW20829B0. Contains FW patch with ISOC support for 10dBm TX Power."
     doc-url: https://github.com/Infineon/fw-cyw20829b0
 
-    #CYW20829 (BTFW-PAWR-TX0 variant)
+    #CYW20829B0 (BTFW-PAWR-TX0 variant)
   - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-PAWR-TX0/bt_firmware.hcd
     sha256: c7062fc51506e0322fce72bbef138a90b08867e7b18f919043bef9497a05b32b
     type: img
     version: '1.0.3.10058'
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/fw-cyw20829b0/raw/release-v1.0.3/COMPONENT_BTFW-PAWR-TX0/btfw.hcd
-    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with PAWR support for 0dBm TX Power."
+    description: "Bluetooth Controller FW for CYW20829B0. Contains FW patch with PAWR support for 0dBm TX Power."
     doc-url: https://github.com/Infineon/fw-cyw20829b0
 
-    #CYW20829 (BTFW-PAWR-TX10 variant)
+    #CYW20829B0 (BTFW-PAWR-TX10 variant)
   - path: img/bluetooth/firmware/COMPONENT_CYW20829B0/COMPONENT_BTFW-PAWR-TX10/bt_firmware.hcd
     sha256: baf339408e34a52dc0a3f2ef65ebd38895b7e879f7ef146e0a88eb561853155d
     type: img
     version: '1.0.3.10058'
     license-path: zephyr/blobs/license.txt
     url: https://github.com/Infineon/fw-cyw20829b0/raw/release-v1.0.3/COMPONENT_BTFW-PAWR-TX10/btfw.hcd
-    description: "Bluetooth Controller FW for CYW20829. Contains FW patch with PAWR support for 10dBm TX Power."
+    description: "Bluetooth Controller FW for CYW20829B0. Contains FW patch with PAWR support for 10dBm TX Power."
     doc-url: https://github.com/Infineon/fw-cyw20829b0
+
+    #CYW20829B1 (BTFW-TX0 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B1/COMPONENT_BTFW-TX0/bt_firmware.hcd
+    sha256: 069ce439b1cf76daf57cf31a6a37120a4aa8db18788bd77a841d93283ac3fcc0
+    type: img
+    version: '1.0.0.10471'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/Infineon/fw-cyw20829b1/raw/release-v1.0.0/COMPONENT_BTFW-TX0/btfw.hcd
+    description: "Bluetooth Controller FW for CYW20829B1. Contains FW patch for 0dBm TX Power"
+    doc-url: https://github.com/Infineon/fw-cyw20829b1
+
+    #CYW20829B1 (BTFW-TX10 variant)
+  - path: img/bluetooth/firmware/COMPONENT_CYW20829B1/COMPONENT_BTFW-TX10/bt_firmware.hcd
+    sha256: 2bbd50681ada909aebbb84c0ecfbd157fd2cc2eccaaa49318611b805283eebdf
+    type: img
+    version: '1.0.0.10471'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/Infineon/fw-cyw20829b1/raw/release-v1.0.0/COMPONENT_BTFW-TX10/btfw.hcd
+    description: "Bluetooth Controller FW for CYW20829B1. Contains FW patch for 10dBm TX Power"
+    doc-url: https://github.com/Infineon/fw-cyw20829b1
 
 # bless
   - path: img/bluetooth/firmware/COMPONENT_BLESS_CONTROLLER/cy_ble_stack_controller.a
