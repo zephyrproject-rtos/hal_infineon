@@ -37,6 +37,15 @@ blobs:
     url: https://github.com/Infineon/cat1cm0p/raw/release-v1.7.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/psoc6_04_cm0p_sleep.bin
     description: "PSoC 6 Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
     doc-url: https://github.com/Infineon/cat1cm0p
+  # COMPONENT_CAT1C/COMPONENT_CM0P_SLEEP
+  - path: img/cat1cm0p/COMPONENT_CAT1C/COMPONENT_CM0P_SLEEP/tviic2d6m_cm0p_sleep.bin
+    sha256: fc2fd66fa9642fb41a202190a9b9f4e400fc77b4822b293e760d81f284443c57
+    type: img
+    version: '1.9.0'
+    license-path: ./LICENSE.txt
+    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.9.0/COMPONENT_CAT1C/COMPONENT_CM0P_SLEEP/tviic2d6m_cm0p_sleep.bin
+    description: "TRAVEO T2G CYT4DN Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
+    doc-url: https://github.com/Infineon/cat1cm0p
 
 #wifi-host-driver (firmware and clm blobs)
   #CYW43012 Device
