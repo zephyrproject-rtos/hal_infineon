@@ -28,8 +28,10 @@
 #if (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SDIO_INTERFACE) && !defined(COMPONENT_WIFI_INTERFACE_OCI)
 
 #include "cyabs_rtos.h"
+#ifndef WHD_ZEPHYR
 #include "cyhal_sdio.h"
 #include "cyhal_gpio.h"
+#endif
 
 #include "whd_bus_sdio_protocol.h"
 #include "whd_bus.h"
