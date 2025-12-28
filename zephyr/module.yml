@@ -38,6 +38,16 @@ blobs:
     description: "PSoC 6 Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
     doc-url: https://github.com/Infineon/cat1cm0p
 
+
+  - path: img/cat1cm0p/COMPONENT_CM0P_SLEEP/tviibe1m_cm0p_sleep.bin
+    sha256: 2d3702942ee28d231ae9888d597ed7f77f7ea745993e36630a7f43c33c157557
+    type: img
+    version: '1.9.0'
+    license-path: ./LICENSE.txt
+    url: https://github.com/Infineon/cat1cm0p/raw/release-v1.9.0/COMPONENT_CAT1A/COMPONENT_CM0P_SLEEP/tviibe1m_cm0p_sleep.bin
+    description: "Traveo Body Entry 1M Cortex M0+ DeepSleep prebuilt image (CM0P_SLEEP)"
+    doc-url: https://github.com/Infineon/cat1cm0p
+
 #whd-expansion (firmware and clm blobs)
   #CYW43012 Device
   #firmware
