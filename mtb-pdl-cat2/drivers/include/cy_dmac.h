@@ -379,7 +379,7 @@ typedef struct
     cy_en_dmac_retrigger_t       retrigger;        /**< Specifies whether the DMA controller should wait for the input trigger to be deactivated. */
     bool                         cpltState;        /**< Invalidate the descriptor on completion. */
     bool                         interrupt;        /**< Set an interrupt on descriptor completion. */
-    bool                         preemptable;      /**< The transfer is preemptable. */
+    bool                         preemptible;      /**< The transfer is preemptible. */
     bool                         flipping;         /**< Flip the active channel descriptor after completion. */
     cy_en_dmac_trigger_type_t    triggerType;      /**< Sets what type of transfer is triggered. See \ref cy_en_dmac_trigger_type_t. */
 } cy_stc_dmac_descriptor_config_t;
@@ -455,7 +455,7 @@ __STATIC_INLINE void Cy_DMAC_Descriptor_SetDstTransferSize(DMAC_Type * base, uin
 __STATIC_INLINE void Cy_DMAC_Descriptor_SetRetrigger      (DMAC_Type * base, uint32_t channel, cy_en_dmac_descriptor_t descriptor, cy_en_dmac_retrigger_t retrigger);
 __STATIC_INLINE void Cy_DMAC_Descriptor_SetFlipping       (DMAC_Type * base, uint32_t channel, cy_en_dmac_descriptor_t descriptor, bool flipping);
 __STATIC_INLINE void Cy_DMAC_Descriptor_SetTriggerType    (DMAC_Type * base, uint32_t channel, cy_en_dmac_descriptor_t descriptor, cy_en_dmac_trigger_type_t triggerType);
-__STATIC_INLINE void Cy_DMAC_Descriptor_SetPreemptable    (DMAC_Type * base, uint32_t channel, cy_en_dmac_descriptor_t descriptor, bool preemptable);
+__STATIC_INLINE void Cy_DMAC_Descriptor_SetPreemptable    (DMAC_Type * base, uint32_t channel, cy_en_dmac_descriptor_t descriptor, bool preemptible);
 __STATIC_INLINE void Cy_DMAC_Descriptor_SetCpltState      (DMAC_Type * base, uint32_t channel, cy_en_dmac_descriptor_t descriptor, bool invalidate);
 
 __STATIC_INLINE bool                       Cy_DMAC_Descriptor_GetState          (DMAC_Type const * base, uint32_t channel, cy_en_dmac_descriptor_t descriptor);
@@ -1712,7 +1712,7 @@ CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
 * Function Name: Cy_DMAC_Descriptor_SetPreemptable
 ****************************************************************************//**
 *
-* Sets the preemptable value for the specified descriptor.
+* Sets the preemptible value for the specified descriptor.
 *
 * \param base
 * The pointer to the hardware DMAC block.
@@ -1723,8 +1723,8 @@ CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
 * \param descriptor
 * The ping/pong descriptor.
 *
-* \param preemptable
-* The preemptable control value: true - enabled, false - disabled.
+* \param preemptible
+* The preemptible control value: true - enabled, false - disabled.
 *
 * \funcusage
 * \snippet dmac_snippet.c snippet_Cy_DMAC_Descriptor_SetterFunctions
@@ -1733,12 +1733,12 @@ CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.8');
 __STATIC_INLINE void Cy_DMAC_Descriptor_SetPreemptable (DMAC_Type * base,
                                                            uint32_t channel,
                                             cy_en_dmac_descriptor_t descriptor,
-                                                               bool preemptable)
+                                                               bool preemptible)
 {
     CY_ASSERT_L1(CY_DMAC_IS_CH_NR_VALID(channel));
     CY_ASSERT_L3(CY_DMAC_IS_DESCR_VALID(descriptor));
 
-    uint32_t locReg = _CLR_SET_FLD32U(DMAC_DESCR_GET_CTL(base, channel, descriptor), DMAC_DESCR_PING_CTL_PREEMPTABLE, (preemptable ? 1UL : 0UL));
+    uint32_t locReg = _CLR_SET_FLD32U(DMAC_DESCR_GET_CTL(base, channel, descriptor), DMAC_DESCR_PING_CTL_PREEMPTABLE, (preemptible ? 1UL : 0UL));
     DMAC_DESCR_SET_CTL(base, channel, descriptor, locReg);
 }
 
@@ -1747,7 +1747,7 @@ __STATIC_INLINE void Cy_DMAC_Descriptor_SetPreemptable (DMAC_Type * base,
 * Function Name: Cy_DMAC_Descriptor_GetPreemptable
 ****************************************************************************//**
 *
-* Returns the preemptable value for the specified descriptor.
+* Returns the preemptible value for the specified descriptor.
 *
 * \param base
 * The pointer to the hardware DMAC block.
@@ -1759,7 +1759,7 @@ __STATIC_INLINE void Cy_DMAC_Descriptor_SetPreemptable (DMAC_Type * base,
 * The ping/pong descriptor.
 *
 * \return
-* The preemptable control value: true - enabled, false - disabled.
+* The preemptible control value: true - enabled, false - disabled.
 *
 * \funcusage
 * \snippet dmac_snippet.c snippet_Cy_DMAC_Descriptor_GetterFunctions

@@ -83,7 +83,7 @@ cy_en_dmac_status_t Cy_DMAC_Descriptor_Init(DMAC_Type * base,
                           _VAL2FLD(DMAC_DESCR_PING_CTL_WAIT_FOR_DEACT,    config->retrigger)       |
                          _BOOL2FLD(DMAC_DESCR_PING_CTL_INV_DESCR,         config->cpltState)       |
                          _BOOL2FLD(DMAC_DESCR_PING_CTL_SET_CAUSE,         config->interrupt)       |
-                         _BOOL2FLD(DMAC_DESCR_PING_CTL_PREEMPTABLE,       config->preemptable)     |
+                         _BOOL2FLD(DMAC_DESCR_PING_CTL_PREEMPTABLE,       config->preemptible)     |
                          _BOOL2FLD(DMAC_DESCR_PING_CTL_FLIPPING,          config->flipping)        |
                           _VAL2FLD(DMAC_DESCR_PING_CTL_OPCODE,            config->triggerType);
 
