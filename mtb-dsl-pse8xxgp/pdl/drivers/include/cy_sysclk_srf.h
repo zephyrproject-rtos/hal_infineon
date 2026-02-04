@@ -32,6 +32,7 @@
 */
 
 #include "mtb_srf.h"
+#include "cycfg_ppc.h"
 
 #if !defined(CY_PDL_ENABLE_SECURE_AWARE_SYSCLK)
 /** SYSCLK Secure Aware Driver enablement.  Set to 0 via Makefile defines to disable. When not manually set,
