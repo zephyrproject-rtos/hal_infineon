@@ -51,23 +51,26 @@ zephyr_linker_sources_ifdef(CONFIG_POST_MTB_STL_FLASH
 
 # POST wrapper sources
 zephyr_library_sources(mtb_stl_post.c)
-zephyr_library_sources(mtb_stl_post_cfg.c)
-zephyr_library_sources(mtb_stl_post_pincfg.c)
+zephyr_library_sources(cy_sysint_zephyr.c)
+
+zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_SHARED
+  ${MTB_STL_BASE}/stl/common/SelfTest_common.c
+)
 
 # MTB-STL library sources
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_CPU
-  ${MTB_STL_BASE}/stl/cpu/SelfTest_CPU.c
-  ${MTB_STL_BASE}/stl/TOOLCHAIN_GCC_ARM/SelfTest_CPU_Regs_GCC.S
-)
+if(CONFIG_POST_MTB_STL_CPU_REGS OR CONFIG_POST_MTB_STL_CPU_PC OR CONFIG_POST_MTB_STL_PROGRAM_FLOW)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/cpu/SelfTest_CPU.c)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/TOOLCHAIN_GCC_ARM/SelfTest_CPU_Regs_GCC.S)
+endif()
 
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_CFGREG
-  ${MTB_STL_BASE}/stl/regs/SelfTest_ConfigRegisters.c
-  ${MTB_STL_BASE}/stl/crc/SelfTest_CRC_calc.c
-)
+if(CONFIG_POST_MTB_STL_STARTUP_CFGREG OR CONFIG_POST_MTB_STL_SAVE_STARTUP_CFGREG)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/regs/SelfTest_ConfigRegisters.c)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/crc/SelfTest_CRC_calc.c)
+endif()
 
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_RAM
-  ${MTB_STL_BASE}/stl/ram/SelfTest_RAM.c
-)
+if(CONFIG_POST_MTB_STL_RAM_MARCH OR CONFIG_POST_MTB_STL_STACK_MARCH)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/ram/SelfTest_RAM.c)
+endif()
 
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_STACK
   ${MTB_STL_BASE}/stl/stack/SelfTest_Stack.c
@@ -77,61 +80,40 @@ zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_FLASH
   ${MTB_STL_BASE}/stl/flash/SelfTest_Flash.c
 )
 
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_CLOCK
-  ${MTB_STL_BASE}/stl/clock/SelfTest_Clock.c
-)
-
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_GPIO
   ${MTB_STL_BASE}/stl/io/SelfTest_IO.c
-)
-
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_INTERRUPT
-  ${MTB_STL_BASE}/stl/intr/SelfTest_Interrupt.c
 )
 
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_WDT
   ${MTB_STL_BASE}/stl/wdt/SelfTest_WDT.c
 )
 
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_DMA
-  ${MTB_STL_BASE}/stl/dmac/SelfTest_DMAC.c
-)
-
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_FPU
   ${MTB_STL_BASE}/stl/fpu/SelfTest_FPU_Regs.c
 )
 
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_ANALOG
-  ${MTB_STL_BASE}/stl/analog/SelfTest_Analog.c
+zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_DMA
+  ${MTB_STL_BASE}/stl/dmac/SelfTest_DMAC.c
+)
+
+zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_INTERRUPT
+  ${MTB_STL_BASE}/stl/intr/SelfTest_Interrupt.c
+)
+
+zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_CLOCK
+  ${MTB_STL_BASE}/stl/clock/SelfTest_Clock.c
 )
 
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_UART_LOOPBACK
   ${MTB_STL_BASE}/stl/scb/SelfTest_UART_SCB.c
 )
 
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_SHARED
-  ${MTB_STL_BASE}/stl/common/SelfTest_common.c
-)
-
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_COUNTER
   ${MTB_STL_BASE}/stl/timer_counter/SelfTest_Timer_Counter.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/cy_sysint_zephyr.c
-)
-
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_PWM
-  ${MTB_STL_BASE}/stl/pwm/SelfTest_PWM.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/cy_sysint_zephyr.c
 )
 
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_PWM_GATEKILL
   ${MTB_STL_BASE}/stl/pwm_gatekill/SelfTest_PWM_GateKill.c
 )
-
-zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_COMM
-  ${MTB_STL_BASE}/stl/scb/SelfTest_UART_master_message.c
-  ${MTB_STL_BASE}/stl/scb/SelfTest_UART_slave_message.c
-  ${MTB_STL_BASE}/stl/crc/SelfTest_CRC_calc.c
-)
-
 
 endif()

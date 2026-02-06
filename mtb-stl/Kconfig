@@ -1,6 +1,4 @@
-# Copyright (c) 2026 Infineon Technologies AG,
-# or a subsidiary of Infineon Technologies AG.
-#
+# Copyright (c) 2026 Aerlync Labs Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 config POST_VENDOR_MTB_STL
@@ -14,65 +12,49 @@ config POST_VENDOR_MTB_STL
 
 if POST_VENDOR_MTB_STL
 
-config POST_MTB_STL_CFGREG
-	bool "MTB-STL Config Registers Test"
-	default n
-	help
-	  Enable MTB-STL StartUp Config Registers,
-	  Save Register tests.
-
 config POST_MTB_STL_STARTUP_CFGREG
 	bool "MTB-STL Start-Up Registers Test"
 	default n
-	depends on POST_MTB_STL_CFGREG
 	help
 	  Enable MTB-STL Start-Up Registers tests
 
 config POST_MTB_STL_SAVE_STARTUP_CFGREG
 	bool "MTB-STL Save Start-Up Registers Test"
 	default n
-	depends on POST_MTB_STL_CFGREG
 	help
 	  Enable MTB-STL Save Start-Up Registers tests
 
-config POST_MTB_STL_CPU
-	bool "MTB-STL CPU tests"
-	default y
-	help
-	  Enable MTB-STL CPU register, Program counter
-	  and Program flow tests.
-
 config POST_MTB_STL_CPU_REGS
 	bool "CPU register checkerboard test"
-	depends on POST_MTB_STL_CPU
-	default y
+	default n
+	help
+	  Enable MTB-STL CPU register
 
 config POST_MTB_STL_CPU_PC
 	bool "Program counter test"
-	depends on POST_MTB_STL_CPU
-	default y
+	default n
+	help
+	  Enable MTB-STL Program counter test.
 
 config POST_MTB_STL_PROGRAM_FLOW
 	bool "Program flow test"
-	depends on POST_MTB_STL_CPU
 	default n
-
-config POST_MTB_STL_RAM
-	bool "MTB-STL RAM tests"
-	default y
 	help
-	  Enable MTB-STL RAM March tests and Stack March test.
-	  Note: These are destructive and should only run at boot time.
+	  Enable MTB-STL Program flow test.
 
 config POST_MTB_STL_RAM_MARCH
 	bool "MTB-STL SRAM March test"
-	default y
-	depends on POST_MTB_STL_RAM
+	default n
+	help
+	  Enable MTB-STL RAM March test.
+	  Note: These are destructive and should only run at boot time.
 
 config POST_MTB_STL_STACK_MARCH
 	bool "MTB-STL Stack March test"
-	default y
-	depends on POST_MTB_STL_RAM
+	default n
+	help
+	  Enable MTB-STL Stack March test.
+	  Note: These are destructive and should only run at boot time.
 
 config POST_MTB_STL_STACK
 	bool "MTB-STL Stack tests"
@@ -94,27 +76,12 @@ config POST_FLASH_TEST_FLETCHER64_CHECKSUM
 	help
 	  Update the calculated checksum value.
 
-config POST_MTB_STL_CLOCK
-	bool "MTB-STL Clock Test"
-	default n
-	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
-	select USE_INFINEON_TIMER
-	help
-	  Enable MTB-STL Clock tests (requires TCPWM).
-
 config POST_MTB_STL_GPIO
 	bool "MTB-STL GPIO Test"
 	default n
 	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
 	help
 	  Enable MTB-STL GPIO tests.
-
-config POST_MTB_STL_INTERRUPT
-	bool "MTB-STL Interrupt Test"
-	default n
-	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
-	help
-	  Enable MTB-STL Interrupt tests.
 
 config POST_MTB_STL_WDT
 	bool "MTB-STL Watchdog Test"
@@ -124,6 +91,13 @@ config POST_MTB_STL_WDT
 	help
 	  Enable MTB-STL Watchdog tests.
 
+config POST_MTB_STL_FPU
+	bool "MTB-STL FPU Test"
+	default n
+	depends on (SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1) && CPU_HAS_FPU
+	help
+	  Enable MTB-STL FPU register tests.
+
 config POST_MTB_STL_DMA
 	bool "MTB-STL DMA Test"
 	default n
@@ -132,28 +106,23 @@ config POST_MTB_STL_DMA
 	help
 	  Enable MTB-STL DMA tests.
 
-config POST_MTB_STL_FPU
-	bool "MTB-STL FPU Test"
-	default n
-	depends on (SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1) && CPU_HAS_FPU
-	help
-	  Enable MTB-STL FPU register tests.
-
-config POST_MTB_STL_ANALOG
-	bool "MTB-STL Analog Test"
+config POST_MTB_STL_INTERRUPT
+	bool "MTB-STL Interrupt Test"
 	default n
 	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
-	select USE_INFINEON_ADC
+	select USE_INFINEON_PWM
+	select USE_INFINEON_TIMER
 	help
-	  Enable MTB-STL Analog tests (ADC, OpAmp, etc.).
+	  Enable MTB-STL Interrupt tests.
 
-config POST_ADC_REF_VOLTAGE2
-	bool "MTB-STL for 2/3 VDD signal"
+config POST_MTB_STL_CLOCK
+	bool "MTB-STL Clock Test"
 	default n
-	depends on POST_MTB_STL_ANALOG
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_TIMER
+	select USE_INFINEON_WDT
 	help
-	  Enable ADC SelfTest for 2/3 VDD signal test
-	  Only when disabled falls to 1/3 VDD signal test
+	  Enable MTB-STL Clock tests (requires TCPWM).
 
 config POST_MTB_STL_UART_LOOPBACK
 	bool "MTB-STL UART Loopback Test"
@@ -161,55 +130,7 @@ config POST_MTB_STL_UART_LOOPBACK
 	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
 	select USE_INFINEON_UART
 	help
-	  Enable MTB-STL UART Loopback tests. The test will automatically
-	  select a non-console UART device. Ensure the selected UART's TX and RX
-	  pins are connected with a jumper for the test to pass.
-
-if POST_MTB_STL_UART_LOOPBACK
-
-config POST_UART_DEVICE
-    int "UART device for POST tests"
-    default 1
-    help
-      Which UART device to use for POST tests.
-
-config POST_MTB_STL_UART_LOOPBACK_TX_PORT
-	int "UART TX Port Number"
-	default 1
-	help
-	  GPIO port number for UART TX pin.
-	  Must be specified.
-
-config POST_MTB_STL_UART_LOOPBACK_TX_PIN
-	int "UART TX Pin Number"
-	default 5
-	help
-	  GPIO pin number for UART TX pin.
-	  Must be specified.
-
-config POST_MTB_STL_UART_LOOPBACK_RX_PORT
-	int "UART RX Port Number"
-	default 1
-	help
-	  GPIO port number for UART RX pin.
-	  Must be specified.
-
-config POST_MTB_STL_UART_LOOPBACK_RX_PIN
-	int "UART RX Pin Number"
-	default 4
-	help
-	  GPIO pin number for UART RX pin.
-	  Must be specified.
-
-endif # POST_MTB_STL_UART_LOOPBACK
-
-config POST_MTB_STL_PWM
-	bool "MTB-STL PWM self test"
-	default n
-	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
-	select USE_INFINEON_PWM
-	help
-	  MTB-STL PWM duty cycle self test.
+	  Enable MTB-STL UART Loopback tests
 
 config POST_MTB_STL_COUNTER
 	bool "MTB-STL Counter self test"
@@ -226,14 +147,5 @@ config POST_MTB_STL_PWM_GATEKILL
 	select USE_INFINEON_PWM
 	help
 	  MTB-STL PWM_Gatekil self test.
-
-config POST_MTB_STL_COMM
-	bool "MTB-STL Communications UART data transfer test"
-	default n
-	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
-	select USE_INFINEON_UART
-	select USE_INFINEON_TIMER
-	help
-	  MTB-STL UART_Communication self test.
 
 endif # POST_VENDOR_MTB_STL

@@ -18,7 +18,7 @@ static void sysint_dispatcher(const void *arg)
 }
 
 /*
- * Zephyr replacement for Cypress SysInt
+ * Zephyr replacement for Infineon SysInt
  */
 cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t *config, cy_israddress isr)
 {
