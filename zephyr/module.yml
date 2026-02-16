@@ -733,6 +733,27 @@ blobs:
     description: "Bluetooth Controller FW for CYW20829B1. Contains FW patch for 10dBm TX Power"
     doc-url: https://github.com/Infineon/fw-cyw20829b1
 
+    #CYW55513
+  - path: img/bluetooth/firmware/COMPONENT_CYW55513/COMPONENT_BTFW/bt_firmware.hcd
+    sha256: 248d39e6de3a50123dcd37769c0ba5d093eb5a1907a30d0c34011d5d1c517ff6
+    type: img
+    version: '2.2.0.2580'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/Infineon/bt-fw-ifx-cyw55500a1/raw/release-v2.2.0/COMPONENT_wlbga_iPA_sLNA_ANT0_LHL_XTAL_IN/btfw.hcd
+    description: "Bluetooth Controller FW for CYW55513"
+    doc-url: https://github.com/Infineon/bt-fw-ifx-cyw55500a1
+
+    #CYW55513
+    #MURATA-2FY module
+  - path: img/bluetooth/firmware/COMPONENT_CYW55513/COMPONENT_BTFW_MURATA-2FY/bt_firmware.hcd
+    sha256: 1653cb542e6be9c45555e79d63eb281837abff039ee8d9d29ea8729c3a511cec
+    type: img
+    version: '1.0.0.8'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/Infineon/bt-fw-mur-cyw55513/raw/release-v1.0.0/COMPONENT_MURATA-2FY/btfw.hcd
+    description: "Bluetooth Controller FW for CYW55513 Murata 2FY module"
+    doc-url: https://github.com/Infineon/bt-fw-mur-cyw55513
+
 # bless
   - path: img/bluetooth/firmware/COMPONENT_BLESS_CONTROLLER/cy_ble_stack_controller.a
     sha256: 6278ee76b34e04ab0a82c3254b150c6c78375f3e9dea08b593899a865dd7cb6a
