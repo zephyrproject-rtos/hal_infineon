@@ -1,0 +1,26 @@
+{
+    "core": {
+        "name": "mtb-dsl-psc3m8",
+        "id": "f2251700-2c39-5cab-abdb-5e410ddccb9b",
+        "version": "1.2.0.558"
+    },
+    "configurator_support": true,
+    "opt": {
+        "documentation": [
+            {
+                "location": "docs/api_reference_manual.html",
+                "path": [
+                    "Reference Guides",
+                    "PSOC Control C3-M8"
+                ],
+                "title": "Device Support Library API reference manual",
+                "type": "api-guide"
+            }
+        ],
+        "svd": {
+            "COMPONENT_PSC3_P8_CM33_0": "pdl/svd/psc3_p8.svd",
+            "COMPONENT_PSC3_P8_CM33_1": "pdl/svd/psc3_p8_ppca0.svd",
+            "COMPONENT_PSC3_P8_CM33_2": "pdl/svd/psc3_p8_ppca1.svd"
+        }
+    }
+}
