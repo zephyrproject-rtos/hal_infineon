@@ -1,0 +1,129 @@
+{
+    "core": {
+        "id": "62648b6c-6fa6-540b-a233-6b3e6a1ea5b9",
+        "name": "mtb-template-psc3m8",
+        "version": "2.0.5.3243"
+    },
+    "opt": {
+        "props": {
+            "TemplateData": {
+                "udd_key": "DeviceDie",
+                "BOY4": {
+                    "udd_key": "Flash_KB",
+                    "256": {
+                        "udd_key": "PPCA_CPU_Count",
+                        "1": {
+                            "files": [
+                                "filelist/psc3m8.txt"
+                            ],
+                            "deps": "psc3m8_dependencies",
+                            "components": "psc3m8_components",
+                            "defines": [
+                                "hal_defines",
+                                "psc3m8_defines"
+                            ],
+                            "makefile_vars": "psc3m8_vars",
+                            "files_init": "filelist/init_psc3x7F.txt"
+                        },
+                        "2": {
+                            "files": [
+                                "filelist/psc3m8.txt"
+                            ],
+                            "deps": "psc3m8_dependencies",
+                            "components": "psc3m8_components",
+                            "defines": [
+                                "hal_defines",
+                                "psc3m8_defines"
+                            ],
+                            "makefile_vars": "psc3m8_vars",
+                            "files_init": "filelist/init_psc3x8F.txt"
+                        }
+                    },
+                    "512": {
+                        "udd_key": "PPCA_CPU_Count",
+                        "1": {
+                            "files": [
+                                "filelist/psc3m8.txt"
+                            ],
+                            "deps": "psc3m8_dependencies",
+                            "components": "psc3m8_components",
+                            "defines": [
+                                "hal_defines",
+                                "psc3m8_defines"
+                            ],
+                            "makefile_vars": "psc3m8_vars",
+                            "files_init": "filelist/init_psc3x7G.txt"
+                        },
+                        "2": {
+                            "files": [
+                                "filelist/psc3m8.txt"
+                            ],
+                            "deps": "psc3m8_dependencies",
+                            "components": "psc3m8_components",
+                            "defines": [
+                                "hal_defines",
+                                "psc3m8_defines"
+                            ],
+                            "makefile_vars": "psc3m8_vars",
+                            "files_init": "filelist/init_psc3x8G.txt"
+                        }
+                    }
+                }
+            },
+            "dependency_sets": {
+                "psc3m8_dependencies": [
+                    "deps/core-lib.mtbx",
+                    "deps/core-make.mtbx",
+                    "deps/mtb-dsl-psc3m8.mtbx"
+                ]
+            },
+            "component_sets": {
+                "psc3m8_components": []
+            },
+            "define_sets": {
+                "hal_defines": [
+                    {
+                        "description": "Option to indicate that the Hardware Abstraction Layer APIs are expected to be used. This will cause the BSP to add calls to initialize the system functions.",
+                        "display": "Using HAL interface",
+                        "options": [
+                            {
+                                "default": true,
+                                "define": "COMPONENT_MTB_HAL",
+                                "display": "COMPONENT_MTB_HAL",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    }
+                ],
+                "psc3m8_defines": [
+                    {
+                        "description": "PLACEHOLDER:FLASH_BOOT",
+                        "display": "PLACEHOLDER:FLASH_BOOT",
+                        "options": [
+                            {
+                                "default": true,
+                                "define": "FLASH_BOOT",
+                                "display": "FLASH_BOOT",
+                                "value": ""
+                            }
+                        ],
+                        "type": "choice"
+                    }
+                ]
+            },
+            "makefile_var_sets": {
+                "psc3m8_vars": [
+                    {
+                        "name": "RECIPE_DIR",
+                        "value": "$(SEARCH_mtb-dsl-psc3m8)/make"
+                    },
+                    {
+                        "name": "BSP_DEVICE_SUPPORT_LIB",
+                        "value": "mtb-dsl-psc3m8"
+                    }
+                ]
+            }
+        }
+    }
+}
