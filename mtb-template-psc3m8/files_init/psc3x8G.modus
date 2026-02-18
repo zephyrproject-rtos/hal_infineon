@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration app="BACKEND" formatVersion="15" lastSavedWith="Configurator Backend" lastSavedWithVersion="3.80.0" toolsPackage="ModusToolbox 3.8.0" xmlns="http://cypress.com/xsd/cydesignfile_v7">
+    <Devices>
+        <Device mpn="PSC3M8GFS3PAHQ1">
+            <BlockConfig>
+                <Personality template="dap" version="2.0" instance="VxB5THLIc6w">
+                    <Block location="debug600[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="dbgMode" value="SWD"/>
+                        <Param id="traceModeParallel" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pin" version="3.0" instance="EfdWCRWDolI">
+                    <Block location="ioss[0].port[1].pin[2]" locked="true">
+                        <Aliases>
+                            <Alias value="CYBSP_SWDCK"/>
+                        </Aliases>
+                    </Block>
+                    <Parameters>
+                        <Param id="DriveModes" value="CY_GPIO_DM_PULLDOWN"/>
+                        <Param id="driveStrength" value="CY_GPIO_DRIVE_1_2"/>
+                        <Param id="driveStrengthTrim" value="CY_GPIO_DRIVE_STRENGTH_DEFAULT"/>
+                        <Param id="inFlash" value="true"/>
+                        <Param id="initialState" value="1"/>
+                        <Param id="isrTrigger" value="CY_GPIO_INTR_DISABLE"/>
+                        <Param id="nonSec" value="1"/>
+                        <Param id="pullUpRes" value="CY_GPIO_PULLUP_RES_DISABLE"/>
+                        <Param id="sioOutputBuffer" value="true"/>
+                        <Param id="slewRate" value="CY_GPIO_SLEW_FAST"/>
+                        <Param id="vtrip" value="CY_GPIO_VTRIP_CMOS"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pin" version="3.0" instance="aJSisirMLzI">
+                    <Block location="ioss[0].port[1].pin[3]" locked="true">
+                        <Aliases>
+                            <Alias value="CYBSP_SWDIO"/>
+                        </Aliases>
+                    </Block>
+                    <Parameters>
+                        <Param id="DriveModes" value="CY_GPIO_DM_PULLUP"/>
+                        <Param id="driveStrength" value="CY_GPIO_DRIVE_1_2"/>
+                        <Param id="driveStrengthTrim" value="CY_GPIO_DRIVE_STRENGTH_DEFAULT"/>
+                        <Param id="inFlash" value="true"/>
+                        <Param id="initialState" value="1"/>
+                        <Param id="isrTrigger" value="CY_GPIO_INTR_DISABLE"/>
+                        <Param id="nonSec" value="1"/>
+                        <Param id="pullUpRes" value="CY_GPIO_PULLUP_RES_DISABLE"/>
+                        <Param id="sioOutputBuffer" value="true"/>
+                        <Param id="slewRate" value="CY_GPIO_SLEW_FAST"/>
+                        <Param id="vtrip" value="CY_GPIO_VTRIP_CMOS"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="sysclocks" version="3.0" instance="bFSctldO798">
+                    <Block location="srss[0].clock[0]" locked="true"/>
+                </Personality>
+                <Personality template="mxs22pll250" version="1.0" instance="Xus5DU7H5aM">
+                    <Block location="srss[0].clock[0].dpll250[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="configuration" value="auto"/>
+                        <Param id="desiredFrequency" value="180.000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="mxs22pll250" version="1.0" instance="UPOrY8k8_iA">
+                    <Block location="srss[0].clock[0].dpll250[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="configuration" value="auto"/>
+                        <Param id="desiredFrequency" value="200.000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="fll" version="4.0" instance="zyE_0ZHeCKc">
+                    <Block location="srss[0].clock[0].fll[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="configuration" value="auto"/>
+                        <Param id="desiredFrequency" value="100.000"/>
+                        <Param id="enableOutputDivider" value="false"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="zeBhsCXd5uA">
+                    <Block location="srss[0].clock[0].hfclk[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="1"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="5zEh5nLm0ME">
+                    <Block location="srss[0].clock[0].hfclk[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="1"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="PHupKCyOls0">
+                    <Block location="srss[0].clock[0].hfclk[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="1"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="Aar8_woJIME">
+                    <Block location="srss[0].clock[0].hfclk[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="2"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="GoThEOD1mtA">
+                    <Block location="srss[0].clock[0].hfclk[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="2"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="mxs40iho" version="1.0" instance="pxCH9kKahxQ">
+                    <Block location="srss[0].clock[0].iho[0]" locked="true"/>
+                </Personality>
+                <Personality template="imo" version="3.0" instance="RhpVJmc9aTA">
+                    <Block location="srss[0].clock[0].imo[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="trim" value="1"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="Z0JrgLftNjM">
+                    <Block location="srss[0].clock[0].pathmux[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="nSIb8c7B728">
+                    <Block location="srss[0].clock[0].pathmux[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="VJQy2Qm2sqU">
+                    <Block location="srss[0].clock[0].pathmux[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="fSUhttWDego">
+                    <Block location="srss[0].clock[0].pathmux[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="w7e8-PGjkPY">
+                    <Block location="srss[0].clock[0].pathmux[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="T0mEjVcZIzY">
+                    <Block location="srss[0].clock[0].pathmux[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="5GbbG-sZGSs">
+                    <Block location="srss[0].clock[0].pathmux[6]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pwrclk" version="1.0" instance="Um_c6IXKxy0">
+                    <Block location="srss[0].clock[0].powerclk[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClock" value="imo"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="timerclk" version="3.0" instance="Qs7u1sUFgI4">
+                    <Block location="srss[0].clock[0].timerclk[0]" locked="true"/>
+                </Personality>
+                <Personality template="power_v2" version="1.0" instance="ZCP8QQK0Yrw">
+                    <Block location="srss[0].power[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="actPwrMode" value="OD"/>
+                        <Param id="backupSrc" value="VDDD"/>
+                        <Param id="deepsleepLatency" value="5"/>
+                        <Param id="enableLowPowerProfileMode" value="false"/>
+                        <Param id="idlePwrMode" value="CY_CFG_PWR_MODE_SLEEP"/>
+                        <Param id="minCurrRegulator" value="CY_SYSPM_LDO_MODE_NORMAL"/>
+                        <Param id="sdr0BypassModeMacro" value="true"/>
+                        <Param id="vddaMv" value="3300"/>
+                        <Param id="vddbuckMv" value="3300"/>
+                        <Param id="vdddMv" value="3300"/>
+                        <Param id="vddio0Mv" value="3300"/>
+                        <Param id="vddio1Mv" value="3300"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory" version="2.0" instance="rIfOuCgeVWw">
+                    <Block location="vres[0].memory[0]" locked="true"/>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="m33s_shared_inst">
+                    <Block location="vres[0].memory_region_data[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="Shared M33S/SE memory (reserved)"/>
+                        <Param id="domain" value="TvjaQ-XJKas"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="m33s_shared"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="g03Jo9Vl024">
+                    <Block location="vres[0].memory_region_data[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="Main core (CM33 0) secure SRAM"/>
+                        <Param id="domain" value="TvjaQ-XJKas"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00001000"/>
+                        <Param id="regionId" value="m33s_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x0001E800"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="hCn6slBQw44">
+                    <Block location="vres[0].memory_region_data[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="Main core (CM33 0) code flash"/>
+                        <Param id="domain" value="TvjaQ-XJKas"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="m33s_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00070000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="ikSsuLhn_z8">
+                    <Block location="vres[0].memory_region_data[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA core 0 (CM33 1) code"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="PPCA_CPU0_CODE_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca0_code"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00007FFC"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="9Ci_v5tkyE8">
+                    <Block location="vres[0].memory_region_data[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA core 0 (CM33 1) CRC"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="PPCA_CPU0_CODE_SRAM"/>
+                        <Param id="offset" value="0x00007FFC"/>
+                        <Param id="regionId" value="ppca0_crc"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000004"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="KPmDazi_UXU">
+                    <Block location="vres[0].memory_region_data[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA core 0 (CM33 1) data"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="PPCA_CPU0_DATA_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca0_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00004000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="hycvgq45ZZ4">
+                    <Block location="vres[0].memory_region_data[6]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA shared RAM"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="PPCA_SHARED_DATA_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca_shm_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00004000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="BDJQOygpai4">
+                    <Block location="vres[0].memory_region_data[7]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA core 1 (CM33 2) code"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="PPCA_CPU1_CODE_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca1_code"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00007FFC"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="XH2ypKfJyS4">
+                    <Block location="vres[0].memory_region_data[8]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA core 1 (CM33 2) CRC"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="PPCA_CPU1_CODE_SRAM"/>
+                        <Param id="offset" value="0x00007FFC"/>
+                        <Param id="regionId" value="ppca1_crc"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000004"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="kpIzFpUyAFA">
+                    <Block location="vres[0].memory_region_data[9]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA core 1 (CM33 2) data"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="PPCA_CPU1_DATA_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca1_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00004000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="-xSfvOzLtrI">
+                    <Block location="vres[0].memory_region_data[10]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA 0 application region (to be loaded into PPCA SRAM0)"/>
+                        <Param id="domain" value="TvjaQ-XJKas"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x00070000"/>
+                        <Param id="regionId" value="m33s_ppca0_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00008000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="-b9eccUnzdg">
+                    <Block location="vres[0].memory_region_data[11]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="PPCA 1 application region (to be loaded into PPCA SRAM2)"/>
+                        <Param id="domain" value="TvjaQ-XJKas"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x00078000"/>
+                        <Param id="regionId" value="m33s_ppca1_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00008000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="xOzsKwKGyLw">
+                    <Block location="vres[0].memory_region_data[12]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="Main core (CM33 0) shared memory SRAM"/>
+                        <Param id="domain" value="fKrR_ef1zb0"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x0001F800"/>
+                        <Param id="regionId" value="m33s_shm_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000800"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="protection" version="1.0" instance="BDdiFIwFmNw">
+                    <Block location="vres[0].protection[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="pcSwitch" value="false"/>
+                        <Param id="secureDebuggerAccess" value="true"/>
+                        <Param id="type" value="SECURE_CUSTOM"/>
+                        <Param id="validation_security_boundary" value="SECURE"/>
+                    </Parameters>
+                    <Personality template="domain0" instance="TvjaQ-XJKas">
+                        <Block location="vres[0].protection[0].domain[0]" locked="false">
+                            <Aliases>
+                                <Alias value="M33S"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain1" instance="fKrR_ef1zb0">
+                        <Block location="vres[0].protection[0].domain[1]" locked="false">
+                            <Aliases>
+                                <Alias value="M33"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain2" instance="0RVara1g4Rs">
+                        <Block location="vres[0].protection[0].domain[2]" locked="false">
+                            <Aliases>
+                                <Alias value="M33NSC"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain3" instance="YLENu8lKnBU">
+                        <Block location="vres[0].protection[0].domain[3]" locked="false">
+                            <Aliases>
+                                <Alias value="reserved"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                </Personality>
+                <Personality template="protection_mpc" version="1.0" instance="4tWlefitOr0">
+                    <Block location="vres[0].protection[0].mpc[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="responsePPCASRAM0" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM1" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM2" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM3" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM4" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSMIF0" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSMIF1" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSOCMEM" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSRAM0" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSRAM1" value="CY_MPC_BUS_ERR"/>
+                    </Parameters>
+                </Personality>
+            </BlockConfig>
+            <Netlist>
+                <Net>
+                    <Port name="debug600[0].clk_swj_swclk_tclk[0]"/>
+                    <Port name="ioss[0].port[1].pin[2].digital_in[0]"/>
+                </Net>
+                <Net>
+                    <Port name="debug600[0].swj_swdio_tms[0]"/>
+                    <Port name="ioss[0].port[1].pin[3].digital_inout[0]"/>
+                </Net>
+            </Netlist>
+        </Device>
+    </Devices>
+</Configuration>
