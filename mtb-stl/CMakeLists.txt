@@ -116,4 +116,10 @@ zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_PWM_GATEKILL
   ${MTB_STL_BASE}/stl/pwm_gatekill/SelfTest_PWM_GateKill.c
 )
 
+if(CONFIG_POST_MTB_STL_COMM)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/scb/SelfTest_UART_master_message.c)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/scb/SelfTest_UART_slave_message.c)
+  zephyr_library_sources(${MTB_STL_BASE}/stl/crc/SelfTest_CRC_calc.c)
+endif()
+
 endif()

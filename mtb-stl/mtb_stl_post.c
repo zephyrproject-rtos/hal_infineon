@@ -30,15 +30,16 @@ LOG_MODULE_REGISTER(mtb_stl_post, CONFIG_POST_LOG_LEVEL);
 POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_save_startup_cfgreg,
 		POST_CAT_STARTUP_CFG_REG,
 		POST_LEVEL_POST_KERNEL,
-		POST_FLAG_DESTRUCTIVE | POST_FLAG_VENDOR,
+		POST_FLAG_BOOT_ONLY,
 		SelfTests_Save_StartUp_ConfigReg,
 		"MTB-STL Save Startup CfgReg Test");
 #endif
 
 #ifdef CONFIG_POST_MTB_STL_STARTUP_CFGREG
-POST_VENDOR_TEST_WRAP(mtb_stl_run_starup_cfgreg,
+POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_run_starup_cfgreg,
 		POST_CAT_STARTUP_CFG_REG,
 		POST_LEVEL_POST_KERNEL,
+		POST_FLAG_BOOT_ONLY,
 		SelfTests_StartUp_ConfigReg,
 		"MTB-STL Startup Reg Test");
 #endif
@@ -47,25 +48,28 @@ POST_VENDOR_TEST_WRAP(mtb_stl_run_starup_cfgreg,
  * CPU Tests
  */
 #ifdef CONFIG_POST_MTB_STL_CPU_REGS
-POST_VENDOR_TEST_WRAP(mtb_stl_cpu_regs,
+POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_cpu_regs,
 		POST_CAT_CPU,
 		POST_LEVEL_POST_KERNEL,
+		POST_FLAG_BOOT_ONLY,
 		SelfTest_CPU_Registers,
 		"MTB-STL CPU Register Checkerboard Test");
 #endif
 
 #ifdef CONFIG_POST_MTB_STL_CPU_PC
-POST_VENDOR_TEST_WRAP(mtb_stl_cpu_pc,
+POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_cpu_pc,
 		POST_CAT_CPU,
 		POST_LEVEL_POST_KERNEL,
+		POST_FLAG_BOOT_ONLY,
 		SelfTest_PC,
 		"MTB-STL Program Counter Test");
 #endif
 
 #ifdef CONFIG_POST_MTB_STL_PROGRAM_FLOW
-POST_VENDOR_TEST_WRAP(mtb_stl_program_flow,
+POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_program_flow,
 		POST_CAT_CPU,
 		POST_LEVEL_POST_KERNEL,
+		POST_FLAG_BOOT_ONLY,
 		SelfTest_PROGRAM_FLOW,
 		"MTB-STL Program Flow Test");
 #endif
@@ -74,9 +78,10 @@ POST_VENDOR_TEST_WRAP(mtb_stl_program_flow,
  * GPIO Test
  */
 #ifdef CONFIG_POST_MTB_STL_GPIO
-POST_VENDOR_TEST_WRAP(mtb_stl_gpio,
+POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_gpio,
 		POST_CAT_GPIO,
 		POST_LEVEL_POST_KERNEL,
+		POST_FLAG_BOOT_ONLY,
 		SelfTest_IO,
 		"MTB-STL GPIO Test");
 #endif
@@ -102,7 +107,7 @@ static enum post_result mtb_stl_ram_march_wrapper(const struct post_context *ctx
 POST_TEST_DEFINE(mtb_stl_ram_march,
 		POST_CAT_RAM,
 		POST_LEVEL_PRE_KERNEL_1, 50,
-		POST_FLAG_BOOT_ONLY | POST_FLAG_DESTRUCTIVE | POST_FLAG_VENDOR,
+		POST_FLAG_RUNTIME_OK | POST_FLAG_VENDOR,
 		mtb_stl_ram_march_wrapper,
 		"MTB-STL RAM March Test");
 #endif
@@ -403,7 +408,8 @@ static enum post_result mtb_stl_flash_wrapper(const struct post_context *ctx)
 
 POST_TEST_DEFINE(mtb_stl_flash,
 		POST_CAT_FLASH,
-		POST_LEVEL_APPLICATION, 50, 0,
+		POST_LEVEL_APPLICATION, 50,
+		POST_FLAG_RUNTIME_OK | POST_FLAG_VENDOR,
 		mtb_stl_flash_wrapper,
 		"MTB-STL Flash Checksum Test");
 #endif
@@ -416,7 +422,7 @@ POST_TEST_DEFINE(mtb_stl_flash,
 POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_wdt,
 		POST_CAT_WATCHDOG,
 		POST_LEVEL_APPLICATION,
-		POST_FLAG_DESTRUCTIVE | POST_FLAG_VENDOR,
+		POST_FLAG_DESTRUCTIVE,
 		SelfTest_WDT,
 		"MTB-STL Watchdog Reset Test");
 #endif
@@ -459,73 +465,7 @@ POST_TEST_DEFINE(mtb_stl_dmac,
 
 #ifdef CONFIG_POST_MTB_STL_UART_LOOPBACK
 
-const cy_stc_gpio_pin_config_t tx_config =
-{
-	.outVal = DT_PROP(TX_PIN_NODE, out_val),
-	.driveMode = DT_PROP(TX_PIN_NODE, drive_mode),
-	.hsiom = DT_PROP(TX_PIN_NODE, hsiom),
-	.intEdge = CY_GPIO_INTR_DISABLE,
-	.vtrip = CY_GPIO_VTRIP_CMOS,
-	.slewRate = CY_GPIO_SLEW_FAST,
-};
-
-const cy_stc_gpio_pin_config_t rx_config =
-{
-	.outVal = DT_PROP(RX_PIN_NODE, out_val),
-	.driveMode = DT_PROP(RX_PIN_NODE, drive_mode),
-	.hsiom = DT_PROP(RX_PIN_NODE, hsiom),
-	.intEdge = CY_GPIO_INTR_DISABLE,
-	.vtrip = CY_GPIO_VTRIP_CMOS,
-	.slewRate = CY_GPIO_SLEW_FAST,
-};
-
-const cy_stc_scb_uart_config_t ifx_uart_test_cfg =
-{
-	.uartMode = CY_SCB_UART_STANDARD,
-	.enableMutliProcessorMode = false,
-	.smartCardRetryOnNack = false,
-	.irdaInvertRx = false,
-	.irdaEnableLowPowerReceiver = false,
-	.enableLinMode = false,
-	.oversample = 8,
-	.enableMsbFirst = false,
-	.dataWidth = 8UL,
-	.parity = DT_PROP(UART_LP_TEST_NODE, parity),
-	.stopBits = DT_PROP(UART_LP_TEST_NODE, stop_bits),
-	.enableInputFilter = false,
-	.breakWidth = 11UL,
-	.breakLevel = false,
-	.dropOnFrameError = false,
-	.dropOnParityError = false,
-	.receiverAddress = 0x0UL,
-	.receiverAddressMask = 0x0UL,
-	.acceptAddrInFifo = false,
-	.enableCts = false,
-	.ctsPolarity = CY_SCB_UART_ACTIVE_LOW,
-	.rtsRxFifoLevel = 0UL,
-	.rtsPolarity = CY_SCB_UART_ACTIVE_LOW,
-	.rxFifoTriggerLevel = 7UL,
-	.rxFifoIntEnableMask = 0UL,
-	.txFifoTriggerLevel = 0UL,
-	.txFifoIntEnableMask = 0UL,
-};
-
 static cy_stc_scb_uart_context_t ifx_uart_test_ctx;
-
-static void SelfTest_UART_SCB_Init(CySCB_Type *scb_block)
-{
-	cy_en_scb_uart_status_t initstatus;
-
-	initstatus = Cy_SCB_UART_Init(scb_block, &ifx_uart_test_cfg, &ifx_uart_test_ctx);
-	if (initstatus != CY_SCB_UART_SUCCESS) {
-		__ASSERT(0, "Test UART Init failed !!!");
-	}
-
-	Cy_SCB_UART_Enable(scb_block);
-
-	Cy_SCB_UART_ClearRxFifo(scb_block);
-	Cy_SCB_UART_ClearTxFifo(scb_block);
-}
 
 static uint8_t UART_SelfTest(CySCB_Type *scb_block)
 {
@@ -551,29 +491,9 @@ static enum post_result mtb_stl_uart_loopback_wrapper(const struct post_context 
 {
 	ARG_UNUSED(ctx);
 
-	uint32_t scb_block_num = DT_PROP(UART_LP_TEST_NODE, scb_instance);
-
-	Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_16_BIT, 7U, 51U);
-	Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_16_BIT, 7U);
-	Cy_SysClk_PeriphAssignDivider(PCLK_SCB1_CLOCK, CY_SYSCLK_DIV_16_BIT, 7U);
-
-	/* default: connect the P1.4 nad P1.5 pins with the jumper */
-	uint32_t tx_port_num = DT_PROP_BY_IDX(TX_PIN_NODE, gpio_val, 0);
-	uint32_t tx_pin = DT_PROP_BY_IDX(TX_PIN_NODE, gpio_val, 1);
-	uint32_t rx_port_num = DT_PROP_BY_IDX(RX_PIN_NODE, gpio_val, 0);
-	uint32_t rx_pin = DT_PROP_BY_IDX(RX_PIN_NODE, gpio_val, 1);
-
-	GPIO_PRT_Type *tx_port = mtb_stl_get_port_base(tx_port_num);
-	GPIO_PRT_Type *rx_port = mtb_stl_get_port_base(rx_port_num);
-
-	Cy_GPIO_Pin_Init(tx_port, tx_pin, &tx_config);
-	Cy_GPIO_Pin_Init(rx_port, rx_pin, &rx_config);
-
-	CySCB_Type *scb_block = mtb_stl_get_scb_base(scb_block_num);
-
+	CySCB_Type *scb_block = (CySCB_Type *)DT_REG_ADDR(UART_LP_TEST_NODE);
 	uint8_t res = PASS_STILL_TESTING_STATUS;
 
-	SelfTest_UART_SCB_Init(scb_block);
 	Cy_SysLib_DelayUs(100u);
 	Cy_SCB_UART_ClearRxFifo(scb_block);
 	Cy_SCB_UART_ClearTxFifo(scb_block);
@@ -598,63 +518,76 @@ POST_TEST_DEFINE(mtb_stl_uart_loopback,
  */
 #ifdef CONFIG_POST_MTB_STL_INTERRUPT
 
-const cy_stc_tcpwm_counter_config_t ifx_timer_config =
+static ifx_stl_saved_cnt_state_t ifx_saved_cnt_state_intr_test;
+
+void Interrupt_test_Init (uint32_t cnt_num, TCPWM_Type *base)
 {
-	.period = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, period),
-	.clockPrescaler = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, clock_prescaler),
-	.runMode = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, run_mode),
-	.countDirection = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, count_direction),
-	.compareOrCapture = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, compare_or_capture),
-	.compare0 = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, compare0),
-	.compare1 = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, compare1),
-	.enableCompareSwap = false,
-	.interruptSources = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, interrupt_sources),
-	.captureInputMode = 0x7 & 0x3U,
-	.captureInput = CY_TCPWM_INPUT_0,
-	.reloadInputMode = 0x7 & 0x3U,
-	.reloadInput = CY_TCPWM_INPUT_0,
-	.startInputMode = 0x7 & 0x3U,
-	.startInput = CY_TCPWM_INPUT_0,
-	.stopInputMode = 0x7 & 0x3U,
-	.stopInput = CY_TCPWM_INPUT_0,
-	.countInputMode = 0x7 & 0x3U,
-	.countInput = CY_TCPWM_INPUT_1,
-};
+	uint32_t intr_src = DT_PROP(INTERRUPT_TEST_NODE, interrupt_sources);
 
-void Interrupt_test_Init (uint32_t cnt_num)
-{
-	cy_rslt_t result;
-	uint32_t intr_src = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, interrupt_sources);
-	const uint32_t irq_num = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, irq_num);
-
-	IRQ_CONNECT(irq_num, 0, SelfTest_Interrupt_ISR_TIMER, NULL, 0);
-	irq_enable(irq_num);
-
-	result = Cy_TCPWM_Counter_Init(TCPWM, cnt_num, &ifx_timer_config);
-
-	if(result != CY_SYSINT_SUCCESS) {
-		LOG_ERR("Counter init failed !!!");
-	}
-
-	Cy_TCPWM_Counter_Enable(TCPWM, cnt_num);
-	Cy_TCPWM_SetInterruptMask(TCPWM, cnt_num, intr_src);
+	Cy_TCPWM_Counter_Enable(base, cnt_num);
+	Cy_TCPWM_SetInterruptMask(base, cnt_num, intr_src);
 }
 
 static enum post_result mtb_stl_interrupt_wrapper(const struct post_context *ctx)
 {
 	ARG_UNUSED(ctx);
+
 	uint8_t res;
+	TCPWM_Type *base;
+	uint32_t savedIntrStatus;
+	uint32_t clock_dest = DT_PROP(DT_PARENT(COUNTER_INTR_TEST_NODE), clk_dst);
+	uint32_t period = DT_PROP(INTERRUPT_TEST_NODE, test_period);
+	uint32_t compare0 = DT_PROP(INTERRUPT_TEST_NODE, test_compare0);
+	uint32_t compare1 = DT_PROP(INTERRUPT_TEST_NODE, test_compare1);
+	const uint32_t irq_num = DT_IRQN(DT_PARENT(COUNTER_INTR_TEST_NODE));
+	uint32_t divider_type = DT_PROP(CLOCK_INTR_TEST_NODE, div_type);
+	uint32_t divider_channel = DT_PROP(CLOCK_INTR_TEST_NODE, channel);
+	uint32_t cnt_num = DT_PROP(CLOCK_INTR_TEST_NODE, resource_channel);
 
-	Cy_SysClk_PeriphDisableDivider(CY_SYSCLK_DIV_16_BIT, 1U);
-	Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_16_BIT, 1U, 3U);
-	Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_16_BIT, 1U);
-	Cy_SysClk_PeriphAssignDivider(PCLK_TCPWM_CLOCKS1, CY_SYSCLK_DIV_16_BIT, 1U);
+	base = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(COUNTER_INTR_TEST_NODE))));
 
-	uint32_t cnt_num = DT_PROP(COUNTER_CONFIG_NODE_INTR_TEST, counter_num);
+	/* Using default counter test clock */
+	Cy_SysClk_PeriphAssignDivider(clock_dest, divider_type, divider_channel);
 
-	Interrupt_test_Init(cnt_num);
+	savedIntrStatus = Cy_SysLib_EnterCriticalSection();
 
-	res = SelfTest_Interrupt(TCPWM, cnt_num);
+	/* Save current counter state to restore after test */
+	infineon_stl_save_current_cnt_state(&ifx_saved_cnt_state_intr_test, base, cnt_num);
+
+	/* check counter enabled */
+	ifx_saved_cnt_state_intr_test.enabled = infineon_stl_cnt_enabled(base, cnt_num);
+
+	/* Restore interrupt status */
+	Cy_SysLib_ExitCriticalSection(savedIntrStatus);
+
+	/* Stop counter if running */
+	infineon_stl_stop_running_cnt(base, cnt_num);
+
+	/* Configure counter with POST test parameters */
+	infineon_stl_config_post_parameter(base, cnt_num, period, compare0, compare1);
+
+	/* IRQ setup */
+	IRQ_CONNECT(irq_num, 3, SelfTest_Interrupt_ISR_TIMER, NULL, 0);
+	irq_enable(irq_num);
+
+	Interrupt_test_Init(cnt_num, base);
+
+	res = SelfTest_Interrupt(base, cnt_num);
+
+	/* disables interrupts and returns a value indicates whether interrupts reviously enabled */
+	savedIntrStatus = Cy_SysLib_EnterCriticalSection();
+
+	/* Stop the counter running */
+	infineon_stl_stop_running_cnt(base, cnt_num);
+
+	/* Restore the counter state using saved state */
+	infineon_stl_restore_cnt_state(&ifx_saved_cnt_state_intr_test, base, cnt_num);
+
+	/* Start the counter */
+	infineon_stl_start_cnt(ifx_saved_cnt_state_intr_test.enabled, base, cnt_num);
+
+	/* Restore interrupt status */
+	Cy_SysLib_ExitCriticalSection(savedIntrStatus);
 
 	return (res == 0) ? POST_RESULT_PASS : POST_RESULT_FAIL;
 }
@@ -672,93 +605,120 @@ POST_TEST_DEFINE(mtb_stl_interrupt,
  */
 #ifdef CONFIG_POST_MTB_STL_CLOCK
 
-const cy_stc_tcpwm_counter_config_t ifx_clk_test_timer_config = {
-	.period = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, period),
-	.clockPrescaler = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, clock_prescaler),
-	.runMode = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, run_mode),
-	.countDirection = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, count_direction),
-	.compareOrCapture = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, compare_or_capture),
-	.compare0 = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, compare0),
-	.compare1 = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, compare1),
-	.enableCompareSwap = false,
-	.interruptSources = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, interrupt_sources),
-	.captureInputMode = 0x7 & 0x3,
-	.captureInput = CY_TCPWM_INPUT_0,
-	.reloadInputMode = 0x7 & 0x3,
-	.reloadInput = CY_TCPWM_INPUT_0,
-	.startInputMode = 0x7 & 0x3,
-	.startInput = CY_TCPWM_INPUT_0,
-	.stopInputMode = 0x7 & 0x3,
-	.stopInput = CY_TCPWM_INPUT_0,
-	.countInputMode = 0x7 & 0x3,
-	.countInput = CY_TCPWM_INPUT_1,
-};
+/*
+ * In this test, we will use a default test peripheral clock divider.
+ * Initially, we will check whether the app uses the same counter as
+ * we are using for test, based on its clocks property. Therefore,
+ * we won't assign anything in the clocks property in the
+ * counter test node, but we will enable the clocks we intend to use.
+ *
+ * If the app uses a different divider channel with a different
+ * divider value, the test won't pass. Therefore, we use the test-specific
+ * peripheral divider here, and we will assign the divider channel back
+ * to what the app uses if it is available or was originally used.
+ */
 
-static void clock_test_init(uint32_t cnt_num) {
-	cy_en_tcpwm_status_t tcpwm_res;
-	uint32_t intr_src = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, interrupt_sources);
+static ifx_stl_saved_cnt_state_t ifx_saved_cnt_state_clk_test;
 
-	Cy_WDT_SetIgnoreBits(3U);
+static void clock_test_init(uint32_t cnt_num, TCPWM_Type *base)
+{
+	uint32_t intr_src = DT_PROP(CLOCK_TEST_NODE, interrupt_sources);
+	uint32_t ignore_bits = DT_PROP(CLOCK_TEST_NODE, wdt_ignore_bits);
 
-	if (Cy_WDT_GetIgnoreBits() != 3U) {
-		__ASSERT(0, "IGNORE BITS MISMATCH");
+	Cy_WDT_SetIgnoreBits(ignore_bits);
+
+	if (Cy_WDT_GetIgnoreBits() != ignore_bits) {
+		LOG_ERR("IGNORE BITS MISMATCH!!!");
 	}
 
 	Cy_WDT_ClearInterrupt();
 
 	Cy_WDT_Enable();
 	if (Cy_WDT_IsEnabled() == false) {
-		__ASSERT(0, "WDT IS NOT ENABLED");
+		LOG_ERR("WDT IS NOT ENABLED!!!");
 	}
 
-	tcpwm_res = Cy_TCPWM_Counter_Init(TCPWM, cnt_num, &ifx_clk_test_timer_config);
-	if (CY_TCPWM_SUCCESS != tcpwm_res) {
-		__ASSERT(0, "TCPWM INIT FAILED !!!");
-	};
-
-	Cy_TCPWM_Counter_Enable(TCPWM, cnt_num);
-	Cy_TCPWM_SetInterruptMask(TCPWM, cnt_num, intr_src);
+	Cy_TCPWM_Counter_Enable(base, cnt_num);
+	Cy_TCPWM_SetInterruptMask(base, cnt_num, intr_src);
 }
 
 static enum post_result mtb_stl_clock_wrapper(const struct post_context *ctx)
 {
 	ARG_UNUSED(ctx);
 
-	const uint32_t irq_num = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, irq_num);
+	uint8_t res;
+	TCPWM_Type *base;
+	uint32_t savedIntrStatus;
+	uint32_t clock_dest = DT_PROP(DT_PARENT(COUNTER_CLK_TEST_NODE), clk_dst);
+	uint32_t period = DT_PROP(CLOCK_TEST_NODE, test_period);
+	uint32_t compare0 = DT_PROP(CLOCK_TEST_NODE, test_compare0);
+	uint32_t compare1 = DT_PROP(CLOCK_TEST_NODE, test_compare1);
+	const uint32_t irq_num = DT_IRQN(DT_PARENT(COUNTER_CLK_TEST_NODE));
+#if DT_NODE_HAS_PROP(COUNTER_CLK_TEST_NODE, clocks)
+	uint32_t divider_type = DT_PROP(CLOCK_CLK_TEST_NODE, div_type);
+	uint32_t divider_channel = DT_PROP(CLOCK_CLK_TEST_NODE, channel);
+	uint32_t cnt_num = DT_PROP(CLOCK_CLK_TEST_NODE, resource_channel);
+#else
+	uint32_t cnt_num = DT_PROP(DEFAULT_CLOCK_CLK_TEST_NODE, resource_channel);
+#endif
+	uint32_t def_divider_type = DT_PROP(DEFAULT_CLOCK_CLK_TEST_NODE, div_type);
+	uint32_t def_divider_channel = DT_PROP(DEFAULT_CLOCK_CLK_TEST_NODE, channel);
 
-	IRQ_CONNECT(irq_num, 0, SelfTest_Clock_ISR_TIMER, NULL, 0);
+	IRQ_CONNECT(irq_num, 3, SelfTest_Clock_ISR_TIMER, NULL, 0);
 	irq_enable(irq_num);
 
-	uint8_t res;
+	Cy_SysClk_PeriphAssignDivider(clock_dest, def_divider_type, def_divider_channel);
 
-	Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_16_BIT, 2, 0);
-	Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_16_BIT, 2);
-	Cy_SysClk_PeriphAssignDivider(PCLK_TCPWM_CLOCKS0, CY_SYSCLK_DIV_16_BIT, 2);
+	base = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(COUNTER_CLK_TEST_NODE))));
 
-	uint32_t cnt_num = DT_PROP(COUNTER_CONFIG_NODE_CLK_TEST, counter_num);
+	savedIntrStatus = Cy_SysLib_EnterCriticalSection();
 
-	clock_test_init(cnt_num);
+	infineon_stl_save_current_cnt_state(&ifx_saved_cnt_state_clk_test, base, cnt_num);
+
+	ifx_saved_cnt_state_clk_test.enabled = infineon_stl_cnt_enabled(base, cnt_num);
+
+	Cy_SysLib_ExitCriticalSection(savedIntrStatus);
+
+	infineon_stl_stop_running_cnt(base, cnt_num);
+
+	infineon_stl_config_post_parameter(base, cnt_num, period, compare0, compare1);
+
+	clock_test_init(cnt_num, base);
 
 	/* Add timeout to prevent infinite hang */
 	uint32_t start = k_cycle_get_32();
 	uint32_t timeout_cycles = k_ms_to_cyc_ceil32(100); /* 100ms timeout */
 
 	do {
-		res = SelfTest_Clock(TCPWM, cnt_num);
+		res = SelfTest_Clock(base, cnt_num);
 		if ((k_cycle_get_32() - start) > timeout_cycles) {
 			return POST_RESULT_FAIL; /* Timeout */
 		}
 	} while (res == 2);
 
+	savedIntrStatus = Cy_SysLib_EnterCriticalSection();
+
+	infineon_stl_stop_running_cnt(base, cnt_num);
+
+	infineon_stl_restore_cnt_state(&ifx_saved_cnt_state_clk_test, base, cnt_num);
+
+	infineon_stl_start_cnt(ifx_saved_cnt_state_clk_test.enabled, base, cnt_num);
+
+	Cy_SysLib_ExitCriticalSection(savedIntrStatus);
+
 	Cy_WDT_ClearInterrupt();
 	Cy_WDT_Disable();
+
+#if DT_NODE_HAS_PROP(COUNTER_CLK_TEST_NODE, clocks)
+	Cy_SysClk_PeriphAssignDivider(clock_dest, divider_type, divider_channel);
+#endif
 
 	return (res == 3) ? POST_RESULT_PASS : POST_RESULT_FAIL;
 }
 POST_TEST_DEFINE(mtb_stl_clock,
 		POST_CAT_CLOCK,
 		POST_LEVEL_POST_KERNEL,
-		50, 0,
+		50, POST_FLAG_RUNTIME_OK | POST_FLAG_VENDOR,
 		mtb_stl_clock_wrapper,
 		"MTB-STL Clock Frequency Test");
 #endif
@@ -766,16 +726,18 @@ POST_TEST_DEFINE(mtb_stl_clock,
 /* Counter test */
 #ifdef CONFIG_POST_MTB_STL_COUNTER
 
+static ifx_stl_saved_cnt_state_t ifx_saved_cnt_state_cnt_test;
+
 const cy_stc_tcpwm_counter_config_t ifx_timer_counter_config = {
-	.period = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, period),
-	.clockPrescaler = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, clock_prescaler),
-	.runMode = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, run_mode),
-	.countDirection = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, count_direction),
-	.compareOrCapture = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, compare_or_capture),
-	.compare0 = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, compare0),
-	.compare1 = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, compare1),
+	.period = DT_PROP(COUNTER_TEST_NODE, test_period),
+	.clockPrescaler = CY_TCPWM_COUNTER_PRESCALER_DIVBY_1,
+	.runMode = CY_TCPWM_COUNTER_CONTINUOUS,
+	.countDirection = CY_TCPWM_COUNTER_COUNT_UP,
+	.compareOrCapture = CY_TCPWM_COUNTER_MODE_COMPARE,
+	.compare0 = DT_PROP(COUNTER_TEST_NODE, test_compare0),
+	.compare1 = DT_PROP(COUNTER_TEST_NODE, test_compare1),
 	.enableCompareSwap = false,
-	.interruptSources = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, interrupt_sources),
+	.interruptSources = DT_PROP(COUNTER_TEST_NODE, interrupt_sources),
 	.captureInputMode = 0x3U,
 	.captureInput = CY_TCPWM_INPUT_0,
 	.reloadInputMode = 0x3U,
@@ -793,20 +755,42 @@ static enum post_result mtb_stl_counter_wrapper(const struct post_context *ctx)
 	ARG_UNUSED(ctx);
 
 	uint8_t result;
+	TCPWM_Type *base;
+	uint32_t savedIntrStatus;
+	uint32_t divider_type = DT_PROP(CLOCK_CNT_TEST_NODE, div_type);
+	uint32_t divider_channel = DT_PROP(CLOCK_CNT_TEST_NODE, channel);
+	uint32_t clock_dest = DT_PROP(DT_PARENT(COUNTER_CNT_TEST_NODE), clk_dst);
+	uint32_t cnt_num = DT_PROP(CLOCK_CNT_TEST_NODE, resource_channel);
+	uint32_t period = DT_PROP(COUNTER_TEST_NODE, test_period);
+	uint32_t compare0 = DT_PROP(COUNTER_TEST_NODE, test_compare0);
+	uint32_t compare1 = DT_PROP(COUNTER_TEST_NODE, test_compare1);
+	const uint32_t irq_num = DT_IRQN(DT_PARENT(COUNTER_CNT_TEST_NODE));
 
-	/* Clock enable */
-	Cy_SysClk_PeriphAssignDivider(PCLK_TCPWM_CLOCKS2, CY_SYSCLK_DIV_16_BIT, 1U);
-	Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_16_BIT, 1U, 0U);
-	Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_16_BIT, 1U);
+	Cy_SysClk_PeriphAssignDivider(clock_dest, divider_type, divider_channel);
 
-	uint32_t cnt_num = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, counter_num);
-	const uint32_t irq_num = DT_PROP(COUNTER_CONFIG_NODE_CNT_TEST, irq_num);
+	base = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(COUNTER_CNT_TEST_NODE))));
 
-	/* Call vendor init  */
-	SelfTest_Timer_Counter_init(TCPWM, cnt_num, &ifx_timer_counter_config, irq_num);
+	savedIntrStatus = Cy_SysLib_EnterCriticalSection();
 
-	/* vendor test */
+	infineon_stl_save_current_cnt_state(&ifx_saved_cnt_state_cnt_test, base, cnt_num);
+	ifx_saved_cnt_state_cnt_test.enabled = infineon_stl_cnt_enabled(base, cnt_num);
+
+	Cy_SysLib_ExitCriticalSection(savedIntrStatus);
+
+	infineon_stl_stop_running_cnt(base, cnt_num);
+	infineon_stl_config_post_parameter(base, cnt_num, period, compare0, compare1);
+
+	SelfTest_Timer_Counter_init(base, cnt_num, &ifx_timer_counter_config, irq_num);
+
 	result = SelfTest_Counter_Timer();
+
+	savedIntrStatus = Cy_SysLib_EnterCriticalSection();
+
+	infineon_stl_stop_running_cnt(base, cnt_num);
+	infineon_stl_restore_cnt_state(&ifx_saved_cnt_state_cnt_test, base, cnt_num);
+	infineon_stl_start_cnt(ifx_saved_cnt_state_cnt_test.enabled, base, cnt_num);
+
+	Cy_SysLib_ExitCriticalSection(savedIntrStatus);
 
 	return (result == OK_STATUS) ? POST_RESULT_PASS : POST_RESULT_FAIL;
 }
@@ -823,57 +807,26 @@ POST_TEST_DEFINE(mtb_stl_counter,
 /* PWM_GATEKILL test */
 #ifdef CONFIG_POST_MTB_STL_PWM_GATEKILL
 
-const cy_stc_tcpwm_pwm_config_t ifx_pwm_gatekill_config =
-{
-	.pwmMode = DT_PROP(PWM_CONFIG_NODE_GK_TEST, pwm_mode),
-	.clockPrescaler = DT_PROP(PWM_CONFIG_NODE_GK_TEST, clock_prescaler),
-	.pwmAlignment = DT_PROP(PWM_CONFIG_NODE_GK_TEST, pwm_alignment),
-	.deadTimeClocks = DT_PROP(PWM_CONFIG_NODE_GK_TEST, dead_time_clocks),
-	.runMode = DT_PROP(PWM_CONFIG_NODE_GK_TEST, run_mode),
-	.period0 = DT_PROP(PWM_CONFIG_NODE_GK_TEST, period0),
-	.period1 = DT_PROP(PWM_CONFIG_NODE_GK_TEST, period1),
-	.enablePeriodSwap = DT_PROP(PWM_CONFIG_NODE_GK_TEST, enable_period_swap),
-	.compare0 = DT_PROP(PWM_CONFIG_NODE_GK_TEST, compare0),
-	.compare1 = DT_PROP(PWM_CONFIG_NODE_GK_TEST, compare1),
-	.enableCompareSwap = DT_PROP(PWM_CONFIG_NODE_GK_TEST, enable_compare_swap),
-	.interruptSources = DT_PROP(PWM_CONFIG_NODE_GK_TEST, interrupt_sources),
-	.invertPWMOut = DT_PROP(PWM_CONFIG_NODE_GK_TEST, invert_pwm_out),
-	.invertPWMOutN = DT_PROP(PWM_CONFIG_NODE_GK_TEST, invert_pwm_out_n),
-	.killMode = DT_PROP(PWM_CONFIG_NODE_GK_TEST, kill_mode),
-	.swapInputMode = 0x3U,
-	.swapInput = CY_TCPWM_INPUT_0,
-	.reloadInputMode = 0x3U,
-	.reloadInput = CY_TCPWM_INPUT_0,
-	.startInputMode = 0x3U,
-	.startInput = CY_TCPWM_INPUT_0,
-	.killInputMode = 0x3U,
-	.killInput = CY_TCPWM_INPUT_0,
-	.countInputMode = 0x3U,
-	.countInput = CY_TCPWM_INPUT_1,
-};
-
 static enum post_result mtb_stl_pwm_gatekill_wrapper(const struct post_context *ctx)
 {
 	ARG_UNUSED(ctx);
 
-	uint8_t result;
-	uint32_t cnt_num = DT_PROP(PWM_CONFIG_NODE_GK_TEST, pwm_counter_num);
+	uint8_t result = ERROR_STATUS;
+	TCPWM_Type *base_gk_cnt;
+	uint32_t cnt_num = DT_PROP(CLOCK_PWM_GK_TEST_NODE, resource_channel);
+	uint32_t divider_type = DT_PROP(CLOCK_PWM_GK_TEST_NODE, div_type);
+	uint32_t divider_channel = DT_PROP(CLOCK_PWM_GK_TEST_NODE, channel);
+	uint32_t clock_dest = DT_PROP(DT_PARENT(COUNTER_PWM_GK_TEST_NODE), clk_dst);
 
-	Cy_SysClk_PeriphAssignDivider(PCLK_TCPWM_CLOCKS4, CY_SYSCLK_DIV_16_BIT, 6U);
-	Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_16_BIT, 6U, 0U);
-	Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_16_BIT, 6U);
+	Cy_SysClk_PeriphAssignDivider(clock_dest, divider_type, divider_channel);
 
-	if (Cy_TCPWM_PWM_Init(TCPWM, cnt_num, &ifx_pwm_gatekill_config) != CY_TCPWM_SUCCESS) {
-		LOG_ERR("PWM_INIT failed");
-	}
+	base_gk_cnt = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(COUNTER_PWM_GK_TEST_NODE))));
 
-	Cy_TCPWM_PWM_Enable(TCPWM, cnt_num);
+	Cy_TCPWM_PWM_Enable(base_gk_cnt, cnt_num);
+	Cy_TCPWM_TriggerReloadOrIndex(base_gk_cnt, (1UL << cnt_num));
+	Cy_TCPWM_TriggerStopOrKill(base_gk_cnt, (1UL << cnt_num));
 
-	Cy_TCPWM_TriggerReloadOrIndex(TCPWM, (1UL << cnt_num));
-
-	Cy_TCPWM_TriggerStopOrKill(TCPWM, (1UL << cnt_num));
-
-	result = SelfTest_PWM_GateKill(TCPWM, cnt_num);
+	result = SelfTest_PWM_GateKill(base_gk_cnt, cnt_num);
 
 	return (result == OK_STATUS) ? POST_RESULT_PASS : POST_RESULT_FAIL;
 }
@@ -884,5 +837,105 @@ POST_TEST_DEFINE(mtb_stl_pwm_gatekill,
 		10, 0,
 		mtb_stl_pwm_gatekill_wrapper,
 		"MTB-STL PWM Gatekill Self-Test");
-
 #endif /* CONFIG_POST_MTB_STL_PWM_GATEKILL */
+
+/* UART COMMUNICATION test */
+#ifdef CONFIG_POST_MTB_STL_COMM
+
+#define IFX_COMM_SLAVE_ADDR 2
+#define IFX_COMM_TRANSMITTED_DATA 10
+
+static enum post_result mtb_stl_communication_wrapper(const struct post_context *ctx)
+{
+	ARG_UNUSED(ctx);
+
+	uint8_t rxd[16u];
+	uint8_t txd[] = "1234567890ABCDEF";
+	uint8_t slave_resp_res;
+	uint32_t start;
+	uint32_t timeout_cycles;
+	TCPWM_Type *cnt_base;
+	CySCB_Type *scb_uart_master = (CySCB_Type *)DT_REG_ADDR(UART_COMM_MASTER_TEST_NODE);
+	CySCB_Type *scb_uart_slave = (CySCB_Type *)DT_REG_ADDR(UART_COMM_SLAVE_TEST_NODE);
+	uint32_t cnt_num = DT_PROP(CNT_CLOCK_COMM_TEST_NODE, resource_channel);
+	const uint32_t irq_num_cnt = DT_IRQN(DT_PARENT(COUNTER_COMM_TEST_NODE));
+	const uint32_t irq_num_master = DT_IRQN(UART_COMM_MASTER_TEST_NODE);
+	const uint32_t irq_num_slave = DT_IRQN(UART_COMM_SLAVE_TEST_NODE);
+
+	cnt_base = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(COUNTER_COMM_TEST_NODE))));
+
+	/* Note: Connect p4.0 -> p2.5 and p4.1 -> p2.4 */
+
+	IRQ_CONNECT(irq_num_cnt, 3, UartMesMaster_Timeout_ISR, NULL, 0);
+	irq_enable(irq_num_cnt);
+
+	IRQ_CONNECT(irq_num_master, 3, UartMesMaster_Msg_ISR, NULL, 0);
+	irq_enable(irq_num_master);
+
+	IRQ_CONNECT(irq_num_slave, 3, UartMesSlave_Msg_ISR, NULL, 0);
+	irq_enable(irq_num_slave);
+
+	UartMesMaster_Init(scb_uart_master, cnt_base, cnt_num);
+	UartMesSlave_Init(scb_uart_slave, IFX_COMM_SLAVE_ADDR);
+
+	start = k_cycle_get_32();
+	timeout_cycles = k_ms_to_cyc_ceil32(100); /* 100ms timeout */
+
+	/* Wait if master is busy (should be idle initially) */
+	while (UM_BUSY == UartMesMaster_State()) {
+		if ((k_cycle_get_32() - start) > timeout_cycles) {
+			LOG_ERR("ERR: Master stuck in busy state");
+			return POST_RESULT_FAIL; /* Timeout */
+		}
+	}
+
+	/* Send the test packet */
+	UartMesMaster_DataProc(IFX_COMM_SLAVE_ADDR, txd, IFX_COMM_TRANSMITTED_DATA,
+							rxd, sizeof(rxd));
+
+	start = k_cycle_get_32();
+	timeout_cycles = k_ms_to_cyc_ceil32(100); /* 100ms timeout */
+
+	/* Wait for slave to receive packet */
+	while(UM_PACKREADY != UartMesSlave_State()) {
+		if ((k_cycle_get_32() - start) > timeout_cycles) {
+			LOG_ERR("ERR: Slave never received packet");
+			return POST_RESULT_FAIL; /* Timeout */
+		}
+	}
+
+	/* Slave processes and responds */
+	slave_resp_res = UartMesSlave_Respond((uint8_t *)UartMesSlave_GetDataPtr(),
+						UartMesSlave_GetDataSize());
+
+	if(slave_resp_res) {
+		LOG_ERR("ERR: slave response failed");
+		return POST_RESULT_FAIL;
+	}
+
+	start = k_cycle_get_32();
+	timeout_cycles = k_ms_to_cyc_ceil32(100); /* 100ms timeout */
+
+	/* Wait for master to complete transaction */
+	while(UM_BUSY == UartMesMaster_State()) {
+		if ((k_cycle_get_32() - start) > timeout_cycles) {
+			LOG_ERR("ERR: master response timeout");
+			return POST_RESULT_FAIL; /* Timeout */
+		}
+	}
+
+	/* final result */
+	if(UM_COMPLETE == UartMesMaster_State()) {
+		return POST_RESULT_PASS;
+	} else {
+		return POST_RESULT_FAIL;
+	}
+}
+
+POST_TEST_DEFINE(mtb_stl_communication,
+                 POST_CAT_COMM,
+                 POST_LEVEL_APPLICATION,
+                 50, 0,
+                 mtb_stl_communication_wrapper,
+                "MTB-STL Communication Self-Test");
+#endif /* CONFIG_POST_MTB_STL_COMM */
