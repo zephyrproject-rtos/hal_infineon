@@ -6,11 +6,22 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation. All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions,
-* disclaimers, and limitations in the end user license agreement accompanying
-* the software package with which this file was provided.
+* (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+* Technologies AG.
+*
+* SPDX-License-Identifier: Apache-2.0
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
 *******************************************************************************/
 
 #include <string.h>
@@ -22,6 +33,7 @@
 #if !defined(COMPONENT_SECURE_DEVICE)
 #include "mtb_ipc.h"
 #include "mtb_srf_ipc_init.h"
+#include "mtb_hal_syspm.h"
 #endif /* !defined(COMPONENT_SECURE_DEVICE) */
 #include "mtb_srf_common.h"
 
@@ -29,6 +41,8 @@
 extern "C"
 {
 #endif /* defined(__cplusplus) */
+
+#if !defined(CY_SRF_DISABLE)
 
 #if !defined(COMPONENT_SECURE_DEVICE)
 /*******************************************************************************
@@ -58,26 +72,16 @@ extern "C"
  *  D-Cache is invalidated starting from a 32 byte aligned address in 32 byte granularity.
  *  D-Cache memory blocks which are part of given address + given size are invalidated.
  */
-#define MTB_SRF_INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(addr, size) \
-{ \
-    SCB_InvalidateDCache_by_Addr((volatile void*)((uint32_t)(addr) & ~(__SCB_DCACHE_LINE_SIZE - 1U)), (((size) + (__SCB_DCACHE_LINE_SIZE - 1U)) &  ~(__SCB_DCACHE_LINE_SIZE - 1U))); \
-    if(((uint32_t)(addr) % __SCB_DCACHE_LINE_SIZE) != 0U) \
-    { \
-        SCB_InvalidateDCache_by_Addr( (volatile void*)((((uint32_t)(addr) + (size)) & ~(__SCB_DCACHE_LINE_SIZE - 1U))), (__SCB_DCACHE_LINE_SIZE)); \
-    } \
-}
+#define MTB_SRF_INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(addr, \
+                                                             size) \
+    SCB_InvalidateDCache_by_Addr((volatile void*)addr, size)
 
 //--------------------------------------------------------------------------------------------------
 // clean_dcache
 //--------------------------------------------------------------------------------------------------
-#define MTB_SRF_CLEAN_DCACHE_AFTER_WRITING_TO_MEMORY(addr, size) \
-{ \
-    SCB_CleanDCache_by_Addr((volatile void*)((uint32_t)(addr) & ~(__SCB_DCACHE_LINE_SIZE - 1)), (((size) + (__SCB_DCACHE_LINE_SIZE - 1)) & ~(__SCB_DCACHE_LINE_SIZE - 1))); \
-    if(((uint32_t)(addr) % __SCB_DCACHE_LINE_SIZE)!= 0) \
-    { \
-        SCB_CleanDCache_by_Addr( (volatile void*)((((uint32_t)(addr) + (size)) & ~(__SCB_DCACHE_LINE_SIZE - 1))), (__SCB_DCACHE_LINE_SIZE)); \
-    } \
-}
+#define MTB_SRF_CLEAN_DCACHE_AFTER_WRITING_TO_MEMORY(addr, \
+                                                     size) \
+    SCB_CleanDCache_by_Addr((volatile void*)addr, size)
 
 #else // if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
 #define MTB_SRF_INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(addr, size)
@@ -203,41 +207,32 @@ cy_rslt_t mtb_srf_ipc_request_submit(mtb_srf_ipc_client_context_t* client_contex
             // Pack ipc_req with data
             ipc_req->inVec_ptr = (mtb_srf_invec_ns_t*)cy_DTCMRemapAddr((void*)inVec_ns);
             MTB_SRF_CLEAN_DCACHE_AFTER_WRITING_TO_MEMORY((uint32_t)(ipc_req->inVec_ptr),
-                                                         MTB_SRF_ROUND_UP((sizeof(mtb_srf_invec_ns_t)
-                                                                           *
-                                                                           inVec_cnt_ns),
-                                                                          MTB_SRF_POOL_ALIGNMENT));
+                                                         sizeof(mtb_srf_invec_ns_t) * inVec_cnt_ns);
             ipc_req->outVec_ptr = (mtb_srf_outvec_ns_t*)cy_DTCMRemapAddr((void*)outVec_ns);
             MTB_SRF_CLEAN_DCACHE_AFTER_WRITING_TO_MEMORY((uint32_t)(ipc_req->outVec_ptr),
-                                                         MTB_SRF_ROUND_UP((sizeof(
-                                                                               mtb_srf_outvec_ns_t)
-                                                                           *
-                                                                           outVec_cnt_ns),
-                                                                          MTB_SRF_POOL_ALIGNMENT));
+                                                         sizeof(mtb_srf_outvec_ns_t) *
+                                                         outVec_cnt_ns);
             ipc_req->inVec_cnt_ns = inVec_cnt_ns;
             ipc_req->outVec_cnt_ns = outVec_cnt_ns;
             ipc_req->semaphore_idx = sema_idx;
             ipc_req->request_rslt = CY_RSLT_SUCCESS;
-            MTB_SRF_CLEAN_DCACHE_AFTER_WRITING_TO_MEMORY(ipc_req, sizeof(mtb_srf_ipc_packet_t));
 
             /* Remap all data passed in to CM33-accessible addresses */
-            for (uint32_t i = 1; i < inVec_cnt_ns; ++i)
+            for (uint32_t i = 0; i < inVec_cnt_ns; ++i)
             {
                 #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
                 CY_ASSERT(((uint32_t)(inVec_ns[i].base) % (__SCB_DCACHE_LINE_SIZE)) == 0);
                 #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
                 inVec_ns[i].base = (void*)cy_DTCMRemapAddr(inVec_ns[i].base);
+                CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 11.8', 'No Const needed for cache method');
                 MTB_SRF_CLEAN_DCACHE_AFTER_WRITING_TO_MEMORY(inVec_ns[i].base, inVec_ns[i].len);
             }
-            for (uint32_t i = 1; i < outVec_cnt_ns; ++i)
+            for (uint32_t i = 0; i < outVec_cnt_ns; ++i)
             {
                 #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
                 CY_ASSERT(((uint32_t)(outVec_ns[i].base) % (__SCB_DCACHE_LINE_SIZE)) == 0);
                 #endif /* defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) */
                 outVec_ns[i].base = (void*)cy_DTCMRemapAddr(outVec_ns[i].base);
-
-                /* While we never expect the receiving side to read from these, clean them
-                 * before just in case */
                 MTB_SRF_CLEAN_DCACHE_AFTER_WRITING_TO_MEMORY(outVec_ns[i].base, outVec_ns[i].len);
             }
 
@@ -249,12 +244,8 @@ cy_rslt_t mtb_srf_ipc_request_submit(mtb_srf_ipc_client_context_t* client_contex
             {
                 MTB_SRF_INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(
                     (uint32_t)(ipc_req->outVec_ptr),
-                    MTB_SRF_ROUND_UP((sizeof(
-                                          mtb_srf_outvec_ns_t)
-                                      *
-                                      outVec_cnt_ns),
-                                     MTB_SRF_POOL_ALIGNMENT));
-                for (uint32_t i = 1; i < outVec_cnt_ns; ++i)
+                    sizeof(mtb_srf_outvec_ns_t) * outVec_cnt_ns);
+                for (uint32_t i = 0; i < outVec_cnt_ns; ++i)
                 {
                     MTB_SRF_INVALIDATE_DCACHE_BEFORE_READING_FROM_MEMORY(outVec_ns[i].base,
                                                                          outVec_ns[i].len);
@@ -523,10 +514,13 @@ cy_rslt_t mtb_srf_ipc_request_send(mtb_srf_ipc_client_context_t* client_context,
 
     if (result == CY_RSLT_SUCCESS)
     {
+        /* Lock deepsleep because IPC1's IRQ is active on CM55 */
+        mtb_hal_syspm_lock_deepsleep();
         result =
             mtb_ipc_semaphore_take(
                 &(client_context->pool->request_semaphores[request->semaphore_idx]),
                 timeout_us);
+        mtb_hal_syspm_unlock_deepsleep();
     }
 
     /** Invalidate packet and outvec before getting ready to return */
@@ -869,9 +863,12 @@ void mtb_srf_ipc_process_thread(void* arg)
 
 #endif // if (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE))
 
-
 #endif // defined(MTB_SRF_SUBMIT_USE_IPC)
-#endif //# !defined(COMPONENT_SECURE_DEVICE)
+
+#endif // !defined(COMPONENT_SECURE_DEVICE)
+
+#endif // !defined(CY_SRF_DISABLE)
+
 #if defined(__cplusplus)
 }
 #endif /* defined(__cplusplus) */

@@ -6,11 +6,22 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation. All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions,
-* disclaimers, and limitations in the end user license agreement accompanying
-* the software package with which this file was provided.
+* (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+* Technologies AG.
+*
+* SPDX-License-Identifier: Apache-2.0
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
 *******************************************************************************/
 
 #include <assert.h>
@@ -36,6 +47,7 @@ extern "C"
 {
 #endif /* defined(__cplusplus) */
 
+#if !defined(CY_SRF_DISABLE)
 /*******************************************************************************
 *                           Private Defines
 *******************************************************************************/
@@ -164,6 +176,33 @@ cy_rslt_t _mtb_srf_check_permissions(mtb_srf_op_s_t* op, mtb_srf_request_ns_t* r
 *******************************************************************************/
 
 #if defined(COMPONENT_SECURE_DEVICE)
+cy_rslt_t mtb_srf_copy_input_value(void* input, size_t size, mtb_srf_input_ns_t* inputs_ns)
+{
+    if (inputs_ns->len != size)
+    {
+        return MTB_SRF_ERR_BAD_PARAM;
+    }
+
+    memcpy(input, inputs_ns->input_values, size);
+    return CY_RSLT_SUCCESS;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// mtb_srf_copy_output_value
+//--------------------------------------------------------------------------------------------------
+cy_rslt_t mtb_srf_copy_output_value(mtb_srf_output_ns_t* outputs_ns, void* output, size_t size)
+{
+    if (outputs_ns->len != size)
+    {
+        return MTB_SRF_ERR_BAD_PARAM;
+    }
+
+    memcpy(outputs_ns->output_values, output, size);
+    return CY_RSLT_SUCCESS;
+}
+
+
 //--------------------------------------------------------------------------------------------------
 // mtb_srf_is_memory_ns_accessible
 //--------------------------------------------------------------------------------------------------
@@ -532,6 +571,8 @@ cy_rslt_t mtb_srf_request_execute(mtb_srf_context_s_t* context_s,
 
 
 #endif /* defined(COMPONENT_SECURE_DEVICE) */
+
+#endif /* !defined(CY_SRF_DISABLE) */
 
 #if defined(__cplusplus)
 }

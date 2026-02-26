@@ -6,11 +6,22 @@
 *
 ********************************************************************************
 * \copyright
-* (c) (2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation. All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions,
-* disclaimers, and limitations in the end user license agreement accompanying
-* the software package with which this file was provided.
+* (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+* Technologies AG.
+*
+* SPDX-License-Identifier: Apache-2.0
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
 *******************************************************************************/
 
 #include <string.h>
@@ -25,6 +36,7 @@ extern "C"
 {
 #endif /* defined(__cplusplus) */
 
+#if !defined(CY_SRF_DISABLE)
 /*******************************************************************************
 *                           Private Defines
 *******************************************************************************/
@@ -221,6 +233,7 @@ cy_rslt_t mtb_srf_pool_get_entry_len(mtb_srf_pool_t* pool, size_t* input_len_per
 
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 8.13');
 
+#endif /* !defined(CY_SRF_DISABLE) */
 #if defined(__cplusplus)
 }
 #endif /* defined(__cplusplus) */

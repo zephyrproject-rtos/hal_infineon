@@ -1,211 +1,165 @@
-CYPRESS (AN INFINEON COMPANY) END USER LICENSE AGREEMENT
+Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
 
-PLEASE READ THIS END USER LICENSE AGREEMENT ("Agreement") CAREFULLY BEFORE
-DOWNLOADING, INSTALLING, COPYING, OR USING THIS SOFTWARE AND ACCOMPANYING
-DOCUMENTATION.  BY DOWNLOADING, INSTALLING, COPYING OR USING THE SOFTWARE,
-YOU ARE AGREEING TO BE BOUND BY THIS AGREEMENT.  IF YOU DO NOT AGREE TO ALL
-OF THE TERMS OF THIS AGREEMENT, PROMPTLY RETURN AND DO NOT USE THE SOFTWARE.
-IF YOU HAVE PURCHASED THIS LICENSE TO THE SOFTWARE, YOUR RIGHT TO RETURN THE
-SOFTWARE EXPIRES 30 DAYS AFTER YOUR PURCHASE AND APPLIES ONLY TO THE ORIGINAL
-PURCHASER.
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
 1. Definitions.
 
-    "Software" means this software and any accompanying documentation,
-      including any upgrades, updates, bug fixes or modified versions provided
-      to you by Cypress.
+"License" shall mean the terms and conditions for use, reproduction, and
+distribution as defined by Sections 1 through 9 of this document.
 
-    "Source Code" means software in human-readable form.
+"Licensor" shall mean the copyright owner or entity authorized by the copyright
+owner that is granting the License.
 
-    "Binary Code" means the software in binary code form such as object code or
-      an executable.
+"Legal Entity" shall mean the union of the acting entity and all other entities
+that control, are controlled by, or are under common control with that entity.
+For the purposes of this definition, "control" means (i) the power, direct or
+indirect, to cause the direction or management of such entity, whether by
+contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the
+outstanding shares, or (iii) beneficial ownership of such entity.
 
-    "Development Tools" means software that is intended to be installed on a
-      personal computer and used to create programming code for Firmware,
-      Drivers, or Host Applications.  Examples of Development Tools are
-      Cypress's PSoC Creator software, Cypress's AIROC SDKs, and Cypress's
-      ModusToolbox software.
+"You" (or "Your") shall mean an individual or Legal Entity exercising
+permissions granted by this License.
 
-    "Firmware" means software that executes on a Cypress hardware product.
+"Source" form shall mean the preferred form for making modifications, including
+but not limited to software source code, documentation source, and configuration
+files.
 
-    "Driver" means software that enables the use of a Cypress hardware product
-      on a particular host operating system such as GNU/Linux, Windows, MacOS,
-      Android, and iOS.
+"Object" form shall mean any form resulting from mechanical transformation or
+translation of a Source form, including but not limited to compiled object code,
+generated documentation, and conversions to other media types.
 
-    "Host Application" means software that executes on a device other than a
-      Cypress hardware product in order to program, control, or communicate
-      with a Cypress hardware product.
+"Work" shall mean the work of authorship, whether in Source or Object form, made
+available under the License, as indicated by a copyright notice that is included
+in or attached to the work (an example is provided in the Appendix below).
 
-    "inf File" means a hardware setup information file (.inf file) created by
-      the Software to allow a Microsoft Windows operating system to install
-      the driver for a Cypress hardware product.
+"Derivative Works" shall mean any work, whether in Source or Object form, that
+is based on (or derived from) the Work and for which the editorial revisions,
+annotations, elaborations, or other modifications represent, as a whole, an
+original work of authorship. For the purposes of this License, Derivative Works
+shall not include works that remain separable from, or merely link (or bind by
+name) to the interfaces of, the Work and Derivative Works thereof.
 
-2. License.  Subject to the terms and conditions of this Agreement, Cypress
-Semiconductor Corporation ("Cypress") and its suppliers grant to you a
-non-exclusive, non-transferable license under their copyright rights:
+"Contribution" shall mean any work of authorship, including the original version
+of the Work and any modifications or additions to that Work or Derivative Works
+thereof, that is intentionally submitted to Licensor for inclusion in the Work
+by the copyright owner or by an individual or Legal Entity authorized to submit
+on behalf of the copyright owner. For the purposes of this definition,
+"submitted" means any form of electronic, verbal, or written communication sent
+to the Licensor or its representatives, including but not limited to
+communication on electronic mailing lists, source code control systems, and
+issue tracking systems that are managed by, or on behalf of, the Licensor for
+the purpose of discussing and improving the Work, but excluding communication
+that is conspicuously marked or otherwise designated in writing by the copyright
+owner as "Not a Contribution."
 
-    a. to use the Development Tools in object code form solely for the purpose
-       of creating Firmware, Drivers, Host Applications, and inf Files for
-       Cypress hardware products; and
+"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
+of whom a Contribution has been received by Licensor and subsequently
+incorporated within the Work.
 
-    b. (i) if provided in Source Code form, to copy, modify, and compile the
-           Firmware Source Code to create Firmware for execution on a Cypress
-           hardware product, and
-      (ii) to distribute Firmware in binary code form only, only when
-           installed onto a Cypress hardware product; and
+2. Grant of Copyright License.
 
-    c. (i) if provided in Source Code form, to copy, modify, and compile the
-           Driver Source Code to create one or more Drivers to enable the use
-           of a Cypress hardware product on a particular host operating
-           system, and
-      (ii) to distribute the Driver, in binary code form only, only when
-           installed on a device that includes the Cypress hardware product
-           that the Driver is intended to enable; and
+Subject to the terms and conditions of this License, each Contributor hereby
+grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+irrevocable copyright license to reproduce, prepare Derivative Works of,
+publicly display, publicly perform, sublicense, and distribute the Work and such
+Derivative Works in Source or Object form.
 
-    d. (i) if provided in Source Code form, to copy, modify, and compile the
-           Host Application Source Code to create one or more Host
-           Applications to program, control, or communicate with a Cypress
-           hardware product, and
-      (ii) to distribute Host Applications, in binary code form only, only
-           when installed on a device that includes a Cypress hardware product
-           that the Host Application is intended to program, control, or
-           communicate with; and
+3. Grant of Patent License.
 
-    e. to freely distribute any inf File.
+Subject to the terms and conditions of this License, each Contributor hereby
+grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+irrevocable (except as stated in this section) patent license to make, have
+made, use, offer to sell, sell, import, and otherwise transfer the Work, where
+such license applies only to those patent claims licensable by such Contributor
+that are necessarily infringed by their Contribution(s) alone or by combination
+of their Contribution(s) with the Work to which such Contribution(s) was
+submitted. If You institute patent litigation against any entity (including a
+cross-claim or counterclaim in a lawsuit) alleging that the Work or a
+Contribution incorporated within the Work constitutes direct or contributory
+patent infringement, then any patent licenses granted to You under this License
+for that Work shall terminate as of the date such litigation is filed.
 
-Any distribution of Software permitted under this Agreement must be made
-pursuant to your standard end user license agreement used for your proprietary
-(closed source) software products, such end user license agreement to include,
-at a minimum, provisions limiting your licensors' liability and prohibiting
-reverse engineering of the Software, consistent with such provisions in this
-Agreement.
+4. Redistribution.
 
-3. Free and Open Source Software.  Portions of the Software may be licensed
-under free and/or open source licenses such as the GNU General Public License
-or other licenses from third parties ("Third Party Software").  Third Party
-Software is subject to the applicable license agreement and not this
-Agreement.  If you are entitled to receive the source code from Cypress for
-any Third Party Software included with the Software, either the source code
-will  be included with the Software or you may obtain the source code at no
-charge from
-<https://www.infineon.com/cms/en/design-support/software/free-and-open-source-software-foss/>.
-The applicable license terms will accompany each source code package.  To
-review the license terms applicable to any Third Party Software for which
-Cypress is not required to provide you with source code, please see the
-Software's installation directory on your computer.
+You may reproduce and distribute copies of the Work or Derivative Works thereof
+in any medium, with or without modifications, and in Source or Object form,
+provided that You meet the following conditions:
 
-4. Proprietary Rights; Ownership.  The Software, including all intellectual
-property rights therein, is and will remain the sole and exclusive property of
-Cypress or its suppliers.  Cypress retains ownership of the Source Code and
-any compiled version thereof.  Subject to Cypress' ownership of the underlying
-Software (including Source Code), you retain ownership of any modifications
-you make to the Source Code.  You agree not to remove any Cypress copyright or
-other notices from the Source Code and any modifications thereof.  You agree
-to keep the Source Code confidential.  Any reproduction, modification,
-translation, compilation, or representation of the Source Code except as
-permitted in Section 2 ("License") is prohibited without the express written
-permission of Cypress.  Except as otherwise expressly provided in this
-Agreement, you may not:
-    (i) modify, adapt, or create derivative works based upon the Software;
-   (ii) copy the Software;
-  (iii) except and only to the extent explicitly permitted by applicable
-        law despite this limitation, decompile, translate, reverse engineer,
-        disassemble or otherwise reduce the Software to human-readable form;
-        or
-   (iv) use the Software or any sample code other than for the Purpose.
-You hereby covenant that you will not assert any claim that the Software, or
-derivative works thereof created by or for Cypress, infringe any intellectual
-property right owned or controlled by you
+You must give any other recipients of the Work or Derivative Works a copy of
+this License; and
+You must cause any modified files to carry prominent notices stating that You
+changed the files; and
+You must retain, in the Source form of any Derivative Works that You distribute,
+all copyright, patent, trademark, and attribution notices from the Source form
+of the Work, excluding those notices that do not pertain to any part of the
+Derivative Works; and
+If the Work includes a "NOTICE" text file as part of its distribution, then any
+Derivative Works that You distribute must include a readable copy of the
+attribution notices contained within such NOTICE file, excluding those notices
+that do not pertain to any part of the Derivative Works, in at least one of the
+following places: within a NOTICE text file distributed as part of the
+Derivative Works; within the Source form or documentation, if provided along
+with the Derivative Works; or, within a display generated by the Derivative
+Works, if and wherever such third-party notices normally appear. The contents of
+the NOTICE file are for informational purposes only and do not modify the
+License. You may add Your own attribution notices within Derivative Works that
+You distribute, alongside or as an addendum to the NOTICE text from the Work,
+provided that such additional attribution notices cannot be construed as
+modifying the License.
+You may add Your own copyright statement to Your modifications and may provide
+additional or different license terms and conditions for use, reproduction, or
+distribution of Your modifications, or for any such Derivative Works as a whole,
+provided Your use, reproduction, and distribution of the Work otherwise complies
+with the conditions stated in this License.
 
-5. No Support.  Cypress may, but is not required to, provide technical support
-for the Software.
+5. Submission of Contributions.
 
-6. Term and Termination.  This Agreement is effective until terminated, and
-either party may terminate this Agreement at any time with or without cause.
-This Agreement and your license rights under this Agreement will terminate
-immediately without notice from Cypress if you fail to comply with any
-provision of this Agreement.  Upon termination, you must destroy all copies of
-Software in your possession or control.  The following paragraphs shall
-survive any termination of this Agreement: "Free and Open Source Software,"
-"Proprietary Rights; Ownership," "Compliance With Law," "Disclaimer,"
-"Limitation of Liability," and "General."
+Unless You explicitly state otherwise, any Contribution intentionally submitted
+for inclusion in the Work by You to the Licensor shall be under the terms and
+conditions of this License, without any additional terms or conditions.
+Notwithstanding the above, nothing herein shall supersede or modify the terms of
+any separate license agreement you may have executed with Licensor regarding
+such Contributions.
 
-7. Compliance With Law.  Each party agrees to comply with all applicable laws,
-rules and regulations in connection with its activities under this Agreement.
-Without limiting the foregoing, the Software may be subject to export control
-laws and regulations of the United States and other countries.  You agree to
-comply strictly with all such laws and regulations and acknowledge that you
-have the responsibility to obtain licenses to export, re-export, or import the
-Software.
+6. Trademarks.
 
-8. Disclaimer.  TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, CYPRESS
-MAKES NO WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, WITH REGARD TO THE
-SOFTWARE, INCLUDING, BUT NOT LIMITED TO, INFRINGEMENT AND THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
-reserves the right to make changes to the Software without notice. Cypress
-does not assume any liability arising out of the application or use of
-Software or any product or circuit described in the Software.  It is the
-responsibility of the user of the Software to properly design, program, and
-test the functionality and safety of any application made of the Software and
-any resulting product.  Cypress does not authorize its Software or products
-for use in any products where a malfunction or failure of the Software or
-Cypress product may reasonably be expected to result in significant property
-damage, injury or death ("High Risk Product").  If you include any Software or
-Cypress product in a High Risk Product, you assume all risk of such use and
-agree to indemnify Cypress and its suppliers against all liability.  No
-computing device can be absolutely secure.  Therefore, despite security
-measures implemented in Cypress hardware or software products, Cypress does
-not assume any liability arising out of any security breach, such as
-unauthorized access to or use of a Cypress product.
+This License does not grant permission to use the trade names, trademarks,
+service marks, or product names of the Licensor, except as required for
+reasonable and customary use in describing the origin of the Work and
+reproducing the content of the NOTICE file.
 
-9. Limitation of Liability.  TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE
-LAW, IN NO EVENT WILL CYPRESS OR ITS SUPPLIERS, RESELLERS, OR DISTRIBUTORS BE
-LIABLE FOR ANY LOST REVENUE, PROFIT, OR DATA, OR FOR SPECIAL, INDIRECT,
-CONSEQUENTIAL, INCIDENTAL, OR PUNITIVE DAMAGES HOWEVER CAUSED AND REGARDLESS
-OF THE THEORY OF LIABILITY, ARISING OUT OF OR RELATED TO THE USE OF OR
-INABILITY TO USE THE SOFTWARE EVEN IF CYPRESS OR ITS SUPPLIERS, RESELLERS, OR
-DISTRIBUTORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.  IN NO
-EVENT SHALL CYPRESS' OR ITS SUPPLIERS', RESELLERS', OR DISTRIBUTORS' TOTAL
-LIABILITY TO YOU, WHETHER IN CONTRACT, TORT (INCLUDING NEGLIGENCE), OR
-OTHERWISE, EXCEED THE GREATER OF US$500 OR THE PRICE PAID BY YOU FOR THE
-SOFTWARE.  THE FOREGOING LIMITATIONS SHALL APPLY EVEN IF THE ABOVE-STATED
-WARRANTY FAILS OF ITS ESSENTIAL PURPOSE.  BECAUSE SOME STATES OR JURISDICTIONS
-DO NOT ALLOW LIMITATION OR EXCLUSION OF CONSEQUENTIAL OR INCIDENTAL DAMAGES,
-ALL OR PORTIONS OF THE ABOVE LIMITATION MAY NOT APPLY TO YOU.
+7. Disclaimer of Warranty.
 
-10. Restricted Rights.  The Software is commercial computer software as that
-term is described in 48 C.F.R. 252.227-7014(a)(1).  If the Software is being
-acquired by or on behalf of the U.S. Government or by a U.S. Government prime
-contractor or subcontractor (at any tier), then the Government's rights in
-Software shall be only those set forth in this Agreement.
+Unless required by applicable law or agreed to in writing, Licensor provides the
+Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are
+solely responsible for determining the appropriateness of using or
+redistributing the Work and assume any risks associated with Your exercise of
+permissions under this License.
 
-11. Personal Information.  You agree that information you provide through your
-registration on Cypress IoT Community Forum or other Cypress websites,
-including contact information or other personal information, may be collected
-and used by Cypress consistent with its Data Privacy Policy
-(https://www.infineon.com/cms/en/about-infineon/privacy-policy/), as updated
-or revised from time to time, and may be provided to its third party sales
-representatives, distributors and other entities conducting sales activities
-for Cypress for sales-related and other business purposes.
+8. Limitation of Liability.
 
-12. General.  This Agreement will bind and inure to the benefit of each
-party's successors and assigns, provided that you may not assign or transfer
-this Agreement, in whole or in part, without Cypress' written consent.  This
-Agreement shall be governed by and construed in accordance with the laws of
-the State of California, United States of America, as if performed wholly
-within the state and without giving effect to the principles of conflict of
-law.  The parties consent to personal and exclusive jurisdiction of and venue
-in, the state and federal courts within Santa Clara County, California;
-provided however, that nothing in this Agreement will limit Cypress' right to
-bring legal action in any venue in order to protect or enforce its
-intellectual property rights.  No failure of either party to exercise or
-enforce any of its rights under this Agreement will act as a waiver of such
-rights.  If any portion of this Agreement is found to be void or
-unenforceable, the remaining provisions of this Agreement shall remain in full
-force and effect.  This Agreement is the complete and exclusive agreement
-between the parties with respect to the subject matter hereof, superseding and
-replacing any and all prior agreements, communications, and understandings
-(both written and oral) regarding such subject matter.  Any notice to Cypress
-will be deemed effective when actually received and must be sent to Cypress
-Semiconductor Corporation, ATTN: Chief Legal Officer, 198 Champion Court, San
-Jose, CA 95134 USA.
+In no event and under no legal theory, whether in tort (including negligence),
+contract, or otherwise, unless required by applicable law (such as deliberate
+and grossly negligent acts) or agreed to in writing, shall any Contributor be
+liable to You for damages, including any direct, indirect, special, incidental,
+or consequential damages of any character arising as a result of this License or
+out of the use or inability to use the Work (including but not limited to
+damages for loss of goodwill, work stoppage, computer failure or malfunction, or
+any and all other commercial damages or losses), even if such Contributor has
+been advised of the possibility of such damages.
+
+9. Accepting Warranty or Additional Liability.
+
+While redistributing the Work or Derivative Works thereof, You may choose to
+offer, and charge a fee for, acceptance of support, warranty, indemnity, or
+other liability obligations and/or rights consistent with this License. However,
+in accepting such obligations, You may act only on Your own behalf and on Your
+sole responsibility, not on behalf of any other Contributor, and only if You
+agree to indemnify, defend, and hold each Contributor harmless for any liability
+incurred by, or claims asserted against, such Contributor by reason of your
+accepting any such warranty or additional liability.
