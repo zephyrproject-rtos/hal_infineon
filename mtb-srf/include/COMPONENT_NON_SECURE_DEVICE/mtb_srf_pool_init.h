@@ -6,11 +6,22 @@
 *
 *******************************************************************************
 * \copyright
-* (c) (2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation. All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions,
-* disclaimers, and limitations in the end user license agreement accompanying
-* the software package with which this file was provided.
+* (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+* Technologies AG.
+*
+* SPDX-License-Identifier: Apache-2.0
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
 *******************************************************************************/
 
 /**
@@ -61,8 +72,8 @@ extern "C" {
 
 /** A tool to calculate how much memory to provide for a pool */
 #define MTB_SRF_POOL_ENTRY_SIZE(input_values_length, output_values_length) \
-        (MTB_SRF_ROUND_UP(sizeof(mtb_srf_input_ns_t), MTB_SRF_POOL_ALIGNMENT) + MTB_SRF_ROUND_UP(input_values_length, MTB_SRF_POOL_ALIGNMENT) + \
-        MTB_SRF_ROUND_UP(sizeof(mtb_srf_output_ns_t), MTB_SRF_POOL_ALIGNMENT) + MTB_SRF_ROUND_UP(output_values_length, MTB_SRF_POOL_ALIGNMENT) + \
+        (MTB_SRF_ROUND_UP(sizeof(mtb_srf_input_ns_t) + input_values_length, MTB_SRF_POOL_ALIGNMENT) + \
+        MTB_SRF_ROUND_UP(sizeof(mtb_srf_output_ns_t) + output_values_length, MTB_SRF_POOL_ALIGNMENT) + \
         MTB_SRF_ROUND_UP((sizeof(mtb_srf_invec_ns_t) * MTB_SRF_MAX_IOVEC), MTB_SRF_POOL_ALIGNMENT) + \
         MTB_SRF_ROUND_UP((sizeof(mtb_srf_outvec_ns_t) * MTB_SRF_MAX_IOVEC), MTB_SRF_POOL_ALIGNMENT))
 

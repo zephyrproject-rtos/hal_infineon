@@ -6,11 +6,22 @@
 *
 *******************************************************************************
 * \copyright
-* (c) (2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation. All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions,
-* disclaimers, and limitations in the end user license agreement accompanying
-* the software package with which this file was provided.
+* (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+* Technologies AG.
+*
+* SPDX-License-Identifier: Apache-2.0
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
 *******************************************************************************/
 
 /**
@@ -243,7 +254,9 @@ cy_rslt_t mtb_srf_ipc_pool_req_free(mtb_srf_ipc_pool_t* pool, const mtb_srf_ipc_
 cy_rslt_t mtb_srf_ipc_request_send(mtb_srf_ipc_client_context_t* client_context,
                                    mtb_srf_ipc_packet_t* request, uint64_t timeout_us);
 
-#elif !defined(MTB_SRF_SUBMIT_USE_IPC) || defined(DOXYGEN)
+#endif // defined(MTB_SRF_SUBMIT_USE_IPC) || defined(DOXYGEN)
+
+#if !defined(MTB_SRF_SUBMIT_USE_IPC) || defined(DOXYGEN)
 
 /**
  * @brief Receives an SRF request over IPC and adds to either the queue if using an RTOS or the
@@ -280,7 +293,7 @@ cy_rslt_t mtb_srf_ipc_process_pending_request(mtb_srf_ipc_relay_context_t* relay
 cy_rslt_t mtb_srf_ipc_signal_complete(mtb_srf_ipc_relay_context_t* relay_context,
                                       mtb_srf_ipc_packet_t* request);
 
-#endif // defined(MTB_SRF_SUBMIT_USE_IPC)
+#endif // !defined(MTB_SRF_SUBMIT_USE_IPC) || defined(DOXYGEN)
 
 #endif // !defined(COMPONENT_SECURE_DEVICE)
 /** \} group_mtb_srf_ipc */
