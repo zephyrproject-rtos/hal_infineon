@@ -72,20 +72,25 @@
 #define COUNTER_CNT_TEST_NODE DT_PHANDLE(COUNTER_TEST_NODE, tcpwm)
 #endif
 
+#if defined(CONFIG_POST_MTB_STL_PWM)
+#include "SelfTest_PWM.h"
+#define PWM_TEST_NODE DT_NODELABEL(pwm_test)
+#define TCPWM_PWM_TEST_NODE DT_PHANDLE(PWM_TEST_NODE, tcpwm)
+#endif
+
 #if defined(CONFIG_POST_MTB_STL_PWM_GATEKILL)
 #include "SelfTest_PWM_GateKill.h"
 #define PWM_GK_TEST_NODE DT_NODELABEL(pwm_gatekill_test)
 #define COUNTER_PWM_GK_TEST_NODE DT_PHANDLE(PWM_GK_TEST_NODE, tcpwm)
 #endif
 
-#ifdef CONFIG_POST_MTB_STL_COMM
+#if defined(CONFIG_POST_MTB_STL_COMM)
 #include "SelfTest_CRC_calc.h"
 #include "SelfTest_UART_master_message.h"
 #include "SelfTest_UART_slave_message.h"
 #define UART_COMMUNICATION_TEST_NODE DT_NODELABEL(uart_communication_test)
 #define UART_COMM_MASTER_TEST_NODE DT_PHANDLE(UART_COMMUNICATION_TEST_NODE, scb)
-#define UART_COMM_SLAVE_TEST_NODE                                              \
-  DT_PHANDLE(UART_COMMUNICATION_TEST_NODE, scb_slave)
+#define UART_COMM_SLAVE_TEST_NODE DT_PHANDLE(UART_COMMUNICATION_TEST_NODE, scb_slave)
 #define COUNTER_COMM_TEST_NODE DT_PHANDLE(UART_COMMUNICATION_TEST_NODE, tcpwm)
 #define CNT_CLOCK_COMM_TEST_NODE DT_PHANDLE(COUNTER_COMM_TEST_NODE, clocks)
 #endif

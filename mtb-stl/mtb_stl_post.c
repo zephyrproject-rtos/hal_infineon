@@ -13,6 +13,8 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/irq.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/pinctrl.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/post/post.h>
 #include <zephyr/post/post_vendor.h>
@@ -78,11 +80,33 @@ POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_program_flow,
  * GPIO Test
  */
 #ifdef CONFIG_POST_MTB_STL_GPIO
-POST_VENDOR_TEST_WRAP_FLAGS(mtb_stl_gpio,
+
+static enum post_result mtb_stl_gpio_wrapper(const struct post_context *ctx)
+{
+	ARG_UNUSED(ctx);
+
+	static const uint8_t Z_PinToTest[] =
+	{
+		0x00u, /* PORT0 mask */
+		0x00u, /* PORT1 mask */
+		0x00u, /* PORT2 mask */
+		0x30u, /* PORT3 mask */
+		0x00u, /* PORT4 mask */
+		0x00u, /* PORT5 mask */
+		0x00u, /* PORT6 mask */
+	};
+
+	/* This function sets a custom pin mask to be used in the SelfTest_IO function */
+	SelfTest_IO_SetPinMask(Z_PinToTest);
+
+	return (SelfTest_IO() == 0) ? POST_RESULT_PASS : POST_RESULT_FAIL;
+}
+
+POST_TEST_DEFINE(mtb_stl_gpio,
 		POST_CAT_GPIO,
-		POST_LEVEL_POST_KERNEL,
+		POST_LEVEL_POST_KERNEL, 50,
 		POST_FLAG_BOOT_ONLY,
-		SelfTest_IO,
+		mtb_stl_gpio_wrapper,
 		"MTB-STL GPIO Test");
 #endif
 
@@ -707,6 +731,81 @@ POST_TEST_DEFINE(mtb_stl_counter,
 		"MTB-STL TCPWM Counter Self-Test");
 
 #endif /* CONFIG_POST_MTB_STL_COUNTER */
+
+/* PWM test */
+#ifdef CONFIG_POST_MTB_STL_PWM
+
+#define GPIO_CTRL_NODE_IN DT_PHANDLE_BY_IDX(PWM_TEST_NODE, pwm_in_gpios, 0)
+#define GPIO_CTRL_BASE_IN DT_REG_ADDR(GPIO_CTRL_NODE_IN)
+
+static const struct gpio_dt_spec pwm_in_spec = GPIO_DT_SPEC_GET(PWM_TEST_NODE, pwm_in_gpios);
+
+const cy_stc_tcpwm_pwm_config_t ifx_pwm_config = {
+        .pwmMode            = DT_PROP(PWM_TEST_NODE, pwm_mode),
+        .clockPrescaler     = DT_PROP(PWM_TEST_NODE, clock_prescaler),
+        .pwmAlignment       = DT_PROP(PWM_TEST_NODE, pwm_alignment),
+        .deadTimeClocks     = 0,
+        .runMode            = DT_PROP(PWM_TEST_NODE, run_mode),
+        .period0            = DT_PROP(PWM_TEST_NODE, period0),
+        .period1            = DT_PROP(PWM_TEST_NODE, period1),
+        .enablePeriodSwap   = false,
+        .compare0           = DT_PROP(PWM_TEST_NODE, compare0),
+        .compare1           = DT_PROP(PWM_TEST_NODE, compare1),
+        .enableCompareSwap  = false,
+        .interruptSources   = DT_PROP(PWM_TEST_NODE, interrupt_sources),
+        .invertPWMOut       = CY_TCPWM_PWM_INVERT_DISABLE,
+        .invertPWMOutN      = CY_TCPWM_PWM_INVERT_DISABLE,
+        .killMode           = DT_PROP(PWM_TEST_NODE, kill_mode),
+        .swapInputMode      = 0x3U,
+        .swapInput          = CY_TCPWM_INPUT_0,
+        .reloadInputMode    = 0x3U,
+        .reloadInput        = CY_TCPWM_INPUT_0,
+        .startInputMode     = 0x3U,
+        .startInput         = CY_TCPWM_INPUT_0,
+        .killInputMode      = 0x3U,
+        .killInput          = CY_TCPWM_INPUT_0,
+        .countInputMode     = 0x3U,
+        .countInput         = CY_TCPWM_INPUT_1,
+};
+
+static enum post_result mtb_stl_pwm_wrapper(const struct post_context *ctx)
+{
+        ARG_UNUSED(ctx);
+
+        uint8_t result;
+        int ret;
+        TCPWM_Type *base;
+        const uint32_t irq_num = DT_IRQN(DT_PARENT(TCPWM_PWM_TEST_NODE));
+        uint32_t cnt_num = IFX_TCPWM_CNT_NUM(TCPWM_PWM_TEST_NODE);
+
+        if (!gpio_is_ready_dt(&pwm_in_spec)) {
+                LOG_ERR("GPIO-IN dev not ready for PWM test!!!");
+        }
+
+        ret = gpio_pin_configure_dt(&pwm_in_spec, GPIO_INPUT);
+        if (ret != 0) {
+                LOG_ERR("Pin not configured for pwm-in pin");
+        }
+
+        /* Initialize PWM  */
+        base = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(TCPWM_PWM_TEST_NODE))));
+        if (SelfTest_PWM_init(base, cnt_num, &ifx_pwm_config, irq_num) != OK_STATUS) {
+                LOG_ERR("PWM_TEST INIT FAILED");
+        }
+
+        /* Run vendor PWM self-test and also connect the p2.2 and p2.3 with jumper */
+        result = SelfTest_PWM((GPIO_PRT_Type *)GPIO_CTRL_BASE_IN, pwm_in_spec.pin);
+
+        return (result == OK_STATUS) ? POST_RESULT_PASS : POST_RESULT_FAIL;
+}
+
+POST_TEST_DEFINE(mtb_stl_pwm,
+                POST_CAT_PWM,
+                POST_LEVEL_APPLICATION,
+                10, 0,
+                mtb_stl_pwm_wrapper,
+                "MTB-STL PWM Self-Test");
+#endif /* CONFIG_POST_MTB_STL_PWM */
 
 /* PWM_GATEKILL test */
 #ifdef CONFIG_POST_MTB_STL_PWM_GATEKILL

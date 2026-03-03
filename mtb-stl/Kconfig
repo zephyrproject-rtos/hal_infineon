@@ -119,6 +119,13 @@ config POST_MTB_STL_COUNTER
 	help
 	  Enable MTB-STL TCPWM counter self test.
 
+config POST_MTB_STL_PWM
+        bool "MTB-STL PWM self test"
+        depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+        select USE_INFINEON_PWM
+        help
+          MTB-STL PWM duty cycle self test.
+
 config POST_MTB_STL_PWM_GATEKILL
 	bool "MTB-STL PWM Gate/Kill self test"
 	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1

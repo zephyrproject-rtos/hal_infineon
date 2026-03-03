@@ -112,6 +112,10 @@ zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_COUNTER
   ${MTB_STL_BASE}/stl/timer_counter/SelfTest_Timer_Counter.c
 )
 
+zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_PWM
+  ${MTB_STL_BASE}/stl/pwm/SelfTest_PWM.c
+)
+
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_PWM_GATEKILL
   ${MTB_STL_BASE}/stl/pwm_gatekill/SelfTest_PWM_GateKill.c
 )
