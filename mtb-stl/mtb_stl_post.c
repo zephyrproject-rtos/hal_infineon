@@ -18,6 +18,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/post/post.h>
 #include <zephyr/post/post_vendor.h>
+#include <zephyr/drivers/spi.h>
 
 #include "cy_pdl.h"
 
@@ -937,3 +938,83 @@ POST_TEST_DEFINE(mtb_stl_communication,
                  mtb_stl_communication_wrapper,
                 "MTB-STL Communication Self-Test");
 #endif /* CONFIG_POST_MTB_STL_COMM */
+
+#ifdef CONFIG_POST_MTB_STL_SPI_LOOPBACK
+
+static cy_stc_scb_spi_context_t spi_context;
+
+const cy_stc_scb_spi_config_t spi_config_stl =
+{
+        .spiMode                    = CY_SCB_SPI_MASTER,
+        .subMode                    = DT_PROP(SPI_TEST_NODE, spi_sub_mode),
+        .sclkMode                   = DT_PROP(SPI_TEST_NODE, spi_sclk_mode),
+        .parity                     = CY_SCB_SPI_PARITY_NONE,
+        .dropOnParityError          = false,
+        .oversample                 = DT_PROP(SPI_TEST_NODE, spi_oversample),
+        .rxDataWidth                = DT_PROP(SPI_TEST_NODE, spi_rx_data_width),
+        .txDataWidth                = DT_PROP(SPI_TEST_NODE, spi_tx_data_width),
+        .enableMsbFirst             = DT_PROP(SPI_TEST_NODE, spi_msb_first),
+        .enableInputFilter          = false,
+        .enableFreeRunSclk          = false,
+        .enableMisoLateSample       = true,
+        .enableTransferSeperation   = false,
+        .ssPolarity 		    = CY_SCB_SPI_ACTIVE_LOW,
+        .ssSetupDelay               = CY_SCB_SPI_SS_SETUP_DELAY_0_75_CYCLES,
+        .ssHoldDelay                = CY_SCB_SPI_SS_HOLD_DELAY_0_75_CYCLES,
+        .enableWakeFromSleep        = false,
+        .rxFifoTriggerLevel         = 0UL,
+        .rxFifoIntEnableMask        = 0UL,
+        .txFifoTriggerLevel         = 1UL,
+        .txFifoIntEnableMask        = 0UL,
+        .masterSlaveIntEnableMask   = 0UL,
+};
+
+static void spi_isr(void)
+{
+        CySCB_Type *spi_base = (CySCB_Type *)DT_REG_ADDR(SPI_LB_TEST_NODE);
+
+        Cy_SCB_SPI_Interrupt(spi_base, &spi_context);
+}
+
+static enum post_result mtb_stl_spi_loopback_wrapper(const struct post_context *ctx)
+{
+        ARG_UNUSED(ctx);
+
+        uint8_t ret = PASS_STILL_TESTING_STATUS;
+        const uint32_t irq_num_spi = DT_IRQN(SPI_LB_TEST_NODE);
+        CySCB_Type *spi_base = (CySCB_Type *)DT_REG_ADDR(SPI_LB_TEST_NODE);
+	cy_en_scb_spi_status_t result;
+
+	IRQ_CONNECT(irq_num_spi, 3, spi_isr, NULL, 0);
+        irq_enable(irq_num_spi);
+
+        result = Cy_SCB_SPI_Init(spi_base, &spi_config_stl, &spi_context);
+
+        if (result != CY_SCB_SPI_SUCCESS) {
+                LOG_ERR("SPI INIT FAILED !!!");
+        }
+
+        /* Enable the SPI Master block */
+        Cy_SCB_SPI_Enable(spi_base);
+
+        /* Clear RX, TX buffers */
+        Cy_SCB_SPI_ClearRxFifo(spi_base);
+        Cy_SCB_SPI_ClearTxFifo(spi_base);
+
+        /* connect the p1.5 and p1.6 with the jumpers */
+        while(ret == PASS_STILL_TESTING_STATUS) {
+                ret = SelfTest_SPI_SCB(spi_base);
+                Cy_SysLib_DelayUs(10);
+        }
+
+        return (ret == PASS_COMPLETE_STATUS) ? POST_RESULT_PASS : POST_RESULT_FAIL;
+}
+
+POST_TEST_DEFINE(mtb_stl_spi,
+                POST_CAT_SPI,
+                POST_LEVEL_APPLICATION,
+                50, 0,
+                mtb_stl_spi_loopback_wrapper,
+                "MTB-STL spi loopback Self-Test");
+
+#endif /* CONFIG_POST_MTB_STL_SPI_LOOPBACK */

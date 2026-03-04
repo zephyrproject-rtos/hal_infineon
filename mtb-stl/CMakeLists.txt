@@ -126,4 +126,8 @@ if(CONFIG_POST_MTB_STL_COMM)
   zephyr_library_sources(${MTB_STL_BASE}/stl/crc/SelfTest_CRC_calc.c)
 endif()
 
+zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_SPI_LOOPBACK
+  ${MTB_STL_BASE}/stl/scb/SelfTest_SPI_SCB.c
+)
+
 endif()

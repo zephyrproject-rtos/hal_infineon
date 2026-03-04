@@ -95,6 +95,12 @@
 #define CNT_CLOCK_COMM_TEST_NODE DT_PHANDLE(COUNTER_COMM_TEST_NODE, clocks)
 #endif
 
+#ifdef CONFIG_POST_MTB_STL_SPI_LOOPBACK
+#include "SelfTest_SPI_SCB.h"
+#define SPI_TEST_NODE DT_NODELABEL(spi_loopback_test)
+#define SPI_LB_TEST_NODE DT_PHANDLE(SPI_TEST_NODE, scb)
+#endif
+
 /*
  * Helper symbols
  */
