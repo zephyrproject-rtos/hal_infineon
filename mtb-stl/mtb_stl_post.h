@@ -108,6 +108,12 @@
 #define I2C_SLAVE_TEST_NODE DT_PHANDLE(I2C_TEST_NODE, scb_slave)
 #endif
 
+#ifdef CONFIG_POST_MTB_STL_ANALOG
+#include "SelfTest_Analog.h"
+#define ANALOG_TEST_NODE DT_NODELABEL(analog_test)
+#define ADC_TEST_NODE DT_PHANDLE(ANALOG_TEST_NODE, adc)
+#endif
+
 /*
  * Helper symbols
  */

@@ -155,6 +155,13 @@ config POST_MTB_STL_I2C
         help
           MTB-STL I2C Communication self test.
 
+config POST_MTB_STL_ANALOG
+	bool "MTB-STL Analog Test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_ADC
+	help
+	  Enable MTB-STL Analog tests (ADC, OpAmp, etc.)
+
 # Test tuning parameters
 menu "MTB-STL test tuning"
 	depends on POST_VENDOR_MTB_STL
@@ -213,6 +220,14 @@ config POST_MTB_STL_CLOCK_TEST_TIMEOUT_MS
 	  If the WDT or TCPWM counter does not produce results within
 	  this window, the test fails with a timeout. Increase this
 	  value if running on very slow clock configurations.
+
+config POST_ADC_REF_VOLTAGE2
+	bool "MTB-STL for 2/3 VDD signal"
+	depends on POST_MTB_STL_ANALOG
+	help
+	  Enable ADC SelfTest for 2/3 VDD signal test
+	  Only when disabled falls to 1/3 VDD signal test
+
 endmenu
 
 endif # POST_VENDOR_MTB_STL

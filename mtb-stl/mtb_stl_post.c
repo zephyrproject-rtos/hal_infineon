@@ -1159,3 +1159,62 @@ POST_TEST_DEFINE(mtb_stl_i2c,
                 "MTB-STL I2C Test");
 
 #endif /* CONFIG_POST_MTB_STL_I2C */
+
+#ifdef CONFIG_POST_MTB_STL_ANALOG
+
+#include <zephyr/drivers/adc.h>
+
+static const struct adc_dt_spec adc_channel = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+
+/* Initially tried with baremetal approach which fails similar to i2c stl test in the baremetal
+ * approach when CONFIG_ADC=n this test passes when CONFIG_ADC=y fails so tried fully
+ * configuring with zephyr apis now configured through the overlay and zephyr apis still fails
+ */
+
+static enum post_result mtb_stl_analog_wrapper(const struct post_context *ctx)
+{
+        ARG_UNUSED(ctx);
+
+	int err;
+	uint16_t buf;
+	SAR_Type* base = (SAR_Type *)DT_REG_ADDR(ADC_TEST_NODE);
+
+	struct adc_sequence sequence = {
+		.buffer = &buf,
+		.buffer_size = sizeof(buf),
+	};
+
+	if (!adc_is_ready_dt(&adc_channel)) {
+		LOG_ERR("ADC controller device %s not ready", adc_channel.dev->name);
+	}
+
+	err = adc_channel_setup_dt(&adc_channel);
+	if (err < 0) {
+		LOG_ERR("Could not setup channel");
+	}
+
+	(void)adc_sequence_init_dt(&adc_channel, &sequence);
+
+	err = adc_read_dt(&adc_channel, &sequence);
+	if (err < 0) {
+		LOG_ERR("Could not read (%d)", err);
+	}
+
+#ifdef CONFIG_POST_ADC_REF_VOLTAGE2
+        return (SelfTests_ADC(base, 0, ANALOG_ADC_SAR_RESULT2,
+                             ANALOG_ADC_ACURACCY, 0, 1) == 0) ?
+                             POST_RESULT_PASS : POST_RESULT_FAIL;
+#else
+        return (SelfTests_ADC(base, 0, ANALOG_ADC_SAR_RESULT1,
+                             ANALOG_ADC_ACURACCY, 0, 1) == 0) ?
+                             POST_RESULT_PASS : POST_RESULT_FAIL;
+#endif
+}
+
+POST_TEST_DEFINE(mtb_stl_analog,
+                POST_CAT_ADC,
+                POST_LEVEL_APPLICATION,
+                50, 0,
+                mtb_stl_analog_wrapper,
+                "MTB-STL Analog Self Test");
+#endif

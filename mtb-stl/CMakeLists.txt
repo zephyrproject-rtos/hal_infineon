@@ -134,4 +134,8 @@ zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_I2C
   ${MTB_STL_BASE}/stl/scb/SelfTest_I2C_SCB.c
 )
 
+zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_ANALOG
+  ${MTB_STL_BASE}/stl/analog/SelfTest_Analog.c
+)
+
 endif()
