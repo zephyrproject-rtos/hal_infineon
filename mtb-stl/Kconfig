@@ -148,6 +148,13 @@ config POST_MTB_STL_SPI_LOOPBACK
         help
           MTB-STL SPI Loopback self test
 
+config POST_MTB_STL_I2C
+        bool "MTB-STL I2C Communication test"
+        depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+        select USE_INFINEON_I2C
+        help
+          MTB-STL I2C Communication self test.
+
 # Test tuning parameters
 menu "MTB-STL test tuning"
 	depends on POST_VENDOR_MTB_STL

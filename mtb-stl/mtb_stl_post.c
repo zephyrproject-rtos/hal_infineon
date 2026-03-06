@@ -1018,3 +1018,144 @@ POST_TEST_DEFINE(mtb_stl_spi,
                 "MTB-STL spi loopback Self-Test");
 
 #endif /* CONFIG_POST_MTB_STL_SPI_LOOPBACK */
+
+#ifdef CONFIG_POST_MTB_STL_I2C
+
+#include "zephyr/drivers/i2c.h"
+
+static cy_stc_scb_i2c_context_t i2c_master_context;
+static cy_stc_scb_i2c_context_t i2c_slave_context;
+static uint8_t i2c_slave_read_buf[PACKET_SIZE];
+static uint8_t i2c_slave_write_buf[PACKET_SIZE];
+
+/* Master configuration */
+static const cy_stc_scb_i2c_config_t i2c_master_config = {
+        .i2cMode = CY_SCB_I2C_MASTER,
+        .useRxFifo = DT_PROP(I2C_TEST_NODE, i2c_master_use_rxfifo),
+        .useTxFifo = DT_PROP(I2C_TEST_NODE, i2c_master_use_txfifo),
+        .slaveAddress = 0U,
+        .slaveAddressMask = 0U,
+        .acceptAddrInFifo = false,
+        .ackGeneralAddr = false,
+        .enableWakeFromSleep = false,
+        .enableDigitalFilter = false,
+        .lowPhaseDutyCycle = DT_PROP(I2C_TEST_NODE, i2c_master_lp_duty_cycle),
+        .highPhaseDutyCycle = DT_PROP(I2C_TEST_NODE, i2c_master_hp_duty_cycle),
+};
+
+/* Slave configuration */
+static const cy_stc_scb_i2c_config_t i2c_slave_config = {
+        .i2cMode = CY_SCB_I2C_SLAVE,
+        .useRxFifo = DT_PROP(I2C_TEST_NODE, i2c_slave_use_rxfifo),
+        .useTxFifo = DT_PROP(I2C_TEST_NODE, i2c_slave_use_txfifo),
+        .slaveAddress = DT_PROP(I2C_TEST_NODE, i2c_test_slave_addrs),
+        .slaveAddressMask = DT_PROP(I2C_TEST_NODE, i2c_test_slave_addrs_mask),
+        .acceptAddrInFifo = false,
+        .ackGeneralAddr = false,
+        .enableWakeFromSleep = false,
+        .enableDigitalFilter = false,
+        .lowPhaseDutyCycle = 0,
+        .highPhaseDutyCycle = 0,
+};
+
+/* ISR handlers */
+static void i2c_slave_isr(void)
+{
+	CySCB_Type *i2c_slave = (CySCB_Type *)DT_REG_ADDR(I2C_SLAVE_TEST_NODE);
+        Cy_SCB_I2C_Interrupt(i2c_slave, &i2c_slave_context);
+}
+
+static void i2c_master_isr(void)
+{
+	CySCB_Type *i2c_master = (CySCB_Type *)DT_REG_ADDR(I2C_MASTER_TEST_NODE);
+        Cy_SCB_I2C_Interrupt(i2c_master, &i2c_master_context);
+}
+
+/* I2C init function */
+static void SelfTest_I2C_SCB_Init(CySCB_Type *i2c_master, CySCB_Type *i2c_slave)
+{
+        cy_en_scb_i2c_status_t i2c_res;
+        const uint32_t irq_num_master = DT_IRQN(I2C_MASTER_TEST_NODE);
+        const uint32_t irq_num_slave = DT_IRQN(I2C_SLAVE_TEST_NODE);
+
+        IRQ_CONNECT(irq_num_master, 3, i2c_master_isr, NULL, 0);
+        irq_enable(irq_num_master);
+
+        IRQ_CONNECT(irq_num_slave, 3, i2c_slave_isr, NULL, 0);
+        irq_enable(irq_num_slave);
+
+        /* Master Init */
+        i2c_res = Cy_SCB_I2C_Init(i2c_master, &i2c_master_config, &i2c_master_context);
+        __ASSERT(i2c_res == CY_SCB_I2C_SUCCESS, "Master init failed");
+
+        Cy_SCB_I2C_Enable(i2c_master, &i2c_master_context);
+
+        /* Slave Init */
+        i2c_res = Cy_SCB_I2C_Init(i2c_slave, &i2c_slave_config, &i2c_slave_context);
+        __ASSERT(i2c_res == CY_SCB_I2C_SUCCESS, "Slave init failed");
+
+        Cy_SCB_I2C_SlaveConfigReadBuf(i2c_slave, i2c_slave_read_buf, PACKET_SIZE, &i2c_slave_context);
+        Cy_SCB_I2C_SlaveConfigWriteBuf(i2c_slave, i2c_slave_write_buf, PACKET_SIZE, &i2c_slave_context);
+
+        Cy_SCB_I2C_Enable(i2c_slave, &i2c_slave_context);
+}
+
+static enum post_result mtb_stl_i2c_wrapper(const struct post_context *ctx)
+{
+        ARG_UNUSED(ctx);
+
+        uint8_t ret = PASS_STILL_TESTING_STATUS;
+	CySCB_Type *i2c_master = (CySCB_Type *)DT_REG_ADDR(I2C_MASTER_TEST_NODE);
+	CySCB_Type *i2c_slave = (CySCB_Type *)DT_REG_ADDR(I2C_SLAVE_TEST_NODE);
+
+	unsigned int key = irq_lock();
+
+	Cy_SCB_I2C_Disable(i2c_master, &i2c_master_context);
+	Cy_SCB_I2C_Disable(i2c_slave, &i2c_slave_context);
+	Cy_SCB_I2C_DeInit(i2c_master);
+	Cy_SCB_I2C_DeInit(i2c_slave);
+
+	/* TODO: Dividers and pinctrls should happen through driver but here
+	 * 	 when CONFIG_I2C=y this test fails even when these clk and 
+	 * 	 pinctrl removed when configured through driver so kept this here
+	 * 	 to view the status when CONFIG_I2C=n which passes the tests with below pdl apis
+	 */
+	Cy_SysClk_PeriphAssignDivider(PCLK_SCB1_CLOCK, CY_SYSCLK_DIV_16_BIT, 1U);
+	Cy_SysClk_PeriphAssignDivider(PCLK_SCB0_CLOCK, CY_SYSCLK_DIV_16_BIT, 9U);
+
+	Cy_GPIO_Pin_FastInit(GPIO_PRT6, 3, CY_GPIO_DM_OD_DRIVESLOW, 1, P6_3_SCB1_I2C_SCL);
+	Cy_GPIO_Pin_FastInit(GPIO_PRT6, 4, CY_GPIO_DM_OD_DRIVESLOW, 1, P6_4_SCB1_I2C_SDA);
+        Cy_GPIO_Pin_FastInit(GPIO_PRT2, 0, CY_GPIO_DM_OD_DRIVESLOW, 1, P2_0_SCB0_I2C_SCL);
+        Cy_GPIO_Pin_FastInit(GPIO_PRT2, 1, CY_GPIO_DM_OD_DRIVESLOW, 1, P2_1_SCB0_I2C_SDA);
+
+        SelfTest_I2C_SCB_Init(i2c_master ,i2c_slave);
+
+	irq_unlock(key);
+
+	Cy_SysLib_DelayUs(1000);
+
+	/* Note: Found this conditions fails
+	 * if (0u != (Cy_SCB_I2C_SlaveGetStatus(slave_base, slave_context) & CY_SCB_I2C_SLAVE_WR_CMPLT))
+	 * where this bit (CY_SCB_I2C_SLAVE_WR_CMPLT) not set by slave interrupt 
+	 */
+
+        /* connect the p2.0  to p6.3  and  p2.1 to  p6.4 with the jumpers */
+        while (ret == PASS_STILL_TESTING_STATUS) {
+                ret = SelfTest_I2C_SCB(i2c_master, &i2c_master_context,
+                                i2c_slave, &i2c_slave_context,
+                                i2c_slave_read_buf, i2c_slave_write_buf);
+                Cy_SysLib_DelayUs(10);
+        }
+
+        return (ret == PASS_COMPLETE_STATUS) ?  POST_RESULT_PASS : POST_RESULT_FAIL;
+}
+
+/* Register MTB-STL test */
+POST_TEST_DEFINE(mtb_stl_i2c,
+                POST_CAT_I2C,
+                POST_LEVEL_APPLICATION,
+                50, 0,
+                mtb_stl_i2c_wrapper,
+                "MTB-STL I2C Test");
+
+#endif /* CONFIG_POST_MTB_STL_I2C */

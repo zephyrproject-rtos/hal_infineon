@@ -101,6 +101,13 @@
 #define SPI_LB_TEST_NODE DT_PHANDLE(SPI_TEST_NODE, scb)
 #endif
 
+#if defined(CONFIG_POST_MTB_STL_I2C)
+#include "SelfTest_I2C_SCB.h"
+#define I2C_TEST_NODE DT_NODELABEL(i2c_test)
+#define I2C_MASTER_TEST_NODE DT_PHANDLE(I2C_TEST_NODE, scb)
+#define I2C_SLAVE_TEST_NODE DT_PHANDLE(I2C_TEST_NODE, scb_slave)
+#endif
+
 /*
  * Helper symbols
  */
