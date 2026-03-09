@@ -1162,57 +1162,100 @@ POST_TEST_DEFINE(mtb_stl_i2c,
 
 #include <zephyr/drivers/adc.h>
 
-static const struct adc_dt_spec adc_channel = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+extern void ifx_sar_set_stl_bypass(const struct device *dev, bool bypass);
 
-/* Initially tried with baremetal approach which fails similar to i2c stl test in the baremetal
- * approach when CONFIG_ADC=n this test passes when CONFIG_ADC=y fails so tried fully
- * configuring with zephyr apis now configured through the overlay and zephyr apis still fails
- */
+const cy_stc_sar_channel_config_t ifx_dut_sar_adc_ch_cfg =
+{
+	.addr = DT_PROP(ADC_CHAN0_NODE, zephyr_input_positive),
+	.differential = DT_PROP(ADC_CHAN0_NODE, zephyr_differential),
+	.resolution = CY_SAR_MAX_RES,
+	.avgEn = false,
+	.sampleTimeSel = DT_PROP(ANALOG_TEST_NODE, sample_time_sel_ch),
+	.rangeIntrEn = false,
+	.satIntrEn = false,
+};
+
+const cy_stc_sar_config_t ifx_dut_sar_adc_cfg =
+{
+	.vrefSel = DT_PROP(ANALOG_TEST_NODE, vref_sel),
+	.vrefBypCapEn = true,
+	.negSel = DT_PROP(ANALOG_TEST_NODE, neg_sel),
+	.negVref = DT_PROP(ANALOG_TEST_NODE, neg_vref),
+	.boostPump = false,
+	.power = DT_PROP(ANALOG_TEST_NODE, power),
+	.sarMuxDsEn = false,
+	.switchDisable = false,
+	.subResolution = DT_PROP(ANALOG_TEST_NODE, sub_resolution),
+	.leftAlign = false,
+	.singleEndedSigned = false,
+	.differentialSigned = false,
+	.avgCnt = DT_PROP(ANALOG_TEST_NODE, avg_cnt),
+	.avgShift = DT_PROP(ANALOG_TEST_NODE, avg_shift),
+	.trigMode = DT_PROP(ANALOG_TEST_NODE, trig_mode),
+	.eosEn = DT_PROP(ANALOG_TEST_NODE, eos_en),
+	.sampleTime0 = DT_PROP(ANALOG_TEST_NODE, sample_time0),
+	.sampleTime1 = DT_PROP(ANALOG_TEST_NODE, sample_time1),
+	.sampleTime2 = DT_PROP(ANALOG_TEST_NODE, sample_time2),
+	.sampleTime3 = DT_PROP(ANALOG_TEST_NODE, sample_time3),
+	.rangeThresLow = 0UL,
+	.rangeThresHigh = 0UL,
+	.rangeCond = DT_PROP(ANALOG_TEST_NODE, range_cond),
+	.chanEn = DT_PROP(ANALOG_TEST_NODE, chan_en),
+	.channelConfig = {&ifx_dut_sar_adc_ch_cfg, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL , NULL, NULL, NULL},
+	.routingConfig = NULL,
+	.vrefMvValue = DT_PROP(ADC_TEST_NODE, vref_mv),
+};
 
 static enum post_result mtb_stl_analog_wrapper(const struct post_context *ctx)
 {
-        ARG_UNUSED(ctx);
+	ARG_UNUSED(ctx);
 
-	int err;
-	uint16_t buf;
 	SAR_Type* base = (SAR_Type *)DT_REG_ADDR(ADC_TEST_NODE);
+	cy_en_sar_status_t sar_res;
+	enum post_result result;
 
-	struct adc_sequence sequence = {
-		.buffer = &buf,
-		.buffer_size = sizeof(buf),
-	};
+#ifdef CONFIG_ADC
+	const struct device *adc_dev = DEVICE_DT_GET(ADC_TEST_NODE);
 
-	if (!adc_is_ready_dt(&adc_channel)) {
-		LOG_ERR("ADC controller device %s not ready", adc_channel.dev->name);
+	ifx_sar_set_stl_bypass(adc_dev, true);
+#endif /* CONFIG_ADC */
+
+	base->MUX_SWITCH0 = DT_PROP(ANALOG_TEST_NODE, sar_mux_switch_msk);
+	base->MUX_SWITCH_HW_CTRL = DT_PROP(ANALOG_TEST_NODE, sar_mux_switch_hw_ctrl_msk);
+	base->CTRL |= SAR_CTRL_ENABLED_Msk;
+
+	SAR_MUX_SWITCH0(base) = CY_SAR_MUX_FW_VSSA_VMINUS;
+	SAR_MUX_SWITCH_HW_CTRL(base) |= CY_SAR_MUX_HW_CTRL_VSSA;
+
+	sar_res = Cy_SAR_Init(base, &ifx_dut_sar_adc_cfg);
+	if (sar_res != CY_SAR_SUCCESS) {
+		LOG_ERR("SAR ADC INIT FAILED !!!");
 	}
 
-	err = adc_channel_setup_dt(&adc_channel);
-	if (err < 0) {
-		LOG_ERR("Could not setup channel");
-	}
-
-	(void)adc_sequence_init_dt(&adc_channel, &sequence);
-
-	err = adc_read_dt(&adc_channel, &sequence);
-	if (err < 0) {
-		LOG_ERR("Could not read (%d)", err);
-	}
+	Cy_SAR_Enable(base);
 
 #ifdef CONFIG_POST_ADC_REF_VOLTAGE2
-        return (SelfTests_ADC(base, 0, ANALOG_ADC_SAR_RESULT2,
-                             ANALOG_ADC_ACURACCY, 0, 1) == 0) ?
-                             POST_RESULT_PASS : POST_RESULT_FAIL;
+	result = (SelfTests_ADC(base, 0, ANALOG_ADC_SAR_RESULT2,
+			       ANALOG_ADC_ACURACCY, 0, 1) == 0) ?
+			       POST_RESULT_PASS : POST_RESULT_FAIL;
 #else
-        return (SelfTests_ADC(base, 0, ANALOG_ADC_SAR_RESULT1,
-                             ANALOG_ADC_ACURACCY, 0, 1) == 0) ?
-                             POST_RESULT_PASS : POST_RESULT_FAIL;
+	result = (SelfTests_ADC(base, 0, ANALOG_ADC_SAR_RESULT1,
+			       ANALOG_ADC_ACURACCY, 0, 1) == 0) ?
+			       POST_RESULT_PASS : POST_RESULT_FAIL;
 #endif
+
+#ifdef CONFIG_ADC
+	ifx_sar_set_stl_bypass(adc_dev, false);
+#endif /* CONFIG_ADC */
+
+	return result;
 }
 
 POST_TEST_DEFINE(mtb_stl_analog,
-                POST_CAT_ADC,
-                POST_LEVEL_APPLICATION,
-                50, 0,
-                mtb_stl_analog_wrapper,
-                "MTB-STL Analog Self Test");
+		POST_CAT_ADC,
+		POST_LEVEL_APPLICATION,
+		50, 0,
+		mtb_stl_analog_wrapper,
+		"MTB-STL Analog Self Test");
 #endif

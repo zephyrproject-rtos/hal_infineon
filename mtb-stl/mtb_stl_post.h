@@ -112,6 +112,7 @@
 #include "SelfTest_Analog.h"
 #define ANALOG_TEST_NODE DT_NODELABEL(analog_test)
 #define ADC_TEST_NODE DT_PHANDLE(ANALOG_TEST_NODE, adc)
+#define ADC_CHAN0_NODE DT_CHILD(ADC_TEST_NODE, channel_0)
 #endif
 
 /*
