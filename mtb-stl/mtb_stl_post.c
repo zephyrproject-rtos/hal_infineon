@@ -1023,6 +1023,12 @@ POST_TEST_DEFINE(mtb_stl_spi,
 
 #include "zephyr/drivers/i2c.h"
 
+/*
+ * Declared here to avoid a hard dependency on a private Infineon driver header.
+ * Defined in zephyr/drivers/i2c/i2c_infineon_pdl.c.
+ */
+extern void ifx_cat1_i2c_set_stl_bypass(const struct device *dev, bool bypass);
+
 static cy_stc_scb_i2c_context_t i2c_master_context;
 static cy_stc_scb_i2c_context_t i2c_slave_context;
 static uint8_t i2c_slave_read_buf[PACKET_SIZE];
@@ -1094,8 +1100,10 @@ static void SelfTest_I2C_SCB_Init(CySCB_Type *i2c_master, CySCB_Type *i2c_slave)
         i2c_res = Cy_SCB_I2C_Init(i2c_slave, &i2c_slave_config, &i2c_slave_context);
         __ASSERT(i2c_res == CY_SCB_I2C_SUCCESS, "Slave init failed");
 
-        Cy_SCB_I2C_SlaveConfigReadBuf(i2c_slave, i2c_slave_read_buf, PACKET_SIZE, &i2c_slave_context);
-        Cy_SCB_I2C_SlaveConfigWriteBuf(i2c_slave, i2c_slave_write_buf, PACKET_SIZE, &i2c_slave_context);
+        Cy_SCB_I2C_SlaveConfigReadBuf(i2c_slave, i2c_slave_read_buf, PACKET_SIZE,
+									&i2c_slave_context);
+        Cy_SCB_I2C_SlaveConfigWriteBuf(i2c_slave, i2c_slave_write_buf, PACKET_SIZE,
+									&i2c_slave_context);
 
         Cy_SCB_I2C_Enable(i2c_slave, &i2c_slave_context);
 }
@@ -1108,36 +1116,21 @@ static enum post_result mtb_stl_i2c_wrapper(const struct post_context *ctx)
 	CySCB_Type *i2c_master = (CySCB_Type *)DT_REG_ADDR(I2C_MASTER_TEST_NODE);
 	CySCB_Type *i2c_slave = (CySCB_Type *)DT_REG_ADDR(I2C_SLAVE_TEST_NODE);
 
+#ifdef CONFIG_I2C
+	const struct device *i2c_master_dev = DEVICE_DT_GET(I2C_MASTER_TEST_NODE);
+	const struct device *i2c_slave_dev  = DEVICE_DT_GET(I2C_SLAVE_TEST_NODE);
+
+	ifx_cat1_i2c_set_stl_bypass(i2c_master_dev, true);
+	ifx_cat1_i2c_set_stl_bypass(i2c_slave_dev,  true);
+#endif /* CONFIG_I2C */
+
 	unsigned int key = irq_lock();
 
-	Cy_SCB_I2C_Disable(i2c_master, &i2c_master_context);
-	Cy_SCB_I2C_Disable(i2c_slave, &i2c_slave_context);
-	Cy_SCB_I2C_DeInit(i2c_master);
-	Cy_SCB_I2C_DeInit(i2c_slave);
-
-	/* TODO: Dividers and pinctrls should happen through driver but here
-	 * 	 when CONFIG_I2C=y this test fails even when these clk and 
-	 * 	 pinctrl removed when configured through driver so kept this here
-	 * 	 to view the status when CONFIG_I2C=n which passes the tests with below pdl apis
-	 */
-	Cy_SysClk_PeriphAssignDivider(PCLK_SCB1_CLOCK, CY_SYSCLK_DIV_16_BIT, 1U);
-	Cy_SysClk_PeriphAssignDivider(PCLK_SCB0_CLOCK, CY_SYSCLK_DIV_16_BIT, 9U);
-
-	Cy_GPIO_Pin_FastInit(GPIO_PRT6, 3, CY_GPIO_DM_OD_DRIVESLOW, 1, P6_3_SCB1_I2C_SCL);
-	Cy_GPIO_Pin_FastInit(GPIO_PRT6, 4, CY_GPIO_DM_OD_DRIVESLOW, 1, P6_4_SCB1_I2C_SDA);
-        Cy_GPIO_Pin_FastInit(GPIO_PRT2, 0, CY_GPIO_DM_OD_DRIVESLOW, 1, P2_0_SCB0_I2C_SCL);
-        Cy_GPIO_Pin_FastInit(GPIO_PRT2, 1, CY_GPIO_DM_OD_DRIVESLOW, 1, P2_1_SCB0_I2C_SDA);
-
-        SelfTest_I2C_SCB_Init(i2c_master ,i2c_slave);
+    	SelfTest_I2C_SCB_Init(i2c_master, i2c_slave);
 
 	irq_unlock(key);
 
 	Cy_SysLib_DelayUs(1000);
-
-	/* Note: Found this conditions fails
-	 * if (0u != (Cy_SCB_I2C_SlaveGetStatus(slave_base, slave_context) & CY_SCB_I2C_SLAVE_WR_CMPLT))
-	 * where this bit (CY_SCB_I2C_SLAVE_WR_CMPLT) not set by slave interrupt 
-	 */
 
         /* connect the p2.0  to p6.3  and  p2.1 to  p6.4 with the jumpers */
         while (ret == PASS_STILL_TESTING_STATUS) {
@@ -1146,6 +1139,11 @@ static enum post_result mtb_stl_i2c_wrapper(const struct post_context *ctx)
                                 i2c_slave_read_buf, i2c_slave_write_buf);
                 Cy_SysLib_DelayUs(10);
         }
+
+#ifdef CONFIG_I2C
+	ifx_cat1_i2c_set_stl_bypass(i2c_master_dev, false);
+	ifx_cat1_i2c_set_stl_bypass(i2c_slave_dev,  false);
+#endif /* CONFIG_I2C */
 
         return (ret == PASS_COMPLETE_STATUS) ?  POST_RESULT_PASS : POST_RESULT_FAIL;
 }
