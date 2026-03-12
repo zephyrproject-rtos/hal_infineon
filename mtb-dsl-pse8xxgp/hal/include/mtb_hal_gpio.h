@@ -336,6 +336,13 @@ void mtb_hal_gpio_enable_event(mtb_hal_gpio_t* obj, mtb_hal_gpio_event_t event, 
  */
 cy_rslt_t mtb_hal_gpio_process_interrupt(mtb_hal_gpio_t* obj);
 
+/** Reads the output state of the pin
+ *
+ * @param[in]  obj   The GPIO object
+ * @return The value of the IO (true = high, false = low)
+ */
+bool mtb_hal_gpio_read_out(mtb_hal_gpio_t* obj);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

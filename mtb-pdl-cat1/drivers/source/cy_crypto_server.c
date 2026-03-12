@@ -289,7 +289,7 @@ static cy_en_crypto_status_t Cy_Crypto_Server_Start_Common(cy_stc_crypto_config_
 
     (void)Cy_SysInt_Init(&config->acquireNotifierConfig, isrHandler);
 
-    #if defined (CY_IP_M7CPUSS)
+    #if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
         NVIC_EnableIRQ((IRQn_Type)((config->acquireNotifierConfig.intrSrc >> 16) & 0x00FFUL));
     #else
@@ -313,7 +313,7 @@ static cy_en_crypto_status_t Cy_Crypto_Server_Start_Common(cy_stc_crypto_config_
 
     (void)Cy_SysInt_Init(&config->cryptoErrorIntrConfig, isrHandler);
 
-    #if defined (CY_IP_M7CPUSS)
+    #if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
         NVIC_ClearPendingIRQ((IRQn_Type)((config->cryptoErrorIntrConfig.intrSrc >> 16) & 0x00FFUL));
 
@@ -337,7 +337,7 @@ cy_en_crypto_status_t Cy_Crypto_Server_Stop(void)
     {
         uint32_t interruptMask;
 
-        #if defined (CY_IP_M7CPUSS)
+        #if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
             CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
             NVIC_DisableIRQ((IRQn_Type)((cy_crypto_serverContext->acquireNotifierConfig.intrSrc >> 16) & 0x00FFUL));
 

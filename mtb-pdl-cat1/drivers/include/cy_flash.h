@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash.h
-* \version 3.130
+* \version 3.140
 *
 * Provides the API declarations of the Flash driver.
 *
@@ -258,6 +258,15 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th style="width: 52%;">Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="2">3.140</td>
+*     <td>Fixed the compatibility issues encountered when building projects in EWARM using the "C++ only" option.</td>
+*     <td>Bug fixes</td>
+*   </tr>
+*   <tr>
+*     <td>Callback API's for PSOC control devices.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>3.130</td>
 *     <td>Updated status code for \ref Cy_Flash_Refresh and \ref Cy_Flash_Init.
 *         Updated \ref cy_en_flashdrv_status_t with new status codes.</td>
@@ -468,7 +477,7 @@ extern "C" {
 #define CY_FLASH_DRV_VERSION_MAJOR       3
 
 /** Driver minor version */
-#define CY_FLASH_DRV_VERSION_MINOR       130
+#define CY_FLASH_DRV_VERSION_MINOR       140
 
 #define CY_FLASH_ID               (CY_PDL_DRV_ID(0x14UL))                          /**< FLASH PDL ID */
 
@@ -647,6 +656,20 @@ typedef enum
 #endif /* (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION >=2)) || defined (CY_IP_M7CPUSS) */
 
 #if defined (CY_IP_MXS40FLASHC) || defined(CY_DOXYGEN)
+
+/** Callback function type */
+typedef void (*cy_flash_callback_t)(void);
+
+
+/** Callback function configuration for non-blocking API's */
+typedef struct
+{
+    cy_flash_callback_t callback_before_operation;    /**< A callback before operation is started */
+    cy_flash_callback_t callback_operation_started;   /**< A callback after operation is started  */
+    cy_flash_callback_t callback_operation_complete;  /**< A callback when operation is completed */
+
+} cy_stc_flash_callback_t;
+
 /** Flash Dual bank mode mapping configuration */
 typedef enum
 {
@@ -1256,7 +1279,7 @@ cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr);
 * Function Name: Cy_Flash_StartEraseRow
 ****************************************************************************//**
 *
-* Starts erasing a single row of flash. Returns immediately
+* Starts erasing a single row of flash. Non-blocking function, starts the operation and returns immediately
 * and reports a successful start or reason for failure.
 * Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
 * by another process. User firmware should not enter the Hibernate or Deep Sleep mode until
@@ -1334,7 +1357,7 @@ cy_en_flashdrv_status_t Cy_Flash_EraseSubsector(uint32_t subSectorAddr);
 * Function Name: Cy_Flash_StartEraseSubsector
 ****************************************************************************//**
 *
-* Starts erasing an 8-row subsector of flash. Returns immediately
+* Starts erasing an 8-row subsector of flash. Non-blocking function, starts the operation and returns immediately
 * and reports a successful start or reason for failure.
 * Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
 * by another process. User firmware should not enter the Hibernate or Deep-Sleep mode until
@@ -1421,7 +1444,7 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 * Function Name: Cy_Flash_StartProgram
 ****************************************************************************//**
 *
-* Starts writing an array of data to a single row of flash. Returns immediately
+* Starts writing an array of data to a single row of flash. Non-blocking function, starts the operation and returns immediately
 * and reports a successful start or reason for failure.
 * Reports a \ref CY_FLASH_DRV_IPC_BUSY error if another process is writing
 * to flash. The user firmware should not enter Hibernate or Deep-Sleep mode until flash
@@ -1648,8 +1671,8 @@ cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void);
 * Function Name: Cy_Flash_StartWrite
 ****************************************************************************//**
 *
-* Starts programming the flash row with
-* the input data. Returns immediately and reports a successful start
+* Starts programming the flash row with the input data. 
+* Non-blocking function, starts the operation and returns immediately and reports a successful start
 * or reason for failure. Reports a \ref CY_FLASH_DRV_IPC_BUSY error
 * in the case when another process is writing to flash. User
 * firmware should not enter the Hibernate or Deep-Sleep mode until
@@ -1703,7 +1726,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* da
 * Function Name: Cy_Flash_StartEraseSector
 ****************************************************************************//**
 *
-* Starts erasing a sector of flash. Returns immediately
+* Starts erasing a sector of flash. Non-blocking function, starts the operation and returns immediately
 * and reports a successful start or reason for failure.
 * Reports a \ref CY_FLASH_DRV_IPC_BUSY error in the case when IPC structure is locked
 * by another process. User firmware should not enter the Hibernate or Deep Sleep mode until
@@ -1888,6 +1911,19 @@ void Cy_Flash_Init(void);
 #endif
 
 #if defined(CY_IP_MXS40FLASHC)  || defined(CY_DOXYGEN)
+/*******************************************************************************
+* Function Name: Cy_Flash_RegisterCallback
+****************************************************************************//**
+*
+* Registers callback functions
+*
+* \param callBacks pointer to the callback functions structure \ref cy_stc_flash_callback_t
+*
+* \note Total 3 callbacks 1) Before starting the operation 2) When the operation is started 3) After completion of the operation.
+*
+*******************************************************************************/
+void Cy_Flash_RegisterCallback(cy_stc_flash_callback_t *callBacks);
+
 /*******************************************************************************
 * Function Name: Cy_Flash_Init
 ****************************************************************************//**

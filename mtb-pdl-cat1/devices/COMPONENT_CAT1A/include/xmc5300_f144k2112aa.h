@@ -1,7 +1,4 @@
 /***************************************************************************//**
-* \file xmc5300_f144k2112aa.h
-*
-* \brief
 * XMC5300-F144K2112AA device header
 *
 ********************************************************************************
@@ -633,17 +630,17 @@ typedef enum {
 #define CY_IP_MXTCPWM_VERSION           2u
 #define CY_IP_MXTCPWM_VERSION_MINOR     0u
 
-#define CY_DEVICE_TVIIBE2M
+#define CY_DEVICE_XMC5300
 #define CY_DEVICE_SERIES_XMC5300
-#define CY_SILICON_ID                   0xE6E11304UL
+#define CY_SILICON_ID                   0xE6E31304UL
 #define CY_HF_CLK_MAX_FREQ              160000000UL
 
 #define CPUSS_FLASHC_PA_SIZE_LOG2       0x7UL
 
-#include "system_psoc6.h"                       /*!< PSoC 6 System */
+#include "system_psoc6.h"
 
-#include "tviibe2m_config.h"
-#include "gpio_tviibe2m_144_lqfp.h"
+#include "xmc5300_config.h"
+#include "gpio_xmc5300_144_lqfp.h"
 
 /*******************************************************************************
 *                                    SFLASH

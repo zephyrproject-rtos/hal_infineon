@@ -7,8 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2020-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_sysfault
@@ -80,31 +82,6 @@
 *
 * For more information on the System Fault, refer to the technical reference
 * manual (TRM).
-*
-* \section group_sysfault_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.30</td>
-*     <td>Added enum \ref en_sysfault_source_t and new macros.</td>
-*     <td>Support added for PSE84 and enabled sysfault compilation for PSoC C3.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20</td>
-*     <td>Updated \ref Cy_SysFault_GetErrorSource API and added new macro</td>
-*     <td>MISRA 10.8 fix and code enhancement</td>
-*   </tr>
-*    <tr>
-*     <td>1.10</td>
-*     <td>Updated macro related to driver enablement for XMC7/T2G devices without any functional impact</td>
-*     <td>Code Enhancement</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_sysfault_macros Macros
 * \defgroup group_sysfault_enums Enums

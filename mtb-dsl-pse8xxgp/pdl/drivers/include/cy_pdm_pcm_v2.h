@@ -91,21 +91,6 @@
 * If a DMA is used and the DMA channel is properly configured, no CPU activity
 * (or application code) is needed for PDM-PCM operation.
 *
-* \section group_pdm_pcm_changelog_v2 Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
-*
 * \defgroup group_pdm_pcm_macros_v2 Macros
 * \defgroup group_pdm_pcm_functions_v2 Functions
 * \defgroup group_pdm_pcm_data_structures_v2 Data Structures
@@ -303,6 +288,11 @@ typedef enum
     CY_PDM_PCM_BAD_PARAM       = CY_PDM_PCM_V2_ID | CY_PDL_STATUS_ERROR |0x01UL     /**< Bad parameter status code*/
 } cy_en_pdm_pcm_status_t;
 
+/** The PCM bit size*/
+typedef enum {
+    CY_PDM_PCM_16BIT = 0U,
+    CY_PDM_PCM_24BIT = 1U
+} cy_en_pdm_pcm_format_t;
 /** \} group_pdm_pcm_enums_v2 */
 
 
@@ -564,8 +554,8 @@ cy_en_pdm_pcm_status_t      Cy_PDM_PCM_test_Init(PDM_Type * base, cy_stc_pdm_pcm
 cy_en_pdm_pcm_status_t Cy_PDM_PCM_SetGain (PDM_Type * base, uint8_t channel_num, cy_en_pdm_pcm_gain_sel_t gain);
 
 
-__STATIC_INLINE void      Cy_PDM_PCM_Activate_Channel(PDM_Type * base, uint8_t channel_num);
-__STATIC_INLINE void      Cy_PDM_PCM_DeActivate_Channel(PDM_Type * base, uint8_t channel_num);
+__STATIC_INLINE void     Cy_PDM_PCM_Activate_Channel(PDM_Type * base, uint8_t channel_num);
+__STATIC_INLINE void     Cy_PDM_PCM_DeActivate_Channel(PDM_Type * base, uint8_t channel_num);
 __STATIC_INLINE void     Cy_PDM_PCM_SetRateSampling(PDM_Type * base, cy_en_pdm_pcm_halve_rate_sel_t rate);
 
 __STATIC_INLINE void     Cy_PDM_PCM_Channel_Enable(PDM_Type * base, uint8_t channel_num);
@@ -585,7 +575,10 @@ __STATIC_INLINE uint32_t Cy_PDM_PCM_Channel_ReadFifo(PDM_Type const * base, uint
 __STATIC_INLINE void     Cy_PDM_PCM_Channel_FreezeFifo(PDM_Type * base, uint8_t channel_num);
 __STATIC_INLINE void     Cy_PDM_PCM_Channel_UnfreezeFifo(PDM_Type * base, uint8_t channel_num);
 __STATIC_INLINE uint32_t Cy_PDM_PCM_Channel_ReadFifoSilent(PDM_Type const * base, uint8_t channel_num);
-
+__STATIC_INLINE void     Cy_PDM_PCM_DCBlock_Enable (PDM_Type * base, uint8_t channel_num);
+__STATIC_INLINE void     Cy_PDM_PCM_DCBlock_Disable (PDM_Type * base, uint8_t channel_num);
+cy_en_pdm_pcm_status_t   Cy_PDM_PCM_SetFIR0_Scale (PDM_Type * base, uint8_t channel_num, cy_en_pdm_pcm_gain_sel_t scale);
+cy_en_pdm_pcm_status_t   Cy_PDM_PCM_ApplyPCM_Gain (const int32_t *in_sample, int32_t gain_db, cy_en_pdm_pcm_format_t out_format, int32_t *out_sample);
 
 /** \} group_pdm_pcm_functions_v2 */
 
@@ -1019,6 +1012,42 @@ __STATIC_INLINE void Cy_PDM_PCM_Channel_UnfreezeFifo(PDM_Type * base, uint8_t ch
 __STATIC_INLINE uint32_t Cy_PDM_PCM_Channel_ReadFifoSilent(PDM_Type const * base, uint8_t channel_num)
 {
     return (PDM_PCM_RX_FIFO_RD_SILENT(base, channel_num));
+}
+
+/******************************************************************************
+* Function Name: Cy_PDM_PCM_DCBlock_Enable
+***************************************************************************//**
+*
+* Enable DC Block Filter for the given channel.
+*
+* \param base
+* The pointer to the PDM-PCM instance address.
+*
+* \param channel_num
+* The channel number.
+*
+******************************************************************************/
+__STATIC_INLINE void Cy_PDM_PCM_DCBlock_Enable (PDM_Type * base, uint8_t channel_num)
+{
+    PDM_PCM_CH_DC_BLOCK_CTL(base, channel_num) |= _VAL2FLD(PDM_CH_DC_BLOCK_CTL_ENABLED, CY_PDM_PCM_ENABLE);
+}
+
+/******************************************************************************
+* Function Name: Cy_PDM_PCM_DCBlock_Disable
+***************************************************************************//**
+*
+* Disable DC Block Filter for the given channel.
+*
+* \param base
+* The pointer to the PDM-PCM instance address.
+*
+* \param channel_num
+* The channel number.
+*
+******************************************************************************/
+__STATIC_INLINE void Cy_PDM_PCM_DCBlock_Disable (PDM_Type * base, uint8_t channel_num)
+{
+    CY_REG32_CLR_SET(PDM_PCM_CH_DC_BLOCK_CTL(base, channel_num),PDM_CH_DC_BLOCK_CTL_ENABLED, CY_PDM_PCM_DISABLE);
 }
 
 /** \} group_pdm_pcm_functions_v2 */

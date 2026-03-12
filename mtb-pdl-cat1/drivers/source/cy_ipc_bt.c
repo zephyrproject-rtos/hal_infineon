@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_bt.c
-* \version 1.140
+* \version 1.150
 *
 * \brief
 *  This driver provides the source code for BT IPC.

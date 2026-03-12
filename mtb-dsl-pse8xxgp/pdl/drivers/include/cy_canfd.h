@@ -2,12 +2,14 @@
 * \file cy_canfd.h
 * \version 1.40
 *
-*  This file provides constants and parameter values for
-*  the CAN FD driver.
+* \brief
+* This file provides constants and parameter values for the CAN FD driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2019-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2019-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_canfd
@@ -209,44 +212,6 @@
 *
 * For more information on the CAN FD peripheral, refer to the technical
 * reference manual (TRM).
-*
-* \section group_canfd_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>Updated APIs \ref Cy_CANFD_Init , \ref Cy_CANFD_CalcRxBufAdrs, \ref Cy_CANFD_CalcRxFifoAdrs, \ref Cy_CANFD_XidFilterSetup. </td>
-*     <td>Bug Fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30</td>
-*     <td>Updated \ref Cy_CANFD_Init() and \ref Cy_CANFD_DeInit() functions. Added volatile qualifier to prevent loop optimization.</td>
-*     <td>Code Enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20</td>
-*     <td>Added const modifier to the functions parameters where needed.
-*         Improved error handling in \ref Cy_CANFD_Init() and
-*         \ref Cy_CANFD_IrqHandler().
-*     </td>
-*     <td>Source code cleanup.</td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>Updated \ref Cy_CANFD_Init() functions.</td>
-*     <td>Allow initing CANFD with 0 number of SID/XID filters.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0.1</td>
-*     <td>Updated description of the \ref Cy_CANFD_Init() and \ref Cy_CANFD_DeInit() functions.</td>
-*     <td>Documentation update and clarification.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_canfd_macros Macros
 * \{

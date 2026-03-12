@@ -69,6 +69,18 @@ cy_rslt_t mtb_hal_uart_setup(mtb_hal_uart_t* obj, const mtb_hal_uart_configurato
                              cy_stc_scb_uart_context_t* context, const mtb_hal_clock_t* clock);
 
 //--------------------------------------------------------------------------------------------------
+// _mtb_hal_uart_enable
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_uart_enable(mtb_hal_uart_t* obj, bool enable)
+{
+    enable ? Cy_SCB_UART_Enable(obj->base) : Cy_SCB_UART_Disable(obj->base, obj->context);
+    return CY_RSLT_SUCCESS;
+}
+
+
+#define mtb_hal_uart_enable _mtb_hal_uart_enable
+
+//--------------------------------------------------------------------------------------------------
 // mtb_hal_uart_get_internal
 //--------------------------------------------------------------------------------------------------
 __STATIC_INLINE cy_rslt_t mtb_hal_uart_get_internal(mtb_hal_uart_t* obj, uint8_t* value,
@@ -115,6 +127,18 @@ __STATIC_INLINE cy_rslt_t mtb_hal_uart_put_internal(mtb_hal_uart_t* obj, uint32_
 
 
 #define mtb_hal_uart_put(obj, value) mtb_hal_uart_put_internal(obj, value)
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_uart_write_string
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_uart_write_string(mtb_hal_uart_t* obj, const char* tx)
+{
+    Cy_SCB_UART_PutString(obj->base, tx);
+    return CY_RSLT_SUCCESS;
+}
+
+
+#define mtb_hal_uart_write_string _mtb_hal_uart_write_string
 
 #if defined(__cplusplus)
 }

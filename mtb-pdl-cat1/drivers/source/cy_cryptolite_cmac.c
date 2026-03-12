@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_cmac.c
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  This file provides the source code to the API for the CMAC method

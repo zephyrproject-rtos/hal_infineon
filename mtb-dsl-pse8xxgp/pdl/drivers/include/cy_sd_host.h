@@ -2,13 +2,14 @@
 * \file cy_sd_host.h
 * \version 2.40
 *
-*  This file provides constants and parameter values for
-*  the SD Host Controller driver.
+* \brief
+* This file provides constants and parameter values for the SD Host Controller driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2018-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_sd_host
@@ -244,119 +246,6 @@
 *
 * Refer to the appropriate device technical reference manual (TRM) for
 * a detailed description of the registers.
-*
-* \section group_sd_host_Changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td > 2.40</td>
-*     <td>Updated API \ref Cy_SD_Host_Read, \ref Cy_SD_Host_Write.</td>
-*     <td>Bug Fixes.</td>
-*   </tr>
-*   <tr>
-*     <td> 2.30</td>
-*     <td>Updated APIs \ref Cy_SD_Host_Read and \ref Cy_SD_Host_Write.
-*         Updated API \ref Cy_SD_Host_DeepSleepCallback for multiple SDHC instances support.
-*         Added new parameter to \ref cy_stc_sd_host_context_t</td>
-*     <td>Defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td> 2.20</td>
-*     <td>Updated API \ref Cy_SD_Host_InitDataTransfer to check for CMD/DATA line BUSY status.
-*         Updated API \ref Cy_SD_Host_DeepSleepCallback to support SW retention after deep sleep in CAT1C devices. </td>
-*     <td>Defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td> 2.10</td>
-*     <td>Updated the behaviour of \ref Cy_SD_Host_AbortTransfer function to check the R1B response. Minor documentation updates.</td>
-*     <td>Defect fixing. Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td> 2.0</td>
-*     <td>Added support for DDR50 mode and modified Cy_SD_Host_InitCard() API
-*         to set highest possible bus speed mode. Minor documentation updates.</td>
-*     <td>New feature implementation and documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td> 1.90</td>
-*     <td>Fixed the Cy_SD_Host_SoftwareReset() function behaviour.
-*         Now it waits until corresponding reset bit gets cleared by SDHC IP block.</td>
-*     <td>Defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td> 1.80</td>
-*     <td>Added an internal function.</td>
-*     <td>Code efficiency enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.70</td>
-*     <td>Allow SDIO Card initialization through Cy_SD_Host_InitCard() API.
-*         Added new API Cy_SD_Host_GetBlockCount().
-*     </td>
-*     <td>Code enhancement, minor defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td>1.60</td>
-*     <td>Fixed/Documented MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50</td>
-*     <td>The default value of the SD-clock rump-up time during a wakeup
-*         from Deep Sleep is reduced to 1 us, for details,
-*         see \ref Cy_SD_Host_DeepSleepCallback description.</td>
-*     <td>Optimization for cases of specific wakeup timing requirements.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>Added a possibility to
-*         customize the SD-clock rump-up time during a wakeup from Deep Sleep,
-*         for details, see \ref Cy_SD_Host_DeepSleepCallback description.</td>
-*     <td>Workaround for cases of specific wakeup timing requirements.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30</td>
-*     <td>The internal function implementation is changed.</td>
-*     <td>Code efficiency enhancement, minor defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2"> 1.20</td>
-*     <td>Added the Cy_SD_Host_DeepSleepCallback() function.</td>
-*     <td>Driver maintenance.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed the Cy_SD_Host_GetCsd() function behaviour.
-*         Now the cy_stc_sd_host_context_t::maxSectorNum is being updated correctly</td>
-*     <td>Defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td> 1.10.1</td>
-*     <td>Documentation of the MISRA rule violation.</td>
-*     <td>MISRA compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>The PLL and CLK disable sequence in \ref Cy_SD_Host_DisableSdClk()
-*         is changed to disable CLK first.<br>
-*         The Low-Power Support section is updated with additional
-*         information about disabling CLK.<br>
-*         The context initialization in \ref Cy_SD_Host_Init() is corrected.<br>
-*         Updated the Write/Read sequence in \ref Cy_SD_Host_Read() and
-*         \ref Cy_SD_Host_Write()functions for non DMA mode.<br>
-*     </td>
-*     <td>Defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>The initial version.</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_sd_host_macros Macros
 * \{

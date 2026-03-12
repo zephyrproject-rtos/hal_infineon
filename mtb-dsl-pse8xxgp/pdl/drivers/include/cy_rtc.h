@@ -2,13 +2,14 @@
 * \file cy_rtc.h
 * \version 2.100
 *
-* This file provides constants and parameter values for the APIs for the
-* Real-Time Clock (RTC).
+* \brief
+* This file provides constants and parameter values for the APIs for the Real-Time Clock (RTC).
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +23,8 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_rtc
@@ -68,7 +69,7 @@
 *
 * <b> Clock Source </b>
 *
-* The Backup domain can be driven by:
+* Depending on the available clocks the backup domain can be driven by:
 * * Watch-crystal oscillator (WCO). This is a high-accuracy oscillator that is
 * suitable for RTC applications and requires a 32.768 kHz external crystal
 * populated on the application board. The WCO can be supplied by Backup domain
@@ -101,6 +102,8 @@
 * source can be used if the external 32.768 kHz WCO is absent from the board.
 * For more details, refer to the Cy_RTC_SelectFrequencyPrescaler() function
 * description.
+*
+*
 *
 * The WCO is the recommended clock source for the RTC, if it is present
 * in design. For setting the Backup domain clock source, refer to the
@@ -236,122 +239,6 @@
 * For more information on the RTC peripheral, refer to the technical reference
 * manual (TRM).
 *
-* \section group_rtc_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>2.100</td>
-*     <td>Minor update in API \ref Cy_RTC_GetInterruptStatus.</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.90</td>
-*     <td>Updated API \ref Cy_RTC_GetInterruptStatus.</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.80</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*          Pre-processor check for MXS40SRSS version now groups ver. 2 with ver. 3. Previously ver. 2 was grouped with ver. 1.</td>
-*          Cleaned up redundant and overlapping conditions in pre-processor directives.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>2.70</td>
-*     <td>Enhanced API's : Cy_RTC_SetDateAndTime(), Cy_RTC_SetDateAndTimeDirect(), Cy_RTC_SetAlarmDateAndTime(), Cy_RTC_SetAlarmDateAndTimeDirect().</td>
-*     <td>Minor Enhancements to the Driver.</td>
-*   </tr>
-*   <tr>
-*     <td>2.60</td>
-*     <td>Additional devices support.<br>Newly added API's Cy_RTC_WriteEnable() to Set/Clear writeable option for RTC user registers,
-*         Cy_RTC_EnableDstTime() to set the DST time and configure the ALARM2 interrupt register
-*         with the appropriate DST time, Cy_RTC_DstInterrupt() to handle the DST event.
-*         <br>Added a delay in Cy_RTC_SyncFromRtc() to check the RTC busy status.</td>
-*     <td>Support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>2.50</td>
-*     <td>Removed the calls that convert among BCD and Binary.</td>
-*     <td>RTC encoding changed from BCD to Binary.</td>
-*   </tr>
-*   <tr>
-*     <td>2.40</td>
-*     <td>Fixed/Documented MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>2.30.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.30</td>
-*     <td>
-*          * Corrected the Cy_RTC_GetDstStatus() and Cy_RTC_SetNextDstTime()
-*            documentation.
-*          * Fixed the Cy_RTC_GetDstStatus() behaviour in the 'an hour before/after the DST stop event' period.
-*     </td>
-*     <td>
-*          * Collateral Review: user experience enhancement.
-*          * Bug fix.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>2.20.1</td>
-*     <td>Modified header guard CY_IP_MXS40SRSS_RTC.</td>
-*     <td>To enable the PDL compilation with wounded out IP blocks.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">2.20</td>
-*     <td>Flattened the organization of the driver source code into the single
-*         source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>Documentation update.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.10</td>
-*     <td>
-*          * Corrected Cy_RTC_SetDateAndTimeDirect(), Cy_RTC_SetNextDstTime()
-*            function.
-*          * Corrected internal macro.
-*          * Documentation updates.
-*     </td>
-*     <td>
-*          * Incorrect behavior of \ref Cy_RTC_SetDateAndTimeDirect() and
-*            \ref Cy_RTC_SetNextDstTime() work in debug mode.
-*          * Debug assert correction in \ref Cy_RTC_ConvertDayOfWeek,
-*            \ref Cy_RTC_IsLeapYear, \ref Cy_RTC_DaysInMonth.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>2.0</td>
-*     <td>
-*         Enhancement and defect fixes:
-*          * Added input parameter(s) validation to all public functions.
-*          * Removed "Cy_RTC_" prefixes from the internal functions names.
-*          * Renamed the elements in the cy_stc_rtc_alarm structure.
-*          * Changed the type of elements with limited set of values, from
-*            uint32_t to enumeration.
-*     </td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
-*
 * \defgroup group_rtc_macros Macros
 * \defgroup group_rtc_functions Functions
 * \{
@@ -483,11 +370,12 @@ typedef enum
 **/
 typedef enum
 {
-    CY_RTC_CLK_SELECT_WCO               =        0U, /**< Select WCO as input to RTC */
-    CY_RTC_CLK_SELECT_ALTBAK            =        1U, /**< Select ALTBAK as input to RTC */
-    CY_RTC_CLK_SELECT_ILO               =        2U, /**< Select ILO as input to RTC */
-    CY_RTC_CLK_SELECT_LPECO_PRESCALER   =        3U, /**< Select LPECO_PRESCALER as input to RTC */
-    CY_RTC_CLK_SELECT_PILO              =        4U, /**< Select PILO as input to RTC */
+    CY_RTC_CLK_SELECT_WCO,              /**< Select WCO as input to RTC */
+    CY_RTC_CLK_SELECT_ALTBAK,           /**< Select ALTBAK as input to RTC */
+#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)) || defined (CY_IP_MXS22SRSS)
+    CY_RTC_CLK_SELECT_ILO,              /**< Select ILO as input to RTC */
+    CY_RTC_CLK_SELECT_PILO              /**< Select PILO as input to RTC */
+#endif /* CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS, (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3), CY_IP_MXS22SRSS */
 } cy_en_rtc_clk_select_sources_t;
 
 /** Enumeration to select the sign of calibration for RTC */
@@ -619,6 +507,15 @@ typedef struct
     cy_stc_rtc_dst_format_t startDst;    /**< DST start time structure */
     cy_stc_rtc_dst_format_t stopDst;     /**< DST stop time structure */
 } cy_stc_rtc_dst_t;
+
+/** \cond INTERNAL */
+#if defined(CY_PDL_RTC_ENABLE_SRF_INTEG)
+/** This is only used by secure-aware. The structure contains Hour format configuration parameters */
+typedef struct {
+    cy_en_rtc_hours_format_t hrs_format;
+} cy_pdl_rtc_srf_get_hr_format_out_t;
+#endif
+/** \endcond */
 
 /** \} group_rtc_data_structures */
 
@@ -1271,7 +1168,8 @@ __STATIC_INLINE cy_en_rtc_hours_format_t Cy_RTC_GetHoursFormat(void)
     mtb_srf_invec_ns_t* inVec = NULL;
     mtb_srf_outvec_ns_t* outVec = NULL;
     mtb_srf_output_ns_t* output = NULL;
-    cy_en_rtc_hours_format_t hrs_format = CY_RTC_24_HOURS; /* Default, equivalent to 0x0 */
+    cy_pdl_rtc_srf_get_hr_format_out_t output_args;
+    output_args.hrs_format = CY_RTC_24_HOURS; /* Default, equivalent to 0x0 */
 
     cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, CY_PDL_RTC_SRF_POOL_TIMEOUT);
     CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
@@ -1287,8 +1185,8 @@ __STATIC_INLINE cy_en_rtc_hours_format_t Cy_RTC_GetHoursFormat(void)
         .sub_block = 0UL,
         .input_base = NULL,
         .input_len = 0UL,
-        .output_base = (uint8_t*)&hrs_format,
-        .output_len = sizeof(hrs_format),
+        .output_base = (uint8_t*)&output_args,
+        .output_len = sizeof(output_args),
         .invec_bases = NULL,
         .invec_sizes = 0UL,
         .outvec_bases = NULL,
@@ -1298,13 +1196,13 @@ __STATIC_INLINE cy_en_rtc_hours_format_t Cy_RTC_GetHoursFormat(void)
     CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
 
     /* Output values are passed in by value. Make a copy before freeing the ioVec */
-    memcpy(&hrs_format, (cy_en_rtc_hours_format_t*)(&(output->output_values[0])), sizeof(cy_en_rtc_hours_format_t));
+    memcpy(&output_args, (cy_en_rtc_hours_format_t*)(&(output->output_values[0])), sizeof(output_args));
 
     result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
     CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
     CY_UNUSED_PARAMETER(result);
 
-    return hrs_format;
+    return output_args.hrs_format;
 #else
     return((_FLD2BOOL(BACKUP_RTC_TIME_CTRL_12HR, BACKUP_RTC_TIME)) ? CY_RTC_12_HOURS : CY_RTC_24_HOURS);
 #endif
@@ -1452,7 +1350,7 @@ __STATIC_INLINE void Cy_RTC_SyncToRtcAhbAlarm(uint32_t alarmTimeBcd, uint32_t al
 /*******************************************************************************
 *      Internal Functions
 *******************************************************************************/
- 
+
 #if defined(__cplusplus)
 }
 #endif

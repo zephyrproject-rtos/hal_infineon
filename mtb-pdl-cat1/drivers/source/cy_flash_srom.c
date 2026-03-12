@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash_srom.c
-* \version 3.130
+* \version 3.140
 *
 * \brief
 * Provides functions for controlling the SROM APIs.
@@ -33,7 +33,7 @@ static uint32_t Cy_Srom_Get_DataSize(cy_en_programrow_datasize_t size);
 ****************************************************************************//**
 *
 * This function calls SROM API. CPU will wait for API completed inside this
-* function by checking IPC released. Even after checking 0x00FFFFFF times, if it 
+* function by checking IPC released. Even after checking 0x00FFFFFF times, if it
 * is still not released, this function will return timeout status.
 * If IPC was busy when this function was called, it would return busy status
 * immediately.
@@ -49,7 +49,7 @@ static uint32_t Cy_Srom_Get_DataSize(cy_en_programrow_datasize_t size);
 * will be copied to "g_scratch". \ref un_srom_api_args_t
 *
 * \param resp
-* Pointer to memory which SROM API response message will be copied to. Even if 
+* Pointer to memory which SROM API response message will be copied to. Even if
 * this function return error status, response message will be copied to the
 * memory. If pointer is NULL, response will not be copied \ref un_srom_api_resps_t
 *
@@ -142,10 +142,10 @@ cy_en_srom_driver_status_t Cy_Srom_CallApi(const un_srom_api_args_t* params, un_
 ****************************************************************************//**
 *
 * This function calls SROM API. CPU "won't" wait for API completed inside this
-* function by checking IPC released. 
+* function by checking IPC released.
 * If IPC was busy when this function was called, it would return busy status
 * immediately.
-* Please call "Cy_Srom_Get_Api_Response" to retrieve API response. 
+* Please call "Cy_Srom_Get_Api_Response" to retrieve API response.
 * All messages will be passed via SRAM pointed to scratch address. The SRAM area
 * is reserved in this file as a variable named "g_scratch".
 * This function is not re-entrant.
@@ -222,7 +222,7 @@ cy_en_srom_driver_status_t Cy_Srom_CallApi_NonBlock(const un_srom_api_args_t* pa
 * Function Name: Cy_Srom_CallApi_2
 ****************************************************************************//**
 *
-* This function calls SROM API which need also IPC DATA1. Other is same as 
+* This function calls SROM API which need also IPC DATA1. Other is same as
 * "Cy_SROM_CallApi"
 *
 * \param params
@@ -234,7 +234,7 @@ cy_en_srom_driver_status_t Cy_Srom_CallApi_NonBlock(const un_srom_api_args_t* pa
 * will be copied to "g_scratch2". \ref un_srom_api_args_2_t
 *
 * \param resp
-* Pointer to memory which SROM API response message will be copied to. Even if 
+* Pointer to memory which SROM API response message will be copied to. Even if
 * this function return error status, response message will be copied to the
 * memory. If pointer is NULL, response will not be copied \ref un_srom_api_resps_t
 *
@@ -259,8 +259,8 @@ cy_en_srom_driver_status_t Cy_Srom_CallApi_2(const un_srom_api_args_t* params, c
     // Make Bit[0] to 0, it indicates all arguments are passed through scratch address
     g_scratch.u32[0]  = g_scratch.u32[0]  & 0xFFFFFFFEUL;
     g_scratch2.arg[0] = g_scratch2.arg[0] & 0xFFFFFFFEUL;
-    
-    
+
+
     message[0] = (uint32_t)&g_scratch;
     message[1] = (uint32_t)&g_scratch2;
     // Send message by IPC
@@ -314,7 +314,7 @@ cy_en_srom_driver_status_t Cy_Srom_CallApi_2(const un_srom_api_args_t* params, c
 * Function Name: Cy_Srom_CallApi_NonBlock_2
 ****************************************************************************//**
 *
-* This function calls SROM API which need also IPC DATA1. Other is same as 
+* This function calls SROM API which need also IPC DATA1. Other is same as
 * "Cy_SROM_CallApi_NonBlock_2"
 *
 * \param params
@@ -363,7 +363,7 @@ cy_en_srom_driver_status_t Cy_Srom_CallApi_NonBlock_2(const un_srom_api_args_t* 
 * Function Name: Cy_Srom_GetResponseType
 ****************************************************************************//**
 *
-* This function returns status of SROM API response defined by \ref 
+* This function returns status of SROM API response defined by \ref
 * cy_en_srom_response_type_t
 * Please call this function after "Cy_Srom_CallApi_NonBlock" was called.
 *
@@ -391,9 +391,9 @@ cy_en_srom_response_type_t Cy_Srom_GetResponseType(void)
 * Function Name: Cy_Srom_Get_Api_Response
 ****************************************************************************//**
 *
-* This function returns g_scratch value as a response of SROM API. 
+* This function returns g_scratch value as a response of SROM API.
 * Please call this function after "Cy_Srom_CallApi_NonBlock" was called.
-* "resp" is raw response data from SROM API on the other hands, return value 
+* "resp" is raw response data from SROM API on the other hands, return value
 * indicate status of the response data like as invalid, succeeded, or failed.
 * (if failed return value is same as resp.u32[0])
 *
@@ -441,9 +441,9 @@ cy_en_srom_api_status_t Cy_Srom_GetApiResponse(un_srom_api_resps_t* resp)
 * Function Name: Cy_Srom_ConvertRespToStatus
 ****************************************************************************//**
 *
-* This function returns g_scratch value as a response of SROM API. 
+* This function returns g_scratch value as a response of SROM API.
 * Please call this function after "Cy_Srom_CallApi_NonBlock" was called.
-* "resp" is raw response data from SROM API on the other hands, return value 
+* "resp" is raw response data from SROM API on the other hands, return value
 * indicate status of the response data like as invalid, succeeded, or failed.
 * (if failed return value is same as resp.u32[0])
 *
@@ -491,16 +491,13 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.1', 3, \
 CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 10.4', 1, \
 'Checked manually. Intentional  expression "NvicMux3_IRQn" of type enum is used as an operand to the arithmetic operator "<<".')
     const cy_stc_sysint_t irq_cfg = {
-#if defined (CY_IP_M7CPUSS)
+#if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
         /* Shift the interrupt source to the upper INTRSRC bits. */
-        .intrSrc = ((NvicMux3_IRQn << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | CY_SROM_DR_IPC_INTR_NO),
-#elif (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
-        /* Shift the interrupt source to the upper INTRSRC bits. */
-        .intrSrc = (IRQn_Type)((NvicMux3_IRQn << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | CY_SROM_DR_IPC_INTR_NO),
+        .intrSrc = (cy_sysint_int_src_t)((NvicMux3_IRQn << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | CY_SROM_DR_IPC_INTR_NO),
 #else
         .intrSrc = (IRQn_Type)(CY_SROM_DR_IPC_INTR_NO),
-        #if (CY_CPU_CORTEX_M0P) && defined (CY_IP_M4CPUSS)
-        .cm0pSrc = (uint32_t) NvicMux3_IRQn,
+        #if (CY_CPU_CORTEX_M0P) && defined (CY_IP_M4CPUSS) && !defined (CY_M4CPUSS_V2_IRQ_MUXING)
+        .cm0pSrc = (cy_en_intr_t) NvicMux3_IRQn,
         #endif
 #endif
         .intrPriority = 2UL,
@@ -519,7 +516,7 @@ CY_MISRA_BLOCK_END('MISRA C-2012 Rule 10.1')
 
     /*  Set IPC interrupt mask    */
     IPC_INTR_STRUCT_Type* sromRespIntrStr = Cy_IPC_Drv_GetIntrBaseAddr(CY_SROM_DR_IPC_INTR_STRUCT);
-    
+
     CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.1','Checked manually. Intentional Non boolean type is interpreted as boolean.');
     Cy_IPC_Drv_SetInterruptMask(sromRespIntrStr, (uint32_t)(1UL << (uint32_t)CY_IPC_CHAN_SYSCALL), 0UL);
 }
@@ -538,7 +535,7 @@ static void Cy_Srom_ISR_ResponseIPC(void)
 
     IPC_INTR_STRUCT_Type* sromRespIntrStr = Cy_IPC_Drv_GetIntrBaseAddr(CY_SROM_DR_IPC_INTR_STRUCT);
     masked = Cy_IPC_Drv_GetInterruptStatusMasked(sromRespIntrStr);
-    
+
 //    CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.1','Checked manually. Intentional Non boolean type is interpreted as boolean.');
     if((uint32_t)(masked & (uint32_t)(1UL << (uint32_t)CY_IPC_CHAN_SYSCALL)) != 0UL)
     {

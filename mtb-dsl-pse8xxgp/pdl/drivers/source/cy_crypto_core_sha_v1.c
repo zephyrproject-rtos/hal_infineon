@@ -417,7 +417,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V1_Sha_Update(CRYPTO_Type *base,
             {
                 Cy_Crypto_Core_V1_MemCpy(base, (void *)((uint32_t)hashState->block + hashBlockIdx), (void const*)message, (uint16_t)messageSize);
             }
-        
+
 
             tmpResult = CY_CRYPTO_SUCCESS;
         }

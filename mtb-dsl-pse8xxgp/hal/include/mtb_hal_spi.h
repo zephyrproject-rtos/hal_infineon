@@ -154,6 +154,16 @@ typedef enum
     MTB_HAL_SPI_FIFO_TX  //!< TX FIFO for outgoing datas
 } mtb_hal_spi_fifo_type_t;
 
+/** Enable/disable the SPI.
+ *
+ * The function returns without waiting for the enable to complete.
+ *
+ * @param[in] obj          The SPI object
+ * @param[in] enable       Enable/disable
+ * @return The status of the enable request
+ */
+cy_rslt_t mtb_hal_spi_enable(mtb_hal_spi_t* obj, bool enable);
+
 /** Set the SPI baud rate
  *
  * Actual frequency may differ from the desired frequency due to available dividers and bus clock

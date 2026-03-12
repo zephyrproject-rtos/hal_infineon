@@ -239,7 +239,7 @@ cy_en_crypto_status_t Cy_Crypto_Init(cy_stc_crypto_config_t const *config,
                                                             (1uL << context->ipcChannel), CY_IPC_NO_NOTIFICATION);
 
 
-            #if defined (CY_IP_M7CPUSS)
+            #if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
                 CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
                 NVIC_EnableIRQ((IRQn_Type)((context->releaseNotifierConfig.intrSrc >> 16) & 0x00FFUL));
             #else
@@ -268,7 +268,7 @@ cy_en_crypto_status_t Cy_Crypto_DeInit(void)
         if (NULL != clientContext->userCompleteCallback)
         {
             /* Disable the Release interrupt from IPC */
-            #if defined (CY_IP_M7CPUSS)
+            #if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
                 CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to IRQn_Type enum.');
                 NVIC_DisableIRQ((IRQn_Type)((clientContext->releaseNotifierConfig.intrSrc >> 16) & 0x00FFUL));
             #else

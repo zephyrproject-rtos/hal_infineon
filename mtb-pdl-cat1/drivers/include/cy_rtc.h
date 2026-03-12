@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_rtc.h
-* \version 2.110
+* \version 2.120
 *
 * This file provides constants and parameter values for the APIs for the
 * Real-Time Clock (RTC).
@@ -226,6 +226,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>2.120</td>
+*     <td>Fixed date and time data format for devices with MXS40SRSS_RTC version 2.</td>
+*     <td>Defect fix.</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="2">2.110</td>
 *     <td>Added run-time month check in \ref Cy_RTC_DaysInMonth.</td>
 *     <td>GCC 14 support.</td>
@@ -390,7 +395,7 @@ extern "C" {
 #define CY_RTC_DRV_VERSION_MAJOR                    2
 
 /** Driver minor version */
-#define CY_RTC_DRV_VERSION_MINOR                    110
+#define CY_RTC_DRV_VERSION_MINOR                    120
 
 /** RTC driver retry macros */
 #define CY_RTC_ACCESS_BUSY_RETRY_COUNT    (200u)

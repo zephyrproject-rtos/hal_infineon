@@ -2,12 +2,13 @@
 * \file cy_lpcomp.h
 * \version 2.0.0
 *
-*  This file provides constants and parameter values for the Low Power Comparator driver.
+* \brief
+* This file provides constants and parameter values for the Low Power Comparator driver.
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
 *
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -23,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_lpcomp
@@ -112,108 +114,6 @@
 *
 * For a detailed description of the registers, refer to
 * the appropriate device technical reference manual (TRM).
-*
-* \section group_lpcomp_Changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>2.0</td>
-*     <td> The implementation of functions \ref Cy_LPComp_ClearInterrupt and
-*            \ref Cy_LPComp_SetInterruptMask is changed. </td>
-*     <td> Bug fixing. </td>
-*   </tr>
-*   <tr>
-*     <td>1.80.1</td>
-*     <td>Added the note about using \ref Cy_LPComp_UlpReferenceEnable()
-*         for the comparator in ULP mode \ref cy_en_lpcomp_pwr_t.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.80</td>
-*     <td>Fix in hibernate callback function for PSE84 devices.</td>
-*     <td>The low power comparator was unable to wake-up the system from hibernate state.</td>
-*   </tr>
-*   <tr>
-*     <td>1.70</td>
-*     <td>Added support for PSC3 and PSE84 devices.</td>
-*     <td>Support of new IP version.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.60</td>
-*     <td>Fix in hibernate callback function.</td>
-*     <td>The low power comparator was unable to wake-up the system from hibernate state.</td>
-*   </tr>
-*   <tr>
-*     <td>Documentation update and clarification.</td>
-*     <td>The code snippet in chapter Low Power Support was updated after validation.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.50</td>
-*     <td> Minor improvement in implementation of disabling functionality for the comparator.</td>
-*     <td> Power drive mode for the comparator is restored to the level before disabling,
-*             instead of initial level.</td>
-*   </tr>
-*   <tr>
-*     <td> Documented MISRA C-2012 violation of the Rule 10.3.</td>
-*     <td> MISRA C-2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>Introduced an extended versions of the existing functions with
-*         a pointer to the context structure allocated by the user:
-*         * \ref Cy_LPComp_Init_Ext(),
-*         * \ref Cy_LPComp_Enable_Ext(),
-*         * \ref Cy_LPComp_Disable_Ext(),
-*         * \ref Cy_LPComp_SetInterruptTriggerMode_Ext(),
-*         * \ref Cy_LPComp_SetPower_Ext()
-*     </td>
-*     <td>
-*         * Improved returning of the comparator from disabled to operational state
-*           with restoring power drive and interrupt edge-detect modes, configured before disable.
-*         * Improved thread safe implementation of the PDL.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>1.30</td>
-*     <td>Fixed/documented MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.20</td>
-*     <td>Flattened the organization of the driver source code into the single
-*         source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using de-referenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.10.1</td>
-*     <td>Added Low Power Callback section</td>
-*     <td>Documentation update and clarification</td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>The CY_WEAK keyword is removed from Cy_LPComp_DeepSleepCallback()
-*         and Cy_LPComp_HibernateCallback() functions<br>
-*         Added input parameter validation to the API functions.</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_lpcomp_macros Macros
 * \defgroup group_lpcomp_functions Functions

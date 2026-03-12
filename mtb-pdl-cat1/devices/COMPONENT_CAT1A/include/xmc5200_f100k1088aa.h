@@ -1,7 +1,4 @@
 /***************************************************************************//**
-* \file xmc5200_f100k1088aa.h
-*
-* \brief
 * XMC5200-F100K1088AA device header
 *
 ********************************************************************************
@@ -603,17 +600,17 @@ typedef enum {
 #define CY_IP_MXTCPWM_VERSION           2u
 #define CY_IP_MXTCPWM_VERSION_MINOR     0u
 
-#define CY_DEVICE_TVIIBE1M
+#define CY_DEVICE_XMC5200
 #define CY_DEVICE_SERIES_XMC5200
-#define CY_SILICON_ID                   0xE3D92301UL
+#define CY_SILICON_ID                   0xE3DB2301UL
 #define CY_HF_CLK_MAX_FREQ              160000000UL
 
 #define CPUSS_FLASHC_PA_SIZE_LOG2       0x7UL
 
-#include "system_psoc6.h"                       /*!< PSoC 6 System */
+#include "system_psoc6.h"
 
-#include "tviibe1m_config.h"
-#include "gpio_tviibe1m_100_lqfp.h"
+#include "xmc5200_config.h"
+#include "gpio_xmc5200_100_lqfp.h"
 
 /*******************************************************************************
 *                                    SFLASH

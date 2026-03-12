@@ -8,6 +8,8 @@ Provides functions for interacting with an external memory connected through its
 * Allows for providing information to the programming tool to program the external memory.
 
 ### What Changed?
+#### v3.1.0
+* Documentation update
 #### v3.0.0
 * Support SMIF MemNum interface instead of MemSlot interface
 #### v2.0.0

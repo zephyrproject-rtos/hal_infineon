@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_aes_ccm.h
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  This file provides common constants and parameters

@@ -2,7 +2,7 @@
     "core": {
         "id": "b9416fdf-7782-52c6-b5cb-4f2380a3ff69",
         "name": "mtb-template-pse8xxgp",
-        "version": "1.0.0.464"
+        "version": "1.2.0.1006"
     },
     "opt": {
         "props": {
@@ -23,10 +23,11 @@
                                 "connectivity_components"
                             ],
                             "defines": [
+                                "bsp_config_defines",
                                 "connectivity_defines"
                             ],
                             "makefile_vars": "pse8xxgp_vars",
-                            "files_init": "filelist/init_edge.txt"
+                            "files_init": "filelist/init_pse8xxgp.txt"
                         },
                         "EPC4": {
                             "files": [
@@ -39,10 +40,11 @@
                                 "connectivity_components"
                             ],
                             "defines": [
+                                "bsp_config_defines",
                                 "connectivity_defines"
                             ],
                             "makefile_vars": "pse8xxgp_vars",
-                            "files_init": "filelist/init_edge.txt"
+                            "files_init": "filelist/init_pse8xxgp.txt"
                         }
                     }
                 }
@@ -154,6 +156,22 @@
                                 "value": ""
                             }
                         ],
+                        "type": "choice"
+                    }
+                ],
+                "bsp_config_defines": [
+                    {
+                        "description": "Call the function cybsp_post_cfg_init after init_cycfg_all to perform custom initialization steps",
+                        "display": "Custom step after configurator init",
+                        "options": [
+                            {
+                                "default": false,
+                                "define": "CYBSP_POST_CFG_INIT",
+                                "display": "Enabled",
+                                "value": ""
+                            }
+                        ],
+                        "required": false,
                         "type": "choice"
                     }
                 ]

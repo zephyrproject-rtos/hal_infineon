@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm.h
-* \version 5.190
+* \version 5.200
 *
 * Provides the function definitions for the power management API.
 *
@@ -846,6 +846,11 @@
 * \section group_syspm_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>5.200</td>
+*     <td>Fixed the compatibility issues encountered when building projects in EWARM using the "C++ only" option.</td>
+*     <td>Bug fixes.</td>
+*   </tr>
 *   <tr>
 *     <td>5.190</td>
 *     <td>Updated \ref Cy_SysPm_GetHibernateWakeupCause and added new wake event
@@ -1765,7 +1770,7 @@ extern "C" {
 #define CY_SYSPM_DRV_VERSION_MAJOR       5
 
 /** Driver minor version */
-#define CY_SYSPM_DRV_VERSION_MINOR       190
+#define CY_SYSPM_DRV_VERSION_MINOR       200
 
 /** SysPm driver identifier */
 #define CY_SYSPM_ID                      (CY_PDL_DRV_ID(0x10U))

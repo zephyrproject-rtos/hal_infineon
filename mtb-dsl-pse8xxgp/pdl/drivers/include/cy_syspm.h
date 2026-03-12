@@ -61,10 +61,15 @@
 *   - \ref group_syspm_wakingup_from_sleep_deepsleep
 *   - \ref group_syspm_switching_into_hibernate
 *   - \ref group_syspm_wakingup_from_hibernate
+* * \ref group_syspm_system_active_state_transitions
+*   - \ref group_syspm_system_ulp_to_lp_transition
+*   - \ref group_syspm_system_lp_to_hp_transition
+*   - \ref group_syspm_system_hp_to_lp_transition
+*   - \ref group_syspm_system_lp_to_ulp_transition
+*  - \ref group_syspm_system_transition_abs_levels
 * * \ref group_syspm_system_reg_curr_mode
 *   - \ref group_syspm_system_set_min_reg_curr_mode
 *   - \ref group_syspm_system_set_normal_reg_curr_mode
-* * \ref group_syspm_migration_guide_for_syspm_4_0
 * * \ref group_syspm_cb
 *   - \ref group_syspm_cb_example
 *   - \ref group_syspm_cb_config_consideration
@@ -313,6 +318,131 @@
 * the system by WDT interrupt. Refer to \ref Cy_SysPm_SetHibernateWakeupSource()
 * for more detail.
 *
+* \subsection group_syspm_system_active_state_transitions System Active state Transitions
+*
+* The system operates in three defined active modes, each tailored for specific
+* performance and power requirements:
+* - ULP (Ultra Low Power)
+* - LP (Low Power)
+* - HP (High Performance)
+*
+*
+* Transitioning between these operational modes requires meticulous adherence to
+* defined sequences to prevent timing-related issues.
+* The application is responsible for managing system frequency during these transitions,
+* ensuring it stays within the valid range for both current and target modes.
+* The driver assumes all frequency requirements are met before mode transition
+* APIs are called.
+*
+* \attention Transitions from ULP to HP modes (or vice versa) are only allowed in steps.
+* These transitions must proceed via the intermediate LP mode
+* (ULP -> LP -> HP or the reverse). This staged approach ensures system stability
+* and reliable operations. These steps are handled internally by the driver
+* when using one of the APIs: \ref Cy_SysPm_SystemEnterHp(),
+* \ref Cy_SysPm_SystemEnterLp(), or \ref Cy_SysPm_SystemEnterUlp().
+*
+* The driver provides dedicated APIs for transitions:
+* - \ref Cy_SysPm_SystemTransitionUlpToLp() - Transition from ULP to LP
+* - \ref Cy_SysPm_SystemTransitionLpToHp() - Transition from LP to HP
+* - \ref Cy_SysPm_SystemTransitionHpToLp() - Transition from HP to LP
+* - \ref Cy_SysPm_SystemTransitionLpToUlp() - Transition from LP to ULP
+*
+* The following sections outline the required conditions and sequence of operations
+* for each supported transition.
+*
+* \subsection group_syspm_system_ulp_to_lp_transition System ULP to LP Transition
+*
+* To transition the system from Ultra Low Power (ULP) to Low Power (LP) mode, follow
+* these steps in the secure processing environment:
+* -# Suspend Operations:
+*    1. Initiate M0SECCPUSS suspension with ifx_se_disable().
+* -# Reduce Operating Frequency:
+*    2. Lower the \ref group_syspm_sram_transition_clock frequency by at least 18%.
+* -# Initiate Transition:
+*    3. Call \ref Cy_SysPm_SystemTransitionUlpToLp() to perform the mode change.
+* -# Restore Frequency:
+*    4. After the transition, the \ref group_syspm_sram_transition_clock frequency
+*    can be increased up to the new mode's
+*    maximum.
+* -# Resume Operations:
+*    5. Instruct M0SECCPUSS to resume operations by calling ifx_se_enable().
+*
+* \subsection group_syspm_system_lp_to_hp_transition System LP to HP Transition
+*
+* To transition the system from Low Power (LP) to High Power (HP) mode, follow
+* these steps in the secure processing environment:
+* -# Suspend Operations:
+*    1. Initiate M0SECCPUSS suspension with ifx_se_disable().
+* -# Reduce Operating Frequency:
+*    2. Lower the \ref group_syspm_sram_transition_clock frequency by at least 38%.
+* -# Initiate Transition:
+*    3. Call \ref Cy_SysPm_SystemTransitionLpToHp() to perform the mode change.
+* -# Restore Frequency:
+*    4. After the transition, the \ref group_syspm_sram_transition_clock frequency
+*    can be increased up to the new mode's maximum.
+* -# Resume Operations:
+*    5. Instruct M0SECCPUSS to resume operations by calling ifx_se_enable().
+*
+* \subsection group_syspm_system_hp_to_lp_transition System HP to LP Transition
+*
+* To transition the system from High Power (HP) to Low Power (LP) mode, follow
+* these steps in the secure processing environment:
+* -# Suspend Operations:
+*    1. Initiate M0SECCPUSS suspension with ifx_se_disable().
+* -# Reduce Operating Frequency:
+*    2. Lower the \ref group_syspm_sram_transition_clock frequency by at least 82%.
+* -# Initiate Transition:
+*    3. Call \ref Cy_SysPm_SystemTransitionHpToLp() to perform the mode change.
+* -# Restore Frequency:
+*    4. After the transition, the \ref group_syspm_sram_transition_clock frequency
+*    can be increased up to the new mode's maximum.
+* -# Resume Operations:
+*    5. Instruct M0SECCPUSS to resume operations by calling ifx_se_enable().
+*
+* \subsection group_syspm_system_lp_to_ulp_transition System LP to ULP Transition
+*
+* To transition the system from Low Power (LP) to Ultra Low Power (ULP) mode, follow
+* these steps in the secure processing environment:
+* -# Suspend Operations:
+*    1. Initiate M0SECCPUSS suspension with ifx_se_disable().
+* -# Reduce Operating Frequency:
+*    2. Lower the \ref group_syspm_sram_transition_clock frequency by at least 66%.
+* -# Initiate Transition:
+*    3. Call \ref Cy_SysPm_SystemTransitionLpToUlp() to perform the mode change.
+* -# Restore Frequency:
+*    4. After the transition, the \ref group_syspm_sram_transition_clock frequency
+*    can be increased up to the new mode's maximum.
+* -# Resume Operations:
+*    5. Instruct M0SECCPUSS to resume operations by calling ifx_se_enable().
+*
+* \subsection group_syspm_system_transition_abs_levels System Transitions
+* (Levels of Abstraction)
+*
+* The driver supports two operational abstraction levels for system transitions:
+* -# High Level - The application invokes a single API that manages the entire
+* transition workflow internally. This method simplifies development, requiring minimum
+* user intervention, but offers limited opportunity for customization or speed optimization.
+* -# Low Level - The application remains responsible for all prerequisite checks and initiates
+* each step of the transition sequence. This grants granular control, allowing adjustments for
+* specialized use cases or the fastest possible transitions.
+*
+* \attention The application is responsible for invoking the correct steps at the appropriate
+* stage of transition:
+* - High Level Approach:
+*   + Reduce operating frequency within the CY_SYSPM_BEFORE_TRANSITION callback.
+*   + Use the relevant transition function: \ref Cy_SysPm_SystemEnterHp(),
+*   \ref Cy_SysPm_SystemEnterLp(), or \ref Cy_SysPm_SystemEnterUlp().
+*   + Restore operating frequency in the CY_SYSPM_AFTER_TRANSITION callback.
+*
+* - Low Level Approach:
+*   + The application must carefully follow the outlined sequences described in
+*   \ref group_syspm_system_active_state_transitions for the desired transition.
+*
+*
+* \subsubsection group_syspm_sram_transition_clock SRAM Clock
+* When the system is performing a power transition all the clocks used to access the SRAM
+* must be adapted to the new power mode. The SRAM clock frequency must be reduced
+* before the transition and can be increased after the transition is completed.
 * \subsection group_syspm_system_reg_curr_mode System Regulator Current Mode
 * In addition to system ULP and LP modes, the five different resource
 * power settings can be configured to reduce current consumption:
@@ -731,863 +861,6 @@
 * For more information on the SysPm driver,
 * refer to the technical reference manual (TRM).
 *
-* \section group_syspm_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>5.180</td>
-*     <td>Updated APIs:
-*         \ref Cy_SysPm_Init
-*         \ref Cy_SysPm_SetDeepSleepMode
-*         \ref Cy_SysPm_GetDeepSleepMode
-*         \ref Cy_SysPm_CpuEnterDeepSleep
-*         \ref Cy_SysPm_CoreBuckStatus
-*         \ref Cy_SysPm_RetLdoStatus
-*         \ref Cy_SysPm_SramLdoStatus
-*         \ref Cy_SysPm_MiscLdoStatus
-*         \ref Cy_SysPm_IsSystemLp
-*         \ref Cy_SysPm_IsSystemUlp
-*         \ref Cy_SysPm_IsSystemHp </td>
-*     <td>Code improvements and new functionality for PSE8 devices.</td>
-*   </tr>
-*   <tr>
-*     <td>5.170</td>
-*     <td>Updated API \ref Cy_SysPm_ReadStatus for MPN defined supported core checks.</td>
-*     <td>Code improvements and bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">5.160</td>
-*     <td>Updated APIs:
-*         \ref Cy_SysPm_CpuEnterSleep
-*         \ref Cy_SysPm_CpuEnterDeepSleep
-*         \ref Cy_SysPm_RestoreRegisters
-*         \ref Cy_SysPm_SetDeepSleepMode </td>
-*     <td>Code improvements and bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>Updated enumerators: \ref cy_en_syspm_hvldo_voltage_t.</td>
-*     <td>Fixed enumerator's names to represent an actual HVLDO configuration.</td>
-*   </tr>
-*   <tr>
-*     <td>Newly added APIs \ref Cy_SysPm_SetPPUDeepSleepMode.</td>
-*     <td>Added low power configuration for PSE8 devices.</td>
-*   </tr>
-*   <tr>
-*     <td>5.150</td>
-*     <td>Updated Cy_SysPm_SaveRegisters and Cy_SysPm_RestoreRegisters to support parts which do not implement UDB.</td>
-*     <td>Added support for FX3G2 (CAT1A).</td>
-*   </tr>
-*   <tr>
-*     <td>5.140</td>
-*     <td>Update to cy_en_syspm_hibernate_wakeup_source_t.</td>
-*     <td>Minor defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td>5.130</td>
-*     <td>Added support for new device.</td>
-*     <td>Added support for TRAVEO&trade; II Cluster (CAT1C).</td>
-*   </tr>
-*   <tr>
-*     <td>5.120</td>
-*     <td>Added support for new device.</td>
-*     <td>Added support for PSOC C3 (CAT1B).</td>
-*   </tr>
-*   <tr>
-*     <td>5.110</td>
-*     <td>Newly Added API Cy_BTSS_PowerDepResetCount  and updated \ref Cy_BTSS_PowerDep.</td>
-*     <td>Fixed race condition in PDCM locking/release.</td>
-*   </tr>
-*   <tr>
-*     <td>5.100</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*         Pre-processor check for MXS40SRSS version now groups ver. 2 with ver. 3. Previously ver. 2 was grouped with ver. 1.</td>
-*         API Cy_SysPm_IsDeepSleepRegEnabled is now only available for ULP variant devices.<br>
-*         API Cy_SysPm_ReghcSelectMode is now only available for devices with REGHC or HTRREGHC. Previously all MXS40SRSSv3 devices.<br>
-*         API Cy_SysPm_PmicEnable is now only available for MXS40SRSSv1 devices, or if BACKUP_VBCK IP is present.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>5.95</td>
-*     <td>Added new APIs Cy_SysPm_StoreDSContext_Wfi, \ref Cy_SysPm_TriggerXRes and few macros.</td>
-*     <td>Code enhancements .</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="5">5.94</td>
-*     <td> Newly added APIs \ref Cy_SysPm_SetSOCMemPartActivePwrMode, \ref Cy_SysPm_SetSOCMemPartDsPwrMode, \ref Cy_SysPm_GetSOCMemSramPartActivePwrMode, \ref Cy_SysPm_GetSOCMemSramPartDsPwrMode </td>
-*     <td>Support of SOCMEM control for PSE8 devices added .</td>
-*   </tr>
-*   <tr>
-*     <td>Newly added APIs \ref Cy_SysPm_ReghcConfigure, \ref Cy_SysPm_ReghcDeConfigure.</td>
-*     <td>Added REGHC configuration support for CAT1C devices .</td>
-*   </tr>
-*   <tr>
-*     <td>Newly added APIs \ref Cy_SysPm_SetSysDeepSleepMode, \ref Cy_SysPm_SetAppDeepSleepMode, \ref cy_pd_ppu_set_static_power_mode.</td>
-*     <td>DEEPSLEEP support for PSE8 devices added.</td>
-*   </tr>
-*   <tr>
-*     <td>Newly added APIs \ref Cy_SysPm_Cm33IsActive, \ref Cy_SysPm_Cm33IsSleep, \ref Cy_SysPm_Cm33IsDeepSleep, \ref Cy_SysPm_Cm55IsActive, \ref Cy_SysPm_Cm55IsSleep.</td>
-*     <td>Support for Core status check added for PSE8 devices .</td>
-*   </tr>
-*   <tr>
-*     <td>Newly added APIs \ref Cy_SysPm_SramLdoEnable, \ref Cy_SysPm_SramLdoSetVoltage, \ref Cy_SysPm_SramLdoGetVoltage.</td>
-*     <td>Support for SRAMLDO Regulator added for PSE8 devices .</td>
-*   </tr>
-*   <tr>
-*     <td>5.93</td>
-*     <td>Bug fix in definition of LPCOMP1 as wake-up source.</td>
-*     <td>The low power comparator #1 was unable to wake-up the system from hibernate state.</td>
-*   </tr>
-*   <tr>
-*     <td>5.92</td>
-*     <td>Support for PSE8 devices is added</td>
-*     <td>New devices support added</td>
-*   </tr>
-*   <tr>
-*     <td>5.91</td>
-*     <td>Updated \ref Cy_SysPm_Init() function.</td>
-*     <td>To remove the clearing of reset reason.</td>
-*   </tr>
-*   <tr>
-*     <td>5.90</td>
-*     <td>
-*           Added new function \ref Cy_SysPm_SetupDeepSleepRAM().
-*     </td>
-*     <td>Added support for DSRAM Setup for CAT1B devices.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">5.80</td>
-*     <td>
-*         Support for CAT1C devices.
-*     </td>
-*     <td>Power Management support for CAT1C devices.</td>
-*   <tr>
-*     <td>New API's Added/Modified
-*         * Cy_SysPm_IsBgRefCtrl()
-*         * Cy_SysPm_BgRefCtrl()
-*         * Cy_SysPm_LdoSetMode()
-*         * Cy_SysPm_LdoGetMode()
-*         * Cy_SysPm_LdoIsEnabled()
-*         * Cy_SysPm_Cm7IsActive()
-*         * Cy_SysPm_Cm7IsSleep()
-*         * Cy_SysPm_Cm7IsDeepSleep()
-*         * Cy_SysPm_Cm7IsLowPower()
-*         * Cy_SysPm_Cm0IsActive()
-*         * Cy_SysPm_Cm0IsSleep()
-*         * Cy_SysPm_Cm0IsLowPower()
-*         * Cy_SysPm_Cm0IsDeepSleep()
-*         * Cy_SysPm_IsSystemLp()
-*         * Cy_SysPm_PmicEnable()
-*         * Cy_SysPm_PmicDisable()
-*         * Cy_SysPm_PmicAlwaysEnable()
-*         * Cy_SysPm_PmicEnableOutput()
-*         * Cy_SysPm_PmicDisableOutput()
-*         * Cy_SysPm_PmicLock()
-*         * Cy_SysPm_PmicUnlock()
-*         * Cy_SysPm_PmicIsEnabled()
-*         * Cy_SysPm_PmicIsOutputEnabled()
-*         * Cy_SysPm_PmicIsLocked()
-*         * Cy_SysPm_OvdEnable()
-*         * Cy_SysPm_OvdDisable()
-*         * Cy_SysPm_OvdVdddSelect()
-*         * Cy_SysPm_OvdVddaSelect()
-*         * Cy_SysPm_OvdActionSelect()
-*         * Cy_SysPm_BodEnable()
-*         * Cy_SysPm_BodDisable()
-*         * Cy_SysPm_BodVdddSelect()
-*         * Cy_SysPm_BodVddaSelect()
-*         * Cy_SysPm_BodActionSelect()
-*         * Cy_SysPm_SupplySupervisionStatus()
-*         * Cy_SysPm_SystemIsMinRegulatorCurrentSet()
-*         * Cy_SysPm_LinearRegDisable()
-*         * Cy_SysPm_LinearRegEnable()
-*         * Cy_SysPm_LinearRegGetStatus()
-*         * Cy_SysPm_DeepSleepRegDisable()
-*         * Cy_SysPm_DeepSleepRegEnable()
-*         * Cy_SySPm_IsDeepSleepRegEnabled()
-*         * Cy_SysPm_ReghcSelectMode()
-*         * Cy_SysPm_ReghcGetMode()
-*         * Cy_SysPm_ReghcSelectDriveOut()
-*         * Cy_SysPm_ReghcGetDriveOut()
-*         * Cy_SysPm_ReghcAdjustOutputVoltage()
-*         * Cy_SysPm_ReghcDisableIntSupplyWhileExtActive()
-*         * Cy_SysPm_ReghcEnableIntSupplyWhileExtActive()
-*         * Cy_SysPm_ReghcDisablePmicEnableOutput()
-*         * Cy_SysPm_ReghcEnablePmicEnableOutput()
-*         * Cy_SysPm_ReghcEnablePmicStatusInput()
-*         * Cy_SysPm_ReghcDisablePmicStatusInput()
-*         * Cy_SysPm_ReghcSetPmicStatusWaitTime()
-*         * Cy_SysPm_ReghcIsConfigured()
-*         * Cy_SysPm_ReghcSetConfigured()
-*         * Cy_SysPm_ReghcDisable()
-*         * Cy_SysPm_ReghcEnable()
-*         * Cy_SysPm_ReghcDisablePmicStatusTimeout()
-*         * Cy_SysPm_ReghcEnablePmicStatusTimeout()
-*         * Cy_SysPm_ReghcIsEnabled()
-*         * Cy_SysPm_ReghcIsStatusOk()
-*         * Cy_SysPm_ReghcIsSequencerBusy()
-*         * Cy_SysPm_ReghcDisableVAdj()
-*         * Cy_SysPm_ReghcEnableVAdj()
-*         * Cy_SysPm_ReghcDisablePmicInDeepSleep()
-*         * Cy_SysPm_ReghcEnablePmicInDeepSleep()
-*         * Cy_SysPm_ReghcIsOcdWithinLimits()
-*         * Cy_SysPm_ReghcIsCircuitEnabledAndOperating()
-*
-*     </td>
-*     <td>New API's to handle CAT1C devices.</td>
-*   <tr>
-*     <td>Added \ref group_syspm_functions_ovd, \ref group_syspm_functions_bod, \ref group_syspm_functions_linearreg and \ref group_syspm_functions_reghc API's.</td>
-*     <td>New API's to handle Power Management in CAT1C Devices.</td>
-*   </tr>
-*   <tr>
-*     <td>
-*           Added following functions for BTSS IP Reset:
-*           \ref Cy_BTSS_AssertReset(), \ref Cy_BTSS_IsResetAsserted(),
-*     </td>
-*     <td>Added API's to support for BTSS IP Reset.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">5.70</td>
-*     <td>
-*         Support for CAT1B devices.
-*     </td>
-*     <td>Power Management support for CAT1B devices.</td>
-*   <tr>
-*     <td>New API's Added
-*         * Cy_SysPm_Init()
-*         * Cy_SysPm_SystemLpActiveEnter()
-*         * Cy_SysPm_SystemLpActiveExit()
-*         * Cy_SysPm_IsSystemLpActiveEnabled()
-*         * Cy_SysPm_SetDeepSleepMode()
-*         * Cy_SysPm_GetDeepSleepMode()
-*         * Cy_SysPm_GetBootMode()
-*         * Cy_SysPm_TriggerSoftReset()
-*         * Cy_SysPm_GetHibernateWakeupCause()
-*         * Cy_SysPm_ClearHibernateWakeupCause()
-*         * Cy_SysPm_CoreBuckSetVoltage()
-*         * Cy_SysPm_CoreBuckGetVoltage()
-*         * Cy_SysPm_CoreBuckSetMode()
-*         * Cy_SysPm_CoreBuckGetMode()
-*         * Cy_SysPm_CoreBuckConfig()
-*         * Cy_SysPm_CoreBuckStatus()
-*         * Cy_SysPm_LdoExtraRequesterConfig()
-*         * Cy_SysPm_SdrConfigure()
-*         * Cy_SysPm_SdrSetVoltage()
-*         * Cy_SysPm_SdrGetVoltage()
-*         * Cy_SysPm_SdrEnable()
-*         * Cy_SysPm_IsSdrEnabled()
-*         * Cy_SysPm_HvLdoConfigure()
-*         * Cy_SysPm_HvLdoSetVoltage()
-*         * Cy_SysPm_HvLdoGetVoltage()
-*         * Cy_SysPm_HvLdoEnable()
-*         * Cy_SysPm_IsHvLdoEnabled()
-*         * Cy_SysPm_IoUnfreeze()
-*         * Cy_SysPm_DeepSleepIoIsFrozen()
-*         * Cy_SysPm_DeepSleepIoUnfreeze()
-*         * Cy_SysPm_BackupWordStore()
-*         * Cy_SysPm_BackupWordReStore()
-*         * Cy_SysPm_CpuEnterRAMOffDeepSleep()
-*
-*     </td>
-*     <td>New API's to handle CAT1B devices.</td>
-*   <tr>
-*     <td>Added \ref group_syspm_ppu, \ref group_syspm_pdcm and \ref group_syspm_btss API's.</td>
-*     <td>New API's to handle Power Management in CAT1B Devices.</td>
-*   </tr>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">5.60</td>
-*     <td>
-*         For PSoC64 device, allow CM0+ to call CY_PRA_FUNCTION_CALL_X_X API in functions
-*         accessing FUNCTION_POLICY registers. So that System Configuration structure is
-*         updated with new parameters.
-*     </td>
-*     <td>For PSoC64 device, System configuration can be done from CM0+ application.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>5.50</td>
-*     <td>
-*           Added following functions for SRAM power mode configuration:
-*           \ref Cy_SysPm_SetSRAMMacroPwrMode(), \ref Cy_SysPm_SetSRAMPwrMode(),
-*           \ref Cy_SysPm_GetSRAMMacroPwrMode(). For PSoC 64 devices these
-*           functions can return PRA driver status value.
-*     </td>
-*     <td>Added support for SRAM power mode configuration.</td>
-*   </tr>
-*   <tr>
-*     <td>5.40</td>
-*     <td>Support for CM33.</td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">5.30</td>
-*     <td>
-*           Updated \ref Cy_SysPm_LdoSetVoltage() and Cy_SysPm_SystemSetMinRegulatorCurrent()
-*           to extend the wakeup delay from Deep Sleep for 1.1 V LDO for the case when system
-*           regulator is configured to the minimum current mode. Please refer to
-*           \ref group_syspm_system_reg_curr_mode for the more details on system regulator modes.
-*     </td>
-*     <td>Ensure valid VCCD upon wakeup for the system regulator's minimum current mode.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>Updated the \ref Cy_SysPm_CpuEnterDeepSleep() function to ensure the Low-power mode
-*         entry abort when a system call initiated by Cortex-M4 or Cortex-M0+ is pending.</td>
-*     <td>Fixed the issue when the non-blocking flash write initiated by the Cortex-M4 application
-*         fails to complete because the Cortex-M0+ CPU is in Deep Sleep mode.</td>
-*   </tr>
-*   <tr>
-*     <td>5.20</td>
-*     <td>
-*           Updated \ref Cy_SysPm_CpuEnterDeepSleep() function for
-*           the CYB06xx7 devices.
-*     </td>
-*     <td>Added CYB06xx7 device support.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">5.10</td>
-*     <td>
-*           Updated the following functions for the PSoC 64 devices:
-*           \ref Cy_SysPm_CpuEnterDeepSleep(), \ref Cy_SysPm_SystemEnterLp(),
-*           \ref Cy_SysPm_SystemEnterUlp, \ref Cy_SysPm_SystemEnterHibernate,
-*           \ref Cy_SysPm_SetHibernateWakeupSource,
-*           \ref Cy_SysPm_ClearHibernateWakeupSource,
-*           \ref Cy_SysPm_SystemSetMinRegulatorCurrent,
-*           \ref Cy_SysPm_SystemSetNormalRegulatorCurrent,
-*           \ref Cy_SysPm_LdoSetVoltage, \ref Cy_SysPm_LdoSetMode,
-*           \ref Cy_SysPm_BuckEnable, \ref Cy_SysPm_BuckSetVoltage1,
-*           Following functions are updated as unavailable for PSoC 64 devices:
-*           \ref Cy_SysPm_WriteVoltageBitForFlash, \ref Cy_SysPm_SaveRegisters,
-*           \ref Cy_SysPm_RestoreRegisters,
-*           \ref Cy_SysPm_BuckSetVoltage2, \ref Cy_SysPm_BuckEnableVoltage2,
-*           \ref Cy_SysPm_BuckDisableVoltage2,
-*           \ref Cy_SysPm_BuckSetVoltage2HwControl, SetReadMarginTrimUlp,
-*           SetReadMarginTrimLp, SetWriteAssistTrimUlp, IsVoltageChangePossible.
-*     </td>
-*     <td>
-*           Added PSoC 64 device support.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>
-*           For PSoC 64 devices the following functions can return PRA driver
-*           status value:
-*           \ref Cy_SysPm_CpuEnterDeepSleep(),
-*           \ref Cy_SysPm_SystemEnterHibernate(),
-*           \ref Cy_SysPm_SystemEnterLp(),
-*           \ref Cy_SysPm_SystemEnterUlp(),
-*           \ref Cy_SysPm_SystemSetMinRegulatorCurrent(),
-*           \ref Cy_SysPm_SystemSetNormalRegulatorCurrent(),
-*           \ref Cy_SysPm_LdoSetVoltage(), \ref Cy_SysPm_LdoSetMode(),
-*           \ref Cy_SysPm_BuckEnable(), \ref Cy_SysPm_BuckSetVoltage1(),
-*     </td>
-*     <td>
-*           For PSoC 64 devices the SysPm driver uses the PRA driver to change
-*           the protected registers. A SysPm driver function that calls a PRA
-*           driver function will return the PRA error status code if the called
-*           PRA function returns an error. In these cases, refer to PRA return
-*           statuses \ref cy_en_pra_status_t.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>5.0</td>
-*     <td>
-*           Updated the internal IsVoltageChangePossible() function
-*           (\ref Cy_SysPm_LdoSetVoltage(), \ref Cy_SysPm_BuckEnable(),
-*           \ref Cy_SysPm_BuckSetVoltage1(), \ref Cy_SysPm_SystemEnterUlp()
-*           and \ref Cy_SysPm_SystemEnterLp() functions are affected).
-*           For all the devices except CY8C6xx6 and CY8C6xx7 added the check if
-*           modifying the RAM trim register is allowed.
-*     </td>
-*     <td>
-*           Protecting the system from a possible CPU hard-fault cause. If you
-*           are using PC > 0 in your project and you want to switch the power
-*           modes (LP<->ULP), you need to unprotect the CPUSS_TRIM_RAM_CTL and
-*           CPUSS_TRIM_ROM_CTL registers and can use a programmable PPU for that.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">4.50</td>
-*     <td>Updated the \ref Cy_SysPm_CpuEnterDeepSleep() function.</td>
-*     <td>
-*           Updated the mechanism for saving/restoring not retained UDB and clock
-*           registers in the Cy_SysPm_CpuEnterDeepSleep() function.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>
-*           Updated the \ref Cy_SysPm_CpuEnterDeepSleep() function to use values
-*           stored into the variable instead of reading them directly from
-*           SFLASH memory.
-*     </td>
-*     <td>
-*           SFLASH memory can be unavailable to read the correct value after
-*           a Deep sleep state on the CY8C6xx6 and CY8C6xx7 devices.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>4.40</td>
-*     <td>
-*           Fixed \ref Cy_SysPm_LdoSetVoltage(), \ref Cy_SysPm_BuckEnable(), and
-*           \ref Cy_SysPm_BuckSetVoltage1() functions. Corrected the sequence for
-*           setting the RAM trim value. This behavior is applicable for all
-*           devices, except CY8C6xx6 and CY8C6xx7.
-*     </td>
-*     <td>
-*           For all devices, except CY8C6xx6 and CY8C6xx7, the trim
-*           sequence was setting incorrect trim values for RAM.
-*           This could cause a CPU hard fault.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>4.30</td>
-*     <td>
-*           Corrected the \ref Cy_SysPm_CpuEnterDeepSleep() function.
-*           Removed early access to flash values after system Deep Sleep, when
-*           flash is not ready to be used. Now the \ref Cy_SysPm_CpuEnterDeepSleep()
-*           function does not access flash until the flash is ready.
-*           This behavior is applicable only on multi-CPU devices CY8C6xx6 and
-*           CY8C6xx7.
-*     </td>
-*     <td>
-*           For CY8C6xx6 and CY8C6xx7 early access to flash values after
-*           system Deep Sleep could potentially cause hard fault.
-*           Now after system Deep Sleep only ram values are used before
-*           flash is ready.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">4.20</td>
-*     <td>Updated the \ref Cy_SysPm_RegisterCallback() function.
-*         Added a new element to callback structure -
-*         cy_stc_syspm_callback_t.order</td>
-*     <td>Enhanced the mechanism of callbacks registration and execution. Now
-*         callbacks can be ordered during registration. This means the
-*         execution flow now is based on cy_stc_syspm_callback_t.order.
-*         For more details, see the \ref group_syspm_cb_registering section. </td>
-*   </tr>
-*   <tr>
-*     <td>Updated \ref group_syspm_cb section.
-*         Added \ref group_syspm_cb_registering section</td>
-*     <td>Added explanations how to use updated callbacks registration
-*         mechanism. </td>
-*   </tr>
-*   <tr>
-*     <td>Added new function  \ref Cy_SysPm_GetFailedCallback()</td>
-*     <td>Added new functionality to support callback debugging</td>
-*   </tr>
-*   <tr>
-*     <td>4.10.1</td>
-*     <td>
-*           Updated the Cy_SysPm_BackupEnableVoltageMeasurement() description
-*     </td>
-*     <td>
-*           Changed the scale number from 40% to 10% to correctly reflect a real value.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">4.10</td>
-*     <td>Updated the \ref Cy_SysPm_CpuEnterDeepSleep() function.</td>
-*     <td>
-*         Corrected the mechanism for saving/restoring not retained UDB
-*         registers in the Cy_SysPm_CpuEnterDeepSleep() function.
-*
-*         Now, the \ref Cy_SysPm_CpuEnterDeepSleep() function does not put CM0+ CPU
-*         into Deep Sleep and returns \ref CY_SYSPM_SYSCALL_PENDING status, if a
-*         syscall operation is pending. This behavior is applicable on multi-CPU
-*         devices except CY8C6xx6 and CY8C6xx7.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>Updated the \ref Cy_SysPm_CpuEnterSleep() function.</td>
-*     <td>Removed the redundant second call of the WFE() instruction on CM4 CPU.
-*         This change is applicable for all devices except CY8C6xx6,
-*         CY8C6xx7.
-*    </td>
-*   </tr>
-*   <tr>
-*     <td>Added a new \ref CY_SYSPM_SYSCALL_PENDING return status. </td>
-*     <td>Expanded driver return statuses for indicating new possible events in
-*         the driver.
-*     </td>
-*   </tr>
-*   </tr>
-*   <tr>
-*     <td rowspan="6">4.0</td>
-*     <td>
-*          Flattened the organization of the driver source code into the single
-*          source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>
-*          Changed power modes names. See \ref group_syspm_system_power_modes.
-*
-*          Renamed the following functions:
-*           - Cy_SysPm_Sleep to Cy_SysPm_CpuEnterSleep
-*           - Cy_SysPm_DeepSleep to Cy_SysPm_CpuEnterDeepSleep
-*           - Cy_SysPm_Hibernate to Cy_SysPm_SystemEnterHibernate
-*           - Cy_SysPm_SleepOnExit to Cy_SysPm_CpuSleepOnExit
-*           - Cy_SysPm_EnterLowPowerMode to Cy_SysPm_SystemSetMinRegulatorCurrent
-*           - Cy_SysPm_ExitLowPowerMode to Cy_SysPm_SystemSetNormalRegulatorCurrent
-*           - Cy_SysPm_IsLowPower to Cy_SysPm_IsSystemUlp
-*
-*          For all renamed functions, added BWC macros to simplify migration.
-*     </td>
-*     <td>Device power modes simplification</td>
-*   </tr>
-*   <tr>
-*     <td>
-*         Added the following functions:
-*          - Cy_SysPm_LdoSetMode
-*          - Cy_SysPm_LdoGetMode
-*          - Cy_SysPm_WriteVoltageBitForFlash
-*          - Cy_SysPm_SaveRegisters
-*          - Cy_SysPm_RestoreRegisters
-*          - Cy_SysPm_CpuSendWakeupEvent
-*          - Cy_SysPm_SystemIsMinRegulatorCurrentSet
-*          - Cy_SysPm_SystemEnterLp
-*          - Cy_SysPm_SystemEnterUlp
-*          - Cy_SysPm_IsSystemLp
-*     </td>
-*     <td>Added new functionality to configure device power modes</td>
-*   </tr>
-*   <tr>
-*     <td>
-*          Callback mechanism changes:
-*          - Removed the limitation for numbers of registered callbacks. Previously it
-*            was possible to register up to 32 callbacks. Now the maximum registered
-*            callbacks is not limited by the SysPm driver.
-*          - Internal enhancement in callback execution flow.
-*          - <b>Changes with BWC issues</b>:
-*            -# Removed the <b>mode</b> element from cy_stc_syspm_callback_params_t
-*               structure. Now this element is a separate parameter in the
-*               callback function.
-*            -# Changed the interface of the callback function,
-*               added the cy_en_syspm_callback_mode_t mode parameter:
-*               - was cy_en_syspm_status_t FuncName (cy_stc_syspm_callback_params_t *callbackParams);
-*               - now cy_en_syspm_status_t FuncName (cy_stc_syspm_callback_params_t *callbackParams,
-*                 cy_en_syspm_callback_mode_t mode);
-*     </td>
-*     <td>Callback mechanism enhancements</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>Added \ref group_syspm_migration_guide_for_syspm_4_0.</td>
-*     <td>Provided a guidance for migrating to the latest SysPm driver version</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">3.0</td>
-*     <td>Removed three functions:
-*          - Cy_SysPm_Cm4IsLowPower
-*          - Cy_SysPm_Cm0IsLowPower
-*          - Cy_SysPm_IoFreeze
-*
-*         Removed the following macros:
-*          - CY_SYSPM_STATUS_CM0_LOWPOWER
-*          - CY_SYSPM_STATUS_CM4_LOWPOWER
-*     </td>
-*     <td>
-*         Removed the two functions Cy_SysPm_Cm4IsLowPower,
-*         Cy_SysPm_Cm0IsLowPower because low power mode is related to the
-*         device and not to the CPU.
-*         The function Cy_SysPm_IsSystemUlp must be used instead of these two
-*         functions.
-*
-*         Removed Cy_SysPm_IoFreeze because the are no known use cases with IOs
-*         freeze in power modes, except Hibernate. In Hibernate power mode, the
-*         IOs are frozen automatically.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>
-*         Corrected the syspm callback mechanism behavior. Now callbacks with
-*         CY_SYSPM_AFTER_TRANSITION mode are executed from the last registered
-*         to the first registered. Previously callbacks with
-*         CY_SYSPM_AFTER_TRANSITION mode were executed from last executed to
-*         the first registered.
-*     </td>
-*     <td>Corrected the syspm callbacks execution sequence</td>
-*   </tr>
-*   <tr>
-*     <td>2.21</td>
-*     <td>Removed saving/restoring the SysClk measurement counters while
-*         in Deep Sleep routine
-*     </td>
-*     <td>Removed possible corruption of SysClk measurement counters if the
-*         core wakes up from the Deep Sleep.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>2.20</td>
-*     <td> \n
-*          * Added support for changing core voltage when the protection context
-*            is other that zero. Such support is available only for devices
-*            that support modifying registers via syscall.
-*
-*          * For preproduction PSoC 6 devices the changing core voltage
-*            is prohibited when the protection context is other than zero.
-*
-*          * Updated the following functions. They now have a
-*            \ref cy_en_syspm_status_t return value and use a syscall:
-*            - Cy_SysPm_LdoSetVoltage
-*            - Cy_SysPm_BuckSetVoltage1
-*            - Cy_SysPm_BuckEnable
-*
-*            No backward compatibility issues.
-*
-*          * Added new CY_SYSPM_CANCELED element in
-*            the \ref cy_en_syspm_status_t.
-*
-*          * Documentation updates.
-*
-*          * Added warning that
-*            Cy_SysPm_PmicDisable(CY_SYSPM_PMIC_POLARITY_LOW) is not
-*            supported by hardware.
-*     </td>
-*     <td>Added support for changing the core voltage in protection context
-*         higher than zero (PC > 0).
-*
-*         Documentation update and clarification
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>2.10</td>
-*     <td> \n
-*          * Changed names for all Backup, Buck-related functions, defines,
-*            and enums
-*          * Changed next power mode function names:
-*            Cy_SysPm_EnterLowPowerMode
-*            Cy_SysPm_ExitLpMode
-*            Cy_SysPm_SetHibWakeupSource
-*            Cy_SysPm_ClearHibWakeupSource
-*            Cy_SysPm_GetIoFreezeStatus
-*          * Changed following enumeration names:
-*            cy_en_syspm_hib_wakeup_source_t
-*            cy_en_syspm_simo_buck_voltage1_t
-*            cy_en_syspm_simo_buck_voltage2_t
-*          * Updated Power Modes documentation section
-*          * Added Low Power Callback Managements section
-*          * Documentation edits
-*     </td>
-*     <td> \n
-*          * Improvements made based on usability feedback
-*          * Documentation update and clarification
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>2.0</td>
-*     <td>Enhancement and defect fixes:
-*         * Added input parameter(s) validation to all public functions
-*         * Removed "_SysPm_" prefixes from the internal functions names
-*         * Changed the type of elements with limited set of values, from
-*           uint32_t to enumeration
-*         * Enhanced syspm callback mechanism
-*         * Added functions to control:
-*           * Power supply for the Vddbackup
-*           * Supercapacitor charge
-*           * Vddbackup measurement by ADC
-*     </td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
-*
-* \subsection group_syspm_migration_guide_for_syspm_4_0 Migration Guide: Moving to SysPm v4.0
-*
-* This section provides a guideline to migrate from v2.21 to v4.0 of the SysPm
-* driver.
-*
-* \subsubsection group_syspm_migration_into_4_0_intro Introduction
-*
-* If your application currently uses SysPm v2.21 APIs, you must
-* migrate to SysPm v4.0 so that your application continues to operate.
-*
-* Take a few minutes to review the following information:
-* - The APIs related to PSoC 6 \ref group_syspm_power_modes are changed. Old
-*   power modes APIs function names are now deprecated and should not be used
-*   in new applications.
-* - The \ref group_syspm_cb mechanism is changed. The mode element is removed
-*   from cy_stc_syspm_callback_params_t structure. Now this element is a
-*   separate parameter in the callback function.
-*
-* \subsubsection group_syspm_migration_into_4_0_names Migrating to new power modes APIs.
-* The table below shows the new APIs names that should be used in the
-* application instead of old names:
-*
-* <table class="doxtable">
-*   <tr><th>SysPm v2.21 API name</th><th>SysPm v4.0 API name</th><th>Comment</th></tr>
-*   <tr>
-*     <td>Cy_SysPm_Sleep</td>
-*     <td>\ref Cy_SysPm_CpuEnterSleep</td>
-*     <td>Renamed, no functional changes</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_DeepSleep</td>
-*     <td>\ref Cy_SysPm_CpuEnterDeepSleep</td>
-*     <td>Renamed, no functional changes</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_Hibernate</td>
-*     <td>\ref Cy_SysPm_SystemEnterHibernate</td>
-*     <td>Renamed, no functional changes</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_SleepOnExit</td>
-*     <td>\ref Cy_SysPm_CpuSleepOnExit</td>
-*     <td>Renamed, no functional changes</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_IsLowPower</td>
-*     <td>\ref Cy_SysPm_IsSystemUlp</td>
-*     <td>Now this function checks whether the device is in ULP mode</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_EnterLowPowerMode</td>
-*     <td>\ref Cy_SysPm_SystemSetMinRegulatorCurrent</td>
-*     <td>The low power active mode does not exist anymore.
-*         The \ref group_syspm_system_reg_curr_mode is implemented instead </td>
-*     </tr>
-*   <tr>
-*     <td>Cy_SysPm_ExitLowPowerMode</td>
-*     <td>\ref Cy_SysPm_SystemSetNormalRegulatorCurrent</td>
-*     <td>The low power active mode does not exist anymore.
-*         The \ref group_syspm_system_reg_curr_mode is implemented instead</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_Cm4IsLowPower</td>
-*     <td>Removed</td>
-*     <td>This function is removed because low power mode is related to the system
-*         and not to the CPU</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_Cm0IsLowPower</td>
-*     <td>Removed</td>
-*     <td>This function is removed because low power mode is related to the system
-*         and not to the CPU</td>
-*   </tr>
-*   <tr>
-*     <td>Cy_SysPm_IoFreeze</td>
-*     <td>Removed</td>
-*     <td>This function is removed because there are no known use cases to
-*         freeze in power modes other than Hibernate</td>
-*   </tr>
-* </table>
-*
-* In addition to renamed power modes APIs, the following defines and enum
-* elements names are changed:
-* <table class="doxtable">
-*   <tr><th>SysPm v2.21 defines</th><th>SysPm v4.0 defines</th><th>Comment</th></tr>
-*   <tr>
-*     <td>CY_SYSPM_ENTER_LP_MODE</td>
-*     <td>CY_SYSPM_ULP</td>
-*     <td>The \ref cy_en_syspm_callback_type_t element is renamed to align
-*         callback types names to new power modes names</td>
-*   </tr>
-*   <tr>
-*     <td>CY_SYSPM_EXIT_LP_MODE</td>
-*     <td>CY_SYSPM_LP</td>
-*     <td>The \ref cy_en_syspm_callback_type_t element is renamed to align
-*         callback types names to new power modes names</td>
-*   <tr>
-*     <td>CY_SYSPM_STATUS_SYSTEM_LOWPOWER</td>
-*     <td>CY_SYSPM_STATUS_SYSTEM_ULP</td>
-*     <td>Status define, renamed to align new power modes names
-*         and abbreviations</td>
-*   </tr>
-* </table>
-*
-* \subsubsection group_syspm_migration_into_4_0_callbacks Migrating to SysPm v4.0 callbacks
-*
-* Review this section if your application is using the syspm callback mechanism.
-*
-* To migrate to SysPm v4.0 callbacks you need to perform the following steps:
-* -# Remove mode element from all \ref cy_stc_syspm_callback_params_t
-*    structures defined in your application. In SysPm v2.21 this structure is:
-*    \code{.c}
-*    cy_stc_syspm_callback_params_t deepSleepParam1 =
-*    {
-*        CY_SYSPM_CHECK_READY,
-*        &HW1_address,
-*        &context
-*    };
-*    \endcode
-*
-*    In SysPm v4.0 this structure should be:
-*    \code{.c}
-*    cy_stc_syspm_callback_params_t deepSleepParam1 =
-*    {
-*        &HW1_address,
-*        &context
-*    };
-*    \endcode
-* -# Update all defined syspm callback function prototypes to have two
-*    parameters instead of one. The SysPm v2.21 callback function prototype is:
-*    \code{.c}
-*    cy_en_syspm_status_t Func1 (cy_stc_syspm_callback_params_t *callbackParams);
-*    \endcode
-*    The SysPm v4.0 callback function prototype should be:
-*    \code{.c}
-*    cy_en_syspm_status_t Func1 (cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode);
-*    \endcode
-* -# Change the syspm callback function implementation to not use a mode
-*    value as an element of the callbackParams structure, but, as separate
-*    function parameter:
-*    SysPm v2.21 callback function implementation:
-*    \code{.c}
-*    cy_en_syspm_status_t Func1(cy_stc_syspm_callback_params_t *callbackParams)
-*    {
-*        cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
-*
-*        switch(callbackParams->mode)
-*        {
-*            case CY_SYSPM_CHECK_READY:
-*            ...
-*        }
-*
-*        return (retVal);
-*    }
-*    \endcode
-*    SysPm v4.0 callback function implementation:
-*    \code{.c}
-*    cy_en_syspm_status_t Func1(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)
-*    {
-*        cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
-*
-*        switch(mode)
-*        {
-*            case CY_SYSPM_CHECK_READY:
-*            ...
-*        }
-*
-*        return (retVal);
-*    }
-*    \endcode
-* After the changes above are done, you have successfully migrated to SysPm v4.0.
-*
-* Do not forget to review newly added functionality for SysPm v4.0 in the
-* \ref group_syspm_changelog.
-
 * \defgroup group_syspm_macros Macros
 * \defgroup group_syspm_functions Functions
 * \{
@@ -1616,7 +889,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "cy_device.h"
 #include "cy_device_headers.h"
 #include "cy_syslib.h"
 
@@ -1644,7 +916,7 @@ extern "C" {
 #define CY_SYSPM_DRV_VERSION_MAJOR       5
 
 /** Driver minor version */
-#define CY_SYSPM_DRV_VERSION_MINOR       180
+#define CY_SYSPM_DRV_VERSION_MINOR       190
 
 /** SysPm driver identifier */
 #define CY_SYSPM_ID                      (CY_PDL_DRV_ID(0x10U))
@@ -2287,7 +1559,7 @@ typedef enum
 typedef enum
 {
     CY_SYSPM_CORE_BUCK_MODE_LP    = 0x01U,    /**< Low Power Mode. */
-    CY_SYSPM_CORE_BUCK_MODE_HP    = 0x11U,    /**< High Power Mode(Low Ripple Mode) */
+    CY_SYSPM_CORE_BUCK_MODE_HP    = 0x11U,    /**< High Performance mode(Low Ripple Mode) */
 } cy_en_syspm_core_buck_mode_t;
 
 
@@ -2886,7 +2158,7 @@ typedef struct
     uint8_t   voltageSel;      /**< Core Buck Voltage Select \ref cy_en_syspm_core_buck_voltage_t */
     uint8_t   mode;            /**< Core Buck Mode :
                                     0x01 - Low Power Mode,
-                                    0x11 - High Power Mode(Low Ripple Mode) */
+                                    0x11 - High Performance mode(Low Ripple Mode) */
     bool      override;        /**< Core Buck Override : Forces Corebuck to
                                     use the setting in the PWR_CBUCK_CTL register */
     bool      copySettings;    /**< Core Buck Copy Settings :
@@ -2906,7 +2178,7 @@ typedef struct
     uint8_t   coreBuckVoltSel;     /**< Core Buck Voltage Select \ref cy_en_syspm_core_buck_voltage_t */
     uint8_t   coreBuckMode;        /**< Core Buck Mode :
                                     0x01 - Low Power Mode,
-                                    0x11 - High Power Mode(Low Ripple Mode) */
+                                    0x11 - High Performance mode(Low Ripple Mode) */
 
     /* This field applicable only for SDR0 */
     uint8_t   coreBuckDpSlpVoltSel; /**< Deep Sleep Core Buck Voltage Select \ref cy_en_syspm_core_buck_voltage_t */
@@ -2914,7 +2186,7 @@ typedef struct
     /* This field applicable only for SDR0 */
     uint8_t   coreBuckDpSlpMode;    /**< Deep sleep Core Buck Mode :
                                      0x01 - Low Power Mode,
-                                     0x11 - High Power Mode(Low Ripple Mode) */
+                                     0x11 - High Performance mode(Low Ripple Mode) */
 
     uint8_t   sdrVoltSel;           /**< SDR Regulator Voltage Select \ref cy_en_syspm_sdr_voltage_t */
 
@@ -2960,6 +2232,24 @@ typedef struct
 } cy_stc_syspm_extraReq_params_t;
 
 #endif
+
+/** \cond INTERNAL */
+#if defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
+/** This is only used by secure-aware. The structure contains enable CM55 configuration parameters */
+typedef struct {
+    uint32_t vectorTableOffset;
+    cy_app_cpu_dbg_port_type_t dbgMode;
+    uint32_t waitus;
+} cy_pdl_syspm_srf_syscm55enable_in_t;
+
+
+/** This is only used by secure-aware. The structure contains reset CM55 configuration parameters */
+typedef struct {
+    uint32_t waitus;
+} cy_pdl_syspm_srf_syscm55reset_in_t;
+
+#endif
+/** \endcond */
 /** \} group_syspm_data_structures */
 
 /**
@@ -3570,6 +2860,70 @@ cy_en_syspm_status_t Cy_SysPm_SetSOCMEMDeepSleepMode(cy_en_syspm_deep_sleep_mode
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SysPm_SetPPUDeepSleepMode(uint32_t ppu, uint32_t mode);
 
+/*******************************************************************************
+* Function Name: Cy_SysPm_SystemTransitionHpToLp
+****************************************************************************//**
+*
+* Performs system transition from High Performance mode(HP) to Low Power mode(LP) mode.
+*
+* \note This API is secure aware. See header subsection Secure Aware SYSPM for further details.
+* The involved PPC regions is PROT_PERI0_SRSS_MAIN.
+*
+* \return
+* - CY_SYSPM_SUCCESS - Successfully transitioned from HP to LP mode.
+* - CY_SYSPM_FAIL - The transition failed.
+*
+*******************************************************************************/
+cy_en_syspm_status_t Cy_SysPm_SystemTransitionHpToLp(void);
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_SystemTransitionLpToHp
+****************************************************************************//**
+*
+* Performs system transition from Low Power mode(LP) to High Performance mode(HP) mode.
+*
+* \note This API is secure aware. See header subsection Secure Aware SYSPM for further details.
+* The involved PPC regions is PROT_PERI0_SRSS_MAIN.
+*
+* \return
+* - CY_SYSPM_SUCCESS - Successfully transitioned from LP to HP mode.
+* - CY_SYSPM_FAIL - The transition failed.
+*
+*******************************************************************************/
+cy_en_syspm_status_t Cy_SysPm_SystemTransitionLpToHp(void);
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_SystemTransitionUlpToLp
+****************************************************************************//**
+*
+* Performs system transition from Ultra Low Power mode(ULP) to Low Power mode(LP) mode.
+*
+* \note This API is secure aware. See header subsection Secure Aware SYSPM for further details.
+* The involved PPC regions is PROT_PERI0_SRSS_MAIN.
+*
+* \return
+* - CY_SYSPM_SUCCESS - Successfully transitioned from ULP to LP mode.
+* - CY_SYSPM_FAIL - The transition failed.
+*
+*******************************************************************************/
+cy_en_syspm_status_t Cy_SysPm_SystemTransitionUlpToLp(void);
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_SystemTransitionLpToUlp
+****************************************************************************//**
+*
+* Performs system transition from Low Power mode(LP) to Ultra Low Power mode(ULP) mode.
+*
+* \note This API is secure aware. See header subsection Secure Aware SYSPM for further details.
+* The involved PPC regions is PROT_PERI0_SRSS_MAIN.
+*
+* \return
+* - CY_SYSPM_SUCCESS - Successfully transitioned from LP to ULP mode.
+* - CY_SYSPM_FAIL - The transition failed.
+*
+*******************************************************************************/
+cy_en_syspm_status_t Cy_SysPm_SystemTransitionLpToUlp(void);
+
 
 #endif /* defined (CY_IP_MXS22SRSS) */
 
@@ -3798,6 +3152,10 @@ he LP mode
 * callbacks with the CY_SYSPM_CHECK_READY parameter call return CY_SYSPM_FAIL,
 * the remaining CY_SYSPM_LP callbacks with the
 * CY_SYSPM_CHECK_READY parameter calls are skipped.
+* All of the CY_SYSPM_LP callbacks with the CY_SYSPM_BEFORE_TRANSITION
+* require to reduce the clock frequency before entering LP mode.
+* All of the CY_SYSPM_LP callbacks with the CY_SYSPM_AFTER_TRANSITION
+* may now increase the Clock frequency to the target for LP mode.
 *
 * After a CY_SYSPM_FAIL, all of the CY_SYSPM_LP callbacks with
 * CY_SYSPM_CHECK_FAIL parameter are executed that correspond to the
@@ -3879,6 +3237,11 @@ cy_en_syspm_status_t Cy_SysPm_SystemEnterLp(void);
 * callback with the CY_SYSPM_CHECK_READY parameter call returns CY_SYSPM_FAIL,
 * the remaining CY_SYSPM_ULP callbacks with the CY_SYSPM_CHECK_READY parameter
 * are skipped.
+*
+* All of the CY_SYSPM_ULP callbacks with the CY_SYSPM_BEFORE_TRANSITION
+* require to reduce the clock frequency before entering ULP mode.
+* All of the CY_SYSPM_ULP callbacks with the CY_SYSPM_AFTER_TRANSITION
+* may now increase the Clock frequency to the target for ULP mode.
 *
 * After a CY_SYSPM_FAIL, all of the CY_SYSPM_ULP callbacks with the
 * CY_SYSPM_CHECK_FAIL parameter are executed that correspond to the
@@ -3962,6 +3325,10 @@ cy_en_syspm_status_t Cy_SysPm_SystemEnterUlp(void);
 * callback with the CY_SYSPM_CHECK_READY parameter call returns CY_SYSPM_FAIL,
 * the remaining CY_SYSPM_HP callbacks with the CY_SYSPM_CHECK_READY parameter
 * are skipped.
+* All of the CY_SYSPM_HP callbacks with the CY_SYSPM_BEFORE_TRANSITION
+* require to reduce the clock frequency before entering HP mode.
+* All of the CY_SYSPM_HP callbacks with the CY_SYSPM_AFTER_TRANSITION
+* may now increase the Clock frequency to the target for HP mode.
 *
 * After a CY_SYSPM_FAIL, all of the CY_SYSPM_HP callbacks with the
 * CY_SYSPM_CHECK_FAIL parameter are executed that correspond to the
@@ -4425,7 +3792,6 @@ __STATIC_INLINE bool Cy_SysPm_SystemIsMinRegulatorCurrentSet(void)
 }
 #endif /* defined (CY_IP_MXS40SRSS) || defined (CY_IP_MXS40SSRSS) || defined (CY_DOXYGEN) */
 /** \} group_syspm_functions_power */
-
 
 /**
 * \addtogroup group_syspm_functions_ldo

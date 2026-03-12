@@ -7,7 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_ms_ctl
@@ -71,26 +74,6 @@
 *
 * \section group_ms_ctl_MISRA MISRA-C Compliance
 * The MSC driver does not have any specific deviations.
-*
-* \section group_ms_ctl_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.2</td>
-*     <td>Updated API \ref Cy_Ms_Ctl_SetPcHandler.</td>
-*     <td>Defect fix.</td>
-*   </tr>
-*   <tr>
-*     <td>1.1</td>
-*     <td>Added support for PSE8 devices, Corrected typo in API</td>
-*     <td>Support for PSE8 devices</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_ms_ctl_macros Macros
 * \defgroup group_ms_ctl_functions Functions
@@ -211,7 +194,7 @@ typedef enum
     APP_EXP_MS3_MSC  = 11,
 } en_ms_ctl_master_sc_acg_v1_t;
 #endif
- 
+
 /** Response type when ACG blocks incoming transfers */
 typedef enum
 {
@@ -411,7 +394,7 @@ __STATIC_INLINE uint32_t Cy_Ms_Ctl_GetActivePCV1(en_ms_ctl_master_t busMaster)
 #endif
 
 #endif /* #if defined (CY_IP_M55APPCPUSS) */
- 
+
 #endif /* #if defined (CY_IP_M33SYSCPUSS) */
 
 /** \} group_ms_ctl */

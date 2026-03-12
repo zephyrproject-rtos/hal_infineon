@@ -45,8 +45,22 @@ extern "C" {
 
 #if (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0)
 
+/*******************************************************************************
+*                   Public Function Prototypes
+*******************************************************************************/
+
 cy_rslt_t _mtb_hal_syspm_tickless_sleep_deepsleep(mtb_hal_lptimer_t* obj, uint32_t desired_ms,
                                                   uint32_t* actual_ms, bool deep_sleep);
+
+void _mtb_hal_syspm_tickless_timer_presleep(mtb_hal_lptimer_t* obj, uint32_t desired_ms,
+                                            uint32_t* initial_ticks);
+
+void _mtb_hal_syspm_tickless_timer_postsleep(mtb_hal_lptimer_t* obj, uint32_t* initial_ticks,
+                                             uint32_t* actual_ms);
+
+/*******************************************************************************
+*                   Defines
+*******************************************************************************/
 
 #define mtb_hal_syspm_tickless_deepsleep(obj, desired_ms, actual_ms) \
     _mtb_hal_syspm_tickless_sleep_deepsleep(obj, desired_ms, actual_ms, true)

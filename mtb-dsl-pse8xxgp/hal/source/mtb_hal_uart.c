@@ -236,6 +236,19 @@ static void _mtb_hal_uart_cb_wrapper(uint32_t event)
     CY_ASSERT(NULL != obj);
     mtb_hal_uart_event_t anded_events = (mtb_hal_uart_event_t)(obj->irq_cause & event);
 
+    #if defined(COMPONENT_MW_ASYNC_TRANSFER)
+    /* Suppress TX_DONE events while async transfer is in progress to prevent spurious TX done
+       notifications if the FIFO temporarily runs empty */
+    if ((anded_events & MTB_HAL_UART_IRQ_TX_DONE) && (NULL != obj->async_ctx))
+    {
+        if (!mtb_hal_uart_is_async_tx_available(obj))
+        {
+            /* Async TX is in progress, suppress TX_DONE event */
+            anded_events &= ~MTB_HAL_UART_IRQ_TX_DONE;
+        }
+    }
+    #endif // defined(COMPONENT_MW_ASYNC_TRANSFER)
+
     if (anded_events)
     {
         mtb_hal_uart_event_callback_t callback =
@@ -323,8 +336,7 @@ void _mtb_hal_uart_async_transfer_enable_tx_event(void* inst_ref, bool enable)
     CY_ASSERT(NULL != inst_ref);
     uint32_t savedIntrStatus = mtb_hal_system_critical_section_enter();
     uint32_t tx_mask = Cy_SCB_GetTxInterruptMask(((mtb_hal_uart_t*)inst_ref)->base);
-    //Disable the TX done interrupt. Re-enable once the tx data is transferred to the TX FIFO
-    tx_mask &= ~CY_SCB_UART_TX_DONE;
+
     tx_mask = (enable ? (tx_mask | CY_SCB_UART_TX_TRIGGER) : (tx_mask & ~CY_SCB_UART_TX_TRIGGER));
     Cy_SCB_SetTxInterruptMask(((mtb_hal_uart_t*)inst_ref)->base, tx_mask);
     mtb_hal_system_critical_section_exit(savedIntrStatus);
@@ -431,6 +443,7 @@ void _mtb_hal_uart_async_transfer_event_callback(void* callback_arg,
 {
     mtb_hal_uart_event_t  event;
     mtb_hal_uart_t*       obj    = (mtb_hal_uart_t*)callback_arg;
+
     if (NULL == obj)
     {
         return;  /* The object is not valid */
@@ -442,14 +455,8 @@ void _mtb_hal_uart_async_transfer_event_callback(void* callback_arg,
     }
     else
     {
-        // Bytes are tranmsitted to the HW FIFO
+        // Bytes are transmitted to the HW FIFO
         event = MTB_HAL_UART_IRQ_TX_TRANSMIT_IN_FIFO;
-    }
-    //Enable the tx done interrupt from the HW
-    if ((obj->irq_cause & MTB_HAL_UART_IRQ_TX_DONE) &&
-        (event == MTB_HAL_UART_IRQ_TX_TRANSMIT_IN_FIFO))
-    {
-        mtb_hal_uart_enable_event(obj, MTB_HAL_UART_IRQ_TX_DONE, true);
     }
     event &= (mtb_hal_uart_event_t)(obj->irq_cause);
     if (event)
@@ -1036,6 +1043,7 @@ cy_rslt_t mtb_hal_uart_write_async(mtb_hal_uart_t* obj, void* tx, size_t length)
     CY_ASSERT(NULL != obj);
     CY_ASSERT(NULL != tx);
     CY_ASSERT(NULL != obj->async_ctx);
+
     return mtb_async_transfer_write(obj->async_ctx, tx, length);
 }
 

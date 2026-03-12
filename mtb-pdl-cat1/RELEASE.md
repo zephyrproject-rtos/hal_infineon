@@ -1,27 +1,35 @@
-# MTB CAT1 Peripheral Driver Library v3.18.0
+# MTB CAT1 Peripheral Driver Library v3.19.0
 
 Please refer to the [README.md](./README.md) and the
 [PDL API Reference Manual](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/index.html)
 for a complete description of the Peripheral Driver Library.
 
 ## Implementation Details
-* SCB I2C enhancements: added new callback events and I2C Slave Status macros, added support for the I2C Byte Received callback.
+* Added basic PWM visualization for PWM_v2 personality.
 
 ## Build Changes
 
 ## Personality Changes
 * Updated Personalities (in 10.0 folder):
   * peripheral:
-    * mcwdt_v2-1.0.cypersonality
-    * mcwdt-3.0.cypersonality
-    * uart-3.0.cypersonality
+    * pwm_v2-1.0.cypersonality
   * platform:
-    * axidmac-1.0.cypersonality
+    * extclk-3.0.cypersonality
+    * pin-3.0.cypersonality
 
 ## Added Drivers
 
 ## Updated Drivers
-* [SCB 3.40](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__scb.html)
+* [CRYPTOLITE 2.90](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__cryptolite.html)
+* [ETHIF 1.50](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__ethif.html)
+* [FLASH 3.140](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__flash.html)
+* [HPPASS 1.30.2](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__hppass.html)
+* [IPC 1.150](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__ipc.html)
+* [RTC 2.120](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__rtc.html)
+* [SCB 3.50](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__scb.html)
+* [SYSINT 1.140](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__sysint.html)
+* [SYSPM 5.200](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/group__group__syspm.html)
+
 
 ### Drivers with patch version updates
 
@@ -64,20 +72,20 @@ This version of PDL was validated for compatibility with the following Software 
 
 | Software and Tools                                                            | Version      |
 | :---                                                                          | :----        |
-| [Infineon Core Library](https://github.com/Infineon/core-lib)                 | 1.4.4        |
-| CMSIS                                                                         | 5.8.2        |
+| [Infineon Core Library](https://github.com/Infineon/core-lib)                 | 1.6.0        |
+| CMSIS                                                                         | 6.1.0        |
 | GCC Compiler                                                                  | 14.2.1       |
 | IAR Compiler                                                                  | 9.50.2       |
 | ARM Compiler 6                                                                | 6.22         |
-| FreeRTOS                                                                      | 10.4.305     |
-| [Device Database](https://github.com/Infineon/device-db)                      | 4.26.0       |
+| FreeRTOS                                                                      | 10.6.202     |
+| [Device Database](https://github.com/Infineon/device-db)                      | 4.34.0       |
 
 ## More information
 
 * [Peripheral Driver Library README.md](./README.md)
 * [Peripheral Driver Library API Reference Manual](https://infineon.github.io/mtb-pdl-cat1/pdl_api_reference_manual/html/index.html)
 * [ModusToolbox Software Environment, Quick Start Guide, Documentation, and Videos](https://www.infineon.com/cms/en/design-support/tools/sdk/modustoolbox-software/)
-* [ModusToolbox Device Configurator Tool Guide](https://www.infineon.com/dgdl/Infineon-ModusToolbox_Device_Configurator_Guide_4-UserManual-v01_00-EN.pdf?fileId=8ac78c8c7d718a49017d99ab297631cb)
+* [ModusToolbox Device Configurator Tool Guide](https://www.infineon.com/row/public/documents/30/44/infineon-infineon-device-configurator-user-guide-usermanual-en.pdf)
 * [AN210781 Getting Started with PSOC 6 MCU with Bluetooth Low Energy (BLE) Connectivity](https://www.infineon.com/dgdl/Infineon-AN210781_Getting_Started_with_PSoC_6_MCU_with_Bluetooth_Low_Energy_(BLE)_Connectivity_on_PSoC_Creator-ApplicationNotes-v05_00-EN.pdf?fileId=8ac78c8c7cdc391c017d0d311f536528)
 * [PSOC 6](https://www.infineon.com/cms/en/product/microcontroller/32-bit-psoc-arm-cortex-microcontroller/psoc-6-32-bit-arm-cortex-m4-mcu/)
 * [CYW20829](https://www.infineon.com/cms/en/product/promopages/airoc20829)

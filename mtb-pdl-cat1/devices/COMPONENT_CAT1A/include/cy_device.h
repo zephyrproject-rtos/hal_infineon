@@ -31,11 +31,24 @@
 
 #include "cy_device_headers.h"
 
+/* Use for mutual conditions when code should be included for a XMC5xxx device */
+#if defined (CY_DEVICE_SERIES_XMC5100) || defined (CY_DEVICE_SERIES_XMC5200) || defined (CY_DEVICE_SERIES_XMC5300)
+/* Use to determine if compiling for a XMC5000 device. */
+#define CY_DEVICE_XMC5000   (1UL)
+
+#include "xmc5000_remaps.h"
+
+/* M4CPUSS system IRQ refers to signals that peripherals produce to request and interrupt,
+ * which may or may not correspond 1:1 to the CPU IRQ lines */
+#if (defined (CY_IP_M4CPUSS) && (CY_IP_M4CPUSS_VERSION == 2) && (CPUSS_SYSTEM_IRQ_PRESENT))
+#define CY_M4CPUSS_V2_IRQ_MUXING
+#endif
+
 /* Use for mutual conditions when code should be included for a TVIIBE512K, TVIIBE1M, TVIIEBE2M, or TVIIBE4M device.*/
-#if (defined (CY_DEVICE_SERIES_CYT2B6) || defined (CY_DEVICE_SERIES_CYT2B7) || defined (CY_DEVICE_SERIES_CYT2B9) || defined (CY_DEVICE_SERIES_CYT2BL))
+#elif (defined (CY_DEVICE_SERIES_CYT2B6) || defined (CY_DEVICE_SERIES_CYT2B7) || defined (CY_DEVICE_SERIES_CYT2B9) || defined (CY_DEVICE_SERIES_CYT2BL))
 
 /* Use to determine if compiling for a TVIIBE device. */
-#define CY_DEVICE_TVIIBE (1UL)
+#define CY_DEVICE_TVIIBE    (1UL)
 
 /* Drivers for some TVIIBE IP require macro names with version fields.  This header
  * remaps macros from CAT1A compatible names that don't contain the version fields. */
@@ -75,6 +88,12 @@
 #include "ip/cyip_usb32dev.h"
 
 #else /* PSoC Devices */
+
+/* PSOC6 device define */
+#if defined(CY_DEVICE_PSOC6A2M) || defined(CY_DEVICE_PSOC6ABLE2) || \
+    defined(CY_DEVICE_PSOC6A256K) || defined(CY_DEVICE_PSOC6A512K)
+#define CY_DEVICE_PSOC6
+#endif
 
 #include "ip/cyip_cpuss.h"
 #include "ip/cyip_cpuss_v2.h"
@@ -261,7 +280,7 @@ typedef struct
 *                   Global Variables
 *******************************************************************************/
 
-#if !(defined(CY_DEVICE_TVIIBE))
+#if !(defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000))
 extern const cy_stc_device_t   cy_deviceIpBlockCfgPSoC6_01;
 #endif
 extern const cy_stc_device_t   cy_deviceIpBlockCfgPSoC6_02;
@@ -271,6 +290,9 @@ extern const cy_stc_device_t   cy_deviceIpBlockCfgTVIIBE4M;
 extern const cy_stc_device_t   cy_deviceIpBlockCfgTVIIBE2M;
 extern const cy_stc_device_t   cy_deviceIpBlockCfgTVIIBE1M;
 extern const cy_stc_device_t   cy_deviceIpBlockCfgFX3G2;
+extern const cy_stc_device_t   cy_deviceIpBlockCfgXMC5300;
+extern const cy_stc_device_t   cy_deviceIpBlockCfgXMC5200;
+extern const cy_stc_device_t   cy_deviceIpBlockCfgXMC5100;
 extern const cy_stc_device_t * cy_device;
 
 
@@ -302,13 +324,13 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 #define CY_SRSS_MFO_PRESENT                 (CY_SRSS_V1_3)
 #endif /* CY_DEVICE_SERIES_FX3G2 */
 
-#if (defined(CY_DEVICE_TVIIBE))
+#if (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000))
 
 #define CY_SRSS_PILO_PRESENT                (0)
 
 #define CY_SRSS_NUM_CLKPATH                 (SRSS_NUM_CLKPATH)
-#define CY_SRSS_NUM_PLL                     (SRSS_NUM_TOTAL_PLL)
-#define CY_SRSS_NUM_PLL200M                 (SRSS_NUM_PLL)
+#define CY_SRSS_NUM_PLL                     (SRSS_NUM_PLL)
+#define CY_SRSS_NUM_PLL200M                 (CY_SRSS_NUM_PLL)
 #if defined(SRSS_NUM_PLL400M)
 #define CY_SRSS_NUM_PLL400M                 (SRSS_NUM_PLL400M)
 #else
@@ -542,7 +564,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 
 #define SRSS_TST_DDFT_SLOW_CTL_MASK         (0x00001F1EU)
 #define SRSS_TST_DDFT_FAST_CTL_MASK         (62U)
-#endif /* (defined(CY_DEVICE_TVIIBE)) */
+#endif /* (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)) */
 
 /*******************************************************************************
 *                CRYPTO
@@ -555,7 +577,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 *                BACKUP
 *******************************************************************************/
 
-#if (defined(CY_DEVICE_TVIIBE))
+#if (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000))
 
 #define BACKUP_PMIC_CTL                     (((BACKUP_Type *) BACKUP)->PMIC_CTL)
 #define BACKUP_CTL                          (((BACKUP_Type *) BACKUP)->CTL)
@@ -597,7 +619,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 #define BACKUP_RESET                        (((BACKUP_V1_Type *) BACKUP)->RESET)
 #define BACKUP_TRIM                         (((BACKUP_V1_Type *) BACKUP)->TRIM)
 
-#endif /* (defined(CY_DEVICE_TVIIBE)) */
+#endif /* (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)) */
 
 
 /*******************************************************************************
@@ -704,11 +726,18 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 /*******************************************************************************
 *                FLASHC
 *******************************************************************************/
-#if (defined (CPUSS_FLASHC_PRESENT) && (CPUSS_FLASHC_PRESENT == 1)) && (defined (CPUSS_FLASHC_ECT) && (CPUSS_FLASHC_ECT == 1))
+#if (defined (CPUSS_FLASHC_ECT) && (CPUSS_FLASHC_ECT == 1))
+
+#if !defined (CPUSS_FLASHC_PRESENT)
+/* BWC: Define Flash memory present macro */
+#define CPUSS_FLASHC_PRESENT            1u
+#endif /* !defined (CPUSS_FLASHC_PRESENT) */
+
 #define CY_IP_MXFLASHC_VERSION_ECT
+
 #endif
 
-#if defined (CY_DEVICE_TVIIBE)
+#if defined (CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)
 #define FLASHC_FLASH_CMD                    (((FLASHC_Type *)(FLASHC))->FLASH_CMD)
 #define FLASHC_FLASH_CTL                    (((FLASHC_Type *)(FLASHC))->FLASH_CTL)
 #define FLASHC_ECC_CTL                      (((FLASHC_Type *)(FLASHC))->ECC_CTL)
@@ -830,7 +859,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 /*******************************************************************************
 *                FAULT
 *******************************************************************************/
-#if defined (CY_DEVICE_TVIIBE)
+#if defined (CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)
 
 #if defined(CPUSS_FAULT_FAULT_NR) && (CPUSS_FAULT_FAULT_NR > 0)
 #define CY_IP_MXS40FAULT                        (1u)
@@ -873,7 +902,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 *                MCWDT
 *******************************************************************************/
 
-#if defined (CY_DEVICE_TVIIBE)
+#if defined (CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)
 #define MCWDT_CTR_CTL(base, counter)            (((MCWDT_Type *)(base))->CTR[counter].CTL)
 #define MCWDT_CTR_LOWER_LIMIT(base, counter)    (((MCWDT_Type *)(base))->CTR[counter].LOWER_LIMIT)
 #define MCWDT_CTR_UPPER_LIMIT(base, counter)    (((MCWDT_Type *)(base))->CTR[counter].UPPER_LIMIT)
@@ -930,7 +959,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 #define TCPWM_CNT_TR_CTRL1(base, cntNum)     (((TCPWM_V1_Type *)(base))->CNT[cntNum].TR_CTRL1)
 #define TCPWM_CNT_TR_CTRL2(base, cntNum)     (((TCPWM_V1_Type *)(base))->CNT[cntNum].TR_CTRL2)
 
-#if defined (CY_DEVICE_TVIIBE)
+#if defined (CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)
 
 #if (CY_IP_MXTCPWM_INSTANCES == 1UL)
 #define TCPWM_GRP_CC1_PRESENT_STATUS(base) (TCPWM_GRP_NR0_CNT_GRP_CC1_PRESENT | (TCPWM_GRP_NR1_CNT_GRP_CC1_PRESENT << 1) | (TCPWM_GRP_NR2_CNT_GRP_CC1_PRESENT << 2))
@@ -954,7 +983,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 #define TCPWM_GRP_AMC(base, grp)                   ((((cy_device->tcpwmAMCPresent) >> (grp)) & 0x01U) != 0U)
 #define TCPWM_GRP_SMC(base, grp)                   ((((cy_device->tcpwmSMCPrecent) >> (grp)) & 0x01U) != 0U)
 
-#endif /* defined(CY_DEVICE_TVIIBE) */
+#endif /* defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000) */
 
 #define TCPWM_GRP_CNT_GET_GRP(cntNum)        ((cntNum )/ 256U)
 
@@ -981,8 +1010,8 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 #define TCPWM_GRP_CNT_INTR_MASK(base, grp, cntNum)      (((TCPWM_V2_Type *)(base))->GRP[grp].CNT[((cntNum) % 256U)].INTR_MASK)
 #define TCPWM_GRP_CNT_INTR_MASKED(base, grp, cntNum)    (((TCPWM_V2_Type *)(base))->GRP[grp].CNT[((cntNum) % 256U)].INTR_MASKED)
 
-#if defined (CY_DEVICE_TVIIBE)
-/* For backward compatibility, TCPWM_CNT_STATUS_RUNNING_Pos was set to the 
+#if defined (CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)
+/* For backward compatibility, TCPWM_CNT_STATUS_RUNNING_Pos was set to the
 *  value of TCPWM_GRP_CNT_V2_STATUS_RUNNING. This needs to be defined for version 2 only.
 */
 #define TCPWM_CNT_STATUS_RUNNING_Pos (31UL)
@@ -1281,11 +1310,12 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 /*******************************************************************************
 *                PERI
 *******************************************************************************/
-#if (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_SERIES_FX3G2) || defined(CY_DEVICE_SERIES_FX2G3))
+#if (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000) || \
+     defined(CY_DEVICE_SERIES_FX3G2) || defined(CY_DEVICE_SERIES_FX2G3))
 #define CY_PERI_BASE                        ((PERI_Type *) cy_device->periBase)
 #else /* (defined(CY_DEVICE_TVIIBE)) */
 #define CY_PERI_BASE                        ((PERI_V1_Type *) cy_device->periBase)
-#endif /* (defined(CY_DEVICE_TVIIBE)) */
+#endif /* (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)) */
 
 #define CY_PERI_V1                          ((uint32_t)(0x20U > cy_device->periVersion)) /* true if the mxperi version is 1.x */
 #define CY_PERI_V2_TR_GR_SIZE               (sizeof(PERI_TR_GR_V2_Type))
@@ -1589,14 +1619,14 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 *                IPC
 *******************************************************************************/
 /* Disable the default IPC configuration.  Most CAT1A devices use endpoint IPC channels
- * to communicate with the flash & srom drivers, however CAT1C uses ECT flash and the 
- * syscall IPC channels and doesn't need/isn't compatible with the default CAT1A 
+ * to communicate with the flash & srom drivers, however CAT1C uses ECT flash and the
+ * syscall IPC channels and doesn't need/isn't compatible with the default CAT1A
  * IPC configuration.  */
-#if defined (CY_DEVICE_TVIIBE)
+#if defined (CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)
     #ifndef CY_IPC_DEFAULT_CFG_DISABLE
         #define CY_IPC_DEFAULT_CFG_DISABLE
     #endif
-#endif 
+#endif
 
 #define CY_IPC_V1                              (0x20u > cy_device->ipcVersion) /* true if the IPC version is 1.x */
 
@@ -1800,7 +1830,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 *                SCB
 *******************************************************************************/
 
-#if (defined(CY_DEVICE_TVIIBE))
+#if (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000))
 #define SCB_CTRL(base)                      (((CySCB_Type*) (base))->CTRL)
 #define SCB_SPI_CTRL(base)                  (((CySCB_Type*) (base))->SPI_CTRL)
 #define SCB_SPI_STATUS(base)                (((CySCB_Type*) (base))->SPI_STATUS)
@@ -1893,7 +1923,7 @@ void Cy_PDL_Init(const cy_stc_device_t * device);
 #define SCB_INTR_RX_SET(base)               (((CySCB_V1_Type*) (base))->INTR_RX_SET)
 #define SCB_INTR_RX_MASK(base)              (((CySCB_V1_Type*) (base))->INTR_RX_MASK)
 #define SCB_INTR_RX_MASKED(base)            (((CySCB_V1_Type*) (base))->INTR_RX_MASKED)
-#endif /* (defined(CY_DEVICE_TVIIBE)) */
+#endif /* (defined(CY_DEVICE_TVIIBE) || defined(CY_DEVICE_XMC5000)) */
 
 /*******************************************************************************
 *                PROFILE

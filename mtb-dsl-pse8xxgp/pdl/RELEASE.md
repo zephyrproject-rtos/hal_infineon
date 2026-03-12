@@ -1,7 +1,7 @@
 # PSE8xxGP MTB Peripheral Driver Library
 
 Please refer to the [README.md](./README.md) and the
-[PDL API Reference Manual](https://infineon.github.io/mtb-device-support-pse8xxgp/pdl_api_reference_manual/html/index.html)
+[PDL API Reference Manual](https://infineon.github.io/mtb-dsl-pse8xxgp/html/index.html)
 for a complete description of the Peripheral Driver Library.
 
 ## Supported Software and Tools
@@ -22,7 +22,7 @@ This version of PDL was validated for compatibility with the following Software 
 ## More information
 
 * [Peripheral Driver Library README.md](./README.md)
-* [Peripheral Driver Library API Reference Manual](https://infineon.github.io/mtb-device-support-pse8xxgp/pdl_api_reference_manual/html/index.html)
+* [Peripheral Driver Library API Reference Manual](https://infineon.github.io/mtb-dsl-pse8xxgp/html/index.html)
 * [ModusToolbox Software Environment, Quick Start Guide, Documentation, and Videos](https://www.infineon.com/cms/en/design-support/tools/sdk/modustoolbox-software/)
 * [ModusToolbox Device Configurator Tool Guide](https://documentation.infineon.com/modustoolbox/docs/cif1730295638094)
 * [Infineon](http://www.infineon.com)

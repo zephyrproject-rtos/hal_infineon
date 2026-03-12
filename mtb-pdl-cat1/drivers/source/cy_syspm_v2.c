@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syspm_v2.c
-* \version 5.190
+* \version 5.200
 *
 * This driver provides the source code for API power management.
 *
@@ -182,16 +182,16 @@ static void SetWriteAssistTrimOd(void);
 *******************************************************************************/
 #if defined (CY_IP_MXS40SSRSS) && (CY_MXS40SSRSS_VER_1_2 > 0UL)
 /* Array of the callback roots */
-static cy_stc_syspm_callback_t* pmCallbackRoot[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
+static cy_stc_syspm_callback_t* pmCallbackRoot[CALLBACK_ROOT_NR] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
 /* The array of the pointers to failed callback */
-static cy_stc_syspm_callback_t* failedCallback[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
+static cy_stc_syspm_callback_t* failedCallback[CALLBACK_ROOT_NR] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 #else
 /* Array of the callback roots */
-static cy_stc_syspm_callback_t* pmCallbackRoot[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
+static cy_stc_syspm_callback_t* pmCallbackRoot[CALLBACK_ROOT_NR] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
 /* The array of the pointers to failed callback */
-static cy_stc_syspm_callback_t* failedCallback[CALLBACK_ROOT_NR] = {(void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0, (void *)0};
+static cy_stc_syspm_callback_t* failedCallback[CALLBACK_ROOT_NR] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 #endif
 
 void Cy_SysPm_Init(void)

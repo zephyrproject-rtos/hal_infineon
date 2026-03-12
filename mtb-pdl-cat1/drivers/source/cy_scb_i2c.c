@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_i2c.c
-* \version 3.40
+* \version 3.50
 *
 * Provides I2C API implementation of the SCB driver.
 *
@@ -158,7 +158,8 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_Init(CySCB_Type *base, cy_stc_scb_i2c_config_t
     /* Unregister callbacks */
     context->cbEvents = NULL;
     context->cbAddr   = NULL;
-    context->cbByte   = NULL;
+    context->cbByteSlave   = NULL;
+    context->cbByteMaster  = NULL;
 
     return CY_SCB_I2C_SUCCESS;
 }
@@ -2316,7 +2317,7 @@ void Cy_SCB_I2C_SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
     }
 
     /* Handle the transmit direction (master reads data) */
-    if (0UL != (CY_SCB_I2C_SLAVE_INTR_TX & Cy_SCB_GetTxInterruptStatusMasked(base)))
+    if ((0UL != (CY_SCB_I2C_SLAVE_INTR_TX & Cy_SCB_GetTxInterruptStatusMasked(base))) && !context->slaveRdPaused)
     {
         SlaveHandleDataTransmit(base, context);
 
@@ -2523,7 +2524,10 @@ static void SlaveHandleAddress(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
             /* Prepare to transmit data */
             context->slaveTxBufferIdx = context->slaveTxBufferCnt;
             context->slaveRdBufEmpty  = false;
-            Cy_SCB_SetTxInterruptMask(base, CY_SCB_TX_INTR_LEVEL);
+            if (!context->slaveRdPaused)
+            {
+                Cy_SCB_SetTxInterruptMask(base, CY_SCB_TX_INTR_LEVEL);
+            }
         }
         else
         {
@@ -2629,10 +2633,10 @@ static void SlaveHandleDataReceive(CySCB_Type *base, cy_stc_scb_i2c_context_t *c
             if ((CY_SCB_I2C_SLAVE_INTR_ADDR & Cy_SCB_GetSlaveInterruptStatusMasked(base)) == 0U)
             {
                 /* Involve a byte received callback if registered */
-                if (NULL != context->cbByte)
+                if (NULL != context->cbByteSlave)
                 {
                     uint8_t rxData = (uint8_t) Cy_SCB_ReadRxFifo(base);
-                    cy_en_scb_i2c_command_t cmd = context->cbByte(rxData);
+                    cy_en_scb_i2c_command_t cmd = context->cbByteSlave(rxData);
                     if (cmd == CY_SCB_I2C_ACK)
                     {
                         /* Continue the transfer: send an ACK */
@@ -3026,13 +3030,22 @@ static void MasterHandleDataReceive(CySCB_Type *base, cy_stc_scb_i2c_context_t *
     {
         case CY_SCB_I2C_MASTER_RX0:
         {
-            /* Put data into the component buffer */
-            context->masterBuffer[0UL] = (uint8_t) Cy_SCB_ReadRxFifo(base);
-
-            ++context->masterBufferIdx;
-            --context->masterBufferSize;
-
-            if (context->masterBufferSize > 0UL)
+            cy_en_scb_i2c_command_t cmd = CY_SCB_I2C_ACK;
+            uint8_t rxData = (uint8_t) Cy_SCB_ReadRxFifo(base);
+            if (NULL != context->cbByteMaster)
+            {
+                cmd = context->cbByteMaster(rxData);
+            }
+        
+            if (cmd == CY_SCB_I2C_ACK)
+            {
+                /* Put data into the component buffer */
+                context->masterBuffer[0UL] = rxData;
+                ++context->masterBufferIdx;
+                --context->masterBufferSize;
+            }
+        
+            if ((context->masterBufferSize > 0UL) && (cmd == CY_SCB_I2C_ACK))
             {
                 /* Continue the transaction: move pointer send an ACK */
                 context->masterBuffer = &context->masterBuffer[1UL];

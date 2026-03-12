@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite.h
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  This file provides interface header
@@ -184,6 +184,11 @@
 * \section group_cryptolite_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td >2.90</td>
+*     <td>Fixed the compatibility issues encountered when building projects in EWARM using the "C++ only" option.</td>
+*     <td>Bug fixes</td>
+*   </tr>
 *   <tr>
 *     <td >2.80</td>
 *     <td>

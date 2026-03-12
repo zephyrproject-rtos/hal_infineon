@@ -87,6 +87,18 @@ extern "C" {
  * \}
  */
 
+/** Comparator event types */
+typedef enum
+{
+    MTB_HAL_COMP_EDGE_NONE    = 0,  //!< No trigger on either edge
+    MTB_HAL_COMP_RISING_EDGE  = 1,  //!< Rising edge on comparator output
+    MTB_HAL_COMP_FALLING_EDGE = 2,  //!< Falling edge on comparator output
+    MTB_HAL_COMP_BOTH_EDGE    = 3   //!< Falling edge on comparator output
+} mtb_hal_comp_event_t;
+
+/** Handler for Comparator events */
+typedef void (* mtb_hal_comp_event_callback_t)(void* callback_arg, mtb_hal_comp_event_t event);
+
 /**
  * Sets up a HAL instance to use the specified hardware resource. This hardware
  * resource must have already been configured via the PDL.
@@ -114,6 +126,77 @@ bool mtb_hal_comp_read(mtb_hal_comp_t* obj);
  * @return The status of the set reference request
  */
 cy_rslt_t mtb_hal_comp_set_ref(mtb_hal_comp_t* obj, uint16_t ref_mv);
+
+/** Enable/disable the comparator
+ *
+ * @param[in] obj          The Comp object
+ * @param[in] enable       Enable/disable
+ * @return The status of the enable request
+ */
+cy_rslt_t mtb_hal_comp_enable(mtb_hal_comp_t* obj, bool enable);
+
+/** Enable/disable the slope generator slice
+ *
+ * @param[in] obj          The Comp object
+ * @param[in] enable       Enable/disable
+ * @return The status of the enable request
+ */
+cy_rslt_t mtb_hal_comp_slice_enable(mtb_hal_comp_t* obj, bool enable);
+
+/** Read the output state of the slope generator slice
+ *
+ * @param[in] obj          The Comp object
+ * @return The Comparator state. True if the non-inverting pin voltage is greater than the
+ * inverting pin voltage, false otherwise.
+ */
+bool mtb_hal_comp_slice_read(mtb_hal_comp_t* obj);
+
+/** Sets the reference count of the slope generator slice
+ *
+ * @param[in] obj          The Comp object
+ * @param[in] count        Reference count
+ * @return The status of the set reference request
+ */
+cy_rslt_t mtb_hal_comp_slice_set_ref_count(mtb_hal_comp_t* obj, uint32_t count);
+
+/** Sets the reference voltage of the slope generator slice
+ *
+ * @param[in] obj          The Comp object
+ * @param[in] ref_mv       Reference voltage in millivolts
+ * @return The status of the set reference request
+ */
+cy_rslt_t mtb_hal_comp_slice_set_ref_mv(mtb_hal_comp_t* obj, uint32_t ref_mv);
+
+
+/** Register/clear a callback handler for Comp events
+ *
+ * The referenced function will be called when one of the events enabled by
+ * by mtb_hal_comp_enable_event occurs.
+ *
+ * @param[in] obj           The Comp object
+ * @param[in] callback      The callback handler which will be invoked when the event occurs
+ * @param[in] callback_arg  Generic argument that will be provided to the callback when called
+ */
+void mtb_hal_comp_register_callback(mtb_hal_comp_t* obj, mtb_hal_comp_event_callback_t callback,
+                                    void* callback_arg);
+
+/** Enable or Disable the specified Comp event
+ *
+ * When an enabled event occurs, the function specified by mtb_hal_comp_register_callback will
+ * be called.
+ *
+ * @param[in] obj           The Comp object
+ * @param[in] event         The Comp event
+ * @param[in] enable        True to turn on interrupts, False to turn off
+ */
+void mtb_hal_comp_enable_event(mtb_hal_comp_t* obj, mtb_hal_comp_event_t event, bool enable);
+
+/** Process interrupts related related to a Comp instance.
+ *
+ * @param obj HAL object for which the interrupt should be processed
+ * @return CY_RSLT_SUCCESS if the interrupt was processed successfully; otherwise an error
+ */
+cy_rslt_t mtb_hal_comp_process_interrupt(mtb_hal_comp_t* obj);
 
 #if defined(__cplusplus)
 }

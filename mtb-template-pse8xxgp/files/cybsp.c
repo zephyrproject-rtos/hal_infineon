@@ -33,7 +33,6 @@
 #if ((CY_SYSTEM_CPU_M33) && defined(COMPONENT_NON_SECURE_DEVICE)) || (CY_SYSTEM_CPU_M55)
 #include "cycfg_protection.h"
 #endif
-#include "cy_ipc_sema.h"
 #ifndef CYBSP_DISABLE_SRF_INIT
 #if defined(COMPONENT_SECURE_DEVICE)
 #include "mtb_srf.h"
@@ -53,6 +52,11 @@
 extern "C" {
 #endif
 
+#if defined(CYBSP_POST_CFG_INIT)
+/* If this BSP requires a step immediately after init_cycfg_all, declare it */
+cy_rslt_t cybsp_post_cfg_init();
+#endif // defined(CYBSP_POST_CFG_INIT)
+
 // The sysclk deep sleep callback is recommended to be the last callback that is executed before
 // entry into deep sleep mode and the first one upon exit the deep sleep mode.
 // Doing so minimizes the time spent on low power mode entry and exit.
@@ -60,7 +64,7 @@ extern "C" {
     #define CYBSP_SYSCLK_PM_CALLBACK_ORDER  (255u)
 #endif
 
-#if !defined(COMPONENT_MW_MTB_SRF)
+#if !defined(COMPONENT_MW_MTB_SRF) || defined(CY_SRF_DISABLE)
 /* If the MTB-SRF library isn't present, disable its initialization */
 #define CYBSP_DISABLE_SRF_INIT     (1)
 #endif
@@ -128,24 +132,15 @@ mtb_srf_ipc_packet_t* cybsp_srf_ring_buffer[MTB_SRF_POOL_SIZE];
 #endif // defined(COMPONENT_SECURE_DEVICE)
 #endif // ifndef CYBSP_DISABLE_SRF_INIT
 
-#if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE)
-/**
- * Place in secure shared memory for semaphore
- * This array holds the semaphore states in secure shared memory.
- */
-CY_SECTION_SHAREDMEM_SEC static uint32_t cybsp_ipc_sema_array_sec[CY_IPC_SEMA_COUNT /
-                                                                  CY_IPC_SEMA_PER_WORD];
-
+#if (CY_SYSTEM_CPU_M33) && !defined(COMPONENT_SECURE_DEVICE)
 /**
  * Place in normal shared memory for semaphore
  * This array holds the semaphore states in normal (non-secure) shared memory.
  */
 CY_SECTION_SHAREDMEM static uint32_t cybsp_ipc_sema_array[CY_IPC_SEMA_COUNT /
                                                           CY_IPC_SEMA_PER_WORD];
-
 /* IPC semaphore structure placed in normal shared memory */
-CY_SECTION_SHAREDMEM static cy_stc_ipc_sema_t cybsp_ipc_sema;
-
+CY_SECTION_SHAREDMEM cy_stc_ipc_sema_t cybsp_ipc_sema;
 #endif // (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE)
 
 #if defined(COMPONENT_MW_MTB_IPC) && !defined(COMPONENT_SECURE_DEVICE) && !defined(CYBSP_DISABLE_SRF_INIT)
@@ -194,49 +189,52 @@ cy_rslt_t _cybsp_ipc_srf_init()
     #if (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE))
     result = cy_rtos_queue_init(&cybsp_srf_request_queue, MTB_SRF_POOL_SIZE, sizeof(void*));
     #endif
-    result = mtb_ipc_init(&cybsp_cm33_ipc_instance, &cybsp_srf_ipc_shared_data, &ipc_config);
-    if (result == CY_RSLT_SUCCESS)
+    if (CY_RSLT_SUCCESS == result)
     {
-        mtb_srf_ipc_relay_init_cfg_t relay_init_cfg =
+        result = mtb_ipc_init(&cybsp_cm33_ipc_instance, &cybsp_srf_ipc_shared_data, &ipc_config);
+        if (result == CY_RSLT_SUCCESS)
         {
-            .ipc_instance           = &cybsp_cm33_ipc_instance,
-            .mailbox_handle         = &cybsp_srf_ipc_receiver,
-            .ipc_sem_indexes        = mtb_srf_ipc_semaphore_idx_list,
-            .mailbox_data           = &cybsp_srf_ipc_mbox_data,
-            .semaphore_data         = cybsp_ipc_sem_data,
-            .semaphore_handles      = cybsp_cm33_srf_ipc_semaphores,
-            .mbox_idx               = MTB_IPC_MBOX_IDX_SRF,
-            .mbox_read_sema_idx     = MTB_IPC_SEMA_NUM_SRF_MBOX_READ,
-            .mbox_write_sema_idx    = MTB_IPC_SEMA_NUM_SRF_MBOX_WRITE,
-            .num_semaphores         = MTB_SRF_IPC_SEMA_COUNT,
-            .num_requests           = MTB_SRF_POOL_SIZE,
+            mtb_srf_ipc_relay_init_cfg_t relay_init_cfg =
+            {
+                .ipc_instance           = &cybsp_cm33_ipc_instance,
+                .mailbox_handle         = &cybsp_srf_ipc_receiver,
+                .ipc_sem_indexes        = mtb_srf_ipc_semaphore_idx_list,
+                .mailbox_data           = &cybsp_srf_ipc_mbox_data,
+                .semaphore_data         = cybsp_ipc_sem_data,
+                .semaphore_handles      = cybsp_cm33_srf_ipc_semaphores,
+                .mbox_idx               = MTB_IPC_MBOX_IDX_SRF,
+                .mbox_read_sema_idx     = MTB_IPC_SEMA_NUM_SRF_MBOX_READ,
+                .mbox_write_sema_idx    = MTB_IPC_SEMA_NUM_SRF_MBOX_WRITE,
+                .num_semaphores         = MTB_SRF_IPC_SEMA_COUNT,
+                .num_requests           = MTB_SRF_POOL_SIZE,
+                #if (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE))
+                .ipc_req_queue          = &cybsp_srf_request_queue
+                #else
+                .buffer                 = cybsp_srf_ring_buffer
+                #endif
+            };
+            result = mtb_srf_ipc_relay_init(&cybsp_mtb_srf_relay_context, &relay_init_cfg);
             #if (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE))
-            .ipc_req_queue          = &cybsp_srf_request_queue
-            #else
-            .buffer                 = cybsp_srf_ring_buffer
-            #endif
-        };
-        result = mtb_srf_ipc_relay_init(&cybsp_mtb_srf_relay_context, &relay_init_cfg);
-        #if (defined(CY_RTOS_AWARE) || defined(COMPONENT_RTOS_AWARE))
-        if (CY_RSLT_SUCCESS == result)
-        {
             if (CY_RSLT_SUCCESS == result)
             {
-                result = cy_rtos_thread_create(&cybsp_srf_receive, &mtb_srf_ipc_receive_thread,
-                                    "Receive Thread", &cybsp_srf_thread_stack_receive,
-                                    sizeof(cybsp_srf_thread_stack_receive),
-                                    CY_RTOS_PRIORITY_NORMAL, (cy_thread_arg_t)&cybsp_mtb_srf_relay_context);
-
                 if (CY_RSLT_SUCCESS == result)
                 {
-                    result = cy_rtos_thread_create(&cybsp_srf_process, &mtb_srf_ipc_process_thread,
-                                                "Process Thread", &cybsp_srf_thread_stack_process,
-                                                sizeof(cybsp_srf_thread_stack_process),
-                                                CY_RTOS_PRIORITY_NORMAL, (cy_thread_arg_t)&cybsp_mtb_srf_relay_context);
+                    result = cy_rtos_thread_create(&cybsp_srf_receive, &mtb_srf_ipc_receive_thread,
+                                        "Receive Thread", &cybsp_srf_thread_stack_receive,
+                                        sizeof(cybsp_srf_thread_stack_receive),
+                                        CY_RTOS_PRIORITY_NORMAL, (cy_thread_arg_t)&cybsp_mtb_srf_relay_context);
+
+                    if (CY_RSLT_SUCCESS == result)
+                    {
+                        result = cy_rtos_thread_create(&cybsp_srf_process, &mtb_srf_ipc_process_thread,
+                                                    "Process Thread", &cybsp_srf_thread_stack_process,
+                                                    sizeof(cybsp_srf_thread_stack_process),
+                                                    CY_RTOS_PRIORITY_NORMAL, (cy_thread_arg_t)&cybsp_mtb_srf_relay_context);
+                    }
                 }
             }
+            #endif
         }
-        #endif
     }
     #elif (CY_SYSTEM_CPU_M55)
     result = mtb_ipc_get_handle(&cybsp_cm55_ipc_instance, &ipc_config, 1000UL);
@@ -277,17 +275,15 @@ cy_rslt_t _cybsp_ipc_srf_init()
 *****************************************************************************/
 void _cybsp_global_sema_init(void)
 {
-    // Initialize the global semaphore in the secure context
-    #if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE)
+    // Initialize the global semaphore data for the non-secure world CM33_NS. If needed on the CM33_S, this pointer must
+    // be passed to CM33_S to initialize the IPC in the secure world.
+    #if (CY_SYSTEM_CPU_M33) && !defined(COMPONENT_SECURE_DEVICE)
     cybsp_ipc_sema.maxSema = CY_IPC_SEMA_COUNT;
     cybsp_ipc_sema.arrayPtr = cybsp_ipc_sema_array;
-    cybsp_ipc_sema.arrayPtr_sec = cybsp_ipc_sema_array_sec;
-
-    /* Initialize global semaphores using IPC Channel 4 ( IPC0_SEMA_CH_NUM )
-     * Semaphores available both to secure and non-secure cores */
+    cybsp_ipc_sema.arrayPtr_sec = NULL;
 
     Cy_IPC_Sema_InitExt(IPC0_SEMA_CH_NUM, &cybsp_ipc_sema);
-    #else
+    #elif (CY_SYSTEM_CPU_M55)
     // Initialize the global semaphore in the non-secure context
     Cy_IPC_Sema_Init(IPC0_SEMA_CH_NUM, 0, NULL);
     #endif // (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE)
@@ -309,9 +305,9 @@ cy_rslt_t cybsp_init(void)
     // for this core
     #if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE)
 
-    /* Setup System Control Block */
+    // Setup System Control Block
     SysCtrlBlk_Setup();
-    /* Setup NS NVIC interrupts */
+    // Setup NS NVIC interrupts
     NVIC_NS_Setup();
 
     #if defined (__FPU_USED) && (__FPU_USED == 1U) && \
@@ -323,6 +319,16 @@ cy_rslt_t cybsp_init(void)
     // Initialize system clocks, peripheral clock dividers, pin configurations, routing, SAU, MPCs
     // and MPU for the core
     init_cycfg_all();
+
+    #if defined(CYBSP_POST_CFG_INIT)
+    /* Perform custom initialization step */
+    result = cybsp_post_cfg_init();
+    if (result != CY_RSLT_SUCCESS)
+    {
+        return result;
+    }
+    #endif
+
 
     #if !defined(CYBSP_DISABLE_SRF_INIT)
     // Set up the SRF and register the PDL module
@@ -368,6 +374,16 @@ cy_rslt_t cybsp_init(void)
     // Needs to happen on every core because MPU can only be
     // initialized from the core to which it applies
     init_cycfg_protection();
+
+    #if defined(CYBSP_POST_CFG_INIT)
+    /* Perform custom initialization step */
+    result = cybsp_post_cfg_init();
+    if (result != CY_RSLT_SUCCESS)
+    {
+        return result;
+    }
+    #endif
+
     #endif // (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE)
     // Always initialize peripheral-related data structures
 

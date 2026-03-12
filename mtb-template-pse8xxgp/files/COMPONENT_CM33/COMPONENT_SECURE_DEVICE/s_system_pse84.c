@@ -48,23 +48,8 @@
 #define CY_CLK_SYSTEM_FREQ_HZ_DEFAULT       (50000000UL)
 #endif
 
-/**
-* Holds the (Cortex-M33) system core clock,
-* which is the system clock frequency supplied to the SysTick timer and the
-* processor core clock.
-* This variable implements CMSIS Core global variable.
-* Refer to the [CMSIS documentation]
-* (http://www.keil.com/pack/doc/CMSIS/Core/html/group__system__init__gr.html "System and Clock Configuration")
-* for more details.
-* This variable can be used by debuggers to query the frequency
-* of the debug timer or to configure the trace clock speed.
-*
-* \attention Compilers must be configured to avoid removing this variable in case
-* the application program is not using it. Debugging systems require the variable
-* to be physically present in memory so that it can be examined to configure the debugger. */
 uint32_t SystemCoreClock = CY_CLK_SYSTEM_FREQ_HZ_DEFAULT;
 
-/** Holds the AHB frequency. Updated by \ref SystemCoreClockUpdate(). */
 uint32_t cy_AhbFreqHz = CY_CLK_SYSTEM_FREQ_HZ_DEFAULT;
 
 /*******************************************************************************
@@ -108,14 +93,6 @@ uint32_t cy_delayFreqMhz  = (uint8_t)((CY_CLK_SYSTEM_FREQ_HZ_DEFAULT + CY_DELAY_
 
 /*******************************************************************************
 * Function Name: SystemInit
-****************************************************************************//**
-* \cond
-* Initializes the system:
-* - Restores FLL registers to the default state for single core devices.
-* - Unlocks and disables WDT.
-* - Calls the Cy_SystemInit() function.
-* - Calls \ref SystemCoreClockUpdate().
-* \endcond
 *******************************************************************************/
 void SystemInit(void)
 {
@@ -126,10 +103,6 @@ void SystemInit(void)
 
 /*******************************************************************************
 * Function Name: Cy_SystemInit
-****************************************************************************//**
-*
-* The function is called during device startup.
-*
 *******************************************************************************/
 __WEAK void Cy_SystemInit(void)
 {
@@ -140,13 +113,6 @@ __WEAK void Cy_SystemInit(void)
 
 /*******************************************************************************
 * Function Name: SystemCoreClockUpdate
-****************************************************************************//**
-*
-* Gets core clock frequency and updates \ref SystemCoreClock.
-*
-* Updates global variables used by the \ref Cy_SysLib_Delay(), \ref
-* Cy_SysLib_DelayUs(), and \ref Cy_SysLib_DelayCycles().
-*
 *******************************************************************************/
 void SystemCoreClockUpdate (void)
 {

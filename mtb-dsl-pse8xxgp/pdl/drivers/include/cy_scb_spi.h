@@ -2,11 +2,14 @@
 * \file cy_scb_spi.h
 * \version 3.30
 *
+* \brief
 * Provides SPI API declarations of the SCB driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_scb_spi
@@ -271,12 +275,6 @@
 * Alternately, external pull-up or pull-down resistors can be connected
 * to the appropriate SPI lines to keep them inactive during Deep-Sleep or
 * Hibernate.
-*
-* \note
-* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
-* For proper operation, when the SPI slave is configured to be a wakeup
-* source from Deep Sleep mode, the \ref Cy_SCB_SPI_DeepSleepCallback must be
-* copied and modified. Refer to the function description to get the details.
 *
 * \defgroup group_scb_spi_macros Macros
 * \defgroup group_scb_spi_functions Functions

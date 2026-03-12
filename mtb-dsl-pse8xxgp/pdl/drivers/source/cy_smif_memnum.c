@@ -43,6 +43,43 @@ extern "C" {
 /*******************************************************************************
 *    Secure Aware Support
 *******************************************************************************/
+#if defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
+typedef struct {
+    uint8_t memNum;
+} cy_pdl_smif_srf_get_info_in_t;
+
+typedef struct {
+    uint8_t memNum;
+    uint32_t address;
+} cy_pdl_smif_srf_mem_num_read_in_t;
+
+typedef struct {
+    uint8_t memNum;
+    uint32_t address;
+} cy_pdl_smif_srf_mem_num_write_in_t;
+
+typedef struct {
+    uint8_t memNum;
+    uint32_t address;
+    uint32_t length;
+} cy_pdl_smif_srf_mem_num_erase_sector_in_t;
+
+typedef struct {
+    uint8_t memNum;
+} cy_pdl_smif_srf_mem_num_erase_chip_in_t;
+
+typedef struct {
+    uint8_t memNum;
+    uint32_t address;
+} cy_pdl_smif_srf_mem_num_hb_read_in_t;
+
+typedef struct {
+    uint8_t memNum;
+    uint32_t address;
+} cy_pdl_smif_srf_mem_num_hb_write_in_t;
+#endif
+
+
 #if defined(COMPONENT_SECURE_DEVICE)
 cy_stc_smif_mem_context_t* smif_internal_secure_contexts[CY_IP_MXSMIF_INSTANCES];
 #endif
@@ -61,13 +98,12 @@ static inline uint8_t _Cy_SMIF_GetSmifNumber(SMIF_CORE_Type* baseAddress)
 }
 
 //Helper to get the correct MemConfig number based on the memory slot number
-uint8_t _Cy_SMIF_GetConfigNumber(cy_stc_smif_mem_context_t *context, uint8_t smif_number, uint8_t memNum)
+uint8_t _Cy_SMIF_GetConfigNumber(const cy_stc_smif_mem_context_t *context, uint8_t smif_number, uint8_t memNum)
 {
     uint8_t memConfigNumber = 0xFF;
-    CY_ASSERT_L3(CY_SMIF_SLAVE_SEL_VALID(memNum));
+    CY_ASSERT_L3(CY_SMIF_MEM_NUM_VALID(memNum));
 
 #if defined(COMPONENT_SECURE_DEVICE)
-    CY_UNUSED_PARAM(context);
     if(context->requires_secure_call)
     {
         for(uint32_t idx = 0; idx < smif_internal_secure_contexts[smif_number]->block_config->memCount; idx ++)
@@ -100,7 +136,7 @@ uint8_t _Cy_SMIF_GetConfigNumber(cy_stc_smif_mem_context_t *context, uint8_t smi
 #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
 /* Helper function to check for valid access to the external memory addresses. Using address and length both
 set to 0 corresponds to a special case that checks that the entire area is accessible for the EraseChip validation */
-bool _Cy_SMIF_IsAddressRangeNSAccessible(cy_stc_smif_mem_context_t *context, uint8_t memNum, uint32_t address, uint32_t length)
+bool _Cy_SMIF_IsAddressRangeNSAccessible(const cy_stc_smif_mem_context_t *context, uint8_t memNum, uint32_t address, uint32_t length)
 {
     bool isAddressNSAccessible = false;
     uint8_t smif_number = _Cy_SMIF_GetSmifNumber(context->base);
@@ -154,7 +190,47 @@ __WEAK mtb_srf_permission_s_t mtb_pdl_smif_srf_permissions[] = /* SMIF_INSTANCES
     },
 };
 
-cy_rslt_t cy_pdl_smif_srf_get_info_impl_s(mtb_srf_input_ns_t* inputs_ns,
+static cy_rslt_t cy_pdl_smif_srf_get_info_impl_s(mtb_srf_input_ns_t* inputs_ns,
+                                         mtb_srf_output_ns_t* outputs_ns,
+                                         mtb_srf_invec_ns_t* inputs_ptr_ns,
+                                         uint8_t inputs_ptr_cnt_ns,
+                                         mtb_srf_outvec_ns_t* outputs_ptr_ns,
+                                         uint8_t outputs_ptr_cnt_ns)
+{
+    CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
+    CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
+    CY_UNUSED_PARAM(inputs_ptr_ns);
+    CY_UNUSED_PARAM(inputs_ns);
+
+
+    CY_ASSERT_L2((inputs_ns->request).module_id == MTB_SRF_MODULE_PDL);
+    CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_SMIF_OP_MEM_GET_INFO);
+    CY_ASSERT_L2((inputs_ns->request).submodule_id == CY_PDL_SECURE_SUBMODULE_SMIF);
+
+    CY_ASSERT_L2(inputs_ns->input_values[0] >= sizeof(uint8_t));
+
+    CY_ASSERT_L2(outputs_ptr_ns[0].len >= sizeof(cy_stc_smif_mem_info_t));
+
+    cy_rslt_t status;
+    cy_pdl_smif_srf_get_info_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
+    cy_stc_smif_mem_context_t context =
+    {
+        .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
+        .requires_secure_call = true,
+    };
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res = Cy_SMIF_MemNumGetInfo(&context,
+                                   input.memNum,
+                                   (cy_stc_smif_mem_info_t*)(outputs_ptr_ns[0].base));
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
+
+    return status;
+}
+
+static cy_rslt_t cy_pdl_smif_srf_mem_num_read_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                          mtb_srf_output_ns_t* outputs_ns,
                                          mtb_srf_invec_ns_t* inputs_ptr_ns,
                                          uint8_t inputs_ptr_cnt_ns,
@@ -165,38 +241,6 @@ cy_rslt_t cy_pdl_smif_srf_get_info_impl_s(mtb_srf_input_ns_t* inputs_ns,
     CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
     CY_UNUSED_PARAM(inputs_ptr_ns);
 
-    CY_ASSERT_L2((inputs_ns->request).module_id == MTB_SRF_MODULE_PDL);
-    CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_SMIF_OP_MEM_GET_INFO);
-    CY_ASSERT_L2((inputs_ns->request).submodule_id == CY_PDL_SECURE_SUBMODULE_SMIF);
-
-    CY_ASSERT_L2(inputs_ns->input_values[0] >= sizeof(uint8_t));
-
-    CY_ASSERT_L2(outputs_ptr_ns[0].len >= sizeof(cy_stc_smif_mem_info_t));
-
-    cy_stc_smif_mem_context_t context =
-    {
-        .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
-        .requires_secure_call = true,
-    };
-
-    cy_en_smif_status_t op_res = 0;
-    op_res = Cy_SMIF_MemNumGetInfo(&context,
-                                   (uint8_t)(inputs_ns->input_values[0]),
-                                   (cy_stc_smif_mem_info_t*)(outputs_ptr_ns[0].base));
-
-   memcpy(&outputs_ns->output_values[0], &op_res, sizeof(op_res));
-
-    return CY_RSLT_SUCCESS;
-}
-
-cy_rslt_t cy_pdl_smif_srf_mem_num_read_impl_s(mtb_srf_input_ns_t* inputs_ns,
-                                         mtb_srf_output_ns_t* outputs_ns,
-                                         mtb_srf_invec_ns_t* inputs_ptr_ns,
-                                         uint8_t inputs_ptr_cnt_ns,
-                                         mtb_srf_outvec_ns_t* outputs_ptr_ns,
-                                         uint8_t outputs_ptr_cnt_ns)
-{
-    CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
 
     CY_ASSERT_L2((inputs_ns->request).module_id == MTB_SRF_MODULE_PDL);
     CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_SMIF_OP_MEM_READ);
@@ -205,31 +249,28 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_read_impl_s(mtb_srf_input_ns_t* inputs_ns,
 
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
 
-    uint8_t memNum = 0;
-    uint32_t address = 0;
-
-    memcpy(&memNum, &(inputs_ns->input_values[0]), sizeof(memNum));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(memNum)]), sizeof(address));
-
+    cy_rslt_t status;
+    cy_pdl_smif_srf_mem_num_read_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
     cy_stc_smif_mem_context_t context =
     {
         .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
         .requires_secure_call = true,
     };
-
-    cy_en_smif_status_t op_res = 0;
-    op_res =  Cy_SMIF_MemNumRead(&context,
-                                 memNum,
-                                 address,
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res =  Cy_SMIF_MemNumRead(&context,
+                                 input.memNum,
+                                 input.address,
                                  (uint8_t*)(outputs_ptr_ns[0].base),
                                  (uint32_t)(outputs_ptr_ns[0].len));
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    memcpy(&outputs_ns->output_values[0], &op_res, sizeof(op_res));
-
-    return CY_RSLT_SUCCESS;
+    return status;
 }
 
-cy_rslt_t cy_pdl_smif_srf_mem_num_write_impl_s(mtb_srf_input_ns_t* inputs_ns,
+static cy_rslt_t cy_pdl_smif_srf_mem_num_write_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                          mtb_srf_output_ns_t* outputs_ns,
                                          mtb_srf_invec_ns_t* inputs_ptr_ns,
                                          uint8_t inputs_ptr_cnt_ns,
@@ -237,6 +278,8 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_write_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                          uint8_t outputs_ptr_cnt_ns)
 {
     CY_UNUSED_PARAM(outputs_ptr_ns);
+    CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
+    CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
 
     CY_ASSERT_L2((inputs_ns->request).module_id == MTB_SRF_MODULE_PDL);
     CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_SMIF_OP_MEM_WRITE);
@@ -244,31 +287,28 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_write_impl_s(mtb_srf_input_ns_t* inputs_ns,
 
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
 
-    uint8_t memNum = 0;
-    uint32_t address = 0;
-
-    memcpy(&memNum, &(inputs_ns->input_values[0]), sizeof(memNum));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(memNum)]), sizeof(address));
-
+    cy_rslt_t status;
+    cy_pdl_smif_srf_mem_num_write_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
     cy_stc_smif_mem_context_t context =
     {
         .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
         .requires_secure_call = true,
     };
-
-    cy_en_smif_status_t op_res = 0;
-    op_res = Cy_SMIF_MemNumWrite(&context,
-                                 memNum,
-                                 address,
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res = Cy_SMIF_MemNumWrite(&context,
+                                 input.memNum,
+                                 input.address,
                                  (uint8_t*)(inputs_ptr_ns[0].base),
                                  (uint32_t)(inputs_ptr_ns[0].len));
-    memcpy(&outputs_ns->output_values[0], &op_res, sizeof(op_res));
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    return CY_RSLT_SUCCESS;
-
+    return status;
 }
 
-cy_rslt_t cy_pdl_smif_srf_mem_num_erase_sector_impl_s(mtb_srf_input_ns_t* inputs_ns,
+static cy_rslt_t cy_pdl_smif_srf_mem_num_erase_sector_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                          mtb_srf_output_ns_t* outputs_ns,
                                          mtb_srf_invec_ns_t* inputs_ptr_ns,
                                          uint8_t inputs_ptr_cnt_ns,
@@ -277,38 +317,36 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_erase_sector_impl_s(mtb_srf_input_ns_t* inputs
 {
     CY_UNUSED_PARAM(outputs_ptr_ns);
     CY_UNUSED_PARAM(inputs_ptr_ns);
+    CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
+    CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
 
     CY_ASSERT_L2((inputs_ns->request).module_id == MTB_SRF_MODULE_PDL);
     CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_SMIF_OP_MEM_ERASE_SECTOR);
     CY_ASSERT_L2((inputs_ns->request).submodule_id == CY_PDL_SECURE_SUBMODULE_SMIF);
 
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
-    uint8_t memNum = 0;
-    uint32_t address = 0;
-    uint32_t length = 0;
 
-    memcpy(&memNum, &(inputs_ns->input_values[0]), sizeof(memNum));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(memNum)]), sizeof(address));
-    memcpy(&length, &(inputs_ns->input_values[sizeof(memNum) + sizeof(address)]), sizeof(length));
-
+    cy_rslt_t status;
+    cy_pdl_smif_srf_mem_num_erase_sector_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
     cy_stc_smif_mem_context_t context =
     {
         .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
         .requires_secure_call = true,
     };
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res =  Cy_SMIF_MemNumEraseSector(&context,
+                                        input.memNum,
+                                        input.address,
+                                        input.length);
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    cy_en_smif_status_t op_res = 0;
-    op_res =  Cy_SMIF_MemNumEraseSector(&context,
-                                        memNum,
-                                        address,
-                                        length);
-
-    memcpy(&outputs_ns->output_values[0], &op_res, sizeof(op_res));
-    return CY_RSLT_SUCCESS;
-
+    return status;
 }
 
-cy_rslt_t cy_pdl_smif_srf_mem_num_erase_chip_impl_s(mtb_srf_input_ns_t* inputs_ns,
+static cy_rslt_t cy_pdl_smif_srf_mem_num_erase_chip_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                          mtb_srf_output_ns_t* outputs_ns,
                                          mtb_srf_invec_ns_t* inputs_ptr_ns,
                                          uint8_t inputs_ptr_cnt_ns,
@@ -317,6 +355,8 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_erase_chip_impl_s(mtb_srf_input_ns_t* inputs_n
 {
     CY_UNUSED_PARAM(outputs_ptr_ns);
     CY_UNUSED_PARAM(inputs_ptr_ns);
+    CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
+    CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
 
     CY_ASSERT_L2((inputs_ns->request).module_id == MTB_SRF_MODULE_PDL);
     CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_SMIF_OP_MEM_ERASE_CHIP);
@@ -324,22 +364,26 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_erase_chip_impl_s(mtb_srf_input_ns_t* inputs_n
 
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
 
+    cy_rslt_t status;
+    cy_pdl_smif_srf_mem_num_erase_chip_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
     cy_stc_smif_mem_context_t context =
     {
         .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
         .requires_secure_call = true,
     };
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res = Cy_SMIF_MemNumEraseChip(&context,
+                                            input.memNum);
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    cy_en_smif_status_t op_res = 0;
-    op_res = Cy_SMIF_MemNumEraseChip(&context,
-                                     (uint8_t)(inputs_ns->input_values[0]));
-
-    memcpy(&outputs_ns->output_values[0], &op_res, sizeof(op_res));
-    return CY_RSLT_SUCCESS;
+    return status;
 }
 
 
-cy_rslt_t cy_pdl_smif_srf_mem_num_hb_read_impl_s(mtb_srf_input_ns_t* inputs_ns,
+static cy_rslt_t cy_pdl_smif_srf_mem_num_hb_read_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                             mtb_srf_output_ns_t* outputs_ns,
                                             mtb_srf_invec_ns_t* inputs_ptr_ns,
                                             uint8_t inputs_ptr_cnt_ns,
@@ -356,31 +400,29 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_hb_read_impl_s(mtb_srf_input_ns_t* inputs_ns,
 
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
 
-    cy_en_smif_status_t retVal = CY_SMIF_SUCCESS;
-    uint8_t memNum = 0;
-    uint32_t address = 0;
-
-    memcpy(&memNum, &(inputs_ns->input_values[0]), sizeof(memNum));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(memNum)]), sizeof(address));
-
+    cy_rslt_t status;
+    cy_pdl_smif_srf_mem_num_hb_read_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
     cy_stc_smif_mem_context_t context =
     {
         .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
         .requires_secure_call = true,
     };
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res =  Cy_SMIF_MemNumHyperBusRead(&context,
+                                 input.memNum,
+                                 input.address,
+                                 (uint8_t*)(outputs_ptr_ns[0].base),
+                                 (uint32_t)(outputs_ptr_ns[0].len));
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    retVal = Cy_SMIF_MemNumHyperBusRead(&context,
-                                        memNum,
-                                        address,
-                                        (uint8_t*)(outputs_ptr_ns[0].base),
-                                        (uint32_t)(outputs_ptr_ns[0].len));
-
-    memcpy(&outputs_ns->output_values[0], &retVal, sizeof(retVal));
-    return CY_RSLT_SUCCESS;
-
+    return status;
 }
 
-cy_rslt_t cy_pdl_smif_srf_mem_num_hb_write_impl_s(mtb_srf_input_ns_t* inputs_ns,
+
+static cy_rslt_t cy_pdl_smif_srf_mem_num_hb_write_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                             mtb_srf_output_ns_t* outputs_ns,
                                             mtb_srf_invec_ns_t* inputs_ptr_ns,
                                             uint8_t inputs_ptr_cnt_ns,
@@ -397,38 +439,36 @@ cy_rslt_t cy_pdl_smif_srf_mem_num_hb_write_impl_s(mtb_srf_input_ns_t* inputs_ns,
 
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
 
-    cy_en_smif_status_t retVal = CY_SMIF_SUCCESS;
-    uint8_t memNum = 0;
-    uint32_t address = 0;
-
-    memcpy(&memNum, &(inputs_ns->input_values[0]), sizeof(memNum));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(memNum)]), sizeof(address));
-
+    cy_rslt_t status;
+    cy_pdl_smif_srf_mem_num_hb_write_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
     cy_stc_smif_mem_context_t context =
     {
         .base = (SMIF_Type*) GET_ALIAS_ADDRESS((inputs_ns->request).base),
         .requires_secure_call = true,
     };
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res = Cy_SMIF_MemNumHyperBusWrite(&context,
+                                 input.memNum,
+                                 input.address,
+                                 (uint8_t*)(inputs_ptr_ns[0].base),
+                                 (uint32_t)(inputs_ptr_ns[0].len));
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    retVal = Cy_SMIF_MemNumHyperBusWrite(&context,
-                                         memNum,
-                                         address,
-                                         (uint8_t*)(inputs_ptr_ns[0U].base),
-                                         (uint32_t)(inputs_ptr_ns[0U].len));
-
-    memcpy(&outputs_ns->output_values[0], &retVal, sizeof(retVal));
-    return CY_RSLT_SUCCESS;
-
+    return status;
 }
 
 
-cy_rslt_t cy_pdl_smif_srf_clean_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
+static cy_rslt_t cy_pdl_smif_srf_clean_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                             mtb_srf_output_ns_t* outputs_ns,
                                             mtb_srf_invec_ns_t* inputs_ptr_ns,
                                             uint8_t inputs_ptr_cnt_ns,
                                             mtb_srf_outvec_ns_t* outputs_ptr_ns,
                                             uint8_t outputs_ptr_cnt_ns)
 {
+    CY_UNUSED_PARAM(inputs_ptr_ns);
     CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
     CY_UNUSED_PARAM(outputs_ptr_ns);
     CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
@@ -438,29 +478,30 @@ cy_rslt_t cy_pdl_smif_srf_clean_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
     CY_ASSERT_L2((inputs_ns->request).submodule_id == CY_PDL_SECURE_SUBMODULE_SMIF);
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
 
-    cy_en_smif_status_t retVal = CY_SMIF_SUCCESS;
-    bool is_secure_view = false;
-    uint32_t address = 0;
-    uint32_t size = 0;
+    cy_rslt_t status;
+    cy_pdl_smif_srf_clean_cache_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res = Cy_SMIF_Clean_Cache_by_Addr((SMIF_CACHE_BLOCK_Type *)GET_ALIAS_ADDRESS((inputs_ns->request).base),
+                                        false,
+                                        input.address,
+                                        input.size);
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    memcpy(&is_secure_view, &(inputs_ns->input_values[0]), sizeof(is_secure_view));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(is_secure_view)]), sizeof(address));
-    memcpy(&size, &(inputs_ns->input_values[sizeof(is_secure_view) + sizeof(address)]), sizeof(size));
-
-    retVal = Cy_SMIF_Clean_Cache_by_Addr((SMIF_CACHE_BLOCK_Type *)GET_ALIAS_ADDRESS((inputs_ns->request).base),
-                                        is_secure_view,
-                                        address,
-                                        size);
-    memcpy(&outputs_ns->output_values[0], &retVal, sizeof(retVal));
-    return CY_RSLT_SUCCESS;
+    return status;
 }
-cy_rslt_t cy_pdl_smif_srf_invalidate_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
+
+
+static cy_rslt_t cy_pdl_smif_srf_invalidate_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                             mtb_srf_output_ns_t* outputs_ns,
                                             mtb_srf_invec_ns_t* inputs_ptr_ns,
                                             uint8_t inputs_ptr_cnt_ns,
                                             mtb_srf_outvec_ns_t* outputs_ptr_ns,
                                             uint8_t outputs_ptr_cnt_ns)
 {
+    CY_UNUSED_PARAM(inputs_ptr_ns);
     CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
     CY_UNUSED_PARAM(outputs_ptr_ns);
     CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
@@ -470,29 +511,30 @@ cy_rslt_t cy_pdl_smif_srf_invalidate_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
     CY_ASSERT_L2((inputs_ns->request).submodule_id == CY_PDL_SECURE_SUBMODULE_SMIF);
     CY_ASSERT_L2(outputs_ns[0].len >= sizeof(cy_en_smif_status_t));
 
-    cy_en_smif_status_t retVal = CY_SMIF_SUCCESS;
-    bool is_secure_view = false;
-    uint32_t address = 0;
-    uint32_t size = 0;
+    cy_rslt_t status;
+    cy_pdl_smif_srf_invalidate_cache_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res = Cy_SMIF_Invalidate_Cache_by_Addr((SMIF_CACHE_BLOCK_Type *)GET_ALIAS_ADDRESS((inputs_ns->request).base),
+                                        false,
+                                        input.address,
+                                        input.size);
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    memcpy(&is_secure_view, &(inputs_ns->input_values[0]), sizeof((is_secure_view)));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(is_secure_view)]), sizeof(address));
-    memcpy(&size, &(inputs_ns->input_values[sizeof(is_secure_view) + sizeof(address)]), sizeof(size));
-
-    retVal = Cy_SMIF_Invalidate_Cache_by_Addr((SMIF_CACHE_BLOCK_Type *)GET_ALIAS_ADDRESS((inputs_ns->request).base),
-                                        is_secure_view,
-                                        address,
-                                        size);
-    memcpy(&outputs_ns->output_values[0], &retVal, sizeof(retVal));
-    return CY_RSLT_SUCCESS;
+    return status;
 }
-cy_rslt_t cy_pdl_smif_srf_cl_inv_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
+
+
+static cy_rslt_t cy_pdl_smif_srf_cl_inv_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                             mtb_srf_output_ns_t* outputs_ns,
                                             mtb_srf_invec_ns_t* inputs_ptr_ns,
                                             uint8_t inputs_ptr_cnt_ns,
                                             mtb_srf_outvec_ns_t* outputs_ptr_ns,
                                             uint8_t outputs_ptr_cnt_ns)
 {
+    CY_UNUSED_PARAM(inputs_ptr_ns);
     CY_UNUSED_PARAM(inputs_ptr_cnt_ns);
     CY_UNUSED_PARAM(outputs_ptr_ns);
     CY_UNUSED_PARAM(outputs_ptr_cnt_ns);
@@ -501,20 +543,19 @@ cy_rslt_t cy_pdl_smif_srf_cl_inv_cache_impl_s(mtb_srf_input_ns_t* inputs_ns,
     CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_SMIF_OP_CL_INV_CACHE);
     CY_ASSERT_L2((inputs_ns->request).submodule_id == CY_PDL_SECURE_SUBMODULE_SMIF);
 
-    cy_en_smif_status_t retVal = CY_SMIF_SUCCESS;
-    bool is_secure_view = false;
-    uint32_t address = 0;
-    uint32_t size = 0;
-    memcpy(&is_secure_view, &(inputs_ns->input_values[0]), sizeof(is_secure_view));
-    memcpy(&address, &(inputs_ns->input_values[sizeof(is_secure_view)]), sizeof(address));
-    memcpy(&size, &(inputs_ns->input_values[sizeof(is_secure_view) + sizeof(address)]), sizeof(size));
+    cy_rslt_t status;
+    cy_pdl_smif_srf_cl_inv_cache_in_t input;
+    cy_pdl_smif_srf_status_out_t output;
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+    output.op_res = Cy_SMIF_Clean_And_Invalidate_Cache_by_Addr((SMIF_CACHE_BLOCK_Type *)GET_ALIAS_ADDRESS((inputs_ns->request).base),
+                                        false,
+                                        input.address,
+                                        input.size);
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
 
-    retVal = Cy_SMIF_Clean_And_Invalidate_Cache_by_Addr((SMIF_CACHE_BLOCK_Type *)GET_ALIAS_ADDRESS((inputs_ns->request).base),
-                                        is_secure_view,
-                                        address,
-                                        size);
-    memcpy(&outputs_ns->output_values[0], &retVal, sizeof(retVal));
-    return CY_RSLT_SUCCESS;
+    return status;
 }
 
 
@@ -528,8 +569,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_MEM_GET_INFO,
         .write_required = false,
         .impl = cy_pdl_smif_srf_get_info_impl_s,
-        .input_values_len = sizeof(uint8_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_get_info_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false },
         .output_len = {sizeof(cy_stc_smif_mem_info_t), 0, 0},
@@ -543,8 +584,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_MEM_READ,
         .write_required = false,
         .impl = cy_pdl_smif_srf_mem_num_read_impl_s,
-        .input_values_len = sizeof(uint8_t) + sizeof(uint32_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_mem_num_read_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false },
         //The output param is the rx_buffer and its length is part of the request so we are forced to use a minimum length here corresponding to 1 word
@@ -559,8 +600,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_MEM_WRITE,
         .write_required = true,
         .impl = cy_pdl_smif_srf_mem_num_write_impl_s,
-        .input_values_len = (sizeof(uint8_t) + sizeof(uint32_t)),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_mem_num_write_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         //The first param is the tx_buffer and its length is part of the request so we are forced to use a minimum length here corresponding to 1 word
         .input_len = {0x1, 0, 0},
         .needs_copy = {false, false, false }, /* Don't copy the buffer. No validation decisions are made based on its contents */
@@ -575,8 +616,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_MEM_ERASE_SECTOR,
         .write_required = true,
         .impl = cy_pdl_smif_srf_mem_num_erase_sector_impl_s,
-        .input_values_len = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_mem_num_erase_sector_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false },
         .output_len = {0, 0, 0},
@@ -590,8 +631,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_MEM_ERASE_CHIP,
         .write_required = true,
         .impl = cy_pdl_smif_srf_mem_num_erase_chip_impl_s,
-        .input_values_len = sizeof(uint8_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_mem_num_erase_chip_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false},
         .output_len = {0, 0, 0},
@@ -605,8 +646,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_HB_READ,
         .write_required = false,
         .impl = cy_pdl_smif_srf_mem_num_hb_read_impl_s,
-        .input_values_len = sizeof(uint8_t) + sizeof(uint32_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_mem_num_hb_read_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false },
         //The output param is the rx_buffer and its length is part of the request so we are forced to use a minimum length here corresponding to 1 word
@@ -621,8 +662,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_HB_WRITE,
         .write_required = true,
         .impl = cy_pdl_smif_srf_mem_num_hb_write_impl_s,
-        .input_values_len = sizeof(uint8_t) + sizeof(uint32_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_mem_num_hb_write_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         //The first param is the tx_buffer and its length is part of the request so we are forced to use a minimum length here corresponding to 1 word
         .input_len = {0x1, 0, 0},
         .needs_copy = {false, false, false },
@@ -637,8 +678,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_CLEAN_CACHE,
         .write_required = true,
         .impl = cy_pdl_smif_srf_clean_cache_impl_s,
-        .input_values_len = sizeof(bool) + sizeof(uint32_t) + sizeof(uint32_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_clean_cache_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false },
         .output_len = {0, 0, 0},
@@ -652,8 +693,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_INVALIDATE_CACHE,
         .write_required = true,
         .impl = cy_pdl_smif_srf_invalidate_cache_impl_s,
-        .input_values_len = sizeof(bool) + sizeof(uint32_t) + sizeof(uint32_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_invalidate_cache_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false },
         .output_len = {0, 0, 0},
@@ -667,8 +708,8 @@ mtb_srf_op_s_t _cy_pdl_smif_srf_operations[] =
         .op_id = CY_PDL_SMIF_OP_CL_INV_CACHE,
         .write_required = true,
         .impl = cy_pdl_smif_srf_cl_inv_cache_impl_s,
-        .input_values_len = sizeof(bool) + sizeof(uint32_t) + sizeof(uint32_t),
-        .output_values_len = sizeof(cy_en_smif_status_t),
+        .input_values_len = sizeof(cy_pdl_smif_srf_cl_inv_cache_in_t),
+        .output_values_len = sizeof(cy_pdl_smif_srf_status_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false },
         .output_len = {0, 0, 0},
@@ -746,7 +787,7 @@ cy_en_smif_status_t Cy_SMIF_MemNumSetupNonSecure(SMIF_Type *base,
 }
 #endif
 
-cy_en_smif_status_t Cy_SMIF_MemNumGetInfo(cy_stc_smif_mem_context_t *context,
+cy_en_smif_status_t Cy_SMIF_MemNumGetInfo(const cy_stc_smif_mem_context_t *context,
                             uint8_t memNum,
                             cy_stc_smif_mem_info_t *memNumInfo)
 {
@@ -759,13 +800,12 @@ cy_en_smif_status_t Cy_SMIF_MemNumGetInfo(cy_stc_smif_mem_context_t *context,
         mtb_srf_invec_ns_t* inVec = NULL;
         mtb_srf_outvec_ns_t* outVec = NULL;
         mtb_srf_output_ns_t* output = NULL;
-        uint8_t input_args[sizeof(memNum)];
-        memcpy(&(input_args[0]), &memNum, sizeof(memNum));
+        cy_pdl_smif_srf_get_info_in_t input_args;
+        cy_pdl_smif_srf_status_out_t output_args;
+        input_args.memNum = memNum;
 
         cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 1000);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
-
-        cy_en_smif_status_t op_result = 0;
 
         void* outvec_bases[] = {memNumInfo, NULL};
         size_t outvec_sizes[] = {sizeof(cy_stc_smif_mem_info_t), 0UL};
@@ -779,10 +819,10 @@ cy_en_smif_status_t Cy_SMIF_MemNumGetInfo(cy_stc_smif_mem_context_t *context,
             .submodule_id = CY_PDL_SECURE_SUBMODULE_SMIF,
             .base = context->base,
             .sub_block = smif_number,
-            .input_base = input_args,
-            .input_len = sizeof(uint8_t),
-            .output_base = (uint8_t*)&op_result,
-            .output_len = sizeof(op_result),
+            .input_base = (uint8_t*)&input_args,
+            .input_len = sizeof(input_args),
+            .output_base = (uint8_t*)&output_args,
+            .output_len = sizeof(output_args),
             .invec_bases = NULL,
             .invec_sizes = NULL,
             .outvec_bases = outvec_bases,
@@ -792,20 +832,20 @@ cy_en_smif_status_t Cy_SMIF_MemNumGetInfo(cy_stc_smif_mem_context_t *context,
         if (result == MTB_SRF_ERR_SECURITY_POLICY_VIOLATION)
         {
             (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
-            return result;
+            return CY_SMIF_SECURITY_POLICY_VIOLATION;
         }
         else
         {
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         }
 
-        memcpy(&op_result, (&(output->output_values[0])), sizeof(op_result));
+        memcpy(&output_args, (&(output->output_values[0])), sizeof(output_args));
 
         result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         CY_UNUSED_PARAM(result);
 
-        return op_result;
+        return output_args.op_res;
     }
 #endif
 
@@ -891,22 +931,19 @@ cy_en_smif_status_t Cy_SMIF_MemNumRead(cy_stc_smif_mem_context_t *context, uint8
 #if !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
     if(context->requires_secure_call)
     {
-
         mtb_srf_invec_ns_t* inVec = NULL;
         mtb_srf_outvec_ns_t* outVec = NULL;
         mtb_srf_output_ns_t* output = NULL;
-
-        uint8_t input_args[sizeof(memNum) + sizeof(address)];
-        memcpy(&(input_args[0]), &memNum, sizeof(memNum));
-        memcpy(&(input_args[sizeof(memNum)]), &address, sizeof(address));
+        cy_pdl_smif_srf_mem_num_read_in_t input_args;
+        cy_pdl_smif_srf_status_out_t output_args;
+        input_args.memNum = memNum;
+        input_args.address = address;
 
         cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 1000);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
 
         void* outvec_bases[] = {rxBuffer, NULL};
         size_t outvec_sizes[] = {length, 0UL};
-
-        cy_en_smif_status_t op_result = 0;
 
         cy_pdl_invoke_srf_args invoke_args =
         {
@@ -917,10 +954,10 @@ cy_en_smif_status_t Cy_SMIF_MemNumRead(cy_stc_smif_mem_context_t *context, uint8
             .submodule_id = CY_PDL_SECURE_SUBMODULE_SMIF,
             .base = context->base,
             .sub_block = smif_number,
-            .input_base = input_args,
-            .input_len = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t),
-            .output_base = (uint8_t*)&op_result,
-            .output_len = sizeof(op_result),
+            .input_base = (uint8_t*)&input_args,
+            .input_len = sizeof(input_args),
+            .output_base = (uint8_t*)&output_args,
+            .output_len = sizeof(output_args),
             .invec_bases = NULL,
             .invec_sizes = NULL,
             .outvec_bases = outvec_bases,
@@ -931,20 +968,20 @@ cy_en_smif_status_t Cy_SMIF_MemNumRead(cy_stc_smif_mem_context_t *context, uint8
         if (result == MTB_SRF_ERR_SECURITY_POLICY_VIOLATION)
         {
             (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
-            return result;
+            return CY_SMIF_SECURITY_POLICY_VIOLATION;
         }
         else
         {
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         }
 
-        memcpy(&op_result, (cy_rslt_t*)(&(output->output_values[0])), sizeof(op_result));
+        memcpy(&output_args, (cy_rslt_t*)(&(output->output_values[0])), sizeof(output_args));
 
         result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         CY_UNUSED_PARAM(result);
 
-        return op_result;
+        return output_args.op_res;
     }
 
 #endif
@@ -952,7 +989,7 @@ cy_en_smif_status_t Cy_SMIF_MemNumRead(cy_stc_smif_mem_context_t *context, uint8
 #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
     if(context->requires_secure_call && !_Cy_SMIF_IsAddressRangeNSAccessible(smif_internal_secure_contexts[smif_number], memNum, address, length))
     {
-        return MTB_SRF_ERR_SECURITY_POLICY_VIOLATION;
+        return CY_SMIF_SECURITY_POLICY_VIOLATION;
     }
     else
 #endif
@@ -986,18 +1023,16 @@ cy_en_smif_status_t Cy_SMIF_MemNumWrite(cy_stc_smif_mem_context_t *context, uint
         mtb_srf_invec_ns_t* inVec = NULL;
         mtb_srf_outvec_ns_t* outVec = NULL;
         mtb_srf_output_ns_t* output = NULL;
-
-        uint8_t input_args[sizeof(memNum) + sizeof(address)];
-        memcpy(&(input_args[0]), &memNum, sizeof(memNum));
-        memcpy(&(input_args[sizeof(memNum)]), &address, sizeof(address));
+        cy_pdl_smif_srf_mem_num_write_in_t input_args;
+        cy_pdl_smif_srf_status_out_t output_args;
+        input_args.memNum = memNum;
+        input_args.address = address;
 
         cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 1000);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
 
         void* invec_bases[] = {(void*)txBuffer, NULL};
         size_t invec_sizes[] = {length, 0UL};
-
-        cy_en_smif_status_t op_result = 0;
 
         cy_pdl_invoke_srf_args invoke_args =
         {
@@ -1008,10 +1043,10 @@ cy_en_smif_status_t Cy_SMIF_MemNumWrite(cy_stc_smif_mem_context_t *context, uint
             .submodule_id = CY_PDL_SECURE_SUBMODULE_SMIF,
             .base = context->base,
             .sub_block = smif_number,
-            .input_base = input_args,
+            .input_base = (uint8_t*)&input_args,
             .input_len = sizeof(input_args),
-            .output_base = (uint8_t*)&op_result,
-            .output_len = sizeof(op_result),
+            .output_base = (uint8_t*)&output_args,
+            .output_len = sizeof(output_args),
             .invec_bases = invec_bases,
             .invec_sizes = invec_sizes,
             .outvec_bases = NULL,
@@ -1022,27 +1057,27 @@ cy_en_smif_status_t Cy_SMIF_MemNumWrite(cy_stc_smif_mem_context_t *context, uint
         if (result == MTB_SRF_ERR_SECURITY_POLICY_VIOLATION)
         {
             (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
-            return result;
+            return CY_SMIF_SECURITY_POLICY_VIOLATION;
         }
         else
         {
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         }
 
-        memcpy(&op_result, (cy_rslt_t*)(&(output->output_values[0])), sizeof(op_result));
+        memcpy(&output_args, (cy_rslt_t*)(&(output->output_values[0])), sizeof(output_args));
 
         result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         CY_UNUSED_PARAM(result);
 
-        return op_result;
+        return output_args.op_res;
     }
 
 #endif
 #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
     if(context->requires_secure_call && !_Cy_SMIF_IsAddressRangeNSAccessible(smif_internal_secure_contexts[smif_number], memNum, address, length))
     {
-        return MTB_SRF_ERR_SECURITY_POLICY_VIOLATION;
+        return CY_SMIF_SECURITY_POLICY_VIOLATION;
     }
     else
 #endif
@@ -1075,16 +1110,14 @@ cy_en_smif_status_t Cy_SMIF_MemNumEraseSector(cy_stc_smif_mem_context_t *context
         mtb_srf_invec_ns_t* inVec = NULL;
         mtb_srf_outvec_ns_t* outVec = NULL;
         mtb_srf_output_ns_t* output = NULL;
-
-        uint8_t input_args[sizeof(memNum) + sizeof(address) + sizeof(length)];
-        memcpy(&(input_args[0]), &memNum, sizeof(memNum));
-        memcpy(&(input_args[sizeof(memNum)]), &address, sizeof(address));
-        memcpy(&(input_args[sizeof(memNum) + sizeof(address)]), &length, sizeof(length));
+        cy_pdl_smif_srf_mem_num_erase_sector_in_t input_args;
+        cy_pdl_smif_srf_status_out_t output_args;
+        input_args.memNum = memNum;
+        input_args.address = address;
+        input_args.length = length;
 
         cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 1000);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
-
-        cy_en_smif_status_t op_result = 0;
 
         cy_pdl_invoke_srf_args invoke_args =
         {
@@ -1095,10 +1128,10 @@ cy_en_smif_status_t Cy_SMIF_MemNumEraseSector(cy_stc_smif_mem_context_t *context
             .submodule_id = CY_PDL_SECURE_SUBMODULE_SMIF,
             .base = context->base,
             .sub_block = smif_number,
-            .input_base = input_args,
-            .input_len = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t),
-            .output_base = (uint8_t*)&op_result,
-            .output_len = sizeof(op_result),
+            .input_base = (uint8_t*)&input_args,
+            .input_len = sizeof(input_args),
+            .output_base = (uint8_t*)&output_args,
+            .output_len = sizeof(output_args),
             .invec_bases = NULL,
             .invec_sizes = NULL,
             .outvec_bases = NULL,
@@ -1109,20 +1142,20 @@ cy_en_smif_status_t Cy_SMIF_MemNumEraseSector(cy_stc_smif_mem_context_t *context
         if (result == MTB_SRF_ERR_SECURITY_POLICY_VIOLATION)
         {
             (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
-            return result;
+            return CY_SMIF_SECURITY_POLICY_VIOLATION;
         }
         else
         {
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         }
 
-        memcpy(&op_result, (cy_rslt_t*)(&(output->output_values[0])), sizeof(op_result));
+        memcpy(&output_args, (cy_rslt_t*)(&(output->output_values[0])), sizeof(output_args));
 
         result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         CY_UNUSED_PARAM(result);
 
-        return op_result;
+        return output_args.op_res;
     }
 
 #endif
@@ -1130,7 +1163,7 @@ cy_en_smif_status_t Cy_SMIF_MemNumEraseSector(cy_stc_smif_mem_context_t *context
  #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
    if(context->requires_secure_call && !_Cy_SMIF_IsAddressRangeNSAccessible(smif_internal_secure_contexts[smif_number], memNum, address, length))
     {
-        return MTB_SRF_ERR_SECURITY_POLICY_VIOLATION;
+        return CY_SMIF_SECURITY_POLICY_VIOLATION;
     }
     else
 #endif
@@ -1163,14 +1196,12 @@ cy_en_smif_status_t Cy_SMIF_MemNumEraseChip(cy_stc_smif_mem_context_t *context, 
         mtb_srf_invec_ns_t* inVec = NULL;
         mtb_srf_outvec_ns_t* outVec = NULL;
         mtb_srf_output_ns_t* output = NULL;
-
-        uint8_t input_args[sizeof(memNum)];
-        memcpy(&(input_args[0]), &memNum, sizeof(memNum));
+        cy_pdl_smif_srf_mem_num_erase_chip_in_t input_args;
+        cy_pdl_smif_srf_status_out_t output_args;
+        input_args.memNum = memNum;
 
         cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 1000);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
-
-        cy_en_smif_status_t op_result = 0;
 
         cy_pdl_invoke_srf_args invoke_args =
         {
@@ -1181,10 +1212,10 @@ cy_en_smif_status_t Cy_SMIF_MemNumEraseChip(cy_stc_smif_mem_context_t *context, 
             .submodule_id = CY_PDL_SECURE_SUBMODULE_SMIF,
             .base = context->base,
             .sub_block = smif_number,
-            .input_base = input_args,
-            .input_len = sizeof(uint8_t),
-            .output_base = (uint8_t*)&op_result,
-            .output_len = sizeof(op_result),
+            .input_base = (uint8_t*)&input_args,
+            .input_len = sizeof(input_args),
+            .output_base = (uint8_t*)&output_args,
+            .output_len = sizeof(output_args),
             .invec_bases = NULL,
             .invec_sizes = NULL,
             .outvec_bases = NULL,
@@ -1195,26 +1226,26 @@ cy_en_smif_status_t Cy_SMIF_MemNumEraseChip(cy_stc_smif_mem_context_t *context, 
         if (result == MTB_SRF_ERR_SECURITY_POLICY_VIOLATION)
         {
             (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
-            return result;
+            return CY_SMIF_SECURITY_POLICY_VIOLATION;
         }
         else
         {
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         }
-        memcpy(&op_result, (cy_rslt_t*)(&(output->output_values[0])), sizeof(op_result));
+        memcpy(&output_args, (cy_rslt_t*)(&(output->output_values[0])), sizeof(output_args));
 
         result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         CY_UNUSED_PARAM(result);
 
-        return op_result;
+        return output_args.op_res;
     }
 #endif
 
 #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
     if(context->requires_secure_call && !_Cy_SMIF_IsAddressRangeNSAccessible(smif_internal_secure_contexts[smif_number], memNum, 0u, 0u))
     {
-        return MTB_SRF_ERR_SECURITY_POLICY_VIOLATION;
+        return CY_SMIF_SECURITY_POLICY_VIOLATION;
     }
     else
 #endif
@@ -1247,15 +1278,13 @@ cy_en_smif_status_t Cy_SMIF_MemNumHyperBusRead(cy_stc_smif_mem_context_t *contex
         mtb_srf_invec_ns_t* inVec = NULL;
         mtb_srf_outvec_ns_t* outVec = NULL;
         mtb_srf_output_ns_t* output = NULL;
+        cy_pdl_smif_srf_mem_num_hb_read_in_t input_args;
+        cy_pdl_smif_srf_status_out_t output_args;
+        input_args.memNum = memNum;
+        input_args.address = address;
 
         cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 1000);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
-
-        uint8_t input_args[sizeof(memNum) + sizeof(address)];
-        memcpy(&(input_args[0]), &memNum, sizeof(memNum));
-        memcpy(&(input_args[sizeof(memNum)]), &address, sizeof(address));
-
-        cy_en_smif_status_t op_result = 0;
 
         void* outvec_bases[] = {rxBuffer, NULL};
         size_t outvec_sizes[] = {length, 0UL};
@@ -1268,10 +1297,10 @@ cy_en_smif_status_t Cy_SMIF_MemNumHyperBusRead(cy_stc_smif_mem_context_t *contex
             .submodule_id = CY_PDL_SECURE_SUBMODULE_SMIF,
             .base = context->base,
             .sub_block = smif_number,
-            .input_base = (uint8_t*)input_args,
+            .input_base = (uint8_t*)&input_args,
             .input_len = sizeof(input_args),
-            .output_base = (uint8_t*)&op_result,
-            .output_len = sizeof(op_result),
+            .output_base = (uint8_t*)&output_args,
+            .output_len = sizeof(output_args),
             .invec_bases = NULL,
             .invec_sizes = NULL,
             .outvec_bases = outvec_bases,
@@ -1281,27 +1310,27 @@ cy_en_smif_status_t Cy_SMIF_MemNumHyperBusRead(cy_stc_smif_mem_context_t *contex
         if (result == MTB_SRF_ERR_SECURITY_POLICY_VIOLATION)
         {
             (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
-            return result;
+            return CY_SMIF_SECURITY_POLICY_VIOLATION;
         }
         else
         {
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         }
 
-        memcpy(&op_result, (cy_rslt_t*)(&(output->output_values[0])), sizeof(op_result));
+        memcpy(&output_args, (cy_rslt_t*)(&(output->output_values[0])), sizeof(output_args));
 
         result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         CY_UNUSED_PARAM(result);
 
-        return op_result;
+        return output_args.op_res;
     }
 #endif
 
 #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
     if(context->requires_secure_call && !_Cy_SMIF_IsAddressRangeNSAccessible(smif_internal_secure_contexts[smif_number], memNum, address, length))
     {
-        return MTB_SRF_ERR_SECURITY_POLICY_VIOLATION;
+        return CY_SMIF_SECURITY_POLICY_VIOLATION;
     }
     else
 #endif
@@ -1354,15 +1383,13 @@ cy_en_smif_status_t Cy_SMIF_MemNumHyperBusWrite(cy_stc_smif_mem_context_t *conte
         mtb_srf_invec_ns_t* inVec = NULL;
         mtb_srf_outvec_ns_t* outVec = NULL;
         mtb_srf_output_ns_t* output = NULL;
+        cy_pdl_smif_srf_mem_num_hb_write_in_t input_args;
+        cy_pdl_smif_srf_status_out_t output_args;
+        input_args.memNum = memNum;
+        input_args.address = address;
 
         cy_rslt_t result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 1000);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
-
-        uint8_t input_args[sizeof(memNum) + sizeof(address)];
-        memcpy(&(input_args[0]), &memNum, sizeof(memNum));
-        memcpy(&(input_args[sizeof(memNum)]), &address, sizeof(address));
-
-        cy_en_smif_status_t op_result = 0;
 
         void* invec_bases[] = {(void*)txBuffer, NULL};
         size_t invec_sizes[] = {length, 0UL};
@@ -1375,10 +1402,10 @@ cy_en_smif_status_t Cy_SMIF_MemNumHyperBusWrite(cy_stc_smif_mem_context_t *conte
             .submodule_id = CY_PDL_SECURE_SUBMODULE_SMIF,
             .base = context->base,
             .sub_block = smif_number,
-            .input_base = (uint8_t*)input_args,
+            .input_base = (uint8_t*)&input_args,
             .input_len = sizeof(input_args),
-            .output_base = (uint8_t*)&op_result,
-            .output_len = sizeof(op_result),
+            .output_base = (uint8_t*)&output_args,
+            .output_len = sizeof(output_args),
             .invec_bases = invec_bases,
             .invec_sizes = invec_sizes,
             .outvec_bases = NULL,
@@ -1388,27 +1415,27 @@ cy_en_smif_status_t Cy_SMIF_MemNumHyperBusWrite(cy_stc_smif_mem_context_t *conte
         if (result == MTB_SRF_ERR_SECURITY_POLICY_VIOLATION)
         {
             (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
-            return result;
+            return CY_SMIF_SECURITY_POLICY_VIOLATION;
         }
         else
         {
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         }
 
-        memcpy(&op_result, (cy_rslt_t*)(&(output->output_values[0])), sizeof(op_result));
+        memcpy(&output_args, (cy_rslt_t*)(&(output->output_values[0])), sizeof(output_args));
 
         result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
         CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
         CY_UNUSED_PARAM(result);
 
-        return op_result;
+        return output_args.op_res;
     }
 #endif
 
 #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SMIF_ENABLE_SRF_INTEG)
     if(context->requires_secure_call && !_Cy_SMIF_IsAddressRangeNSAccessible(smif_internal_secure_contexts[smif_number], memNum, address, length))
     {
-        return MTB_SRF_ERR_SECURITY_POLICY_VIOLATION;
+        return CY_SMIF_SECURITY_POLICY_VIOLATION;
     }
     else
 #endif

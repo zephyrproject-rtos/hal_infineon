@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_flash.c
-* \version 3.130
+* \version 3.140
 *
 * \brief
 * Provides the public functions for the API for the PSOC 6 and PSOC C3 Flash Driver.
@@ -242,7 +242,9 @@ static uint8_t Cy_Flash_GetHash(uint32_t startAddr,uint32_t numberOfBytes);
 static void Cy_Flash_Callback_PreIRQ(cyboot_flash_context_t *ctx);
 static void Cy_Flash_Callback_PostIRQ(cyboot_flash_context_t *ctx);
 static void Cy_Flash_Callback_IRQComplete(cyboot_flash_context_t *ctx);
-
+static cy_flash_callback_t irqComplete_callback = NULL;
+static cy_flash_callback_t preIrq_callback = NULL;
+static cy_flash_callback_t postIrq_callback = NULL;
 #endif /* defined (CY_IP_MXS40FLASHC) */
 
 #if !defined (CY_IP_MXS40FLASHC)
@@ -718,6 +720,10 @@ static cy_en_flashdrv_status_t Cy_Flash_Process_BootRom_Error_Code(uint32_t erro
 *******************************************************************************/
 static void Cy_Flash_Callback_PreIRQ(cyboot_flash_context_t *ctx)
 {
+    if(NULL != preIrq_callback)
+    {
+        preIrq_callback();
+    }
     (void) ctx;
 }
 /*******************************************************************************
@@ -729,6 +735,10 @@ static void Cy_Flash_Callback_PreIRQ(cyboot_flash_context_t *ctx)
 *******************************************************************************/
 static void Cy_Flash_Callback_PostIRQ(cyboot_flash_context_t *ctx)
 {
+    if(NULL != postIrq_callback)
+    {
+        postIrq_callback();
+    }
     (void) ctx;
 }
 /*******************************************************************************
@@ -740,6 +750,10 @@ static void Cy_Flash_Callback_PostIRQ(cyboot_flash_context_t *ctx)
 *******************************************************************************/
 static void Cy_Flash_Callback_IRQComplete(cyboot_flash_context_t *ctx)
 {
+    if(NULL != irqComplete_callback)
+    {
+        irqComplete_callback();
+    }
     (void) ctx;
 }
 
@@ -787,6 +801,36 @@ cy_en_flashdrv_status_t Cy_Flash_Init(bool refresh_enable)
     return CY_FLASH_DRV_SUCCESS;
 }
 
+/*******************************************************************************
+* Function Name: Cy_Flash_RegisterCallback
+****************************************************************************//**
+*
+* Registers callback functions
+*
+* \param callBacks pointer to the callback functions structure \ref cy_stc_flash_callback_t
+*
+* \note Total 3 callbacks 1) Before starting the operation 2) When the operation is started 3) After completion of the operation.
+*
+*******************************************************************************/
+
+void Cy_Flash_RegisterCallback(cy_stc_flash_callback_t *callBacks)
+{
+    if(NULL != callBacks)
+    {
+        if(NULL != callBacks->callback_before_operation)
+        {
+            preIrq_callback = callBacks->callback_before_operation;
+        }
+        if(NULL != callBacks->callback_operation_started)
+        {
+            postIrq_callback = callBacks->callback_operation_started;
+        }
+        if(NULL != callBacks->callback_operation_complete)
+        {
+            irqComplete_callback = callBacks->callback_operation_complete;
+        }
+    }
+}
 /*******************************************************************************
 * Function Name: Cy_Flash_Is_Refresh_Required
 ********************************************************************************
@@ -1152,7 +1196,7 @@ cy_en_flashdrv_status_t Cy_Flash_ProgramRow(uint32_t rowAddr, const uint32_t* da
 #else
 
         boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_program_row(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_program_row(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (uint32_t *)data, &boot_rom_context);
         result = Cy_Flash_Process_BootRom_Error_Code(status);
 #endif /* !defined (CY_IP_MXS40FLASHC) */
 
@@ -1206,7 +1250,7 @@ cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data
 #else
 
         boot_rom_context.flags = CYBOOT_FLAGS_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_write_row(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_write_row(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (uint32_t *)data, &boot_rom_context);
         result = Cy_Flash_Process_BootRom_Error_Code(status);
 #endif /* !defined (CY_IP_MXS40FLASHC) */
 
@@ -1262,7 +1306,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* da
 
 #else
         boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_write_row_start(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_write_row_start(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (uint32_t *)data, &boot_rom_context);
         if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
         {
             result = CY_FLASH_DRV_OPERATION_STARTED;
@@ -1339,7 +1383,7 @@ cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* 
     }
 #else
         boot_rom_context.flags = CYBOOT_FLAGS_NON_BLOCKING;
-        uint32_t status = ROM_FUNC->cyboot_flash_program_row_start(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (void *)data, &boot_rom_context);
+        uint32_t status = ROM_FUNC->cyboot_flash_program_row_start(FLASH_SBUS_ALIAS_ADDRESS(rowAddr), (uint32_t *)data, &boot_rom_context);
         if(status == (uint32_t)CYBOOT_FLASH_SUCCESS)
         {
             result = CY_FLASH_DRV_OPERATION_STARTED;

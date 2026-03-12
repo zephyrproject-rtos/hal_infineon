@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_scb_common.h
-* \version 3.40
+* \version 3.50
 *
 * Provides common API declarations of the SCB driver.
 *
@@ -58,6 +58,15 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>3.50</td>
+*     <td>Added new functions support for I2C:
+        - \ref Cy_SCB_I2C_RegisterMasterByteReceivedCallback
+        - \ref Cy_SCB_I2C_RegisterSlaveByteReceivedCallback
+        - \ref Cy_SCB_I2C_SlavePauseTransmit
+        - \ref Cy_SCB_I2C_SlaveResumeTransmit</td>
+*     <td>Enhanced I2C data handling capabilities.</td>
+*   </tr>
+*   <tr>
 *     <td rowspan="3">3.40</td>
 *     <td>Added new I2C Callback Events and I2C Slave Status macros:
 *       - \ref CY_SCB_I2C_SLAVE_RESTART_EVENT.
@@ -68,7 +77,7 @@
 *     <td>Enhanced I2C event handling and status reporting capabilities.</td>
 *   </tr>
 *   <tr>
-*     <td>Added Byte Received Callback support for I2C. Added new API \ref Cy_SCB_I2C_RegisterByteReceivedCallback.</td>
+*     <td>Added Byte Received Callback support for I2C. Added new API Cy_SCB_I2C_RegisterByteReceivedCallback.</td>
 *     <td>Enhanced I2C data handling capabilities.</td>
 *   </tr>
 *   <tr>
@@ -500,7 +509,7 @@ __STATIC_INLINE uint32_t Cy_SCB_Get_TxDataWidth(CySCB_Type const *base);
 #define CY_SCB_DRV_VERSION_MAJOR    (3)
 
 /** Driver minor version */
-#define CY_SCB_DRV_VERSION_MINOR    (40)
+#define CY_SCB_DRV_VERSION_MINOR    (50)
 
 /** SCB driver identifier */
 #define CY_SCB_ID           CY_PDL_DRV_ID(0x2AU)

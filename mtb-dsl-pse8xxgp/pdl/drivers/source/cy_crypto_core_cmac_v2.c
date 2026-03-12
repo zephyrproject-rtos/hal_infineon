@@ -255,7 +255,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Update(CRYPTO_Type *base,
         messageRemap+= CY_CRYPTO_AES_BLOCK_SIZE-cmacState->aesState.unProcessedBytes;
         cmacState->aesState.unProcessedBytes = 0u;
     }
-        
+
     cnt = (uint32_t)((messageSize + CY_CRYPTO_AES_BLOCK_SIZE -1u) / CY_CRYPTO_AES_BLOCK_SIZE);
 
     if(cnt > 1u)
@@ -289,7 +289,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Cmac_Update(CRYPTO_Type *base,
         Cy_Crypto_Core_V2_MemCpy(base, (void*)&bufferRemap->unProcessedData[cmacState->aesState.unProcessedBytes], (void*)messageRemap, (uint16_t)messageSize);
         cmacState->aesState.unProcessedBytes += messageSize;
     }
-    
+
     return CY_CRYPTO_SUCCESS;
 }
 

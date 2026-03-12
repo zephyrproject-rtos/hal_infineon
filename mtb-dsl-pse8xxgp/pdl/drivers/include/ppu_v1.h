@@ -23,7 +23,7 @@
 
 #if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS)
 
-/*!
+/*
  * \cond
  * @{
  */
@@ -492,10 +492,10 @@ unsigned int ppu_v1_get_arch_id(struct ppu_v1_reg *ppu);
  */
 unsigned int ppu_v1_get_failure_device_id(struct ppu_v1_reg *ppu);
 
-/*!
+/*
  * \endcond
  * @}
  */
-#endif /* CY_IP_MXS40SRSS || CY_IP_MXS40SSRSS*/
+#endif /* defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || defined (CY_IP_MXS22SRSS) */
 
 #endif  /* PPU_V1_H */

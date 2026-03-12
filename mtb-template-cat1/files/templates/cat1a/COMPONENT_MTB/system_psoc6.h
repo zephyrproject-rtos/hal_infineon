@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file system_psoc6.h
-* \version 2.110
+* \version 2.120
 *
 * \brief Device system header file.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2021 Cypress Semiconductor Corporation
+* Copyright 2016-2025 Infineon Technologies AG, or an affiliate of Infineon Technologies AG.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -334,6 +334,11 @@
 *       <th>Reason for Change</th>
 *   </tr>
 *   <tr>
+*       <td rowspan="1">2.120</td>
+*       <td>Added support for XMC&trade; 5000 devices.</td>
+*       <td>Code enhancement and support for new devices.</td>
+*   </tr>
+*   <tr>
 *       <td rowspan="1">2.110</td>
 *       <td>Added new defines for TRAVEO&trade; II Body Entry devices.</td>
 *       <td>Code enhancement.</td>
@@ -342,7 +347,7 @@
 *       <td rowspan="1">2.100</td>
 *       <td>Added support for TRAVEO&trade; II Body Entry devices.</td>
 *       <td>Code enhancement and support for new devices.</td>
-*   </tr> 
+*   </tr>
 *   <tr>
 *       <td rowspan="1">2.95.1</td>
 *       <td>Restructured documentation.</td>
@@ -562,9 +567,13 @@ extern "C" {
 *        <i>(USER SETTING)</i>
 *******************************************************************************/
 #if !defined (CY_CORTEX_M4_APPL_ADDR)
-    // Include a partition file for Traveo II BE devices
     #if (defined (CY_DEVICE_SERIES_CYT2B6) || defined (CY_DEVICE_SERIES_CYT2B7) || defined (CY_DEVICE_SERIES_CYT2B9) || defined (CY_DEVICE_SERIES_CYT2BL))
+        // Include a partition file for Traveo II BE devices
         #include "tviibe_partition.h"
+        #define CY_CORTEX_M4_APPL_ADDR          BASE_CODE_FLASH_CM4_0
+    #elif (defined (CY_DEVICE_SERIES_XMC5100) || defined (CY_DEVICE_SERIES_XMC5200) || defined (CY_DEVICE_SERIES_XMC5300))
+        // Include a partition file for XMC5000 devices
+        #include "xmc5000_partition.h"
         #define CY_CORTEX_M4_APPL_ADDR          BASE_CODE_FLASH_CM4_0
     #else
         #define CY_CORTEX_M4_APPL_ADDR          (CY_FLASH_BASE + 0x2000U)   /* <<< 8 kB of flash is reserved for the Cortex-M0+ application */

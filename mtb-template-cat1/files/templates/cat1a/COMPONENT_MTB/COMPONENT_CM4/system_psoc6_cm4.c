@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file system_psoc6_cm4.c
-* \version 2.110
+* \version 2.120
 *
 * The device system-source file.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright 2016-2025 Infineon Technologies AG, or an affiliate of Infineon Technologies AG.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@
 #include "cy_sysclk.h"
 #include "cy_wdt.h"
 
-#if (defined(CY_DEVICE_TVIIBE))
+#if defined(CY_DEVICE_TVIIBE)
 
 /*******************************************************************************
 * SystemCoreClockUpdate()
@@ -248,7 +248,6 @@ void SystemIrqInit(void)
 *******************************************************************************/
 void SystemInit(void)
 {
-    // TVIIBE SystemInit
     Cy_PDL_Init(CY_DEVICE_CFG);
 
     Cy_SystemInit();
@@ -322,7 +321,7 @@ void Cy_SystemInitFpuEnable(void)
     #endif /* (__FPU_USED) && (__FPU_USED == 1U) */
 }
 
-#else /* PSoC 6 */
+#elif !defined(CY_DEVICE_XMC5000) /* Start of PSOC section */
 
 #if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
     #include "cy_ipc_sema.h"
@@ -651,6 +650,6 @@ __cy_memory_4_row_size  EQU __cpp(1)
 }
 #endif /* defined (__ARMCC_VERSION) && (__ARMCC_VERSION < 6010050) */
 
-#endif /* (defined(CY_DEVICE_TVIIBE)) */
+#endif /* defined(CY_DEVICE_TVIIBE) */
 
 /* [] END OF FILE */

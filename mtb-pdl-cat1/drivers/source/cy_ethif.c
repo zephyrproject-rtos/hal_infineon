@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ethif.c
-* \version 1.40
+* \version 1.50
 *
 * Provides an API implementation of the ETHIF driver
 *
@@ -995,6 +995,32 @@ void Cy_ETHIF_DiscardNonVLANFrames(ETH_Type *base, bool enable)
         cyp_ethif_gemgxlobj->setVlanOnly((void *)cyp_ethif_pd[u8EthIfInstance], (uint8_t)(enable ? 1 : 0));
     }
 
+}
+
+/*******************************************************************************
+* Function Name: Cy_ETHIF_GetPrivateData
+****************************************************************************//**
+*
+* \brief Get pointer to private data
+*
+* \param base Pointer to register area of Ethernet MAC
+*
+* \return Pointer to private data or NULL in case wrong parameter
+*
+*******************************************************************************/
+void * Cy_ETHIF_GetPrivateData(ETH_Type *base)
+{
+    uint8_t u8EthIfInstance;
+
+    /* check for arguments */
+    if (!CY_ETHIF_IS_IP_INSTANCE_VALID(base))
+    {
+        return NULL;
+    }
+
+    u8EthIfInstance = CY_ETHIF_IP_INSTANCE(base);
+
+    return (void *)cy_ethif_privatedata[u8EthIfInstance];
 }
 
 

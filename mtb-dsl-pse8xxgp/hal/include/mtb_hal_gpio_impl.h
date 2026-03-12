@@ -232,6 +232,18 @@ __STATIC_INLINE void mtb_hal_gpio_port_read_internal(mtb_hal_gpio_port_t* port, 
 
 #define mtb_hal_gpio_port_read(port, value) mtb_hal_gpio_port_read_internal(port, value)
 
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_gpio_read_out
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE bool _mtb_hal_gpio_read_out(mtb_hal_gpio_t* obj)
+{
+    return 0 != Cy_GPIO_ReadOut(obj->port_addr, (uint32_t)obj->pin_num);
+}
+
+
+#define mtb_hal_gpio_read_out _mtb_hal_gpio_read_out
+
 #endif /* MTB_HAL_DRIVER_AVAILABLE_GPIO_PORT */
 
 

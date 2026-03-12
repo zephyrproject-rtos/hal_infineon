@@ -584,7 +584,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 20.5', 1, \
 
 
 /* For Internal memory VU operation, Crypto CTL register should always point to Non-secure memory address
-for both Secure & Non-Secure execution */        
+for both Secure & Non-Secure execution */
 #if defined(SECURE_ALIAS_OFFSET)
 #define SECURE_ALIAS_OFFSET_POS 28UL
 #define CY_CRYPTO_VU_MEM_ALIAS_ADDRESS(base)             (uint32_t)(((uint32_t)(REG_CRYPTO_VU_CTL1(base))) | ((uint32_t)((CRYPTO_V2_CTL_NS_Pos) & ~_FLD2VAL(CRYPTO_V2_CTL_NS, REG_CRYPTO_CTL(base))) << SECURE_ALIAS_OFFSET_POS))

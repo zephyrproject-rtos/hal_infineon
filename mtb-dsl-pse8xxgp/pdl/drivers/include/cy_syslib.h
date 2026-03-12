@@ -2,12 +2,14 @@
 * \file cy_syslib.h
 * \version 3.80
 *
+* \brief
 * Provides an API declaration of the SysLib driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_syslib
@@ -128,236 +131,6 @@
 *
 * \section group_syslib_more_information More Information
 * Refer to the technical reference manual (TRM).
-*
-* \section group_syslib_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>3.80</td>
-*     <td>Coverity fixes and added new API \ref Cy_SysLib_GetDeviceLCS for PSoC C3.</td>
-*     <td>Code enhancement and new functionality.</td>
-*   </tr>
-*   <tr>
-*     <td>3.70</td>
-*     <td>Updated API \ref Cy_SysLib_GetUniqueId and added new \ref Cy_Syslib_IsMemCacheable.</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>3.60</td>
-*     <td>Updated API \ref Cy_SysLib_GetUniqueId, added section for unified linker script update</td>
-*     <td>Code enhancement and bug fixes to enable API compilation for PSoC C3.</td>
-*   </tr>
-*   <tr>
-*     <td>3.50</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*          Pre-processor check for MXS40SRSS version now groups ver. 2 with ver. 3. Previously ver. 2 was grouped with ver. 1.</td>
-*          Some pre-processor checks for if the device has a CM4 now also require device to not be HT_Variant to exclude TVIIBE and CAT1C devices.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">3.40</td>
-*     <td>
-*         Newly added API \ref Cy_SysLib_GetDeviceLCS and enum \ref cy_en_syslib_lcs_mode_t
-*     </td>
-*     <td>Support of LCS added for PSE8 devices .</td>
-*   </tr>
-*   <tr>
-*     <td>Updated API \ref Cy_SysLib_SetWaitStates and added new macros.</td>
-*     <td>Enabled wait-states API for CAT1C devices.</td>
-*   </tr>
-*   <tr>
-*     <td>3.30</td>
-*     <td>Added \ref Cy_SysLib_IsDSRAMWarmBootEntry and \ref Cy_SysLib_ClearDSRAMWarmBootEntryStatus APIs.</td>
-*     <td>DEEPSLEEP-RAM support added for CAT1B Devices.</td>
-*   </tr>
-*   <tr>
-*     <td>3.20</td>
-*     <td>Updated Cy_SysLib_Delay() to perform correctly, enable Cy_SysLib_GetUniqueId() API for CAT1B,
-*         coverity fixes and documentation enhancements. \n
-*         Added CY_SECTION_INIT_CODECOPY_START and CY_SECTION_INIT_CODECOPY_END macro
-*         to move block of code from flash to sram during startup init. Currently
-*         it only supports in IAR build.</td>
-*     <td>Bug Fixes and Enhancements.</td>
-*   </tr>
-*   <tr>
-*     <td>3.10</td>
-*     <td>CAT1B, CAT1C, PSE8 devices support.<br>Added new API Cy_Syslib_SetWarmBootEntryPoint()
-*         to set the warm boot entry point address to a location read by BootROM.<br>
-*         To get the accurate delay, updated Cy_SysLib_Delay(), Cy_SysLib_DelayUs() with a calibration factor.</td>
-*     <td>Support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>3.0</td>
-*     <td>Updated \ref Cy_SysLib_SoftResetCM4 to perform correctly when function is called multiple times.</td>
-*     <td>Fixed issue which caused IPC Message to Fail if API is called more than once.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">2.90</td>
-*     <td>Added new functions \ref Cy_SysLib_Rtos_Delay, \ref Cy_SysLib_Rtos_DelayUs.</td>
-*     <td>Provide user an option to overwrite delay function implementation based on target RTOS environment.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new functions \ref Cy_SysLib_GetResetStatus, \ref Cy_SysLib_GetWcoTrim and \ref Cy_SysLib_SetWcoTrim.</td>
-*     <td>Add a possibility to manage the backup domain reset better and to store/restore the WCO trimming value.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">2.80</td>
-*     <td>Support for CM33.</td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td>Update \ref Cy_SysLib_GetResetReason API to read RES_CAUSE2 register as well.</td>
-*     <td>Code Enhancement/Bug Fix.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">2.70</td>
-*     <td>Added new macros CY_SECTION_RAMFUNC_BEGIN, CY_SECTION_RAMFUNC_END,
-*         CY_SECTION_SHAREDMEM to enable overriding of the linker section placement.</td>
-*     <td>Enhancement based on usability feedback.</td>
-*   </tr>
-*   <tr>
-*     <td>Noted that implementation of CY_ASSERT() was changed back in version 2.50,
-*         so that Cy_SysLib_AssertFailed() function is not called and user application
-*         may need to be updated.</td>
-*     <td>Documentation update.</td>
-*   </tr>
-*   <tr>
-*     <td>Removed the issue related to the malloc() failure to report error for the case when
-*         requested allocation size is bigger than the heap size.
-*         Refer to the \ref group_system_config_heap_stack_config_gcc section for the more details.
-*         Removed empty Known Issues section.
-*     <td>Documentation update and clarification.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed/Documented MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>2.60.1</td>
-*     <td>Updated the Configuration Considerations section with the information that
-*         CY_ASSERT() macro is defined in the cy_utils.h file, which is part of the
-*         <a href="https://github.com/Infineon/core-lib">Cypress Core Library (core-lib)</a>
-*     <td>Documentation update and clarification.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">2.60</td>
-*     <td>Updated the following functions for the PSoC 64 devices:
-*         \ref Cy_SysLib_ClearFlashCacheAndBuffer, \ref Cy_SysLib_ClearResetReason,
-*         \ref Cy_SysLib_SetWaitStates.
-*     <td>Added PSoC 64 device support.</td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.50.3</td>
-*     <td>Add section Known Issues
-*     <td>Documentation update and clarification.</td>
-*   </tr>
-*   <tr>
-*     <td>2.50.1</td>
-*     <td>Used the core library defines for the message codes forming.
-*     <td>Improve PDL code base.</td>
-*   </tr>
-*   <tr>
-*     <td>2.50</td>
-*     <td>Moved following macros to the core library:
-*         CY_LO8,CY_HI8,CY_LO16,CY_HI16,CY_SWAP_ENDIAN16,CY_SWAP_ENDIAN32,
-*         CY_SWAP_ENDIAN64,CY_GET_REG8,CY_SET_REG8,CY_GET_REG16,CY_SET_REG16,
-*         CY_GET_REG24,CY_SET_REG24,CY_GET_REG32,CY_SET_REG32,_CLR_SET_FLD32U,
-*         CY_REG32_CLR_SET,_CLR_SET_FLD16U,CY_REG16_CLR_SET,_CLR_SET_FLD8U,
-*         CY_REG8_CLR_SET,_BOOL2FLD,_FLD2BOOL,CY_SYSLIB_DIV_ROUND,
-*         CY_SYSLIB_DIV_ROUNDUP,CY_NOINIT,CY_SECTION,CY_UNUSED,CY_NOINLINE,
-*         CY_ALIGN,CY_RAMFUNC_BEGIN,CY_RAMFUNC_END.
-*         Use at least version 1.1 of the core library: https://github.com/Infineon/core-lib.
-*     <td>Improve PDL code base.</td>
-*   </tr>
-*   <tr>
-*     <td>2.40.1</td>
-*     <td>Correct the CY_RAMFUNC_BEGIN macro for the IAR compiler.</td>
-*     <td>Removed the IAR compiler warning.</td>
-*   </tr>
-*   <tr>
-*     <td>2.40</td>
-*     <td>Added new macros CY_SYSLIB_DIV_ROUND and CY_SYSLIB_DIV_ROUNDUP to easy perform integer division with rounding.</td>
-*     <td>Improve PDL code base.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">2.30</td>
-*     <td>Updated implementation of the Cy_SysLib_AsmInfiniteLoop() function to be compatible with ARMC6.</td>
-*     <td>Provided support for the ARM Compiler 6.</td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation edits.</td>
-*     <td>Documentation update and clarification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new macros CY_RAMFUNC_BEGIN and CY_RAMFUNC_END for convenient placement function in RAM for all supported compilers.</td>
-*     <td>Improve user experience.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">2.20</td>
-*     <td>Updated implementation of the \ref Cy_SysLib_AssertFailed() function to be available in Release and Debug modes.</td>
-*     <td>Provided support for the PDL static library in Release mode.</td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation edits.</td>
-*     <td>Documentation update and clarification.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">2.10</td>
-*     <td>Flattened the organization of the driver source code into the single source directory and the single include directory.</td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added the following macros: CY_REG32_CLR_SET, _CLR_SET_FLD16U, CY_REG16_CLR_SET, _CLR_SET_FLD8U, CY_REG8_CLR_SET</td>
-*     <td>Register access simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Removed the Cy_SysLib_GetNumHfclkResetCause API function.</td>
-*     <td>This feature is not supported by SRSS_ver1.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>2.0.1</td>
-*     <td>Minor documentation edits</td>
-*     <td>Documentation update and clarification</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4"> 2.0</td>
-*     <td>
-* Added Cy_SysLib_ResetBackupDomain() API implementation. \n
-* Added CY_NOINLINE attribute implementation. \n
-* Added DIE_YEAR field to 64-bit unique ID return value of Cy_SysLib_GetUniqueId() API. \n
-* Added storing of SCB->HFSR, SCB->SHCSR registers and SCB->MMFAR, SCB->BFAR addresses to Fault Handler debug structure. \n
-* Optimized Cy_SysLib_SetWaitStates() API implementation.
-*     </td>
-*     <td>Improvements made based on usability feedback.</td>
-*   </tr>
-*   <tr>
-*     <td>Added Assertion Classes and Levels.</td>
-*     <td>For error checking, parameter validation and status returns in the PDL API.</td>
-*   </tr>
-*   <tr>
-*     <td>Applied CY_NOINIT attribute to cy_assertFileName, cy_assertLine, and cy_faultFrame global variables.</td>
-*     <td>To store debug information into a non-zero init area for future analysis.</td>
-*   </tr>
-*   <tr>
-*     <td>Removed CY_WEAK attribute implementation.</td>
-*     <td>CMSIS __WEAK attribute should be used instead.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_syslib_macros Macros
 * \defgroup group_syslib_functions Functions

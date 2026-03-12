@@ -2,14 +2,14 @@
 * \file cy_ipc_pipe.h
 * \version 1.140
 *
-*  Description:
-*   IPC Pipe Driver - This header file contains all the function prototypes,
-*   structure definitions, pipe constants, and pipe endpoint address definitions.
+* \brief
+* IPC Pipe Driver - This header file contains all the function prototypes,structure definitions, pipe constants, and pipe endpoint address definitions.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2020-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 #ifndef CY_IPC_PIPE_H
 #define CY_IPC_PIPE_H
 

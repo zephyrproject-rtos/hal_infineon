@@ -3,8 +3,8 @@
 *
 *********************************************************************************
 * \copyright
-* Copyright 2024-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation
+* Copyright(c) 2024-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
 *
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -52,6 +52,8 @@
 #define MTB_HAL_MAP_SYSPM_CB_DEEPSLEEP      CY_SYSPM_DEEPSLEEP
 
 #define MTB_HAL_MAP_SYSPM_CB_HIBERNATE      CY_SYSPM_HIBERNATE
+
+typedef cy_en_syspm_hibernate_wakeup_source_t  mtb_hal_syspm_hibernate_wakeup_source_t;
 
 /** \endcond */
 #endif // defined(CY_IP_MXS22SRSS) || defined(CY_IP_MXS40SRSS) || defined(CY_IP_MXS40SSRSS)

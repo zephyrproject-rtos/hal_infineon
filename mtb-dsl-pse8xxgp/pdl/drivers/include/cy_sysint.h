@@ -3,12 +3,13 @@
 * \version 1.130
 *
 * \brief
-* Provides an API declaration of the SysInt driver
+* Provides an API declaration of the SysInt driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_sysint
@@ -75,18 +77,15 @@
 * \subsection group_sysint_initialization Initialization
 *
 * Interrupt numbers are defined in a device-specific header file, such as
-* cy8c68237bz_ble.h, and are consistent with interrupt handlers defined in the
+* cy_device_headers.h, and are consistent with interrupt handlers defined in the
 * vector table.
 *
 * To configure an interrupt, call Cy_SysInt_Init(). Populate
 * the configuration structure (cy_stc_sysint_t) and pass it as a parameter
 * along with the ISR address. This initializes the interrupt and
 * instructs the CPU to jump to the specified ISR vector upon a valid trigger.
-* For CM0+ core, the configuration structure (cy_stc_sysint_t)
-* must specify the device interrupt source (cm0pSrc) that feeds into the CM0+ NVIC
-* mux (intrSrc).
 *
-* For CM4/CM33/CM55 core, system interrupt source 'n' is connected to the
+* For CM33/CM55 core, system interrupt source 'n' is connected to the
 * corresponding IRQn. Deep-sleep capable interrupts are allocated to Deep Sleep
 * capable IRQn channels.
 *
@@ -128,134 +127,6 @@
 * \section group_sysint_more_information More Information
 *
 * Refer to the technical reference manual (TRM) and the device datasheet.
-*
-* \section group_sysint_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.130</td>
-*     <td>Updated API \ref Cy_SysInt_SetVector for non-cacheable data check .</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.120</td>
-*     <td>Updated Pre-processor checks.</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.110</td>
-*     <td>Updated API \ref Cy_SysInt_Init.</td>
-*     <td>CM0P interrupt priority bug fix.</td>
-*   </tr>
-*   <tr>
-*     <td>1.100</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*          Pre-processor check for MXS40SRSS version now groups ver. 2 with ver. 3. Previously ver. 2 was grouped with ver. 1.</td>
-*          Added support for CM0+/CM4 dual core devices. Previously only supported CM0+/CM7 devices.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.90.1</td>
-*     <td>Fixed MISRA 2012 8.5 and 8.6 violations.</td>
-*     <td>MISRA 2012 compliance..</td>
-*   </tr>
-*   <tr>
-*     <td>1.90</td>
-*     <td>Updated \ref Cy_SysInt_Init, \ref Cy_SysInt_SetVector and \ref Cy_SysInt_GetVector APIs.</td>
-*     <td>Code Clean up.</td>
-*   </tr>
-*   <tr>
-*     <td>1.80</td>
-*     <td>API's Cy_SysInt_SetInterruptSource(), Cy_SysInt_GetInterruptSource(), Cy_SysInt_DisconnectInterruptSource(),
-*         Cy_SysInt_SetNmiSource(), Cy_SysInt_GetNmiSource(), Cy_SysInt_SoftwareTrig(), Cy_SysInt_GetNvicConnection(),
-*         Cy_SysInt_GetInterruptActive(), Cy_SysInt_InitExtIRQ(), Cy_SysInt_InitIntIRQ(), Cy_SysInt_Init(),
-*         Cy_SysInt_SetVector(), Cy_SysInt_GetVector(), Cy_SysInt_SetSystemIrqVector(), Cy_SysInt_EnableSystemInt(), Cy_SysInt_DisableSystemInt()
-*         modified.</td>
-*     <td>New device support, Fix Coverity issues, Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.70</td>
-*     <td>Support for CAT1C, PSE8.<br>Newly added API's Cy_SysInt_SetSystemIrqVector() to set the user ISR vector for the System Interrupt,
-*         Cy_SysInt_GetSystemIrqVector() to get the address of the current user ISR vector for the System Interrupt,
-*         Cy_SysInt_EnableSystemInt() to enable system interrupt, Cy_SysInt_DisableSystemInt() to disable system interrupt,
-*         Cy_SysInt_InitExtIRQ() to initialize the referenced external interrupt by setting the CPU IRQ priority and the interrupt vector,
-*         Cy_SysInt_InitIntIRQ() to initialize the referenced internal interrupt by setting the priority and the interrupt vector.</td>
-*     <td>New devices support.</td>
-*   </tr>
-
-*   <tr>
-*     <td>1.60</td>
-*     <td>Support for CM33.</td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50</td>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>Updated the CY_SYSINT_IS_PC_0 macro to access the protected register
-*         for the secure CYB06xx7 devices via \ref group_pra driver.
-*    </td>
-*     <td>Added PSoC 64 devices support.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30</td>
-*     <td>The Cy_SysInt_SetNmiSource is updated with Protection Context check for CM0+.</td>
-*     <td>User experience enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20.1</td>
-*     <td>The Vector Table section is extended with a code snippet.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">1.20</td>
-*     <td>Flattened the organization of the driver source code into the single source directory and the single include directory.</td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added CPUSS_ver2 support to the following API functions:
-*         - \ref Cy_SysInt_SetInterruptSource
-*         - \ref Cy_SysInt_SetNmiSource
-*         - \ref Cy_SysInt_GetNmiSource
-*
-*         Added new API functions:
-*         - \ref Cy_SysInt_DisconnectInterruptSource
-*         - \ref Cy_SysInt_GetNvicConnection
-*         - \ref Cy_SysInt_GetInterruptActive
-*
-*         Deprecated following functions:
-*         - Cy_SysInt_SetIntSource
-*         - Cy_SysInt_GetIntSource
-*         - Cy_SysInt_SetIntSourceNMI
-*         - Cy_SysInt_GetIntSourceNMI
-*     </td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>Cy_SysInt_GetState() function is redefined to call NVIC_GetEnableIRQ()</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_sysint_macros Macros
 * \defgroup group_sysint_functions Functions
@@ -376,7 +247,7 @@ typedef struct {
     #define CY_SYSINT_ENABLE           (1UL)    /**< Enable interrupt */
     #define CY_SYSINT_INT_STATUS_MSK   (0x7UL)
 
- 
+
     /* Parameter validation macros */
     #define CY_SYSINT_IS_PRIORITY_VALID(intrPriority)     ((uint32_t)(1UL << __NVIC_PRIO_BITS) > (intrPriority))
     #define CY_SYSINT_IS_VECTOR_VALID(userIsr)            (NULL != (userIsr))
@@ -522,9 +393,9 @@ cy_israddress Cy_SysInt_SetVector(IRQn_Type IRQn, cy_israddress userIsr);
 cy_israddress Cy_SysInt_GetVector(IRQn_Type IRQn);
 
 
- 
- 
- 
+
+
+
 /***************************************
 *           Functions
 ***************************************/

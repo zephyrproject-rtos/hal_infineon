@@ -244,7 +244,7 @@ static cy_en_crypto_status_t Cy_Crypto_Core_EC_CS_MUL_Red_P224(CRYPTO_Type *base
    if(CY_CRYPTO_SUCCESS != tmpResult)
    {
         return tmpResult;
-   }  
+   }
 
    tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, t3, CY_CRYPTO_ECC_P224_SIZE);  /* 224 */
    if(CY_CRYPTO_SUCCESS != tmpResult)
@@ -349,19 +349,19 @@ static cy_en_crypto_status_t Cy_Crypto_Core_EC_CS_MUL_Red_P256(CRYPTO_Type *base
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }    
+    }
 
     tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, t3, 32u);      /* 32 */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    } 
-   
+    }
+
     tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, t4, 96u);      /* 96 */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }    
+    }
 
     CY_CRYPTO_VU_SET_REG (base, sh, CY_CRYPTO_ECC_P256_SIZE, 1u);    /* sh = 256 */
     CY_CRYPTO_VU_SET_REG (base, sh32, 32u, 1u);   /* sh = 32 */
@@ -567,7 +567,7 @@ static cy_en_crypto_status_t Cy_Crypto_Core_EC_CS_MUL_Red_P384(CRYPTO_Type *base
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }    
+    }
 
     CY_CRYPTO_VU_SET_REG (base, sh32, 32u, 1u);   /* sh32  = 32 */
     CY_CRYPTO_VU_SET_REG (base, sh64, 64u, 1u);   /* sh64  = 64 */
@@ -1266,8 +1266,8 @@ static cy_en_crypto_status_t Cy_Crypto_Core_EC_SM_MUL_Red_P521(CRYPTO_Type *base
 
     CY_CRYPTO_VU_FREE_MEM (base, CY_CRYPTO_VU_REG_BIT(t0));
     CY_CRYPTO_VU_POP_REG (base);
-    
-    return CY_CRYPTO_SUCCESS;    
+
+    return CY_CRYPTO_SUCCESS;
 }
 #endif /* defined(CY_CRYPTO_CFG_ECP_DP_SECP521R1_ENABLED) */
 
@@ -1883,7 +1883,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_JacobianInvTransform(CRYPTO_Type *base, uin
     }
 
     CY_CRYPTO_VU_SET_TO_ONE (base, t1);                     /* t1 = 1 */
-    
+
     tmpResult = Cy_Crypto_Core_EC_DivMod( base, t2, t1, my_s_z, size);  /* t2 = 1/Z */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
@@ -2011,32 +2011,32 @@ cy_en_crypto_status_t Cy_Crypto_Core_JacobianEcAdd(CRYPTO_Type *base,
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }  
+    }
 
     tmpResult =Cy_Crypto_Core_EC_MulMod( base, t8, my_t_x, t6, size);      /* t8 = xZZ = B */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }     
+    }
 
     tmpResult = Cy_Crypto_Core_EC_MulMod( base, t7, my_t_y, my_s_z, size);  /* t7 = yZ */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }        
+    }
     Cy_Crypto_Core_EC_SubMod( base, my_s_x, my_s_x, t8);        /* my_s_x = X - B = E */
 
     tmpResult = Cy_Crypto_Core_EC_MulMod( base, my_s_z, my_s_x, my_s_z, size);  /* my_s_z = E*Z = Z3 */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    } 
+    }
 
     tmpResult = Cy_Crypto_Core_EC_MulMod( base, t9, t7, t6, size);          /* t9 = yZZZ = D */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    } 
+    }
 
     Cy_Crypto_Core_EC_SubMod( base, my_s_y, my_s_y, t9);        /* my_s_y = Y - D = F */
     tmpResult = Cy_Crypto_Core_EC_SquareMod( base, t6, my_s_x, size);       /* t6 = EE */
@@ -2049,25 +2049,25 @@ cy_en_crypto_status_t Cy_Crypto_Core_JacobianEcAdd(CRYPTO_Type *base,
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }       
+    }
 
     tmpResult = Cy_Crypto_Core_EC_MulMod( base, t8, t6, my_s_x, size);      /* t8 = EEE */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }     
+    }
 
     tmpResult = Cy_Crypto_Core_EC_MulMod( base, t6, t9, t8, size);          /* t6 = D*EEE */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    } 
+    }
 
     tmpResult = Cy_Crypto_Core_EC_SquareMod( base, my_s_x, my_s_y, size);   /* my_s_x = FF */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }    
+    }
     Cy_Crypto_Core_EC_SubMod( base, my_s_x, my_s_x, t8);        /* my_s_x = FF - EEE */
     Cy_Crypto_Core_EC_AddMod( base, t9, t7, t7);                /* t9 = 2*B*EE */
     Cy_Crypto_Core_EC_SubMod( base, my_s_x, my_s_x, t9);        /* my_s_x = FF - EEE - 2*B*EE = X3 */
@@ -2076,7 +2076,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_JacobianEcAdd(CRYPTO_Type *base,
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }    
+    }
 
     Cy_Crypto_Core_EC_SubMod( base, my_s_y, my_s_y, t6);        /* my_s_y = F*(3*B*EE - FF + EEE) - D*EEE = Y3 */
 
@@ -2169,19 +2169,19 @@ cy_en_crypto_status_t Cy_Crypto_Core_JacobianEcDouble(CRYPTO_Type *base,
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }   
+    }
 
     tmpResult = Cy_Crypto_Core_EC_MulMod( base, my_s_z, my_s_y, my_s_z, size);  /* my_s_z = Y*Z */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }        
+    }
 
     tmpResult = Cy_Crypto_Core_EC_MulMod( base, my_s_y, my_s_x, t4, size);  /* my_s_y = X*Y^2 = A */
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }        
+    }
     Cy_Crypto_Core_EC_AddMod( base, my_s_x, my_s_x, t3);        /* my_s_x = X + Z^2 */
     Cy_Crypto_Core_EC_AddMod( base, t3, t3, t3);                /* t3 = 2*Z^2 */
     Cy_Crypto_Core_EC_SubMod( base, t3, my_s_x, t3);            /* t3 = (X + Z^2) - 2*Z^2 = X - Z^2 */
@@ -2190,7 +2190,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_JacobianEcDouble(CRYPTO_Type *base,
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }        
+    }
 
     Cy_Crypto_Core_EC_AddMod( base, t3, t1, t1);                /* t3 = 2*(X^2 - Z^4) */
     Cy_Crypto_Core_EC_AddMod( base, t1, t1, t3);                /* t1 = 3*(X^2 - Z^4) */
@@ -2209,7 +2209,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_JacobianEcDouble(CRYPTO_Type *base,
     if(CY_CRYPTO_SUCCESS != tmpResult)
     {
         return tmpResult;
-    }        
+    }
 
     tmpResult = Cy_Crypto_Core_EC_SquareMod( base, t1, t4, size);           /* t1 = Y^4 */
     if(CY_CRYPTO_SUCCESS != tmpResult)
@@ -2575,13 +2575,13 @@ cy_en_crypto_status_t Cy_Crypto_Core_EC_NistP_PointMultiplication(CRYPTO_Type *b
             if(CY_CRYPTO_SUCCESS != tmpResult)
             {
                 return tmpResult;
-            } 
+            }
 
             tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, VR_S_Y, bitsize);
             if(CY_CRYPTO_SUCCESS != tmpResult)
             {
                 return tmpResult;
-            } 
+            }
 
             tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, VR_P, bitsize);
             if(CY_CRYPTO_SUCCESS != tmpResult)
@@ -2593,13 +2593,13 @@ cy_en_crypto_status_t Cy_Crypto_Core_EC_NistP_PointMultiplication(CRYPTO_Type *b
             if(CY_CRYPTO_SUCCESS != tmpResult)
             {
                 return tmpResult;
-            } 
-                       
+            }
+
             tmpResult = CY_CRYPTO_VU_ALLOC_MEM (base, VR_ORDER, bitsize);
             if(CY_CRYPTO_SUCCESS != tmpResult)
             {
                 return tmpResult;
-            }            
+            }
 
             Cy_Crypto_Core_Vu_SetMemValue (base, VR_P, p_polynomial, bitsize);
 
@@ -2616,7 +2616,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_EC_NistP_PointMultiplication(CRYPTO_Type *b
             if(CY_CRYPTO_SUCCESS != tmpResult)
             {
                 return tmpResult;
-            }  
+            }
             /* Get result P = (X,Y) = d.G from EC scalar multiplication */
             Cy_Crypto_Core_Vu_GetMemValue (base, ecpQX, VR_S_X, bitsize);
             Cy_Crypto_Core_Vu_GetMemValue (base, ecpQY, VR_S_Y, bitsize);

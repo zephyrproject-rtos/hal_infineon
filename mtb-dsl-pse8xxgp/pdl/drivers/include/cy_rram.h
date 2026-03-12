@@ -7,8 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) 2022-2025, Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2022-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \defgroup group_rram               RRAM         (Resistive Random Access Memory)
@@ -50,21 +52,6 @@
 * \section group_rram_more_information More Information
 *
 * Refer to the technical reference manual (TRM) and the device datasheet.
-
-* \section group_rram_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>Fixed hard fault when trying read while TS writing</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_rram_macros Macros
 * \defgroup group_rram_enums Enums

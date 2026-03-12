@@ -217,7 +217,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Chacha_update(CRYPTO_Type *base,  cy_stc
     uint8_t *inputRemap;
     uint8_t *outputRemap;
 
-    
+
     if((NULL != chachaState) && (NULL != input) && (NULL != output) && (NULL != base))
     {
 #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
@@ -270,7 +270,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Chacha_update(CRYPTO_Type *base,  cy_stc
             chachaState->state->counter++;
 #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
             SCB_CleanDCache_by_Addr((volatile void *)&chachaState->state->counter, (int32_t)4u);
-            
+
 #endif
             Cy_Crypto_Core_V2_RBClear(base);
             Cy_Crypto_Core_V2_Sync(base);
@@ -302,7 +302,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Chacha_update(CRYPTO_Type *base,  cy_stc
             chachaState->state->counter++;
 #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
             SCB_CleanDCache_by_Addr((volatile void *)&chachaState->state->counter, (int32_t)4u);
-            
+
 #endif
             Cy_Crypto_Core_V2_RBClear(base);
             Cy_Crypto_Core_V2_Sync(base);
@@ -413,7 +413,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Chacha_Free(CRYPTO_Type *base, cy_stc_cr
 
         keyRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(chachaState->key);
         stateRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(chachaState->state);
-        
+
         /* Clears the context buffers */
         if(NULL != stateRemap)
         {

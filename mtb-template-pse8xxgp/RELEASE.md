@@ -1,6 +1,12 @@
 # ModusToolbox PSE8XXGP BSP Template Library Release Notes
 
 ### What Changed?
+#### v1.2.0
+* Renamed functions to move core name before command ( e.g. Cy_SysEnableCM55 -> Cy_SysCM55Enable ). The old names are retained as aliases for compatibility.
+* Added setting of debug port policy for Cy_SysCM55Enable
+* In Cy_SysU55Enable, wait until the PPU disablement has propagated before de-initializing the corresponding Peri group slave.
+#### v1.1.0
+Minor bug-fixes
 #### v1.0.0
 Initial release
 

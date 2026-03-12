@@ -77,7 +77,7 @@ __STATIC_INLINE void prog_attribute(PPC_Type* base, const cy_stc_ppc_attribute_t
             nsAttPtr[offset] |= value;
         }
         /* Configure Secure privilege attribute */
-        if (attribute->secPrivAttribute == CY_PPC_SEC_PRIV)
+        if (attribute->privAttribute == CY_PPC_PRIV)
         {
             sPrivAttPtr[offset] &= ~value;
         }
@@ -87,7 +87,7 @@ __STATIC_INLINE void prog_attribute(PPC_Type* base, const cy_stc_ppc_attribute_t
         }
 
         /* Configure Non-secure privilege attribute */
-        if (attribute->nsPrivAttribute == CY_PPC_NON_SEC_PRIV)
+        if (attribute->privAttribute == CY_PPC_PRIV)
         {
             nsPrivAttPtr[offset] &= ~value;
         }

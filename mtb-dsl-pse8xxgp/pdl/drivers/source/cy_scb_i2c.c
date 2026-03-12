@@ -270,13 +270,6 @@ void Cy_SCB_I2C_Disable(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 * \return
 * \ref cy_en_syspm_status_t
 *
-* \note
-* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
-* For proper operation, when the I2C slave is configured to be a wakeup source
-* from Deep Sleep mode, this function must be copied and modified by the user.
-* The I2C clock disable code must be inserted in the \ref CY_SYSPM_BEFORE_TRANSITION
-* and clock enable code in the \ref CY_SYSPM_AFTER_TRANSITION mode processing.
-*
 * Please refer to the section \ref group_scb_i2c_mclk_sync for more information.
 *
 *******************************************************************************/
@@ -2559,7 +2552,7 @@ static void SlaveHandleDataReceive(CySCB_Type *base, cy_stc_scb_i2c_context_t *c
             {
                 numToCopy = context->slaveRxBufferSize;
             }
-            
+
             /* Get data from RX FIFO */
             numToCopy = Cy_SCB_ReadArray(base, context->slaveRxBuffer, numToCopy);
             context->slaveRxBufferIdx  += numToCopy;

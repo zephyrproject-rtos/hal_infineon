@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_device.c
-* \version 2.0
+* \version 2.1
 *
 * This file provides the definitions for core and peripheral block HW base
 * addresses, versions, and parameters.
@@ -35,7 +35,7 @@
 const cy_stc_device_t* cy_device;
 
 /* Platform and peripheral block configuration */
-const cy_stc_device_t cy_deviceIpBlockCfg ;
+const cy_stc_device_t cy_deviceIpBlockCfg = {0};
 
 /******************************************************************************
 * Function Name: Cy_PDL_Init

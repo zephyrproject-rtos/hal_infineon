@@ -1,12 +1,15 @@
 /***************************************************************************//**
 * \file cy_ipc_drv.h
 * \version 1.140
-* Provides an API declaration of the IPC driver.
+*
+* \brief
+* Provides API declarations for the IPC driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2020-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 #ifndef CY_IPC_DRV_H
 #define CY_IPC_DRV_H
@@ -38,7 +42,7 @@
 * to get access to all functions and declarations in the PDL.
 *
 * There are three parts to the API:
- *     - Driver-level (DRV) API - used internally by Semaphore, Pipe and Bluetooth levels.
+*     - Driver-level (DRV) API - used internally by Semaphore, Pipe and Bluetooth levels.
 *     - Pipe-level (PIPE) API - establishes a communication channel between processors.
 *     - Semaphore-level (SEMA) API - enables users to set and clear flags to
 *       synchronize operations.
@@ -226,164 +230,6 @@
 * must have at least 32 semaphores. Semaphores 0-15 are reserved for
 * system use. Your application can use semaphores greater than 15.
 *
-* \section group_ipc_more_information More Information
-*
-* If the default startup file is not used, or SystemInit() is not called in your
-* project, call the following three functions prior to executing any flash or
-* EmEEPROM write or erase operation:
-*  -# Cy_IPC_Sema_Init()
-*  -# Cy_IPC_Pipe_Config()
-*  -# Cy_IPC_Pipe_Init()
-*  -# Cy_Flash_Init()
-*
-* See the technical reference manual(TRM) for more information on the IPC.
-*
-* \section group_ipc_changelog Changelog
-*
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.140</td>
-*     <td>Updated condition to handle devices with Data Cache.</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.130</td>
-*     <td>Updated APIs \ref Cy_IPC_Pipe_Init.</td>
-*     <td>Improving interrupt configuration logic.</td>
-*   </tr>
-*   <tr>
-*     <td>1.120</td>
-*     <td>Updated APIs \ref Cy_IPC_Sema_Set, \ref Cy_IPC_Sema_Clear, \ref Cy_IPC_Sema_Status, \ref Cy_IPC_Sema_GetMaxSems.
-*       - Added enums \ref cy_stc_ipc_msg_buf_remove_t.</td>
-*     <td>Support added for HPC buffer remove command and BT IPC driver enhancements.</td>
-*   </tr>
-*   <tr>
-*     <td>1.110</td>
-*     <td>Updated internal APIs .</td>
-*     <td>Hold PDCM lock at IPC write and to unlock only after CH release by BTSS.</td>
-*   </tr>
-*   <tr>
-*     <td>1.100</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*          Added support for CM0 and CM4 core devices in cy_ipc_pipe API.<br>
-*          Replaced some hardcoded values (register size) with the relevant device defines.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.91</td>
-*     <td>Updated \ref Cy_IPC_Sema_Set, \ref Cy_IPC_Sema_Clear, \ref Cy_IPC_Sema_Status, \ref Cy_IPC_Sema_GetMaxSems APIs
-*      \n Added new macros</td>
-*     <td>Support for PSE84 devices added.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.90</td>
-*     <td>Added structure \ref cy_stc_ipc_msg_inrush_mode_t and enum \ref cy_en_btipc_inrush_mode_t, Modified enums \ref cy_en_btipc_lpo_cmd_t
-*         and \ref cy_en_btipc_hpcpti_t.</td>
-*     <td>Support for inrush mode selection for CAT1B.</td>
-*   </tr>
-*   <tr>
-*     <td> Added structure \ref cy_stc_ipc_pipe_ep_config_mask_t and \ref Cy_IPC_Pipe_EndpointInitExt API.</td>
-*     <td> Support for multiple instance of IPC IPs for PSE84.</td>
-*   </tr>
-*   <tr>
-*     <td>1.80</td>
-*     <td>
-*         <ul>
-*         <li>Defined CY_IPC_CHAN_SYSCALL macro and handled caches for CM7 device.<br>
-*         <li>Other than CAT1A devices, pipe config structure \ref cy_stc_ipc_pipe_config_t description is changed.
-*         ep0ConfigData is used for receiver endpoint and ep1ConfigData is used for send endpoint.
-*         For CAT1A devices, ep0ConfigData is always used for first endpoint(CM0+) and ep1ConfigData is always used for second endpoint(CM4).<br>
-*         <li>Updated argument name of Cy_IPC_Drv_SetInterruptMask(),
-*             Cy_IPC_Drv_SetInterrupt() and Cy_IPC_Drv_ClearInterrupt() for better
-*             user readability.<br>
-*         <li>Added multiple IPs support.<br>
-*         <li>Removed standard c library functions from cy_ipc_sema.c.</td>
-*         </ul>
-*     <td>
-*         <ul>
-*         <li>Added support for CM7.<br>
-*         <li>Enhancement based on usability/efficiency.<br>
-*         <li>To support multiple IPC IP instances.<br>
-*         <li>Code cleanup.</td>
-*         </ul>
-*   <tr>
-*     <td rowspan="1">1.70</td>
-*     <td>Added BT IPC service layer.</td>
-*     <td>To support communication between MCU and BTSS through IPC.</td>
-*   </tr>
-*   <tr>
-*     <td >1.60</td>
-*     <td>Added new APIs to use DATA0 and DATA1 for short messages.</td>
-*     <td>Enhancement based on usability/efficiency.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.50</td>
-*     <td>Updated attribute usage for the linker section placement.</td>
-*     <td>Enhancement based on usability feedback.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40.2</td>
-*     <td>Updated information about IPC resources reserved for the system usage
-*         in \ref group_ipc_pipe_layer section.
-*     </td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="1">1.40</td>
-*     <td>Moved cy_semaData structure to the RAM section called ".cy_sharedmem".</td>
-*     <td>Support Secure Boot devices.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">1.30</td>
-*     <td>Flattened the organization of the driver source code into the single source directory and the single include directory.</td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Moved the Cy_IPC_SystemSemaInit(), Cy_IPC_SystemPipeInit() functions implementation from IPC to Startup, removed cy_ipc_config.c and cy_ipc_config.h files.</td>
-*     <td>Changed IPC driver configuration method from compile time to run time.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20</td>
-*     <td>Added \ref Cy_IPC_Pipe_ExecuteCallback function.
-*         Updated documentation about user pipe initialization.
-*     </td>
-*     <td>Interface improvement, documentation update</td>
-*   </tr>
-*   <tr>
-*     <td>1.10.1</td>
-*     <td>Updated description of the \ref Cy_IPC_Pipe_Init,
-*         \ref Cy_IPC_Pipe_EndpointInit, \ref Cy_IPC_Sema_Set functions.
-*         Added / updated code snippets.
-*     </td>
-*     <td>Documentation update and clarification</td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>Added support for more IPC structures</td>
-*     <td>New device support</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_ipc_drv IPC driver layer (IPC_DRV)
 * \{

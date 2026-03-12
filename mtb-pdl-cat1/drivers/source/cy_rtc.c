@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_rtc.c
-* \version 2.110
+* \version 2.120
 *
 * This file provides constants and parameter values for the APIs for the
 * Real-Time Clock (RTC).
@@ -36,7 +36,7 @@ CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 2.2', 3, \
 extern "C" {
 #endif
 
-#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 3)) || defined (CY_IP_MXS22SRSS)
+#if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS_RTC_VERSION) && (CY_IP_MXS40SRSS_RTC_VERSION >= 2)) || defined (CY_IP_MXS22SRSS)
 #define CONVERT_BCD_TO_DEC(bcdNum) (bcdNum)
 #define CONVERT_DEC_TO_BCD(decNum) (decNum)
 #else

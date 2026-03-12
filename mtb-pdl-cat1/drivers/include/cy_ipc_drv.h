@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_drv.h
-* \version 1.140
+* \version 1.150
 * Provides an API declaration of the IPC driver.
 *
 ********************************************************************************
@@ -321,6 +321,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.150</td>
+*     <td>Added support for alternative interrupt mapping.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.140</td>
 *     <td>Updated condition to handle devices with Data Cache.</td>
 *     <td>Code enhancement.</td>
@@ -539,7 +544,7 @@
 #define CY_IPC_DRV_VERSION_MAJOR       1
 
 /** Driver minor version */
-#define CY_IPC_DRV_VERSION_MINOR       140
+#define CY_IPC_DRV_VERSION_MINOR       150
 
 /** Defines a value to indicate that no notification events are needed */
 #define CY_IPC_NO_NOTIFICATION         (uint32_t)(0x00000000UL)

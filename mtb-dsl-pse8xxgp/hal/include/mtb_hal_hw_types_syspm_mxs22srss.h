@@ -3,8 +3,8 @@
 *
 *********************************************************************************
 * \copyright
-* Copyright 2024-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation
+* Copyright(c) 2024-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
 *
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -36,5 +36,16 @@
 // The following value does not apply to this IP, give them
 // placeholder values to satisfy the interface
 #define MTB_HAL_MAP_SYSPM_AFTER_DS_WFI_TRANSITION  (5u)
+
+#if defined(CY_IP_MXS22SRSS_VERSION) && (CY_IP_MXS22SRSS_VERSION == 2) && \
+    (CY_IP_MXS22SRSS_VERSION_MINOR >= 1)
+#define MTB_HAL_MAP_SYSPM_CB_HIBERNATE_RAM          CY_SYSPM_HIBERNATE_RAM
+#else
+// The following value does not apply to this IP, give them
+// placeholder values to satisfy the interface
+#define MTB_HAL_MAP_SYSPM_CB_HIBERNATE_RAM          (9u)
+#endif \
+    /* defined(CY_IP_MXS22SRSS_VERSION) && (CY_IP_MXS22SRSS_VERSION == 2) &&
+       (CY_IP_MXS22SRSS_VERSION_MINOR >= 1) */
 
 #endif // if defined(CY_IP_MXS22SRSS)

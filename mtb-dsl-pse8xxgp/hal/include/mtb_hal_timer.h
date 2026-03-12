@@ -158,6 +158,16 @@ typedef void(* mtb_hal_timer_event_callback_t)(void* callback_arg, mtb_hal_timer
 cy_rslt_t mtb_hal_timer_setup(mtb_hal_timer_t* obj, const mtb_hal_timer_configurator_t* config,
                               mtb_hal_clock_t* clock);
 
+/** Enable/disable the Timer.
+ *
+ * The function returns without waiting for the enable to complete.
+ *
+ * @param[in] obj          The Timer object
+ * @param[in] enable       Enable/disable
+ * @return The status of the enable request
+ */
+cy_rslt_t mtb_hal_timer_enable(mtb_hal_timer_t* obj, bool enable);
+
 /** Starts the timer/counter with the pre-set configuration.
  * This does not reset the counter. The count value will start from the value that was
  * set by the last operation to modify it.

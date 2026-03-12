@@ -103,4 +103,4 @@ cy_rslt_t _Cy_PDL_Invoke_SRF(cy_pdl_invoke_srf_args* args)
     return result;
 }
 
-#endif /* !defined(COMPONENT_SECURE_DEVICE) && (CY_PDL_ENABLE_SECURE_AWARE) */
+#endif /* !defined(COMPONENT_SECURE_DEVICE) && (CY_PDL_ENABLE_SECURE_AWARE)*/

@@ -95,8 +95,10 @@ __STATIC_INLINE cy_rslt_t _mtb_hal_lptimer_setup(mtb_hal_lptimer_t* obj)
 //--------------------------------------------------------------------------------------------------
 // _mtb_hal_lptimer_read
 //--------------------------------------------------------------------------------------------------
-/* This IP needs no further action */
-#define _mtb_hal_lptimer_read(obj, count) (count)
+__STATIC_INLINE uint32_t _mtb_hal_lptimer_read(const mtb_hal_lptimer_t* obj)
+{
+    return Cy_MCWDT_GetCount(obj->base, CY_MCWDT_COUNTER2);
+}
 
 
 #endif \

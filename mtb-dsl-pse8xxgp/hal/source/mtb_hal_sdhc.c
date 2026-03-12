@@ -2014,12 +2014,12 @@ static cy_rslt_t _mtb_hal_sdio_host_transfer_async(mtb_hal_sdio_t* obj,
         sdxx->adma_descriptor_tbl[1] = (uint32_t)data;
         /* The address of the ADMA descriptor table. */
         data_config.data = (uint32_t*)&(sdxx->adma_descriptor_tbl[0]);
+        #endif // if defined(CORE_NAME_CM55_0)
+        /* Clean DCache for ADMA descriptor table. */
         #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
         SCB_CleanDCache_by_Addr((void*)sdxx->adma_descriptor_tbl,
                                 sizeof(sdxx->adma_descriptor_tbl));
         #endif
-        #endif // if defined(CORE_NAME_CM55_0)
-
         result = _mtb_hal_sdxx_prepare_for_transfer(sdxx);
 
         if (CY_RSLT_SUCCESS == result)

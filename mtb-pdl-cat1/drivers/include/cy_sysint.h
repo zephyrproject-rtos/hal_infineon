@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_sysint.h
-* \version 1.130
+* \version 1.140
 *
 * \brief
 * Provides an API declaration of the SysInt driver
@@ -204,6 +204,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.140</td>
+*     <td>Added support for alternative interrupt mapping.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.130</td>
 *     <td>Updated API \ref Cy_SysInt_SetVector for non-cacheable data check .</td>
 *     <td>Code enhancement.</td>
@@ -233,7 +238,7 @@
 *   <tr>
 *     <td>1.90</td>
 *     <td>Updated \ref Cy_SysInt_Init, \ref Cy_SysInt_SetVector and \ref Cy_SysInt_GetVector APIs.</td>
-*     <td>Code Clean up.</td> 
+*     <td>Code Clean up.</td>
 *   </tr>
 *   <tr>
 *     <td>1.80</td>
@@ -388,7 +393,7 @@ CY_MISRA_BLOCK_END('MISRA C-2012 Rule 8.6')
 #define CY_SYSINT_DRV_VERSION_MAJOR    1
 
 /** Driver minor version */
-#define CY_SYSINT_DRV_VERSION_MINOR    130
+#define CY_SYSINT_DRV_VERSION_MINOR    140
 
 /** SysInt driver ID */
 #define CY_SYSINT_ID CY_PDL_DRV_ID     (0x15U)
@@ -435,16 +440,20 @@ typedef enum
 * \{
 */
 
+/** Interrupt source type */
+#if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
+    typedef uint32_t   cy_sysint_int_src_t;
+#else
+    typedef IRQn_Type  cy_sysint_int_src_t;
+#endif
+
 /**
 * Initialization configuration structure for a single interrupt channel
 */
 typedef struct {
-#if defined (CY_IP_M7CPUSS)
-    uint32_t        intrSrc;        /**< Bit 0-15 indicate system interrupt and bit 16-31 will indicate the CPU IRQ */
-#else
-    IRQn_Type       intrSrc;        /**< Interrupt source */
-#endif
-#if (CY_CPU_CORTEX_M0P) && defined (CY_IP_M4CPUSS)
+    cy_sysint_int_src_t       intrSrc;        /**< Interrupt source */
+
+#if (CY_CPU_CORTEX_M0P) && defined (CY_IP_M4CPUSS) && !defined (CY_M4CPUSS_V2_IRQ_MUXING)
     cy_en_intr_t    cm0pSrc;        /**< Maps cm0pSrc device interrupt to intrSrc */
 #endif /* CY_CPU_CORTEX_M0P */
     uint32_t        intrPriority;   /**< Interrupt priority number (Refer to __NVIC_PRIO_BITS) */
@@ -452,7 +461,7 @@ typedef struct {
 
 /** \} group_sysint_data_structures */
 
-#if defined (CY_IP_M7CPUSS)
+#if defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING)
 #define CY_SYSINT_INTRSRC_MASK           (0xFFFFUL)  /**< Bit 0-15 indicate system interrupt and bit 16-31 will indicate the CPU IRQ */
 #define CY_SYSINT_INTRSRC_MUXIRQ_SHIFT   (16UL)      /**< Bit 0-15 indicate system interrupt and bit 16-31 will indicate the CPU IRQ */
 #else   /* Applicable for Mux'ed IRQ CM4 interrupts */
@@ -970,7 +979,7 @@ void Cy_SysInt_DisableSystemInt(cy_en_intr_t sysIntSrc);
 *******************************************************************************/
 
 CY_MISRA_FP_BLOCK_START('MISRA C-2012 Rule 8.3', 2, 'Only one prototype will be picked for compilation')
-#if (((CY_CPU_CORTEX_M0P) || defined (CY_IP_M7CPUSS) || defined (CY_DOXYGEN)) && !defined(CY_IP_M0SECCPUSS))
+#if (((CY_CPU_CORTEX_M0P) || defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING) || defined (CY_DOXYGEN)) && !defined(CY_IP_M0SECCPUSS))
 void Cy_SysInt_SetNmiSource(cy_en_sysint_nmi_t nmiNum, cy_en_intr_t devIntrSrc);
 #else
 void Cy_SysInt_SetNmiSource(cy_en_sysint_nmi_t nmiNum, IRQn_Type intrSrc);
@@ -996,14 +1005,14 @@ void Cy_SysInt_SetNmiSource(cy_en_sysint_nmi_t nmiNum, IRQn_Type intrSrc);
 * \snippet sysint/snippet/main.c snippet_Cy_SysInt_SetNmiSource
 *
 *******************************************************************************/
-#if (((CY_CPU_CORTEX_M0P) || defined(CY_IP_M7CPUSS) || defined (CY_DOXYGEN)) && !defined(CY_IP_M0SECCPUSS))
+#if (((CY_CPU_CORTEX_M0P) || defined(CY_IP_M7CPUSS) || defined(CY_M4CPUSS_V2_IRQ_MUXING) || defined (CY_DOXYGEN)) && !defined(CY_IP_M0SECCPUSS))
 cy_en_intr_t Cy_SysInt_GetNmiSource(cy_en_sysint_nmi_t nmiNum);
 #else
 IRQn_Type Cy_SysInt_GetNmiSource(cy_en_sysint_nmi_t nmiNum);
 #endif
 CY_MISRA_BLOCK_END('MISRA C-2012 Rule 8.3')
 
-#if !(defined(CY_CPU_CORTEX_M0P) && (CY_CPU_CORTEX_M0P)) && !(defined(CY_IP_M7CPUSS))
+#if (!(defined(CY_CPU_CORTEX_M0P) && (CY_CPU_CORTEX_M0P)) && !(defined(CY_IP_M7CPUSS)) && !(defined(CY_M4CPUSS_V2_IRQ_MUXING))) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_SysInt_SoftwareTrig
 ****************************************************************************//**

@@ -3,12 +3,13 @@
 * \version 1.80
 *
 * \brief
-* The header file of the TCPWM Shift Register driver.
+* The header file of the TCPWM Shift Register  driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 #if !defined(CY_TCPWM_SHIFTREG_H)
 #define CY_TCPWM_SHIFTREG_H

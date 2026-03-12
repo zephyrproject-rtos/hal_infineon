@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_ecdsa.c
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  This file provides constant and parameters

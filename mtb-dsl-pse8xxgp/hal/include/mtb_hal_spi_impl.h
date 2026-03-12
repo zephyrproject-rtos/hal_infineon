@@ -77,6 +77,18 @@ __STATIC_INLINE bool mtb_hal_spi_is_busy(mtb_hal_spi_t* obj)
 
 
 //--------------------------------------------------------------------------------------------------
+// _mtb_hal_spi_enable
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_spi_enable(mtb_hal_spi_t* obj, bool enable)
+{
+    enable ? Cy_SCB_SPI_Enable(obj->base) : Cy_SCB_SPI_Disable(obj->base, obj->context);
+    return CY_RSLT_SUCCESS;
+}
+
+
+#define mtb_hal_spi_enable _mtb_hal_spi_enable
+
+//--------------------------------------------------------------------------------------------------
 // mtb_hal_spi_set_fifo_level_internal
 //--------------------------------------------------------------------------------------------------
 __STATIC_INLINE cy_rslt_t mtb_hal_spi_set_fifo_level_internal(mtb_hal_spi_t* obj,

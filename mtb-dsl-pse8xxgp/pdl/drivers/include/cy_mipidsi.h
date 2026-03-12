@@ -32,7 +32,7 @@
 *
 * MIPI-DSI Host Controller and D-PHY (MIPIDSI) features
 * - DPI-2 and and DBI-2 Type B displays.
-* - Up to 2 data lanes, max 1.5 Gbps per lane. 
+* - Up to 2 data lanes, max 1.5 Gbps per lane.
 * - PLL for high-speed mode clock generation.
 * - Generic command interface (DCS and proprietary read & write).
 * - Video Pattern generator.
@@ -48,17 +48,6 @@
 *
 * For more information on the MIPI DSI and Graphics subsystem, refer to the technical reference
 * manual (TRM).
-*
-* \section group_mipidsi_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial Driver.</td>
-*     <td>Initial Driver.</td>
-*   </tr>
-*   </tr>
-* </table>
 *
 * \defgroup group_mipidsi_macros Macros
 * \defgroup group_mipidsi_functions Functions
@@ -325,13 +314,13 @@ typedef enum {
 /** MIPI DSI mode of operation */
 typedef enum  {
     DSI_VIDEO_MODE,
-    DSI_COMMAND_MODE    
+    DSI_COMMAND_MODE
 }cy_en_mipidsi_mode_t;
 
 /** MIPI DSI transfer mode */
-typedef enum  {    
+typedef enum  {
     DSI_LP_MODE,
-    DSI_HS_MODE    
+    DSI_HS_MODE
 }cy_en_mipi_dsi_transfer_mode;
 
 
@@ -388,10 +377,10 @@ typedef struct
     uint32_t                          mode_flags;             /**< Additional mode information */
     cy_stc_mipidsi_display_params_t   display_params;         /**< Display parameters */
     bool                              enable;                  /**< Dsi enable state*/
-    
+
     /** \endcond */
 }cy_stc_mipidsi_context_t;
- 
+
 /** \} group_mipidsi_data_structures */
 
 
@@ -512,7 +501,7 @@ uint32_t  Cy_MIPIDSI_GetInterruptStatusMasked(GFXSS_MIPIDSI_Type const *base);
 * Function Name: Cy_MIPIDSI_WritePacket
 ****************************************************************************//**
 *
-* Writes DCS packet on DSI interface. 
+* Writes DCS packet on DSI interface.
 *
 * \param base
 * Pointer to the MIPI DSI register base address.
@@ -722,7 +711,7 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_ExitULPM_Data(GFXSS_MIPIDSI_Type *base);
 * packets.
 *******************************************************************************/
 cy_en_mipidsi_status_t Cy_MIPIDSI_CMD_MODE_DCS_SetLowPower(GFXSS_MIPIDSI_Type *base, bool enable);
-    
+
 /** \} group_mipidsi_functions */
 
 #if defined(__cplusplus)

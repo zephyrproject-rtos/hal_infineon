@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_ecc_key_gen.c
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  This file provides API for generating ECC key.
@@ -73,12 +73,12 @@ cy_en_cryptolite_status_t Cy_Cryptolite_ECC_MakeKeyPair(CRYPTOLITE_Type *base,
 
     if ((key != NULL) && (key->k != NULL) && (key->pubkey.x != NULL) && (key->pubkey.y != NULL))
     {
-        tmpResult = Cy_Cryptolite_ECC_MakePrivateKey(base, cfContext, curveID, key->k, GetRandomDataFunc, randomDataInfo);
+        tmpResult = Cy_Cryptolite_ECC_MakePrivateKey(base, cfContext, curveID, (uint8_t const *)key->k, GetRandomDataFunc, randomDataInfo);
     }
 
     if (CY_CRYPTOLITE_SUCCESS == tmpResult)
     {
-        tmpResult = Cy_Cryptolite_ECC_MakePublicKey(base, cfContext, curveID, key->k, key);
+        tmpResult = Cy_Cryptolite_ECC_MakePublicKey(base, cfContext, curveID, (uint8_t const *)key->k, key);
         key->type = PK_PRIVATE;
     }
 

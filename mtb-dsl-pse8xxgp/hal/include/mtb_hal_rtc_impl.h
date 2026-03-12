@@ -32,11 +32,13 @@
 #include "mtb_hal_rtc_mxs40srss_ver3.h"
 #elif (defined (CY_IP_MXS40SSRSS))
 #include "mtb_hal_rtc_mxs40ssrss.h"
-#elif (defined (CY_IP_MXS22SRSS))
-#include "mtb_hal_rtc_mxs22srss.h"
+#elif (defined (CY_IP_MXS22SRSS) && (CY_IP_MXS22SRSS_VERSION == 1))
+#include "mtb_hal_rtc_mxs22srss_v1.h"
+#elif (defined (CY_IP_MXS22SRSS) && (CY_IP_MXS22SRSS_VERSION == 2))
+#include "mtb_hal_rtc_mxs22srss_v2.h"
 #else
 #error "Unhandled version"
-#endif
+#endif // if (defined (CY_IP_MXS40SRSS_RTC) && (CY_IP_MXS40SRSS_RTC_VERSION == 2))
 
 #if defined(__cplusplus)
 extern "C" {

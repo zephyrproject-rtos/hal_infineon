@@ -81,17 +81,6 @@
 * For more information on the Graphics subsystem, refer to the technical reference
 * manual (TRM).
 *
-* \section group_graphics_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial Driver.</td>
-*     <td>Initial Driver.</td>
-*   </tr>
-*   </tr>
-* </table>
-*
 * \defgroup group_graphics_macros Macros
 * \defgroup group_graphics_functions Functions
 * \defgroup group_graphics_data_structures Data Structures
@@ -351,9 +340,9 @@ typedef struct
 typedef struct {
     cy_en_gfx_layer_type_t  layer_type;            /**< Layer type */
     gctADDRESS              *buffer_address;       /**< Buffer */
-    gctADDRESS              *uv_buffer_address;    /**< UV Buffer */
-    viv_input_format_type   input_format_type;     /**< Inout format */
-    viv_tiling_type         tiling_type;           /**< Tiliing format */
+    gctADDRESS              *uv_buffer_address;    /**< UV Buffer, this is not available for overlay 1 */
+    viv_input_format_type   input_format_type;     /**< Input format, Overlay 1 supports only linear format while Graphics/Video Layer and Overlay 0 support both linear and tiled formats */
+    viv_tiling_type         tiling_type;           /**< Tiliing format, Overlay 1 supports only vivLINEAR tiling type */
     viv_layer_alpha_mode    alpha_mode;            /**< Alpha mode */
     gctUINT32               pos_x;                 /**< Position X */
     gctUINT32               pos_y;                 /**< Position Y */
@@ -649,6 +638,7 @@ cy_en_gfx_status_t Cy_GFXSS_Set_FrameBuffer(GFXSS_Type *base, uint32_t* gfx_laye
 *
 * \note YUV Framebuffer base address and stride for linear data should be
 *       64-byte aligned.
+*       For YUY2_Packed Format uv_buffer can be set to NULL.
 *
 *******************************************************************************/
 cy_en_gfx_status_t Cy_GFXSS_Set_FrameBuffer_YUV(GFXSS_Type *base, uint32_t* y_buffer, uint32_t* uv_buffer, cy_stc_gfx_context_t *context);

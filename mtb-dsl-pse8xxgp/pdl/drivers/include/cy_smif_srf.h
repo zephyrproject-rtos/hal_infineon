@@ -2,13 +2,14 @@
 * \file cy_smif_srf.h
 * \version 2.100
 *
-* This file provides macros and exposes operations for the APIs for the Secure
-* Aware Serial Memory Interface (SMIF).
+* \brief
+* This file provides macros and exposes operations for the APIs for the Secure Aware Serial Memory Interface (SMIF).
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,6 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*
 *******************************************************************************/
 
 
@@ -44,13 +44,16 @@
 #endif /* !defined(CY_PDL_ENABLE_SECURE_AWARE_SMIF) */
 
 #if !defined(_CY_PDL_SMIF0_PPC_SECURED)
+/** Macro to identify instance 0 of the SMIF driver as secured */
 #define _CY_PDL_SMIF0_PPC_SECURED       (CYCFG_PPC_SECURED_SMIF0_CORE_MAIN || CYCFG_PPC_SECURED_SMIF0_CORE_CRYPTO || CYCFG_PPC_SECURED_SMIF0_CORE_MAIN2 || CYCFG_PPC_SECURED_SMIF0_CORE_DEVICE)
 #endif /* !defined(_CY_PDL_SMIF0_PPC_SECURED) */
 
 #if !defined(_CY_PDL_SMIF1_PPC_SECURED)
+/** Macro to identify instance 1 of the SMIF driver as secured */
 #define _CY_PDL_SMIF1_PPC_SECURED       (CYCFG_PPC_SECURED_SMIF1_CORE_MAIN || CYCFG_PPC_SECURED_SMIF1_CORE_CRYPTO || CYCFG_PPC_SECURED_SMIF1_CORE_MAIN2 || CYCFG_PPC_SECURED_SMIF1_CORE_DEVICE)
 #endif /* !defined(_CY_PDL_SMIF1_PPC_SECURED) */
 
+/** Macro to identify the SMIF driver as secured */
 #define _CY_PDL_SMIF_PPC_SECURED        (_CY_PDL_SMIF0_PPC_SECURED || _CY_PDL_SMIF1_PPC_SECURED)
 
 #if (CY_PDL_ENABLE_SECURE_AWARE_SMIF && _CY_PDL_SMIF_PPC_SECURED)

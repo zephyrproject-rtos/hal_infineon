@@ -47,6 +47,13 @@ extern "C" {
 
 #define _MTB_HAL_SYSPM_SUPPORTS_DS_MODES
 
+#if defined(CY_IP_MXS22SRSS_VERSION) && (CY_IP_MXS22SRSS_VERSION == 2) && \
+    (CY_IP_MXS22SRSS_VERSION_MINOR >= 1)
+
+#define _MTB_HAL_SYSPM_SUPPORTS_HIB_RAM_MODE
+
+#endif
+
 //--------------------------------------------------------------------------------------------------
 // _mtb_hal_syspm_get_pdl_dsmode
 //--------------------------------------------------------------------------------------------------
