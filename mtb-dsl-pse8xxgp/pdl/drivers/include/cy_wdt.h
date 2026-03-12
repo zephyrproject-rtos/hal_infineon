@@ -2,12 +2,14 @@
 * \file cy_wdt.h
 * \version 1.90
 *
-*  This file provides constants and parameter values for the WDT driver.
+* \brief
+* This file provides constants and parameter values for the WDT driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +23,8 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_wdt
@@ -192,127 +194,6 @@
 *
 * For more information on the WDT peripheral, refer to the technical reference
 * manual (TRM).
-*
-* \section group_wdt_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.90</td>
-*     <td>Updated internal macro for parameter validation.</td>
-*     <td>Code enhancement</td>
-*   </tr>
-*   <tr>
-*     <td>1.80</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*          MXS40SRSS_VERSION compares now expect &lt; or &gt;= 2, previously 3.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.70</td>
-*     <td>Modified Cy_WDT_SetIgnoreBits() API to work correctly with CAT1B.<br>
-*         Newly Added API : Cy_WDT_ResetCounter() for resetting counter to zero.</td>
-*     <td>Code Enhancements for CAT1B.</td>
-*   </tr>
-*   <tr>
-*     <td>Added \ref Cy_WDT_ResetCounter new API and few macros.</td>
-*     <td>Usability enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.60</td>
-*     <td>Updated \ref cy_en_wdt_clk_sources_t enum and added support for PSE8.</td>
-*     <td>Code Enhancement and new device support added.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50</td>
-*     <td>Added WDT_B type support required for CAT1C devices.<br>Newly added APIs:
-*         \n Cy_WDT_SetLowerLimit(),
-*         \n Cy_WDT_SetUpperLimit(),
-*         \n Cy_WDT_SetWarnLimit(),
-*         \n Cy_WDT_SetLowerAction(),
-*         \n Cy_WDT_SetUpperAction(),
-*         \n Cy_WDT_SetWarnAction(),
-*         \n Cy_WDT_SetAutoService(),
-*         \n Cy_WDT_SetDeepSleepPause(),
-*         \n Cy_WDT_SetHibernatePause(),
-*         \n Cy_WDT_SetDebugRun(),
-*         \n Cy_WDT_SetService(),
-*     <td>Support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>CAT1B, CAT1C devices support.<br>
-*         Newly added API's Cy_WDT_SetClkSource() to configure the WDT clock source, Cy_WDT_GetClkSource() to get the WDT clock source configured,
-*         Cy_WDT_SetMatchBits() to configure the bit position above which the bits will be ignored for match, Cy_WDT_GetMatchBits() to get the bit position above which the bits will be ignored for match.</td>
-*     <td>Support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Removed MISRA 2004 compliance details and verified MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.30</td>
-*     <td>Updated the following functions for the PSoC 64 devices: \ref Cy_WDT_ClearInterrupt(),
-*         \ref Cy_WDT_MaskInterrupt(), and \ref Cy_WDT_UnmaskInterrupt().</td>
-*     <td>Added PSoC 64 device support.</td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20</td>
-*     <td>Added a new API function \ref Cy_WDT_IsEnabled() </td>
-*     <td>Enhancement based on usability feedback.</td>
-*   </tr>
-*   <tr>
-*     <td>1.10.1</td>
-*     <td>Added info that the WDT lock state is not retained during
-*        system Deep Sleep power mode.
-*     </td>
-*     <td>Documentation updates.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">1.10</td>
-*     <td>Flattened the organization of the driver source code into the single
-*         source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td> Removed critical section usage in the following functions:
-*           - \ref Cy_WDT_Init()
-*           - \ref Cy_WDT_Lock()
-*           - \ref Cy_WDT_Unlock()
-*     </td>
-*   <td>Driver functions simplification</td>
-*   </tr>
-*   <tr>
-*     <td>Updated the \ref Cy_WDT_Init(), \ref Cy_WDT_Enable() to clear WDT interrupt.</td>
-*     <td>Corner case reliability improvements</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0.2</td>
-*     <td>Minor documentation updates</td>
-*     <td>Corrected info about a reset generation</td>
-*   </tr>
-*   <tr>
-*     <td>1.0.1</td>
-*     <td>General documentation updates</td>
-*     <td>Added info about periodic interrupt generation use case</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_wdt_macros Macros
 * \defgroup group_wdt_clk_src_enums Enums

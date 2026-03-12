@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass_ac.c
-* \version 1.30.1
+* \version 1.30.2
 *
 * \brief
 * Provides the public functions for the SAR subsystem of the High Power Peripheral Analog Sub-System.

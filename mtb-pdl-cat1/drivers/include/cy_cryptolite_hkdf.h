@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_hkdf.h
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  This file provides constants and function prototypes

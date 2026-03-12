@@ -74,18 +74,21 @@ extern "C" {
 #define CY_SYS_U55_PERI_GROUP_ENABLE_MASK       (0x1U)
 
 /*******************************************************************************
-* Function Name: Cy_SysEnableU55
+* Function Name: Cy_SysU55Enable
 ****************************************************************************//**
 *
-* This function enables or disable U55 ML accelerator based on parameter value.
-* In Enable case function will enable clock, PPU and SCTL register.
-* In Disable case it will disable PPU and SCTL, clock will not be disabled.
+* This function enables or disables the U55 ML accelerator
+* When enabling, this enables the clock, configures the PPU to active, and sets
+* PDCM dependency to keep the U55 active as long as the current CPU is active.
+* In Disable case it configures the PPU to off, clears the PDCM dependency to
+* allow the U55 to disable, then disables the clock once the U55 has successfully
+* powered off. This function waits to return until the U55 has powered off.
 *
 * \param enable
 * Enable or disable U55
 *
 *******************************************************************************/
-void Cy_SysEnableU55(bool enable)
+void Cy_SysU55Enable(bool enable)
 {
     cy_rslt_t result;
     if(enable)
@@ -105,9 +108,15 @@ void Cy_SysEnableU55(bool enable)
     {
         result = cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_U55_BASE, (uint32_t)PPU_V1_MODE_OFF);
         CY_ASSERT_L2(CY_RSLT_SUCCESS == result);
-        Cy_SysClk_PeriGroupSlaveDeinit(CY_MMIO_MXU550_PERI_NR, CY_MMIO_MXU550_GROUP_NR, CY_MMIO_MXU550_SLAVE_NR);
         result = cy_pd_pdcm_clear_dependency(CY_PD_PDCM_U55, CY_SYS_CURRENT_CPU_PD);
         CY_ASSERT_L2(CY_RSLT_SUCCESS == result);
+        while(PPU_V1_MODE_OFF != cy_pd_ppu_get_power_mode((struct ppu_v1_reg *)CY_PPU_U55_BASE))
+        {
+            /* Ensure that the U55 has finished powering off before de-initializing the peri slave group,
+             * otherwise the powered off state may not propagate to the PDCM */
+        }
+
+        Cy_SysClk_PeriGroupSlaveDeinit(CY_MMIO_MXU550_PERI_NR, CY_MMIO_MXU550_GROUP_NR, CY_MMIO_MXU550_SLAVE_NR);
     }
     CY_UNUSED_PARAMETER(result);
 }
@@ -167,9 +176,9 @@ void Cy_SysEnableU55(bool enable)
 *
 * \ref Cy_SysEnableSOCMEM
 *
-* \ref Cy_SysEnableCM55
+* \ref Cy_SysCM55Enable
 *
-* \ref Cy_SysEnableU55
+* \ref Cy_SysU55Enable
 *
 *******************************************************************************/
 void Cy_System_EnablePD1(void)
@@ -254,7 +263,7 @@ void Cy_System_DisablePD1(void)
 }
 
 /*******************************************************************************
-* Function Name: Cy_SysGetCM55Status
+* Function Name: Cy_SysCM55GetStatus
 ****************************************************************************//**
 *
 * Returns the Cortex-M55 core power mode.
@@ -262,7 +271,7 @@ void Cy_System_DisablePD1(void)
 * \return \ref group_system_config_core_status_macro_edge
 *
 *******************************************************************************/
-uint32_t Cy_SysGetCM55Status(MXCM55_Type *CM55Base)
+uint32_t Cy_SysCM55GetStatus(MXCM55_Type *CM55Base)
 {
     CY_ASSERT_L2(NULL != CM55Base);
     /* Return current power mode */
@@ -275,6 +284,9 @@ uint32_t Cy_SysGetCM55Status(MXCM55_Type *CM55Base)
 ****************************************************************************//**
 *
 * Enables SOCMEM IP
+* 
+* \param enable
+* Enable or disable SOCMEM
 *
 *******************************************************************************/
 void Cy_SysEnableSOCMEM(bool enable)
@@ -332,7 +344,7 @@ void Cy_SysEnableSOCMEM(bool enable)
     CY_UNUSED_PARAMETER(result);
 }
 /*******************************************************************************
-* Function Name: Cy_System_SetCM55DbgPort
+* Function Name: Cy_SysCM55SetDbgPort
 ****************************************************************************//**
 *
 * Set APPCPU debug port mode policy
@@ -340,7 +352,7 @@ void Cy_SysEnableSOCMEM(bool enable)
 * \param dbgMode debug port policy
 *
 *******************************************************************************/
-void Cy_System_SetCM55DbgPort(cy_app_cpu_dbg_port_type_t dbgMode)
+void Cy_SysCM55SetDbgPort(cy_app_cpu_dbg_port_type_t dbgMode)
 {
     switch (dbgMode)
     {
@@ -373,7 +385,7 @@ void Cy_System_SetCM55DbgPort(cy_app_cpu_dbg_port_type_t dbgMode)
 }
 
 /*******************************************************************************
-* Function Name: Cy_SysDisableCM55
+* Function Name: Cy_SysCM55Disable
 ****************************************************************************//**
 *
 * Disables CM55
@@ -383,7 +395,7 @@ void Cy_System_SetCM55DbgPort(cy_app_cpu_dbg_port_type_t dbgMode)
 * - Enter DS on CM55.
 *
 *******************************************************************************/
-void Cy_SysDisableCM55(void)
+void Cy_SysCM55Disable(void)
 {
     cy_rslt_t result = CY_RSLT_SUCCESS;
 #if !defined(COMPONENT_SECURE_DEVICE) && (CY_PDL_SYSPM_ENABLE_SRF_INTEG)
@@ -399,7 +411,7 @@ void Cy_SysDisableCM55(void)
         .inVec = inVec,
         .outVec = outVec,
         .output_ptr = &output,
-        .op_id = CY_PDL_SYSPM_OP_SYSDISABLECM55,
+        .op_id = CY_PDL_SYSPM_OP_SYSCM55DISABLE,
         .submodule_id = CY_PDL_SECURE_SUBMODULE_SYSPM,
         .base = NULL,
         .sub_block = 0UL,
@@ -426,20 +438,22 @@ void Cy_SysDisableCM55(void)
 }
 
 /*******************************************************************************
-* Function Name: Cy_SysEnableCM55
+* Function Name: Cy_SysCM55Enable
 ****************************************************************************//**
 *
-* Sets vector table base address and enables the Cortex-M55 core.
+* Sets vector table base address and enables the Cortex-M55 core and its
+* debug port policy.
 *
 * \note If the CPU is already enabled, it is reset and then enabled.
 * \note APP_MMIO_TCM IP should be enabled before call of this API
 * \param CM55Base MXCM55 base address
 * \param vectorTableOffset The offset of the vector table base address from
 * memory address 0x00000000. The offset should be multiple to 1024 bytes.
+* \param dbgMode debug port policy.
 * \param waitus The timeout value in microsecond used to wait for core to be
 * booted. value zero is for infinite wait till the core is booted successfully.
 *
-* \sideeffect: For the PSE84 device, this functions clears the first 16 words in
+* \note: For the PSE84 device, this functions clears the first 16 words in
 * the default vector address (for PSE84 device it is ITCM memory). The processor reads
 * the first two words at the default vector table address to get Stack pointer
 * and Secure reset vector address. Because the processor branches to the address
@@ -447,7 +461,7 @@ void Cy_SysDisableCM55(void)
 *
 *******************************************************************************/
 
-void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_t waitus)
+void Cy_SysCM55Enable(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, cy_app_cpu_dbg_port_type_t dbgMode, uint32_t waitus)
 {
     CY_ASSERT_L2(NULL != CM55Base);
     CY_ASSERT_L2((vectorTableOffset & CY_SYS_CORE_VECTOR_TABLE_VALID_ADDR) == 0UL);
@@ -457,24 +471,25 @@ void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_
     mtb_srf_invec_ns_t* inVec = NULL;
     mtb_srf_outvec_ns_t* outVec = NULL;
     mtb_srf_output_ns_t* output = NULL;
+    cy_pdl_syspm_srf_syscm55enable_in_t input_args;
+    input_args.vectorTableOffset = vectorTableOffset;
+    input_args.dbgMode = dbgMode;
+    input_args.waitus = waitus;
 
     result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 0UL);
     CY_ASSERT_L2(CY_RSLT_SUCCESS == result);
 
-    uint32_t input_base[2U];
-    input_base[0U] = vectorTableOffset;
-    input_base[1U] = waitus;
     cy_pdl_invoke_srf_args invoke_args =
     {
         .inVec = inVec,
         .outVec = outVec,
         .output_ptr = &output,
-        .op_id = CY_PDL_SYSPM_OP_SYSENABLECM55,
+        .op_id = CY_PDL_SYSPM_OP_SYSCM55ENABLE,
         .submodule_id = CY_PDL_SECURE_SUBMODULE_SYSPM,
         .base = CM55Base,
         .sub_block = 0UL,
-        .input_base = (uint8_t*)input_base,
-        .input_len = sizeof(input_base),
+        .input_base = (uint8_t*)(&input_args),
+        .input_len = sizeof(input_args),
         .output_base = NULL,
         .output_len = 0UL,
         .invec_bases = NULL,
@@ -488,11 +503,16 @@ void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_
     result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
     CY_ASSERT_L2(CY_RSLT_SUCCESS == result);
 #else
+
     uint32_t interruptState;
     uint32_t cpuState;
     uint32_t regValue;
 
     interruptState = Cy_SysLib_EnterCriticalSection();
+
+    /* Set CM55 debug port policy*/
+    Cy_SysCM55SetDbgPort(dbgMode);
+
 
     result = cy_pd_pdcm_set_dependency(CY_PD_PDCM_SYSCPU, CY_PD_PDCM_APPCPU);
     CY_ASSERT_L2(CY_RSLT_SUCCESS == result);
@@ -515,13 +535,13 @@ void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_
 
     /* CDT_005459-211 to check how can we power on/off core.
        Here we need to power-on the core if it is already in off state. */
-    cpuState = Cy_SysGetCM55Status(CM55Base);
+    cpuState = Cy_SysCM55GetStatus(CM55Base);
     if (CY_SYS_CORE_STATUS_ACTIVE == cpuState)
     {
         /* Set CPU wait */
         CY_REG32_CLR_SET(CM55Base->CM55_CTL, MXCM55_CM55_CTL_CPU_WAIT, CY_SYS_CPU_WAIT_DEFAULT);
         /* Resets the core */
-        Cy_SysResetCM55(CM55Base, CY_SYS_CORE_WAIT_10US);
+        Cy_SysCM55Reset(CM55Base, CY_SYS_CORE_WAIT_10US);
     }
 
     /* Set NS vector table address */
@@ -535,14 +555,14 @@ void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_
 
     if (waitus == CY_SYS_CORE_WAIT_INFINITE)
     {
-        while(Cy_SysGetCM55Status(CM55Base) != CY_SYS_CORE_STATUS_ACTIVE)
+        while(Cy_SysCM55GetStatus(CM55Base) != CY_SYS_CORE_STATUS_ACTIVE)
         {
             /* Wait for the power mode to take effect */
         }
     }
     else
     {
-        if (Cy_SysGetCM55Status(CM55Base) != CY_SYS_CORE_STATUS_ACTIVE)
+        if (Cy_SysCM55GetStatus(CM55Base) != CY_SYS_CORE_STATUS_ACTIVE)
         {
             Cy_SysLib_DelayUs((uint16_t)waitus);
         }
@@ -565,7 +585,7 @@ void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_
 
 
 /*******************************************************************************
-* Function Name: Cy_SysResetCM55
+* Function Name: Cy_SysCM55Reset
 ****************************************************************************//**
 *
 * Resets the Cortex-M55 core and waits for the mode to take the effect.
@@ -577,11 +597,11 @@ void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_
 * such a call may corrupt/abort a pending bus-transaction by the CPU and cause
 * unexpected behavior in the system including a deadlock. Call the function
 * while the Cortex-M55 core is in the Sleep or Deep Sleep low-power mode. Use
-* the \ref group_syspm Power Management (syspm) API to put the CPU into the
-* low-power modes. Use the \ref Cy_SysPm_ReadStatus() to get a status of the CPU.
+* the Power Management (syspm) API to put the CPU into the
+* low-power modes. Use the Cy_SysPm_ReadStatus() to get a status of the CPU.
 *
 *******************************************************************************/
-void Cy_SysResetCM55(MXCM55_Type *CM55Base, uint32_t waitus)
+void Cy_SysCM55Reset(MXCM55_Type *CM55Base, uint32_t waitus)
 {
     CY_ASSERT_L2(NULL != CM55Base);
 
@@ -590,22 +610,23 @@ void Cy_SysResetCM55(MXCM55_Type *CM55Base, uint32_t waitus)
     mtb_srf_invec_ns_t* inVec = NULL;
     mtb_srf_outvec_ns_t* outVec = NULL;
     mtb_srf_output_ns_t* output = NULL;
+    cy_pdl_syspm_srf_syscm55reset_in_t input_args;
+    input_args.waitus = waitus;
 
     result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, 0UL);
     CY_ASSERT_L2(CY_RSLT_SUCCESS == result);
 
-    uint32_t input_base = waitus;
     cy_pdl_invoke_srf_args invoke_args =
     {
         .inVec = inVec,
         .outVec = outVec,
         .output_ptr = &output,
-        .op_id = CY_PDL_SYSPM_OP_SYSRESETCM55,
+        .op_id = CY_PDL_SYSPM_OP_SYSCM55RESET,
         .submodule_id = CY_PDL_SECURE_SUBMODULE_SYSPM,
         .base = CM55Base,
         .sub_block = 0UL,
-        .input_base = (uint8_t*)(&input_base),
-        .input_len = sizeof(input_base),
+        .input_base = (uint8_t*)(&input_args),
+        .input_len = sizeof(input_args),
         .output_base = NULL,
         .output_len = 0UL,
         .invec_bases = NULL,
@@ -654,7 +675,7 @@ void Cy_SysResetCM55(MXCM55_Type *CM55Base, uint32_t waitus)
 
 #if (CY_SYSTEM_CPU_M0P == 1UL) || defined(CY_DOXYGEN)
 /*******************************************************************************
-* Function Name: Cy_SysGetCM33Status
+* Function Name: Cy_SysCM33GetStatus
 ****************************************************************************//**
 *
 * Returns the Cortex-M33 core power mode.
@@ -662,7 +683,7 @@ void Cy_SysResetCM55(MXCM55_Type *CM55Base, uint32_t waitus)
 * \return \ref group_system_config_core_status_macro_edge
 *
 *******************************************************************************/
-uint32_t Cy_SysGetCM33Status(void)
+uint32_t Cy_SysCM33GetStatus(void)
 {
     /* Return current power mode */
     return (MXCM33->CM33_STATUS);
@@ -670,7 +691,7 @@ uint32_t Cy_SysGetCM33Status(void)
 
 
 /*******************************************************************************
-* Function Name: Cy_SysEnableCM33
+* Function Name: Cy_SysCM33Enable
 ****************************************************************************//**
 *
 * Sets vector table base address and enables the Cortex-M33 core in secure mode.
@@ -683,7 +704,7 @@ uint32_t Cy_SysGetCM33Status(void)
 * booted. value zero is for infinite wait till the core is booted successfully.
 *
 *******************************************************************************/
-void Cy_SysEnableCM33(uint32_t vectorTableOffset, uint32_t waitus)
+void Cy_SysCM33Enable(uint32_t vectorTableOffset, uint32_t waitus)
 {
     uint32_t interruptState;
     uint32_t cpuState;
@@ -691,10 +712,10 @@ void Cy_SysEnableCM33(uint32_t vectorTableOffset, uint32_t waitus)
 
     interruptState = Cy_SysLib_EnterCriticalSection();
 
-    cpuState = Cy_SysGetCM33Status();
+    cpuState = Cy_SysCM33GetStatus();
     if (CY_SYS_CORE_STATUS_ACTIVE == cpuState)
     {
-        Cy_SysResetCM33(CY_SYS_CORE_WAIT_10US);
+        Cy_SysCM33Reset(CY_SYS_CORE_WAIT_10US);
     }
 
     MXCM33->CM33_S_VECTOR_TABLE_BASE = vectorTableOffset;
@@ -706,14 +727,14 @@ void Cy_SysEnableCM33(uint32_t vectorTableOffset, uint32_t waitus)
 
     if (waitus == CY_SYS_CORE_WAIT_INFINITE)
     {
-        while (Cy_SysGetCM33Status() != CY_SYS_CORE_STATUS_ACTIVE)
+        while (Cy_SysCM33GetStatus() != CY_SYS_CORE_STATUS_ACTIVE)
         {
             /* Wait for the power mode to take effect */
         }
     }
     else
     {
-        if (Cy_SysGetCM33Status() != CY_SYS_CORE_STATUS_ACTIVE)
+        if (Cy_SysCM33GetStatus() != CY_SYS_CORE_STATUS_ACTIVE)
         {
             Cy_SysLib_DelayUs(waitus);
         }
@@ -729,7 +750,7 @@ void Cy_SysEnableCM33(uint32_t vectorTableOffset, uint32_t waitus)
 
 
 /*******************************************************************************
-* Function Name: Cy_SysResetCM33
+* Function Name: Cy_SysCM33Reset
 ****************************************************************************//**
 *
 * Resets the Cortex-M33 core and waits for the mode to take the effect.
@@ -741,11 +762,11 @@ void Cy_SysEnableCM33(uint32_t vectorTableOffset, uint32_t waitus)
 * such a call may corrupt/abort a pending bus-transaction by the CPU and cause
 * unexpected behavior in the system including a deadlock. Call the function
 * while the Cortex-M55 core is in the Sleep or Deep Sleep low-power mode. Use
-* the \ref group_syspm Power Management (syspm) API to put the CPU into the
-* low-power modes. Use the \ref Cy_SysPm_ReadStatus() to get a status of the CPU.
+* the Power Management (syspm) API to put the CPU into the
+* low-power modes. Use the Cy_SysPm_ReadStatus() to get a status of the CPU.
 *
 *******************************************************************************/
-void Cy_SysResetCM33(uint32_t waitus)
+void Cy_SysCM33Reset(uint32_t waitus)
 {
     uint32_t interruptState;
     uint32_t regValue;

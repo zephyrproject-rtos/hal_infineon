@@ -672,5 +672,3 @@ void CM0P_CpuIntr7_Handler(void)
 {
     CM0P_CpuIntr_HandlerInline(7);
 }
-
-

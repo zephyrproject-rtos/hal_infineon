@@ -45,6 +45,17 @@ extern "C" {
 /* Deprecated enumerator names. Do not use them in the new design. */
 #define APPCPUSS_DBG_INVASSIVE_MODE                APPCPUSS_DBG_INVASIVE_MODE
 #define APPCPUSS_DBG_TRACES_NON_INVASSIVE_MODE     APPCPUSS_DBG_TRACES_NON_INVASIVE_MODE
+
+/* BWC defines for CM33, CM55 and U55 related functions */
+#define Cy_SysEnableCM55(A, B, C)    Cy_SysCM55Enable(A, B, APPCPUSS_DBG_ENABLE_ALL, C)
+#define Cy_SysDisableCM55            Cy_SysCM55Disable
+#define Cy_SysResetCM55(A, B)        Cy_SysCM55Reset(A, B)
+#define Cy_SysGetCM55Status(A)       Cy_SysCM55GetStatus(A)
+#define Cy_System_SetCM55DbgPort(A)  Cy_SysCM55SetDbgPort(A)
+#define Cy_SysEnableCM33(A, B)       Cy_SysCM33Enable(A, B)
+#define Cy_SysResetCM33(A, B)        Cy_SysCM33Reset(A, B)
+#define Cy_SysGetCM33Status          Cy_SysCM33GetStatus
+#define Cy_SysEnableU55(A)           Cy_SysU55Enable(A)
 /** \endcond */
 
 /**
@@ -142,17 +153,17 @@ extern void SystemCoreClockSetup (uint32_t systemCoreClk_freq_hz, uint32_t ahb_f
 */
 
 #if (CY_SYSTEM_CPU_M33 == 1UL) || defined(CY_DOXYGEN)
-uint32_t Cy_SysGetCM55Status(MXCM55_Type *CM55Base);
-void Cy_SysEnableCM55(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, uint32_t waitus);
-void Cy_SysDisableCM55(void);
-void Cy_SysResetCM55(MXCM55_Type *CM55Base, uint32_t waitus);
+uint32_t Cy_SysCM55GetStatus(MXCM55_Type *CM55Base);
+void Cy_SysCM55Enable(MXCM55_Type *CM55Base, uint32_t vectorTableOffset, cy_app_cpu_dbg_port_type_t dbgMode, uint32_t waitus);
+void Cy_SysCM55Disable(void);
+void Cy_SysCM55Reset(MXCM55_Type *CM55Base, uint32_t waitus);
 void Cy_SysEnableSOCMEM(bool enable);
 void Cy_System_EnablePD1(void);
 void Cy_System_DisablePD1(void);
-void Cy_System_SetCM55DbgPort(cy_app_cpu_dbg_port_type_t dbgMode);
+void Cy_SysCM55SetDbgPort(cy_app_cpu_dbg_port_type_t dbgMode);
 #endif /* (CY_SYSTEM_CPU_M33 == 1UL) || defined(CY_DOXYGEN) */
 #if (CY_SYSTEM_CPU_M55 == 1UL) || defined(CY_DOXYGEN)
-void Cy_SysEnableU55(bool enable);
+void Cy_SysU55Enable(bool enable);
 #endif /* (CY_SYSTEM_CPU_M55 == 1UL) || defined(CY_DOXYGEN) */
 
 
@@ -163,9 +174,9 @@ void Cy_SysEnableU55(bool enable);
 * \{
 */
 #if (CY_SYSTEM_CPU_M0P == 1UL) || defined(CY_DOXYGEN)
-uint32_t Cy_SysGetCM33Status(void);
-void Cy_SysEnableCM33(uint32_t vectorTableOffset, uint32_t waitus);
-void Cy_SysResetCM33(uint32_t waitus);
+uint32_t Cy_SysCM33GetStatus(void);
+void Cy_SysCM33Enable(uint32_t vectorTableOffset, uint32_t waitus);
+void Cy_SysCM33Reset(uint32_t waitus);
 #endif /* (CY_SYSTEM_CPU_M0P == 1UL) || defined(CY_DOXYGEN) */
 
 /**
@@ -256,7 +267,7 @@ static inline uint32_t cy_AhbRemapAddr(const void *addr)
       ((uint32_t)addr < (CY_RRAM_BASE + CY_RRAM_SIZE)))
   {
     offset = (uint32_t)addr - CY_RRAM_BASE;
-    remapAddr =  CY_RRAM_CBUS_BASE + offset;
+    remapAddr = CY_RRAM_CBUS_BASE + offset;
   }/* no remapping, addr not in range */
   else
   {

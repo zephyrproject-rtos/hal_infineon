@@ -3,8 +3,8 @@
 *
 *********************************************************************************
 * \copyright
-* Copyright 2024-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation
+* Copyright(c) 2024-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
 *
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -99,6 +99,8 @@ typedef struct
         #endif
     };
 
+    _mtb_hal_event_callback_data_t      callback_data;
+    uint32_t                            callback_event;
 } mtb_hal_comp_t;
 
 /**

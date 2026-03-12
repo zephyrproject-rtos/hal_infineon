@@ -2,12 +2,14 @@
 * \file cy_sysclk.h
 * \version 3.150
 *
+* \brief
 * Provides an API declaration of the sysclk driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_sysclk
@@ -38,7 +41,7 @@
 * The clock system includes a variety of resources that can vary per device, including:
 * - Internal clock sources such as internal oscillators
 * - External clock sources such as crystal oscillators or a signal on an I/O pin
-* - Generated clocks such as an FLL, a PLL, and peripheral clocks
+* - Generated clocks such as a PLL, and peripheral clocks
 *
 * Consult the Technical Reference Manual for your device for details of the
 * clock system.
@@ -48,10 +51,11 @@
 * devices/include/pse84_config.h).
 *
 * As an illustration of the clocking system, the following diagram shows the
-* PSoC 63 series clock tree. The actual tree may vary depending on the device series.
+* PSOC EDGE E8 clock tree.
+* The actual tree may vary depending on the device series.
 * Consult the Technical Reference Manual for your device for details.
-* ![](sysclk_tree.png)
 *
+* ![](sysclk_pse_tree.png)*
 * The sysclk driver supports multiple peripheral clocks, as well as the fast
 * clock, slow clock, backup domain clock, timer clock, and pump clock. The API
 * for any given clock contains the functions to manage that clock. Functions
@@ -90,413 +94,6 @@
 *
 * \section group_sysclk_more_information More Information
 * Refer to the technical reference manual (TRM) and the device datasheet.
-*
-* \section group_sysclk_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>3.150</td>
-*     <td>
-*         Added new API \ref Cy_SysClk_ClkHfEnable_Safe. This API will do some safety checks before \ref Cy_SysClk_ClkHfEnable call.<br>
-*         Updated \ref Cy_SysClk_ClkHfEnable. The safety checks before HF clock activation were moved to \ref Cy_SysClk_ClkHfEnable_Safe.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>3.140</td>
-*     <td>Update PLL configuration for PSE8 devices.</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>3.130</td>
-*     <td>Corrects fractional enable behavior in \ref Cy_SysClk_Pll400MConfigure.  Only enables fractional divider if the fractional divider is non-zero.</td>
-*   </tr>
-*   <tr>
-*     <td>3.120</td>
-*     <td>Added PSOC C3 device support.</td>
-*     <td>New devices support added.</td>
-*   </tr>
-*   <tr>
-*     <td>3.110</td>
-*     <td>
-*         Added support for LPECO feature.<br>Newly added APIs:
-*         \n Cy_SysClk_LpEcoConfigure()
-*         \n Cy_SysClk_LpEcoEnable()
-*         \n Cy_SysClk_LpEcoDisable()
-*         \n Cy_SysClk_LpEcoSetFrequency()
-*         \n Cy_SysClk_LpEcoGetFrequency()
-*         \n Cy_SysClk_LpEcoPrescaleConfigure()
-*         \n Cy_SysClk_LpEcoPrescaleIsEnabled()
-*         \n Cy_SysClk_LpEcoAmplitudeOkay()
-*         \n Cy_SysClk_LpEcoIsReady()
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>3.100</td>
-*     <td>Added support for CSV feature and fixed coverity bugs.</td>
-*     <td>Added CSV feature support for PSE8 and bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>3.90</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*        Pre-processor check for MXS40SRSS version now groups ver. 2 with ver. 3. Previously ver. 2 was grouped with ver. 1.<br>
-*        In cy_sysclk_v2 source, added pre-processor logic to include/exclude certain SRSS versions.<br>
-*        Renamed PERI_DIV Defines to PERI_PCLK_GR_DIV for CAT1B and CAT1C.
-*        Changed pre-processor logic and set initial values to 0 for grpNum, instNum, locFrac, and locDiv variables to prevent uninitialized value access.
-*        Added pre-processor logic to prevent use of PLL400M API for non-compatible devices.</td>
-*        Added "Unsupported Core Type" warning messages.
-*        In cy_sysclk_v2 source, added API \ref Cy_SysClk_ClkFastGetDivider.
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>3.80</td>
-*     <td>Added \ref Cy_SysClk_PiloOkay new API and few macros. Updated \ref Cy_SysClk_PiloEnable.</td>
-*     <td>Usability enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>3.70</td>
-*     <td>Added new APIs \ref Cy_SysClk_ClkPwrSetDivider, \ref Cy_SysClk_ClkPwrGetDivider, \ref Cy_SysClk_ClkPwrGetFrequency, \ref Cy_SysClk_ClkPwrSetSource, \ref Cy_SysClk_ClkPwrGetSource. \n and enum \ref cy_en_clkpwr_in_sources_t </td>
-*     <td>Support Added for future devices of the CAT1B.</td>
-*   </tr>
-*  <tr>
-*     <td rowspan="2">3.60</td>
-*     <td>Support for PSE8 devices is added</td>
-*     <td>New devices support added</td>
-*   </tr>
-*   <tr>
-*     <td>Remove local structure initialization to avoid optimization</td>
-*     <td>Code cleanup</td>
-*   </tr>
-*   <tr>
-*     <td>3.50</td>
-*     <td>
-*         Bug fixes and few new APIs addition.<br>Newly added APIs:
-*         \n Cy_SysClk_PllGetFrequency() for CAT1A,CAT1C and PSE8 devices,
-*         \n Cy_SysClk_Pll200MGetFrequency() for CAT1C devices,
-*         \n Cy_SysClk_Pll400MGetFrequency() for CAT1C devices,
-*         \n Cy_SysClk_ImoEnable() for PSE8 devices,
-*         \n Cy_SysClk_ImoDisable() for PSE8 devices,
-*         \n Cy_SysClk_ImoIsEnabled() for PSE8 devices,
-*         \n Cy_SysClk_ImoDeepsleepEnable() for PSE8 devices,
-*         \n Cy_SysClk_ImoIsDeepsleepEnabled() for PSE8 devices,
-*         \n Cy_SysClk_ImoDeepsleepDisable() for PSE8 devices,
-*         \n Cy_SysClk_ClkFastSrcGetDivider() for CAT1C devices,
-*         \n Cy_SysClk_ClkFastSrcSetDivider() for CAT1C devices,
-*         \n Cy_SysClk_ClkFastSrcGetFrequency() for CAT1C devices,
-*     </td>
-*     <td>Bug fixes and new devices support.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">3.40</td>
-*     <td>
-*         Added CAT1C and PSE8 devices support.
-*     </td>
-*     <td>Support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>New API's for PLL400M and PLL200M.</td>
-*     <td>To handle the new PLL's for CAT1C devices.</td>
-*   </tr>
-*   <tr>
-*     <td>New API's Added
-*         * Cy_SysClk_Pll200MConfigure()
-*         * Cy_SysClk_Pll200MManualConfigure()
-*         * Cy_SysClk_Pll200MGetConfiguration()
-*         * Cy_SysClk_Pll200MEnable()
-*         * Cy_SysClk_Pll200MIsEnabled()
-*         * Cy_SysClk_Pll200MLocked()
-*         * Cy_SysClk_Pll200MLostLock()
-*         * Cy_SysClk_Pll200MDisable()
-*         * Cy_SysClk_Pll400MConfigure()
-*         * Cy_SysClk_Pll400MManualConfigure()
-*         * Cy_SysClk_Pll400MGetConfiguration()
-*         * Cy_SysClk_Pll400MEnable()
-*         * Cy_SysClk_Pll400MIsEnabled()
-*         * Cy_SysClk_Pll400MLocked()
-*         * Cy_SysClk_Pll400MLostLock()
-*         * Cy_SysClk_Pll200MDisable()
-*         * Cy_SysClk_IhoDeepsleepEnable()
-*         * Cy_SysClk_IhoIsDeepsleepEnabled()
-*         * Cy_SysClk_IhoDeepsleepDisable()
-*         * Cy_SysClk_IloSrcEnable()
-*         * Cy_SysClk_IloSrcIsEnabled()
-*         * Cy_SysClk_IloSrcDisable()
-*         * Cy_SysClk_IloSrcHibernateOn()
-*         * Cy_SysClk_PiloBackupEnable()
-*         * Cy_SysClk_PiloBackupDisable()
-*         * Cy_SysClk_PiloTcscEnable()
-*         * Cy_SysClk_PiloTcscDisable()
-*         * Cy_SysClk_AltHfEnable()
-*         * Cy_SysClk_IsAltHfEnabled()
-*         * Cy_SysClk_IloSetTrim()
-*         * Cy_SysClk_IloGetTrim()
-*         * Cy_SysClk_ClkMfSetSource()
-*         * Cy_SysClk_ClkMfGetSource()
-*         * Cy_SysClk_ClkHfDirectSel()
-*         * Cy_SysClk_IsClkHfDirectSelEnabled()
-*         * Cy_SysClk_PeriGroupGetSlaveCtl()
-*         * Cy_SysClk_IsPeriGroupSlaveCtlSet()
-*         * Cy_SysClk_PeriPclkGetFrequency()
-*         * Cy_SysClk_PeriPclkGetDividerEnabled()
-*         * Cy_Sysclk_PeriPclkGetClkHfNum()
-*         * Cy_SysClk_ClkMemSetDivider()
-*         * Cy_SysClk_ClkMemGetDivider()
-*         * Cy_SysClk_ClkMemGetFrequency()
-*
-*     </td>
-*     <td>New API's to handle CAT1B, CAT1C and PSE8 devices.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">3.30</td>
-*     <td>
-*         For PSoC64 device, allow CM0+ to call CY_PRA_FUNCTION_CALL_X_X API in functions
-*         accessing FUNCTION_POLICY registers. So that System Configuration structure is
-*         updated with new parameters.
-*     </td>
-*     <td>For PSoC64 device, System configuration can be done from CM0+ application.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>Return type doxygen updated for PSoC64 devices.</td>
-*     <td>Doxygen update for PSoC64 devices.</td>
-*   </tr>
-*   <tr>
-*     <td>3.20</td>
-*     <td>Added new API's \ref Cy_SysClk_FllGetFrequency and \ref Cy_SysClk_PllGetFrequency.</td>
-*     <td>Fetch the FLL and PLL frequency.</td>
-*   </tr>
-*   <tr>
-*     <td>3.10</td>
-*     <td>Support for CM33.</td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">3.0</td>
-*     <td>The behavior of \ref Cy_SysClk_EcoEnable and \ref Cy_SysClk_PllEnable is changed -
-*         these functions disable the resource in case of enabling failure (timeout).</td>
-*     <td>Usability enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>The implementation of \ref Cy_SysClk_ClkPathGetSource,
-*                               \ref Cy_SysClk_FllConfigure,
-*                               \ref Cy_SysClk_FllGetConfiguration,
-*                               \ref Cy_SysClk_PllConfigure
-*                           and \ref Cy_SysClk_ClkMeasurementCountersGetFreq
-*         is updated in accordance to the MISRA 2012 requirements. No behavioral changes.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>2.20.1</td>
-*     <td>Updated source code comments.</td>
-*     <td>Documentation update.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">2.20</td>
-*     <td>Added the assertion mechanism to the following functions:
-*         * Cy_SysClk_EcoDisable()
-*         * Cy_SysClk_IloEnable()
-*         * Cy_SysClk_IloHibernateOn()
-*         * Cy_SysClk_PiloEnable()
-*         * Cy_SysClk_PiloDisable()
-*         * Cy_SysClk_WcoDisable()
-*         * Cy_SysClk_WcoBypass()
-*         * Cy_SysClk_ClkFastSetDivider()
-*         * Cy_SysClk_ClkPeriSetDivider()
-*         * Cy_SysClk_ClkLfSetSource()
-*         * Cy_SysClk_ClkTimerSetSource()
-*         * Cy_SysClk_ClkTimerSetDivider()
-*         * Cy_SysClk_ClkTimerEnable()
-*         * Cy_SysClk_ClkTimerDisable()
-*         * Cy_SysClk_ClkPumpSetSource()
-*         * Cy_SysClk_ClkPumpSetDivider()
-*         * Cy_SysClk_ClkPumpEnable()
-*         * Cy_SysClk_ClkPumpDisable()
-*         * Cy_SysClk_ClkBakSetSource()
-*
-*         Now, the functions described above halt in assertion when a PRA
-*         request returns not successful operation. This change is
-*         applicable only for the PSoC 64 family devices.
-*     </td>
-*     <td>Enhancements for the debugging process.</td>
-*   </tr>
-*   <tr>
-*     <td>Added \ref Cy_SysClk_PiloInitialTrim and \ref Cy_SysClk_PiloUpdateTrimStep functions.
-*         Extended the \ref Cy_SysClk_PiloTrim function to use the step-size value calculated for PILO
-*         based on the \ref Cy_SysClk_PiloInitialTrim and \ref Cy_SysClk_PiloUpdateTrimStep
-*         functions call. </td>
-*     </td>
-*     <td>User experience enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>
-*          * Added the warning that during a glitch-safe mux, the transition is not allowed
-*            to disable the previous clock source. See more info
-*            in the \ref group_sysclk_configuration.
-*          * Removed Known Issues table.
-*     </td>
-*     <td>Documentation updates.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">2.10</td>
-*     <td>Updated SysClk functions for PSoC 64 devices. Now the SysClk functions can return
-*         PRA driver status value.</td>
-*     <td>The SysClk driver uses the PRA driver to change the protected registers.
-*         A SysClk driver function that calls a PRA driver function will return the PRA
-*         error status code if the called PRA function returns an error. In these cases,
-*         refer to PRA return statuses. Refer to functions description for details.</td>
-*   </tr>
-*   <tr>
-*     <td>Updated the code of \ref Cy_SysClk_ClkPathGetFrequency function.</td>
-*     <td>Make the code more error-resistant to user errors for some corner cases.</td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.0</td>
-*     <td>Updated the ECO trimming values calculation algorithm in the \ref Cy_SysClk_EcoConfigure implementation. \n
-*         This change may invalidate the already used crystals, in cases: \n
-*         * The crystal frequency is less than 16 MHz. \n
-*         * The maximum amplitude (internal calculation value) is less than 0.65 V. \n
-*
-*         For detail, refer the \ref Cy_SysClk_EcoConfigure documentation and the ECO Trimming section of the device TRM.</td>
-*     <td>Enhanced the ECO performance for high-noise conditions that result from simultaneous switching of GPIOs and/or high switching activity on the chip.</td>
-*   </tr>
-*   <tr>
-*     <td>1.60</td>
-*     <td>Added the following functions: \ref Cy_SysClk_ExtClkGetFrequency, \ref Cy_SysClk_EcoGetFrequency,\n
-*         \ref Cy_SysClk_ClkPathMuxGetFrequency, \ref Cy_SysClk_ClkPathGetFrequency, \ref Cy_SysClk_IloIsEnabled.\n
-*         \ref Cy_SysClk_PiloIsEnabled, \ref Cy_SysClk_AltHfGetFrequency, \ref Cy_SysClk_ClkHfIsEnabled,\n
-*         \ref Cy_SysClk_ClkTimerIsEnabled, \ref Cy_SysClk_ClkTimerGetFrequency, \ref Cy_SysClk_ClkPumpIsEnabled and\n
-*         \ref Cy_SysClk_ClkPumpGetFrequency.</td>
-*     <td>API enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50</td>
-*     <td>\ref Cy_SysClk_ClkHfGetFrequency is updated to reuse the \ref cy_BleEcoClockFreqHz global system variable.</td>
-*     <td>API enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40.2</td>
-*     <td>Update documentation based on collateral review feedback.</td>
-*     <td>User experience enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40.1</td>
-*     <td>Fix compiler warning.</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">1.40</td>
-*     <td>Updated the following functions implementation: \ref Cy_SysClk_PllConfigure and \ref Cy_SysClk_PllEnable.</td>
-*     <td>
-*       Fixed the \ref Cy_SysClk_PllConfigure API function behaviour when it is called with a bypass mode, \n
-*       Fixed the \ref Cy_SysClk_PllEnable API function behaviour when it is called with a zero timeout.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>Added the following functions: \ref Cy_SysClk_MfoEnable, \ref Cy_SysClk_MfoIsEnabled,\n
-*         \ref Cy_SysClk_MfoDisable, \ref Cy_SysClk_ClkMfEnable, \ref Cy_SysClk_ClkMfIsEnabled,\n
-*         \ref Cy_SysClk_ClkMfDisable, \ref Cy_SysClk_ClkMfGetDivider, \ref Cy_SysClk_ClkMfSetDivider,\n.
-*         \ref Cy_SysClk_ClkMfGetFrequency</td>
-*     <td>New device support.</td>
-*   </tr>
-*   <tr>
-*     <td>Added the following new API functions \ref Cy_SysClk_FllIsEnabled, \ref Cy_SysClk_PllIsEnabled,\n
-*         \ref Cy_SysClk_ExtClkSetFrequency, \ref Cy_SysClk_ClkHfGetFrequency, \ref Cy_SysClk_ClkFastGetFrequency,\n
-*         \ref Cy_SysClk_ClkPeriGetFrequency and \ref Cy_SysClk_ClkSlowGetFrequency</td>
-*     <td>Enhancement based on usability feedback</td>
-*   </tr>
-*   <tr>
-*     <td>Deprecated the following macros: CY_SYSCLK_DIV_ROUND and CY_SYSCLK_DIV_ROUNDUP</td>
-*     <td>Macros were moved into \ref group_syslib</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.30</td>
-*     <td>Updated the following functions implementation: \ref Cy_SysClk_EcoConfigure and \ref Cy_SysClk_FllConfigure.</td>
-*     <td>Math library dependency is removed, the floating-point math is replaced with integer math.</td>
-*   </tr>
-*   <tr>
-*     <td>Updated the following functions implementation: \ref Cy_SysClk_EcoEnable, \ref Cy_SysClk_EcoGetStatus, \ref Cy_SysClk_FllGetConfiguration \n
-*         and \ref Cy_SysClk_DeepSleepCallback. \n
-*         The \ref Cy_SysClk_DeepSleepCallback now implements all four SysPm callback modes \ref cy_en_syspm_callback_mode_t. \n
-*         The actions that were done in \ref CY_SYSPM_CHECK_READY case are moved to \ref CY_SYSPM_BEFORE_TRANSITION. \n
-*         So the \ref cy_stc_syspm_callback_t::skipMode must be set to 0UL.</td>
-*     <td>Defect fixing.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">1.20</td>
-*     <td>Flattened the organization of the driver source code into the single
-*         source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Updated \ref Cy_SysClk_FllLocked function description</td>
-*     <td>The SRSS_ver1 HW details clarification</td>
-*   </tr>
-*   <tr>
-*     <td>Removed the following functions:
-*         - Cy_SysClk_FllLostLock
-*         - Cy_SysClk_WcoConfigureCsv
-*         - Cy_SysClk_ClkHfConfigureCsv
-*     </td>
-*     <td>No hardware support for the removed functions.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.11</td>
-*     <td>Updated the following functions. Now they use a semaphore when
-*         try to read the status or configure the SysClk measurement counters:
-*         * Cy_SysClk_StartClkMeasurementCounters()
-*         * Cy_SysClk_ClkMeasurementCountersGetFreq()
-*
-*         Now Cy_SysClk_ClkMeasurementCountersGetFreq() returns zero value,
-*         if during measurement device was in the Deep Sleep or partially
-*         blocking flash operation occurred </td>
-*     <td>Added arbiter mechanism for correct usage of the SysClk measurement
-*         counters</td>
-*   </tr>
-*   <tr>
-*     <td>1.10.1</td>
-*     <td>Renamed Power Management section to Low Power Callback section</td>
-*     <td>Documentation update and clarification</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="5">1.10</td>
-*     <td>Updated FLL parameter calculation</td>
-*     <td>Support low frequency sources</td>
-*   </tr>
-*   <tr>
-*     <td>Added Cy_SysClk_PiloSetTrim() and Cy_SysclkPiloGetTrim() functions</td>
-*     <td>Support PILO manual trims</td>
-*   </tr>
-*   <tr>
-*     <td>Made Cy_SysClk_FllLostLock() function dependent on SRSS v1</td>
-*     <td>Feature is not supported in SRSS v1</td>
-*   </tr>
-*   <tr>
-*     <td>Updated Cy_SysClk_DeepSleepCallback() to save/restore both FLL and PLL settings</td>
-*     <td>The function should return when the lock is established or a timeout has occurred</td>
-*   </tr>
-*   <tr>
-*     <td>General documentation updates</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_sysclk_macros           Macros
 * \{
@@ -964,12 +561,20 @@ uint32_t Cy_SysClk_ExtClkGetFrequency(void);
 * \{
 * Constants used for expressing ECO status.
 */
-#define CY_SYSCLK_ECOSTAT_AMPLITUDE  0UL /**< \brief ECO does not have sufficient amplitude */
-#define CY_SYSCLK_ECOSTAT_INACCURATE 1UL /**< \brief ECO may not be meeting accuracy and duty cycle specs */
-#define CY_SYSCLK_ECOSTAT_STABLE     2UL /**< \brief ECO has fully stabilized */
+#define CY_SYSCLK_ECOSTAT_UNUSABLE       0UL /**< \brief ECO does not have sufficient amplitude and not stable power */
+#define CY_SYSCLK_ECOSTAT_OK             1UL /**< \brief ECO has sufficient amplitude but may not be meeting accuracy and duty cycle specifications */
+#define CY_SYSCLK_ECOSTAT_READY          2UL /**< \brief ECO has sufficient time to stabilize it's power */
+#define CY_SYSCLK_ECOSTAT_OK_AND_READY   3UL /**< \brief ECO has fully stabilized */
 
 
 /** \} group_sysclk_ecostatus */
+
+/** \cond internal */
+/* Kept it for Backward compatibility */
+#define CY_SYSCLK_ECOSTAT_AMPLITUDE      CY_SYSCLK_ECOSTAT_UNUSABLE
+#define CY_SYSCLK_ECOSTAT_INACCURATE     CY_SYSCLK_ECOSTAT_OK
+#define CY_SYSCLK_ECOSTAT_STABLE         CY_SYSCLK_ECOSTAT_OK_AND_READY
+/** \endcond */
 
 #if defined (CY_IP_MXS22SRSS)
 
@@ -1052,6 +657,11 @@ void Cy_SysClk_EcoSetFrequency(uint32_t freq);
 * and use the ECO calculators excel sheet for the platform to obtain the
 * trims.
 *
+* \note
+* This API is not Secure Aware.  It uses the PPC regions SRSS_SECURE and
+* SRSS_MAIN. The SRSS_SECURE region is always secured.  Thus, this API is only
+* safe to call if SRSS_MAIN is also configured as secure.
+*
 * \return Error / status code: \n
 * CY_SYSCLK_SUCCESS - ECO configuration completed successfully \n
 * CY_SYSCLK_BAD_PARAM - One or more invalid parameters \n
@@ -1130,9 +740,10 @@ void Cy_SysClk_EcoDisable(void);
 * Reports the current status of the external crystal oscillator (ECO).
 *
 * \return
-* CY_SYSCLK_ECOSTAT_AMPLITUDE = ECO does not have sufficient amplitude \n
-* CY_SYSCLK_ECOSTAT_INACCURATE = ECO has sufficient amplitude but may not be meeting accuracy and duty cycle specifications \n
-* CY_SYSCLK_ECOSTAT_STABLE = ECO has fully stabilized
+* CY_SYSCLK_ECOSTAT_UNUSABLE = ECO does not have sufficient amplitude \n
+* CY_SYSCLK_ECOSTAT_OK = ECO has sufficient amplitude but may not be meeting accuracy and duty cycle specifications \n
+* CY_SYSCLK_ECOSTAT_READY = ECO has sufficient time to stabilize it's power \n
+* CY_SYSCLK_ECOSTAT_OK_AND_READY = ECO has fully stabilized
 *
 * \funcusage
 * \snippet sysclk/snippet/main.c snippet_Cy_SysClk_EcoGetStatus
@@ -2757,6 +2368,7 @@ typedef enum
 } cy_en_wco_bypass_modes_t;
 
 
+/** \cond BWC */
 
 
 /**
@@ -2788,8 +2400,21 @@ typedef enum
 } cy_en_csv_error_actions_t;
 
 
+/** \endcond BWC */
+
+/** \} group_sysclk_wco_enums */
+
+/** \cond BWC */
+
+/**
+* \addtogroup group_sysclk_wco_structs
+* \{
+*/
+
 /** \} group_sysclk_wco_structs */
 
+
+/** \endcond BWC */
 
 /**
 * \addtogroup group_sysclk_wco_funcs
@@ -3498,7 +3123,6 @@ bool Cy_SysClk_IsClkHfCsvEnabled(uint32_t clkHf);
 */
 /**
 * Slave control Register Numbers
-* Used with functions \ref Cy_SysClk_ClkHfSetDivider and \ref Cy_SysClk_ClkHfGetDivider.
 */
 typedef enum
 {
@@ -3886,7 +3510,9 @@ cy_en_sysclk_status_t
 *
 * \param ipBlock specifies ip block to connect the clock divider to.
 *
-* \return The divider type and number
+* \return The divider type and number.  These are returned in one value, which can
+* be split using the CY_PERI_CLOCK_CTL_DIV_SEL_Msk and CY_PERI_CLOCK_CTL_TYPE_SEL_Msk
+* bitmasks.
 *
 *******************************************************************************/
 uint32_t Cy_SysClk_PeriPclkGetAssignedDivider(en_clk_dst_t ipBlock);
@@ -4346,12 +3972,6 @@ uint32_t Cy_SysClk_PeriphGetFrequency(cy_en_divider_types_t dividerType, uint32_
 /* ========================================================================== */
 /* =========================    clk_slow SECTION    ========================= */
 /* ========================================================================== */
-/**
-* \addtogroup group_sysclk_clk_slow_funcs
-* \{
-*/
-
-/** \} group_sysclk_clk_slow_funcs */
 
 
 /** \} group_sysclk_clk_mem_funcs */

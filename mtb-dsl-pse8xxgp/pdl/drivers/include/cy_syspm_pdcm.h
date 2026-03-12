@@ -2,12 +2,14 @@
 * \file cy_syspm_pdcm.h
 * \version 5.150
 *
-* This file provides the header for PDCM driver, where the APIs are used
-* by Syspm driver and BTSS driver.
+* \brief
+* This file provides the header for PDCM driver, where the APIs are used by Syspm driver and BTSS driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_syspm_pdcm             PDCM (Power Dependency Control Matrix)
@@ -38,21 +41,6 @@
 *
 * \section group_syspm_pdcm_MISRA MISRA-C Compliance
 * The PDCM driver does not have any specific deviations.
-*
-* \section group_syspm_pdcm_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>5.150</td>
-*     <td>Version updated to match SYSPM driver.</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_syspm_pdcm_macros Macros
 * \defgroup group_syspm_pdcm_functions Functions

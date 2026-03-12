@@ -7,7 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_dma
@@ -89,7 +92,7 @@
 * For example:
 * \snippet dma/snippet/main.c snippet_Cy_DMA_Enable
 *
-* CM7 cores support Data Cache. Data Cache line is 32 bytes.
+*  Data Cache line is 32 bytes.
 * User needs to make sure that the source and destination buffer pointers and the config structure pointers passed
 * to the following functions points to 32 bit aligned data.
 * Cy_DMA_Channel_SetDescriptor, Cy_DMA_Descriptor_SetNextDescriptor, Cy_DMA_Descriptor_SetSrcAddress, Cy_DMA_Descriptor_SetDstAddress.
@@ -101,105 +104,8 @@
 * \section group_dma_more_information More Information.
 * See: the DMA chapter of the device technical reference manual (TRM);
 *      the DMA Component datasheet;
-*      CE219940 - PSoC 6 MCU Multiple DMA Concatenation.
-*
-* \section group_dma_changelog Changelog
-*
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>2.90</td>
-*     <td>Added new APIs \ref Cy_DMA_Channel_IsEnabled and \ref Cy_DMA_Channel_GetCurrentYIndex.</td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td>2.80</td>
-*     <td>Updated \ref Cy_DMA_GetActiveChannel. Added new API \ref Cy_DMA_GetActiveChannelIndex.</td>
-*     <td>Bug fix.</td>
-*   </tr>
-*   <tr>
-*     <td>2.70</td>
-*     <td>Updated \ref Cy_DMA_Descriptor_SetNextDescriptor and \ref Cy_DMA_Descriptor_GetNextDescriptor.</td>
-*     <td>Coverity bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>2.60</td>
-*     <td>Fixed MISRA 2012 violations and minor documentation update.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>2.50</td>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>2.40.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Update to configure DMA on core CM7.</td>
-*   </tr>
-*   <tr>
-*     <td>2.40</td>
-*     <td>Minor Bug fixes.</td>
-*     <td>Check for valid parameters.</td>
-*   </tr>
-*   <tr>
-*     <td>2.30</td>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>2.20.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.20</td>
-*     <td>The channel number validation method is updated.</td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">2.10</td>
-*     <td>Flattened the organization of the driver source code into the single source directory and the single include directory.</td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added CRC mode and the CRC descriptor support. \n Added the \ref Cy_DMA_Crc_Init function.</td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>2.0.1</td>
-*     <td>Changed CY_DMA_BWC macro values from Boolean to numeric</td>
-*     <td>Improvements made based on usability feedback</td>
-*   </tr>
-*   <tr>
-*     <td>2.0</td>
-*     <td> * All the API is refactored to be consistent within itself and with the
-*            rest of the PDL content.
-*          * The descriptor API is updated as follows:
-*            The \ref Cy_DMA_Descriptor_Init function sets a full bunch of descriptor
-*            settings, and the rest of the descriptor API is a get/set interface
-*            to each of the descriptor settings.
-*          * There is a group of macros to support the backward compatibility with most
-*            of the driver version 1.0 API. But, you should use
-*            the new v2.0 interface in new designs (do not just copy-paste from old
-*            projects). To enable the backward compatibility support, the CY_DMA_BWC
-*            definition should be changed to "1".</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
-*
 
+*
 * \defgroup group_dma_macros Macros
 * \defgroup group_dma_functions Functions
 * \{

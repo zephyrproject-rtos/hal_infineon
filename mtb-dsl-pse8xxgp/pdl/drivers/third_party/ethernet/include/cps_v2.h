@@ -12,11 +12,11 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  ***********************************************************************
  * cps_v2.h
  * Interface for Cadence Platform Services (CPS), version 2
- * 
+ *
  * This is the "hardware abstraction layer" upon which all drivers are built.
  * It must be implemented for each platform.
  ***********************************************************************/

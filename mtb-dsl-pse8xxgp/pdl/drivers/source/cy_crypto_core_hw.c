@@ -244,7 +244,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_SetVuMemoryAddress(CRYPTO_Type *base,
         {
             isVUInternalMem = true;
         }
-            
+
         if ((vuMemAddrIn == NULL) && (vuMemSize == 0uL))
         {
             vuMemAddrIn = REG_CRYPTO_MEM_BUFF(base);

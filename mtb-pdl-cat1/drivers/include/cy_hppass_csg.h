@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass_csg.h
-* \version 1.30.1
+* \version 1.30.2
 *
 * Header file for the Comparator Slope Generator (CSG) subsystem of the High Power Programmable Analog Sub-System.
 *
@@ -67,7 +67,46 @@
 * * Gated output by the blanking trigger
 * * Edge detection for the interrupt generation
 * * Trigger generation for the Autonomous Controller.
-* 
+*
+* \section group_hppass_csg_interrupts CSG Interrupts
+*
+* The HPPASS CSG block provides DAC and comparator interrupts to the CPU
+* interrupt controller.
+*
+* \subsection group_hppass_csg_dac_interrupts DAC Interrupts
+*
+* A DAC interrupt is generated on the following events:
+* - DAC hardware start trigger
+* - DAC slope/LUT operation completed
+* - DAC buffer empty
+*
+* The DAC interrupts should be enabled by setting the corresponding mask in the
+* HPPASS_CSG_DAC_INTR_MASK register using \ref Cy_HPPASS_DAC_SetInterruptMask function.
+* To determine which DAC slice generated the interrupt, read the
+* HPPASS_CSG_DAC_INTR_MASKED register using \ref Cy_HPPASS_DAC_GetInterruptStatusMasked function.
+* To clear the DAC interrupt, use \ref Cy_HPPASS_DAC_ClearInterrupt function.
+*
+* The CSG provides both individual interrupts for each of the five DAC slices
+* (pass_interrupt_csg_dac_0..4_IRQn) and a combined DAC interrupt
+* (pass_interrupt_csg_dacs_IRQn).
+* When using the combined interrupt, the HPPASS_CSG_DAC_INTR register must be
+* read using \ref Cy_HPPASS_DAC_GetInterruptStatus function to determine the cause
+* of the interrupt.
+*
+* \subsection group_hppass_csg_cmp_interrupts Comparator Interrupts
+*
+* The CSG comparators provide only a combined interrupt.
+*
+* The comparator interrupt can be generated on rising, falling, or both edges
+* of the comparator output. The edge selection is configured in the comparator
+* configuration structure \ref cy_stc_hppass_comp_t::edge field.
+* The selected comparator interrupt should be enabled by setting the
+* corresponding mask in the HPPASS_CSG_CMP_INTR_MASK register using
+* \ref Cy_HPPASS_Comp_SetInterruptMask function. To determine which comparator
+* generated the interrupt, read the HPPASS_CSG_CMP_INTR_MASKED register using
+* \ref Cy_HPPASS_Comp_GetInterruptStatusMasked function.
+* To clear the comparator interrupt, use \ref Cy_HPPASS_Comp_ClearInterrupt function.
+*
 * \section group_hppass_csg_config CSG Configuration
 *
 * To configure the CSG, the driver uses a configuration structure of type
@@ -1017,7 +1056,7 @@ __STATIC_INLINE uint32_t Cy_HPPASS_DAC_GetInterruptStatusMasked(void)
 * Function Name: Cy_HPPASS_Comp_GetInterruptStatus
 ****************************************************************************//**
 *
-* Gets the interrupt register status for the specified comparator.
+* Gets the combined comparator interrupt register status.
 *
 * \return
 * The status of combined interrupt requests for the Comparator
@@ -1099,7 +1138,7 @@ __STATIC_INLINE void Cy_HPPASS_Comp_SetInterruptMask(uint32_t interrupt)
 * Function Name: Cy_HPPASS_Comp_GetInterruptMask
 ****************************************************************************//**
 *
-* Gets the interrupt mask for the specified comparator.
+* Gets the comparator interrupt mask.
 *
 * \return
 * The mask of the interrupts allowable for activation

@@ -50,6 +50,8 @@ extern "C" {
 #define _MTB_HAL_LPTIMER_ISR_CALL_USER_CB_MASK          (0x01)
 #define  _MTB_HAL_LPTIMER_SETMATCH_TIME_US              (0)
 
+#define _mtb_hal_lptimer_get_interrupt_status           Cy_MCWDT_GetInterruptStatus
+
 /*******************************************************************************
 *                           Typedefs
 *******************************************************************************/

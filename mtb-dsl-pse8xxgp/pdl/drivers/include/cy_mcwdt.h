@@ -2,12 +2,14 @@
 * \file cy_mcwdt.h
 * \version 1.90
 *
-* Provides an API declaration of the Cypress PDL 3.0 MCWDT driver
+* \brief
+* Provides an API declaration of the MCWDT driver
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_mcwdt
@@ -98,121 +101,6 @@
 *
 * For more information on the MCWDT peripheral, refer to
 * the technical reference manual (TRM).
-*
-* \section group_mcwdt_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.90</td>
-*     <td>Documentation update</td>
-*   </tr>
-*   <tr>
-*     <td>1.80</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*          Pre-processor check for MXS40SRSS version now groups ver. 2 with ver. 3. Previously ver. 2 was grouped with ver. 1.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.70</td>
-*     <td>Added MCWDT_B type support required for CAT1C devices.<br>Newly added APIs:
-*         \n Cy_MCWDT_SetLowerAction(),
-*         \n Cy_MCWDT_SetUpperAction(),
-*         \n Cy_MCWDT_SetWarnAction(),
-*         \n Cy_MCWDT_SetSubCounter2Action(),
-*         \n Cy_MCWDT_GetLowerAction(),
-*         \n Cy_MCWDT_GetUpperAction(),
-*         \n Cy_MCWDT_GetWarnAction(),
-*         \n Cy_MCWDT_GetSubCounter2Action(),
-*         \n Cy_MCWDT_SetAutoService(),
-*         \n Cy_MCWDT_GetAutoService(),
-*         \n Cy_MCWDT_SetSleepDeepPause(),
-*         \n Cy_MCWDT_GetSleepDeepPause(),
-*         \n Cy_MCWDT_SetDebugRun(),
-*         \n Cy_MCWDT_GetDebugRun(),
-*         \n Cy_MCWDT_SetLowerLimit(),
-*         \n Cy_MCWDT_SetUpperLimit(),
-*         \n Cy_MCWDT_SetWarnLimit(),
-*         \n Cy_MCWDT_GetLowerLimit(),
-*         \n Cy_MCWDT_GetUpperLimit(),
-*         \n Cy_MCWDT_GetWarnLimit(),
-*         \n Cy_MCWDT_WaitForCounterReset(),
-*         \n Cy_MCWDT_CpuSelectForDpSlpPauseAction(),
-*         \n Cy_MCWDT_GetCascadeMatchCombined().</td>
-*     <td>Support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.60</td>
-*     <td>CAT1B, CAT1C devices support.<br>Newly added APIs:
-*         \n Cy_MCWDT_GetLowerLimit() to get the lower limit value of the specified counter,
-*         \n Cy_MCWDT_SetLowerLimit() to set the the lower limit value of the specified counter,
-*         \n Cy_MCWDT_GetLowerLimitMode() to get the lower limit mode of the specified counter,
-*         \n Cy_MCWDT_SetLowerLimitMode() to set the lower limit mode of the specified counter,
-*         \n Cy_MCWDT_GetLowerLimitCascaded() to get the lower limit registers cascaded value,
-*         \n Cy_MCWDT_SetCascadeCarryOutRollOver() to enable the Rollover mode for carryout,
-*         \n Cy_MCWDT_GetCascadeCarryOutRollOver() to check if Rollover mode enabled for carryout or not,
-*         \n Cy_MCWDT_SetCascadeMatchCombined() to set the match to combined cascade counters,
-*         \n Cy_MCWDT_GetCascadeMatchCombined() to report if match is enabled with combined cascade counters or not.</td>
-*     <td>Support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50</td>
-*     <td>Added support for new family of devices.</td>
-*     <td>New device support.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>Fixed/documented MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30</td>
-*     <td>In version 1.20 the Cy_MCWDT_GetCountCascaded() function
-*         returned the wrong value when counter#1 overflowed.
-*         This bug is corrected in version 1.30.
-*     </td>
-*     <td>Defect fixes.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.20</td>
-*     <td>Flattened the organization of the driver source code into the single
-*         source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.10.1</td>
-*     <td>Updated description of the \ref cy_stc_mcwdt_config_t structure type</td>
-*     <td>Documentation update and clarification</td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>Added input parameter validation to the API functions.<br>
-*     Added API function GetCountCascaded()</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_mcwdt_macros Macros
 * \defgroup group_mcwdt_functions Functions
@@ -347,7 +235,7 @@ typedef enum
     CY_MCWDT_LOWER_LIMIT_MODE_RESET,         /**< Assert WDT Reset. */
 } cy_en_mcwdtlowerlimitmode_t;
 #endif /* CY_IP_MXS28SRSS, CY_IP_MXS40SSRSS, CY_IP_MXS22SRSS*/
- 
+
 /** The MCWDT error codes. */
 typedef enum
 {
@@ -355,7 +243,7 @@ typedef enum
     CY_MCWDT_BAD_PARAM = CY_MCWDT_ID | CY_PDL_STATUS_ERROR | 0x01u,     /**< One or more invalid parameters */
 } cy_en_mcwdt_status_t;
 
- 
+
 /** \} group_mcwdt_enums */
 
 /**
@@ -363,7 +251,7 @@ typedef enum
 * \{
 */
 
- 
+
 
 #if defined (CY_IP_MXS28SRSS) || defined (CY_IP_MXS40SSRSS) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) || defined (CY_IP_MXS22SRSS)
 /** The MCWDT component configuration structure. */
@@ -412,7 +300,7 @@ typedef struct
                                       false: Match based on counter 1 alone, true: Match based on counter 2 and 1 simultaneously.
                                     */
 #endif /* CY_IP_MXS40SSRSS, CY_IP_MXS22SRSS */
- 
+
     bool     c0ClearOnMatch; /**< The sub-counter#0 Clear On Match parameter enabled/disabled. */
     bool     c1ClearOnMatch; /**< The sub-counter#1 Clear On Match parameter enabled/disabled. */
     bool     c0c1Cascade;    /**< The sub-counter#1 is clocked by LFCLK or from sub-counter#0 cascade. */

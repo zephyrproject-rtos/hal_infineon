@@ -3,15 +3,13 @@
 * \version 2.130
 *
 * \brief
-*  This file provides the constants and parameter values for the memory-level
-*  APIs of the SMIF driver.
-*
-* Note:
+* This file provides the constants and parameter values for the memory-level APIs of the SMIF driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 #if !defined (CY_SMIF_MEMORYSLOT_H)
 #define CY_SMIF_MEMORYSLOT_H
@@ -108,7 +107,7 @@ extern "C" {
 /** Sets user preference to choose SDR only commands during SFDP Enumeration */
 #define CY_SMIF_FLAG_DETECT_SFDP_SDR_ONLY (64U)
 
- 
+
 /** \} group_smif_macros_flags */
 
 /**
@@ -168,7 +167,7 @@ extern "C" {
 
 #define CY_SMIF_FAST_READ_4_BYTES_CMD_1S_4D_4D      (0xEEU)                 /**< The command for a 1S-4D-4D SMIF fast read with 4-byte addressing */
 #define CY_SMIF_FAST_READ_4_BYTES_CMD_1S_8D_8D      (0xFDU)                 /**< The command for a 1S-8D-8D SMIF fast read with 4-byte addressing */
- 
+
 #define CY_SMIF_PAGE_PROGRAM_4_BYTES_CMD_1S_1S_1S   (0x12U)                 /**< The command for a 1S-1S-1S SMIF page program with 4-byte addressing */
 #define CY_SMIF_PAGE_PROGRAM_4_BYTES_CMD_1S_1S_4S   (0x34U)                 /**< The command for a 1S-1S-4S SMIF page program with 4-byte addressing */
 #define CY_SMIF_PAGE_PROGRAM_4_BYTES_CMD_1S_4S_4S   (0x3EU)                 /**< The command for a 1S-4S-4S SMIF page program with 4-byte addressing */
@@ -277,7 +276,7 @@ extern "C" {
 
 #define CY_SMIF_SFDP_DTR_SUPPORT_Pos                  (3UL)                   /**< The SFDP DTR support (Bit 3)                           */
 #define CY_SMIF_SFDP_DTR_SUPPORT_Msk                  (0x08UL)                /**< The SFDP DTR support (Bitfield-Mask: 0x08)             */
- 
+
 #define CY_SMIF_SFDP_ADDRESS_BYTES_Pos              (1UL)                   /**< The SFDP number of address bytes (Bit 1)               */
 #define CY_SMIF_SFDP_ADDRESS_BYTES_Msk              (0x06UL)                /**< The SFDP number of address bytes (Bitfield-Mask: 0x03) */
 #define CY_SMIF_SFDP_FAST_READ_1_1_2_Pos            (0UL)                   /**< The SFDP 1-1-2 fast read support (Bit 0)               */
@@ -446,7 +445,7 @@ extern "C" {
 #define CY_SMIF_HB_FLASH_UNLOCK_ADDR2        0x000002AA    /**< HyperBus Unlock Address Two */
 #define CY_SMIF_HB_FLASH_CFI_UNLOCK_ADDR1    0x00000055    /**< HyperBus CFI Unlock Address One */
 typedef uint32_t              CY_SMIF_FLASHDATA;           /**< HyperBus Flash Data Type */
- 
+
 #define CY_SMIF_TAP_NOT_FOUND                          0xFFU         /**< Delay tap matching to memory not found */
 #define CY_SMIF_MEM_CALIBRATION_DATA_PATTERN_LENGTH    12U           /**< Pattern length used for memory read transaction calibration */
 
@@ -471,7 +470,7 @@ typedef uint32_t              CY_SMIF_FLASHDATA;           /**< HyperBus Flash D
 #define CY_SMIF_HB_FLASH_BUF_SIZE_MULTIPLIER 1
 #define HB_REG_SIZE_IN_HALFWORD 1
 
- 
+
 
 /*******************************************************************************
 * These are legacy constants and API. They are left here just
@@ -539,7 +538,7 @@ typedef uint32_t              CY_SMIF_FLASHDATA;           /**< HyperBus Flash D
 #define SMIF_HYPERBUS_CMD_TARGET_TYPE_Msk                  0x4000UL
 #define SMIF_HYPERBUS_CMD_READ_WRITE_Pos                   15UL
 #define SMIF_HYPERBUS_CMD_READ_WRITE_Msk                   0x8000UL
- 
+
 /** \endcond */
 /** \} group_smif_macros_sfdp */
 
@@ -589,7 +588,7 @@ typedef struct
     uint8_t cmdSeq1[CY_SMIF_SFDP_ODDR_CMD_SEQ_MAX_LEN];   /**< This specifies command sequence 1. */
     uint8_t cmdSeq2[CY_SMIF_SFDP_ODDR_CMD_SEQ_MAX_LEN];   /**< This specifies command sequence 2. */
 } cy_stc_smif_octal_ddr_en_seq_t;
- 
+
 
 /* ------------------------------------------------- HyperBus Enums ---------------------------------------------- */
 
@@ -796,7 +795,7 @@ typedef struct
     cy_en_smif_merge_timeout_t mergeTimeout;
 
     cy_stc_smif_hbmem_device_config_t* hbdeviceCfg;  /**< The configuration of the hyperbus device */
- 
+
 } cy_stc_smif_mem_config_t;
 
 
@@ -841,7 +840,7 @@ cy_en_smif_status_t Cy_SMIF_MemOctalEnable(SMIF_Type *base,
                                     cy_stc_smif_mem_config_t const *memDevice,
                                     cy_en_smif_data_rate_t dataRate,
                                     cy_stc_smif_context_t const *context);
- 
+
 cy_en_smif_status_t Cy_SMIF_MemCmdReadStatus(SMIF_Type *base,
                                         cy_stc_smif_mem_config_t const *memDevice,
                                         uint8_t *status, uint8_t command,
@@ -936,7 +935,7 @@ cy_en_smif_status_t Cy_SMIF_MemCalibrateSDL(SMIF_Type *base,
                                                           const cy_stc_smif_mem_config_t *memConfig,
                                                           uint32_t calibrationDataOffsetAddress,
                                                           cy_stc_smif_context_t *context);
- 
+
 
 /*******************************************************************************
 * Function Name: Cy_SMIF_HyperBus_InitDevice
@@ -975,6 +974,7 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_InitDevice(SMIF_Type *base, const cy_stc_sm
 * center tap of the longest sequence of matches and applies this tap.
 *
 * \note Function assumes that any SMIF has the same number of delay taps
+* \note This API is deprecated, instead please use \ref Cy_SMIF_MemCalibrateSDL API
 *
 * \param base
 * Holds the base address of the SMIF Device registers.
@@ -1241,7 +1241,7 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_EraseSector(SMIF_Type *base, const cy_stc_s
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_HyperBus_EraseChip(SMIF_Type *base, cy_stc_smif_mem_config_t *memConfig, cy_stc_smif_context_t *context);
 
- 
+
 /** \} group_smif_mem_slot_functions */
 
 __STATIC_INLINE void SfdpGetQuadEnableParameters(cy_stc_smif_mem_device_cfg_t *device,

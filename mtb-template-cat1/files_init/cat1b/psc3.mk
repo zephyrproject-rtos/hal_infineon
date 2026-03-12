@@ -42,10 +42,16 @@ else
 endif
 
 # Generate binary image
-ifeq ($(TOOLCHAIN),ARM)
-CY_BSP_POSTBUILD+=$(MTB_TOOLCHAIN_ARM__BASE_DIR)/bin/fromelf --output=$(MTB_TOOLS__OUTPUT_CONFIG_DIR)/$(APPNAME).bin --bincombined $(MTB_TOOLS__OUTPUT_CONFIG_DIR)/$(APPNAME).$(MTB_RECIPE__SUFFIX_TARGET);
+ifneq (,$(MTB_IDE__TARG_FILE))
+_MTB_BSP__TARG_FILE:=$(call mtb__path_normalize,$(MTB_IDE__TARG_FILE))
 else
-CY_BSP_POSTBUILD+=$(MTB_TOOLCHAIN_GCC_ARM__BASE_DIR)/bin/arm-none-eabi-objcopy -O binary $(MTB_TOOLS__OUTPUT_CONFIG_DIR)/$(APPNAME).$(MTB_RECIPE__SUFFIX_TARGET) $(MTB_TOOLS__OUTPUT_CONFIG_DIR)/$(APPNAME).bin;
+_MTB_BSP__TARG_FILE=$(MTB_TOOLS__OUTPUT_CONFIG_DIR)/$(APPNAME).$(MTB_RECIPE__SUFFIX_TARGET)
+endif
+
+ifeq ($(TOOLCHAIN),ARM)
+CY_BSP_POSTBUILD+=$(MTB_TOOLCHAIN_ARM__BASE_DIR)/bin/fromelf --output=$(MTB_TOOLS__OUTPUT_CONFIG_DIR)/$(APPNAME).bin --bincombined $(_MTB_BSP__TARG_FILE);
+else
+CY_BSP_POSTBUILD+=$(MTB_TOOLCHAIN_GCC_ARM__BASE_DIR)/bin/arm-none-eabi-objcopy -O binary $(_MTB_BSP__TARG_FILE) $(MTB_TOOLS__OUTPUT_CONFIG_DIR)/$(APPNAME).bin;
 endif
 
 ################################################################################

@@ -101,9 +101,12 @@ cy_rslt_t cy_pdl_rtc_srf_get_hr_format_impl_s(mtb_srf_input_ns_t* inputs_ns,
     CY_ASSERT_L2((inputs_ns->request).op_id == CY_PDL_RTC_OP_GET_HR_FORMAT);
     CY_ASSERT_L2((inputs_ns->request).submodule_id == CY_PDL_SECURE_SUBMODULE_RTC);
 
-    cy_en_rtc_hours_format_t hrs_format = Cy_RTC_GetHoursFormat();
-    memcpy(&outputs_ns->output_values[0], &hrs_format, sizeof(cy_en_rtc_hours_format_t));
-    return (cy_rslt_t)CY_RTC_SUCCESS;
+    cy_rslt_t status;
+    cy_pdl_rtc_srf_get_hr_format_out_t output;
+    output.hrs_format = Cy_RTC_GetHoursFormat();
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
+
+    return status;
 }
 
 /* All operations for the RTC submodule of the PDL module */
@@ -130,10 +133,10 @@ mtb_srf_op_s_t _cy_pdl_rtc_srf_operations[] =
         .write_required = false,
         .impl = cy_pdl_rtc_srf_get_hr_format_impl_s,
         .input_values_len = 0U,
-        .output_values_len = 0U,
+        .output_values_len = sizeof(cy_pdl_rtc_srf_get_hr_format_out_t),
         .input_len = {0, 0, 0},
         .needs_copy = {false, false, false},
-        .output_len = {sizeof(cy_en_rtc_hours_format_t), 0, 0},
+        .output_len = {0, 0, 0},
         .allowed_rsc = cy_pdl_rtc_srf_permissions,
         .num_allowed = 1UL
     },

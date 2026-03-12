@@ -1910,8 +1910,8 @@ cy_en_crypto_status_t Cy_Crypto_Core_ED25519_PointDecode(CRYPTO_Type *base,
             /* Recover x_0 and generate p_y*/
             Cy_Crypto_Core_MemCpy(base, (void*)publicKeyYRemap, (void const *)publicKeyRemap, (uint16_t)bytesize);
 
-            x_0 = publicKeyYRemap[31] >> (uint8_t)0x07;
-            publicKeyYRemap[31] &= (uint8_t)0x7F;
+            x_0 = pubKey_y[31] >> (uint8_t)0x07;
+            pubKey_y[31] &= (uint8_t)0x7F;
 
             /* If the resulting y >= grp->P, decoding fails. */
             Cy_Crypto_Core_Vu_SetMemValue (base, p_y, (uint8_t const *)publicKeyYRemap, bitsize);

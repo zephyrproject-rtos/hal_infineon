@@ -1,14 +1,15 @@
 /***************************************************************************//**
 * \file cy_pdl_srf.h
-* \version 1.000
+* \version 1.0
 *
-* This file contains the PDL SRF module registration and information on the
-* sub-modules.
+* \brief
+* This file contains the PDL SRF module registration and information on the sub-modules.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +23,8 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_pdl_srf
@@ -105,7 +106,7 @@ extern mtb_srf_pool_t cy_pdl_srf_default_pool;
 * \addtogroup group_pdl_srf_macros
 * \{
 */
-#if !defined(CY_PDL_ENABLE_SECURE_AWARE)
+#if !defined(CY_PDL_ENABLE_SECURE_AWARE) && !defined(CY_SRF_DISABLE)
 /** PDL-wide Secure Aware Driver enablement.  Set to 0 to disable all Secure Aware Drivers */
 #define CY_PDL_ENABLE_SECURE_AWARE (1)
 #endif /* !defined(CY_PDL_ENABLE_SECURE_AWARE) */

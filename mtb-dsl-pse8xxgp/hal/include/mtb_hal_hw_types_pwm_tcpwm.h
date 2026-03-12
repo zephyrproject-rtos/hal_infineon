@@ -3,8 +3,8 @@
 *
 *********************************************************************************
 * \copyright
-* Copyright 2024-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation
+* Copyright(c) 2024-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
 *
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -51,6 +51,8 @@
 typedef struct
 {
     mtb_hal_tcpwm_t                     tcpwm; //!< Common TCPWM data
+    _mtb_hal_event_callback_data_t      callback_data;
+    uint32_t                            callback_event;   //!< Event requested
 } mtb_hal_pwm_t;
 
 /**

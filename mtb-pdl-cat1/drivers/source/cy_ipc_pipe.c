@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_pipe.c
-* \version 1.140
+* \version 1.150
 *
 *  Description:
 *   IPC Pipe Driver - This source file includes code for the Pipe layer on top
@@ -105,7 +105,7 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
     CY_ASSERT_L1(NULL != config->userPipeIsrHandler);
     /* Parameters checking end */
 
-#if defined(CY_IP_M4CPUSS)
+#if defined(CY_IP_M4CPUSS) && !defined (CY_M4CPUSS_V2_IRQ_MUXING)
 /* Only for CAT1A devices. This Part of code is soon going to deprecated */
 #if (CY_CPU_CORTEX_M0P)
 
@@ -190,12 +190,12 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
     {
         /* Nothing to do */
     }
-#elif defined(CY_IP_M4CPUSS) && (CY_CPU_CORTEX_M0P)
+#elif defined(CY_IP_M4CPUSS) && (CY_CPU_CORTEX_M0P) && !defined (CY_M4CPUSS_V2_IRQ_MUXING)
     /* Configure CM0 interrupts */
     ipc_intr_cypipeConfig.intrSrc          = (IRQn_Type)epConfigDataA.ipcNotifierMuxNumber;
     ipc_intr_cypipeConfig.cm0pSrc          = (cy_en_intr_t)((int32_t)cpuss_interrupts_ipc_0_IRQn + (int32_t)epConfigDataA.ipcNotifierNumber);
     ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
-#elif defined (CY_IP_M7CPUSS) /* CM7 */
+#elif defined (CY_IP_M7CPUSS) || defined (CY_M4CPUSS_V2_IRQ_MUXING) /* CM7 or CM4_ver2*/
     /* Configure CM0 interrupts */
     ipc_intr_cypipeConfig.intrSrc          = ((epConfigDataA.ipcNotifierMuxNumber << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | (uint32_t)((int32_t)cpuss_interrupts_ipc_0_IRQn + (int32_t)epConfigDataA.ipcNotifierNumber));
     ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;

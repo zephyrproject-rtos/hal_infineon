@@ -29,7 +29,7 @@
  * \{
  * The ModusToolbox Interprocessor communication library (MTB-IPC) requires reservation of IPC
  * channels and interrupts.
- * Please refer to device documentation for what channels and interrupts are avaliable on the
+ * Please refer to device documentation for what channels and interrupts are available on the
  * device.
  * Reservation ensures that there is no overlap between libraries that use IPC.
  * By default, the only library that has a reservation is MTB-SRF and these values
@@ -53,7 +53,7 @@ extern "C" {
 /** Define the channel used to set up the IPC instance set up for SRF operations*/
 #define MTB_IPC_CHANNEL_SRF                          (MTB_IPC_CHAN_0)
 
-/** Define Semaphore index used to initialize the IPC isntance set up for SRF operations */
+/** Define Semaphore index used to initialize the IPC instance set up for SRF operations */
 #define MTB_IPC_SEMA_NUM_SRF                         (0UL)
 
 /** Define reserved semaphore IRQ for SRF operations on Relay core */
@@ -88,10 +88,10 @@ extern "C" {
 #endif // if defined(COMPONENT_MW_MTB_SRF)
 
 
-/** \} group_mtb_ipc_config */
-
 #ifdef __cplusplus
 }
 #endif /* defined(__cplusplus) */
 
 #endif // defined(COMPONENT_MW_MTB_IPC)
+
+/** \} group_mtb_ipc_config */

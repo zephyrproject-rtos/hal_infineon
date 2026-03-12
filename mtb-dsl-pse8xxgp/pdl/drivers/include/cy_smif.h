@@ -2,12 +2,14 @@
 * \file cy_smif.h
 * \version 2.130
 *
+* \brief
 * Provides an API declaration of the Cypress SMIF driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_smif
@@ -227,344 +230,6 @@
 *
 * More information regarding the QSPI Configurator tool are in QSPI Configurator user guide.
 *
-* \section group_smif_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>2.130</td>
-*     <td> Updated APIs : \n
-*         \ref Cy_SMIF_Init, \ref Cy_SMIF_InitCache, \ref Cy_SMIF_Clean_All_Cache, \ref Cy_SMIF_Invalidate_All_Cache,
-*          \ref Cy_SMIF_Clean_And_Invalidate_All_Cache, \ref Cy_SMIF_Clean_Cache_by_Addr, \ref Cy_SMIF_Invalidate_Cache_by_Addr
-*          \ref Cy_SMIF_Clean_And_Invalidate_Cache_by_Addr, \ref Cy_SMIF_MemInitSfdpMode.
-*     </td>
-*     <td> Updated secure interface to Align secure services with TFM and Bug Fixes</td>
-*   </tr>
-*   <tr>
-*     <td>2.120</td>
-*     <td>Added APIs for MDL and SDL tap settings:\n
-*        \ref Cy_SMIF_Set_DelayTapSel\n
-*        \ref Cy_SMIF_Set_Sdl_DelayTapSel\n
-*        \ref CY_SMIF_GetDelayTapsNumber\n\n
-*         Added APIs for SMIF Bridge enablement:\n
-*        \ref Cy_SMIF_IsBridgeOn\n
-*        \ref Cy_SMIF_Bridge_Enable\n\n
-*         Added configurable TX SDR Extra support during SMIF initialized.\n\n
-*     </td>
-*     <td>New device support added for Traveo II Cluster.</td>
-*   </tr>
-*   <tr>
-*     <td>2.110</td>
-*     <td>Added PSOC C3 device support.</td>
-*     <td>New Device support added.</td>
-*   </tr>
-*   <tr>
-*     <td>2.100</td>
-*     <td>Updated slaveSelect validity check to allow Dual QSPI use case.</td>
-*     <td>Bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>2.90</td>
-*     <td>Updated internal API</td>
-*     <td>Bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>2.80</td>
-*     <td>Added hyperbus support to CAT1C family.</td>
-*     <td>Code Enhancements.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">2.70</td>
-*     <td>Added enhancements related to PSE8 family.</td>
-*     <td>Support added for sending dummy cycles using RWDS line, selecting DLL speed options and RX Capture mode.</td>
-*   </tr>
-*   <tr>
-*     <td>Added API \ref Cy_SMIF_Reset_Memory, updated APIs \ref Cy_SMIF_MemInit,
-*       - \ref Cy_SMIF_MemOctalEnable, \ref Cy_SMIF_MemRead, \ref Cy_SMIF_MemWrite.</td>
-*     <td>Support added for SMIF octal DDR with RWDS and bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">2.60</td>
-*     <td>Modified  private APIs </td>
-*     <td>MISRA-10.6 violation and Bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new API \ref Cy_SMIF_SetSelectedDelayTapSel and \ref Cy_SMIF_GetSelectedDelayTapSel.</td>
-*     <td>Support for PSE8 devices.</td>
-*   </tr>
-*   <tr>
-*     <td>Modified \ref Cy_SMIF_MemWrite and \ref Cy_SMIF_MemDeInit APIs.</td>
-*     <td>Code Enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.50</td>
-*     <td>Future functionality support for Hyperbus devices.</td>
-*     <td>Code Enhancements.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">2.40</td>
-*     <td>Enhanced \ref Cy_SMIF_MemEraseSector to compute sector boundary for erase operation and \n
-*         Minor Bug fixes.
-*      </td>
-*     <td>Code Enhancements.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new API \ref Cy_SMIF_MemCmdPowerDown and \ref Cy_SMIF_MemCmdReleasePowerDown.</td>
-*     <td>Reduce power consumption.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new API \ref Cy_SMIF_DeviceTransfer_SetMergeTimeout and \ref Cy_SMIF_DeviceTransfer_ClearMergeTimeout.</td>
-*     <td>Allow user to configure merge timeout.</td>
-*   </tr>
-*   <tr>
-*     <td>Removed Bridge API support.</td>
-*     <td>Removed feature not supported in existing devices.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="5">2.30</td>
-*     <td>Octal SDR and DDR support using SFDP mode.</td>
-*     <td>Octal device support.</td>
-*   </tr>
-*   <tr>
-*     <td>Move SFDP related functionality to cy_smif_sfdp.c. </td>
-*     <td>Code Enhancements.</td>
-*   </tr>
-*   <tr>
-*     <td>Added support for new product families</td>
-*     <td>Support for CAT1B and CAT1C devices.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new API's:\n
-*         \ref Cy_SMIF_MemInitSfdpMode()\n
-*         \ref Cy_SMIF_SetCryptoIV()\n
-*         \ref Cy_SMIF_SetCryptoKey()\n
-*         \ref Cy_SMIF_ConvertSlaveSlotToIndex()\n
-*         \ref Cy_SMIF_SetCryptoEnable()\n
-*         \ref Cy_SMIF_SetCryptoDisable()\n
-*         \ref Cy_SMIF_SetReadyPollingDelay()\n
-*
-*         Following macros renamed:\n
-*         CY_SMIF_WRITE_STATUS_REG2_CMD to CY_SMIF_WRITE_STATUS_REG2_T1_CMD.</td>
-*     <td>Support for SFDP 1.0 devices.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new API's for PSE8 devices\n
-*         \ref Cy_SMIF_SetRxCaptureMode()\n
-*         Cy_SMIF_Bridge_Enable()\n
-*         Cy_SMIF_Bridge_SetPortPriority()\n
-*         Cy_SMIF_Bridge_SetSimpleRemapRegion()\n
-*         Cy_SMIF_Bridge_SetInterleavingRemapRegion()\n
-*         \ref Cy_SMIF_MemOctalEnable()\n
-*     </td>
-*     <td>Support for PSE8 devices.</td>
-*   </tr>
-*   <tr>
-*     <td>2.20</td>
-*     <td>Bug fixes in \ref Cy_SMIF_MemEraseSector for Hybrid memory configuration.
-*         Updated \ref Cy_SMIF_MemIsReady to use \ref Cy_SysLib_Rtos_Delay and \ref Cy_SysLib_Rtos_DelayUs.</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>2.10</td>
-*     <td>New silicon family support.</td>
-*     <td>Added extended API for DDR support.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="4">2.0</td>
-*     <td>Reworked the \ref Cy_SMIF_MemRead and \ref Cy_SMIF_MemWrite functions to use polling instead of interrupts.</td>
-*     <td>Extend the usability of these functions.</td>
-*   </tr>
-*   <tr>
-*    <td>Reworked the length-parameter check in the \ref Cy_SMIF_MemEraseSector function.
-*     The Erase operation is not performed and \ref CY_SMIF_SUCCESS is no longer returned when the sectors are not aligned.</td>
-*     <td>Fix the user error-handling of the length parameter.</td>
-*   </tr>
-*   <tr>
-*    <td>Fixed the address-parameter check in the \ref Cy_SMIF_MemLocateHybridRegion function.
-*     \ref CY_SMIF_SUCCESS or \ref CY_SMIF_NOT_HYBRID_MEM is no longer returned when the address exceeds the memory size.</td>
-*     <td>Address a defect.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50.1</td>
-*     <td>Minor documentation updates. </td>
-*     <td>Documentation improvement. </td>
-*   </tr>
-*   <tr>
-*     <td>1.50</td>
-*     <td>Added a new function: \ref Cy_SMIF_MemLocateHybridRegion.\n
-*     Added a new structure \ref cy_stc_smif_hybrid_region_info_t.\n
-*     Updated the \ref Cy_SMIF_MemEraseSector and \ref Cy_SMIF_MemCmdSectorErase functions.\n
-*     Updated the \ref Cy_SMIF_MemSfdpDetect function. \n
-*     Updated the \ref cy_stc_smif_mem_device_cfg_t structure.</td>
-*     <td>Support for memories with hybrid regions.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.40.1</td>
-*     <td>The \ref Cy_SMIF_MemInit is changed. </td>
-*     <td>Corrected a false assertion during initialization in SFDP mode.</td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation updates. </td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td rowspan="5">1.40</td>
-*     <td>The following functions are renamed:\n
-*        Cy_SMIF_GetTxfrStatus into Cy_SMIF_GetTransferStatus;\n
-*        Cy_SMIF_Memslot_Init into Cy_SMIF_MemInit;\n
-*        Cy_SMIF_Memslot_DeInit into Cy_SMIF_MemDeInit;\n
-*        Cy_SMIF_Memslot_CmdWriteEnable into Cy_SMIF_MemCmdWriteEnable;\n
-*        Cy_SMIF_Memslot_CmdWriteDisable into Cy_SMIF_MemCmdWriteDisable;\n
-*        Cy_SMIF_Memslot_IsBusy into Cy_SMIF_MemIsBusy;\n
-*        Cy_SMIF_Memslot_QuadEnable into Cy_SMIF_MemQuadEnable;\n
-*        Cy_SMIF_Memslot_CmdReadSts into Cy_SMIF_MemCmdReadStatus;\n
-*        Cy_SMIF_Memslot_CmdWriteSts into Cy_SMIF_MemCmdWriteStatus;\n
-*        Cy_SMIF_Memslot_CmdChipErase into Cy_SMIF_MemCmdChipErase;\n
-*        Cy_SMIF_Memslot_CmdSectorErase into Cy_SMIF_MemCmdSectorErase;\n
-*        Cy_SMIF_Memslot_SfdpDetect into Cy_SMIF_MemSfdpDetect;\n
-*        Cy_SMIF_Memslot_CmdProgram into Cy_SMIF_MemCmdProgram;\n
-*        Cy_SMIF_Memslot_CmdRead into Cy_SMIF_MemCmdRead.\n
-*          The following ENUMa are renamed:\n
-*        CY_SMIF_SEND_CMPLT into CY_SMIF_SEND_COMPLETE;\n
-*        CY_SMIF_REC_CMPLT into CY_SMIF_RX_COMPLETE;\n
-*        CY_SMIF_REC_BUSY into CY_SMIF_RX_BUSY;\n
-*        CY_SMIF_SEL_INV_INTERNAL_CLK into CY_SMIF_SEL_INVERTED_INTERNAL_CLK;\n
-*        CY_SMIF_SEL_INV_FEEDBACK_CLK into CY_SMIF_SEL_INVERTED_FEEDBACK_CLK;\n
-*        cy_en_smif_cache_en_t into cy_en_smif_cache_t.\n
-*          The following MACROs are renamed:\n
-*        CY_SMIF_FLAG_WR_EN into CY_SMIF_FLAG_WRITE_ENABLE;\n
-*        CY_SMIF_FLAG_CRYPTO_EN into CY_SMIF_FLAG_CRYPTO_ENABLE;\n
-*        CY_SMIF_SFDP_SING_BYTE_00 into CY_SMIF_SFDP_SIGNATURE_BYTE_00;\n
-*        CY_SMIF_SFDP_SING_BYTE_01 into CY_SMIF_SFDP_SIGNATURE_BYTE_01;\n
-*        CY_SMIF_SFDP_SING_BYTE_02 into CY_SMIF_SFDP_SIGNATURE_BYTE_02;\n
-*        CY_SMIF_SFDP_SING_BYTE_03 into CY_SMIF_SFDP_SIGNATURE_BYTE_03;\n
-*        CY_SMIF_WR_STS_REG1_CMD into CY_SMIF_WRITE_STATUS_REG1_CMD;\n
-*        CY_SMIF_WR_DISABLE_CMD into CY_SMIF_WRITE_DISABLE_CMD;\n
-*        CY_SMIF_RD_STS_REG1_CMD into CY_SMIF_READ_STATUS_REG1_CMD;\n
-*        CY_SMIF_WR_ENABLE_CMD into CY_SMIF_WRITE_ENABLE_CMD;\n
-*        CY_SMIF_RD_STS_REG2_T1_CMD into CY_SMIF_READ_STATUS_REG2_T1_CMD;\n
-*        CY_SMIF_WR_STS_REG2_CMD into CY_SMIF_WRITE_STATUS_REG2_CMD;\n
-*        CY_SMIF_RD_STS_REG2_T2_CMD into CY_SMIF_READ_STATUS_REG2_T2_CMD;\n
-*        CY_SMIF_QE_BIT_STS_REG2_T1 into CY_SMIF_QE_BIT_STATUS_REG2_T1;\n
-*        CY_SMIF_STS_REG_BUSY_MASK into CY_SMIF_STATUS_REG_BUSY_MASK.\n
-*      </td>
-*      <td rowspan="2">Documentation improvement.</td>
-*   </tr>
-*   <tr>
-*     <td>Updated the description of the Cy_SMIF_MemInit() function.
-*         Updated the Cy_SMIF_Encrypt() function usage example.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>The type of arguments that are not modified by the functions are set to const.
-*     </td>
-*     <td>Usability improvement.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>The Cy_SMIF_MemSfdpDetect() function is updated to support new
-*         commands for 4 bytes addressing.
-*     </td>
-*     <td>Memory devices with new 4 byte addressing commands support.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>Added the blocking functions which take care of the
-*         busy-status check of the memory:
-*         - \ref  Cy_SMIF_MemIsReady
-*         - \ref  Cy_SMIF_MemIsQuadEnabled
-*         - \ref  Cy_SMIF_MemEnableQuadMode
-*         - \ref  Cy_SMIF_MemRead
-*         - \ref  Cy_SMIF_MemWrite
-*         - \ref  Cy_SMIF_MemEraseSector
-*         - \ref  Cy_SMIF_MemEraseChip
-*     </td>
-*     <td>Added new high-level blocking functions.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td rowspan="5">1.30</td>
-*     <td>The CY_SMIF_CMD_FIFO_WR_RX_COUNT_Msk value is changed to 0x0000FFFFUL.</td>
-*     <td rowspan="4">Driver maintenance.</td>
-*   </tr>
-*   <tr>
-*     <td>Added the check of the size parameter in the Cy_SMIF_TransmitData() function.</td>
-*   </tr>
-*   <tr>
-*     <td>Added conditional check for presence of the SMIF hardware IP.</td>
-*   </tr>
-*   <tr>
-*     <td>Fixed the wrong erase command in the SFDP protocol for devices with Erase Type 3.</td>
-*   </tr>
-*   <tr>
-*     <td>Updated the General Description section with minor changes.
-*         Updated the ordering of the parameters descriptions for some functions.
-*         Added the text saying that the Cy_SMIF_MemInit() function is applicable
-*      to use the external memory as memory-mapped to PSoC (XIP mode).
-*         Added the snippet for the Cy_SMIF_Encrypt() function to show how to use this function.
-*         Added below the picture in the Low-Level Functions section the sequence of PDL
-*      functions required in a Read or Write transaction.
-*         Added the text below the picture about the address.
-*         Updated DUMMY COUNT in this picture.
-*         Added checking of the size parameter in the Cy_SMIF_TransmitData() function.
-*     </td>
-*     <td>Documentation improvement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20.1</td>
-*     <td>Added upper limit to size parameter in several functions.</td>
-*     <td>Documentation improvement.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">1.20</td>
-*     <td>Flattened the organization of the driver source code into the single
-*         source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added a new return status and transfer width option for the case when the memory command is not supported.</td>
-*     <td>Improved the memory command structure usability.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.11</td>
-*     <td>Fixed internal function that writes to the SMIF FIFO</td>
-*     <td>The write function stuck in the loop when write speed in external
-*         memory is significantly lower than PSoC CPU core speed and write
-*         transfer is not finished during the single function call.
-*     </td>
-*   </tr>
-*   <tr>
-*     <td>Added optional mode part to the program command flow</td>
-*     <td>Extend usability of program command</td>
-*   </tr>
-*   <tr>
-*     <td>1.10.1</td>
-*     <td>Added Low Power Callback section</td>
-*     <td>Documentation update and clarification</td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>Fix write to external memory from CM0+ core. Add checks of API input parameters.
-*         Minor documentation updates</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
-*
 * \defgroup group_smif_macros Macros
 * \{
 * \defgroup group_smif_macros_status Status Macros
@@ -756,6 +421,10 @@ extern "C" {
                                              (CY_SMIF_SEL_SPHB_RWDS_CLK == (cy_en_smif_clk_select_t)(clkSel)))
 
 #define CY_SMIF_DESELECT_DELAY_VALID(delay) ((delay) <= CY_SMIF_MAX_DESELECT_DELAY)
+/** Maximum number of devices that can be connected to a SMIF instance */
+#define CY_SMIF_MAX_MEMNUM                  (4U)
+/** Macro to check that a memory number is valid */
+#define CY_SMIF_MEM_NUM_VALID(memNum)       (memNum < CY_SMIF_MAX_MEMNUM)
 #define CY_SMIF_SLAVE_SEL_VALID(ss)         ((CY_SMIF_SLAVE_SELECT_0 == (ss)) || \
                                              (CY_SMIF_SLAVE_SELECT_1 == (ss)) || \
                                              (CY_SMIF_SLAVE_SELECT_2 == (ss)) || \
@@ -827,7 +496,7 @@ extern "C" {
 
 #define CY_SMIF_CMD_MMIO_FIFO_WR_RWDS_REFRESH_Msk      (0x00100000UL)   /* DATA[20]     RWDS Refresh indicator   */
 #define CY_SMIF_CMD_MMIO_FIFO_WR_RWDS_REFRESH_Pos      (20UL)            /* [20]        RWDS Refresh indicator   */
- 
+
 
 /** \endcond */
 /** \} group_smif_macros */
@@ -990,7 +659,7 @@ typedef enum
 #define CY_SMIF_CLKOUT_NON_ZERO_MDL_TAP_MAX_SDR  (CY_SMIF_MDL_13_TAP_DELAY)  /* In SDR mode, when CLKOUT is not divide by two, this is the maximum acceptable MDL tap */
 #define CY_SMIF_CLKOUT_NON_ZERO_MDL_TAP_MIN_DDR  (CY_SMIF_MDL_3_TAP_DELAY)   /* In DDR mode, when CLKOUT is not divide by two, this is the minimum acceptable MDL tap */
 #define CY_SMIF_CLKOUT_NON_ZERO_MDL_TAP_MAX_DDR  (CY_SMIF_MDL_14_TAP_DELAY)  /* In DDR mode, when CLKOUT is not divide by two, this is the maximum acceptable MDL tap */
- 
+
 typedef enum
 {
     CY_SMIF_DELAY_TAP_DISABLE = 0,    /**< The SMIF Delay tap disable */
@@ -1051,6 +720,7 @@ typedef enum
     /** SMIF is currently busy and cannot accept the request */
     CY_SMIF_BUSY            = CY_SMIF_ID |CY_PDL_STATUS_ERROR | 0x83U,
     CY_SMIF_GENERAL_ERROR   = CY_SMIF_ID |CY_PDL_STATUS_ERROR | 0x84U,  /**< Some general error */
+    CY_SMIF_SECURITY_POLICY_VIOLATION = CY_SMIF_ID |CY_PDL_STATUS_ERROR | 0x90U,
 } cy_en_smif_status_t;
 
 /** The SMIF slave select definitions for the driver API. Each slave select is
@@ -1084,8 +754,8 @@ typedef enum
    CY_SMIF_SEL_INVERTED_SPHB_RWDS_CLK = 6U,  /**< The SMIF internal inverted clock */
    CY_SMIF_SEL_SPHB_RWDS_CLK = 7U,  /**< The SMIF internal inverted clock */
 } cy_en_smif_clk_select_t;
- 
- 
+
+
 /** Specifies enabled type of SMIF cache. */
 typedef enum
 {
@@ -1218,7 +888,7 @@ typedef struct
     uint32_t                              phyAddr0;        /**< This specifies remapped address on PORT0 */
     uint32_t                              phyAddr1;        /**< This specifies remapped address on PORT1 */
 } cy_stc_smif_bridge_interleave_remap_t;
- 
+
 /** Specifies the data line index. */
 typedef enum
 {
@@ -1497,7 +1167,7 @@ void Cy_SMIF_DeviceTransfer_ClearMergeTimeout(SMIF_Type *base, cy_en_smif_slave_
 cy_en_smif_status_t Cy_SMIF_Set_DelayTapSel(SMIF_Type *base, uint8_t tapSel);
 uint8_t Cy_SMIF_Get_DelayTapSel(SMIF_Type *base);
 cy_en_smif_status_t Cy_SMIF_Set_Sdl_DelayTapSel(SMIF_CORE_DEVICE_Type *smif_device_base, uint8_t tapSel);
- 
+
 __STATIC_INLINE bool Cy_SMIF_IsEnabled(SMIF_Type *base);
 __STATIC_INLINE void Cy_SMIF_Disable(SMIF_Type *base);
 __STATIC_INLINE void  Cy_SMIF_SetInterruptMask(SMIF_Type *base, uint32_t interrupt);
@@ -1549,7 +1219,7 @@ uint8_t Cy_SMIF_GetMasterDLPSize(SMIF_Type *base);
 uint8_t Cy_SMIF_GetTapNumCapturedCorrectDLP(SMIF_Type *base, uint8_t bit);
 uint32_t CY_SMIF_GetDelayTapsNumber(volatile void *base);
 #endif /* DLP_PRESENT */
- 
+
 cy_en_smif_status_t Cy_SMIF_InitCache(SMIF_CACHE_BLOCK_Type *base, const cy_stc_smif_cache_config_t *cache_config);
 
 cy_en_smif_status_t Cy_SMIF_Clean_All_Cache(SMIF_CACHE_BLOCK_Type *base);
@@ -2039,8 +1709,9 @@ __STATIC_INLINE void Cy_SMIF_PushTxFifo(SMIF_Type *baseaddr, cy_stc_smif_context
         buff = &buff[writeBytes];
         buffCounter -= writeBytes;
 
-        /* Check if we already got new data in TX_FIFO */
-        freeFifoBytes = CY_SMIF_TX_DATA_FIFO_STATUS_RANGE - Cy_SMIF_GetTxFifoStatus(baseaddr);
+        while (Cy_SMIF_GetTxFifoStatus(baseaddr) != 0);
+        /* Send remaining data */
+        freeFifoBytes = CY_SMIF_TX_DATA_FIFO_STATUS_RANGE;
         writeBytes = (freeFifoBytes > buffCounter)? buffCounter: freeFifoBytes;
     }
 

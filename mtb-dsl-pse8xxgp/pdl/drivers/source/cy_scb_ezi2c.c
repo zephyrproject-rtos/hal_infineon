@@ -243,13 +243,6 @@ void Cy_SCB_EZI2C_Disable(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
 * \return
 * \ref cy_en_syspm_status_t
 *
-* \note
-* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
-* For proper operation, when the EZI2C slave is configured to be a wakeup source
-* from Deep Sleep mode, this function must be copied and modified by the user.
-* The EZI2C clock disable code must be inserted in the
-* \ref CY_SYSPM_BEFORE_TRANSITION and clock enable code in the
-* \ref CY_SYSPM_AFTER_TRANSITION mode processing.
 *
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams, cy_en_syspm_callback_mode_t mode)

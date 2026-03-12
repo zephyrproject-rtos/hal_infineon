@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_aes.c
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  Provides API implementation of the Cryptolite AES PDL driver.
@@ -391,7 +391,7 @@ cy_en_cryptolite_status_t Cy_Cryptolite_Aes_Ecb_Update(CRYPTOLITE_Type *base,
             bytes_to_copy = CY_CRYPTOLITE_AES_BLOCK_SIZE - aesState->unProcessedBytes;
 
             Cy_Cryptolite_Vu_memcpy((void*)&aesState->buffers->unProcessedData[aesState->unProcessedBytes], (void*)srcRemap, (uint16_t)bytes_to_copy);
-            status = Cy_Cryptolite_Aes_Ecb(base, dst, (void*)aesState->buffers->unProcessedData, aesState);
+            status = Cy_Cryptolite_Aes_Ecb(base, dst,(uint8_t const *)aesState->buffers->unProcessedData, aesState);
 
             if(CY_CRYPTOLITE_SUCCESS != status)
             {

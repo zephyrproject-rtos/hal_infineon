@@ -166,6 +166,93 @@ cy_rslt_t mtb_hal_pwm_set_period(mtb_hal_pwm_t* obj, uint32_t period_us, uint32_
 }
 
 
+//--------------------------------------------------------------------------------------------------
+// mtb_hal_pwm_register_callback
+//--------------------------------------------------------------------------------------------------
+void mtb_hal_pwm_register_callback(mtb_hal_pwm_t* obj, mtb_hal_pwm_event_callback_t callback,
+                                   void* callback_arg)
+{
+    if (obj != NULL)
+    {
+        uint32_t savedIntrStatus = Cy_SysLib_EnterCriticalSection();
+        obj->callback_data.callback     = (cy_israddress)callback;
+        obj->callback_data.callback_arg = callback_arg;
+        obj->callback_event             = MTB_HAL_PWM_EVENT_NONE;
+        Cy_SysLib_ExitCriticalSection(savedIntrStatus);
+    }
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// mtb_hal_pwm_enable_event
+//--------------------------------------------------------------------------------------------------
+void mtb_hal_pwm_enable_event(mtb_hal_pwm_t* obj, mtb_hal_pwm_event_t event, bool enable)
+{
+    if (obj != NULL)
+    {
+        uint32_t savedIntrStatus = Cy_SysLib_EnterCriticalSection();
+
+        uint32_t old_mask = Cy_TCPWM_GetInterruptMask(obj->tcpwm.base, obj->tcpwm.cntnum);
+        if (enable)
+        {
+            // Clear any newly enabled events so that old IRQs don't trigger ISRs
+            Cy_TCPWM_ClearInterrupt(obj->tcpwm.base, obj->tcpwm.cntnum, ~old_mask & event);
+        }
+
+        uint32_t new_event = enable ? (old_mask | event) : (old_mask & ~event);
+        Cy_TCPWM_SetInterruptMask(obj->tcpwm.base, obj->tcpwm.cntnum, new_event);
+
+        if (enable)
+        {
+            obj->callback_event    |= event;
+        }
+        else
+        {
+            obj->callback_event    &= ~event;
+        }
+
+        Cy_SysLib_ExitCriticalSection(savedIntrStatus);
+    }
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// mtb_hal_pwm_process_interrupt
+//--------------------------------------------------------------------------------------------------
+cy_rslt_t mtb_hal_pwm_process_interrupt(mtb_hal_pwm_t* obj)
+{
+    cy_rslt_t result = MTB_HAL_PWM_RSLT_BAD_ARGUMENT;
+
+    #if defined(MTB_HAL_DISABLE_ERR_CHECK)
+    CY_ASSERT_AND_RETURN(NULL != obj, MTB_HAL_PWM_RSLT_BAD_ARGUMENT);
+    #else
+    if (NULL == obj)
+    {
+        return result;
+    }
+    #endif // defined(MTB_HAL_DISABLE_ERR_CHECK)
+
+    // Get and clear the interrupt cause
+    uint32_t intrCause = Cy_TCPWM_GetInterruptStatusMasked(obj->tcpwm.base, obj->tcpwm.cntnum);
+    Cy_TCPWM_ClearInterrupt(obj->tcpwm.base, obj->tcpwm.cntnum, intrCause);
+
+    if (obj->callback_data.callback != NULL)
+    {
+        if (intrCause & obj->callback_event)
+        {
+            mtb_hal_pwm_event_callback_t user_callback =
+                (mtb_hal_pwm_event_callback_t)obj->callback_data.callback;
+
+            user_callback(obj->callback_data.callback_arg,
+                          (mtb_hal_pwm_event_t)(intrCause & obj->callback_event));
+            result = CY_RSLT_SUCCESS;
+        }
+    }
+
+    return result;
+}
+
+
 #if defined(__cplusplus)
 }
 #endif

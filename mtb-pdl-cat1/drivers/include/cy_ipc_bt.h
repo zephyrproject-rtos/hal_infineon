@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ipc_bt.h
-* \version 1.140
+* \version 1.150
 *
 * \brief
 * Provides an API declaration for the BT IPC driver.

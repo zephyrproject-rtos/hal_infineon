@@ -37,10 +37,7 @@
 /*****************************************************************************
 Pattern that should be used to calibrate the delay of RWDS capturing
  *****************************************************************************/
- /* Length of the calibration data pattern (Cy_SMIF_HB_CalibrationDataPattern) for HyperBus in bytes */
-#define CY_SMIF_HB_CALIBRATION_DATA_PATTERN_LENGTH    12U
-static uint8_t Cy_SMIF_HB_CalibrationDataPattern[CY_SMIF_HB_CALIBRATION_DATA_PATTERN_LENGTH] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11 };
-#define DEVICEREADY_CHECK_TIMEOUT 100U
+ #define DEVICEREADY_CHECK_TIMEOUT 100U
 static uint16_t writeBuf = 0x0000U;
 
 /* private functions */
@@ -259,123 +256,18 @@ static void Cy_SMIF_HB_SetDummyCycles(volatile SMIF_DEVICE_Type *dev, cy_en_smif
 * center tap of the longest sequence of matches and applies this tap.
 *
 * \note Function assumes that any SMIF has the same number of delay taps
-*
+* \note This API is deprecated, instead please use \ref Cy_SMIF_MemCalibrateSDL
 *
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_HyperBus_CalibrateDelay(SMIF_Type *base, cy_stc_smif_mem_config_t *memConfig, uint8_t dummyCycles, uint32_t calibrationDataOffsetAddress, cy_stc_smif_context_t *context)
 {
-    uint16_t                  tapNum;
-    cy_en_smif_status_t       SMIF_Status    = CY_SMIF_SUCCESS;
-    uint16_t dataRead[CY_SMIF_HB_CALIBRATION_DATA_PATTERN_LENGTH];
-    uint16_t delayTapNum = SMIF_DELAY_TAPS_NR;
-    CY_ASSERT(delayTapNum < 256U);  // Assume "delayTapNum" is less than 256
-    static bool isMatch[256U]; // static variable to avoid consuming stack.
-
-    //SMIF_DEVICE_Type volatile * device = Cy_SMIF_GetDeviceBySlot(base, slaveId);
-    cy_en_smif_mode_t smifModeBackup = Cy_SMIF_GetMode(base);
-
-    // Reading of calibration data pattern needs to happen in SMIF MMIO mode so that it can be ensured that
-    // there will be burst access happening and there are no pauses in between reading of individual words of the pattern
-    Cy_SMIF_SetMode(base, CY_SMIF_NORMAL);
-
-    SMIF_Status = Cy_SMIF_HyperBus_EraseSector(base,memConfig,calibrationDataOffsetAddress,context);
-    CY_MISRA_DEVIATE_BLOCK_START('MISRA C-2012 Rule 11.3', 3, \
-    'Checked manually. Intentional expression The object pointer of type non "uint8_t (*)[12]" is cast to type "uint16_t *".')
-    if(SMIF_Status == CY_SMIF_SUCCESS)
-    {
-        SMIF_Status = Cy_SMIF_HyperBus_Write(base,
-                                 memConfig,
-                                 CY_SMIF_HB_CONTINUOUS_BURST,
-                                 calibrationDataOffsetAddress, // address
-                                 CY_SMIF_HB_CALIBRATION_DATA_PATTERN_LENGTH / 2U,            // size in half word
-                                 (uint16_t*)&Cy_SMIF_HB_CalibrationDataPattern,
-                                 CY_SMIF_HB_FLASH,
-                                 dummyCycles,
-                                 true,                              // Blocking mode
-                                 context
-                                 );
-    }
-    else
-    {
-        return SMIF_Status;
-    }
-    CY_MISRA_BLOCK_END('MISRA C-2012 Rule 11.3')
-    for(tapNum = 0U; tapNum < (uint16_t)delayTapNum; tapNum++)
-    {
-        uint16_t timeout = DEVICEREADY_CHECK_TIMEOUT;
-        while(Cy_SMIF_BusyCheck(base) && (timeout > 0UL))
-        {
-            timeout--;
-            Cy_SysLib_Delay(100U);
-            /* Wait for the device to be ready */
-        }
-        if(timeout == 0U)
-        {
-            return CY_SMIF_EXCEED_TIMEOUT;
-        }
-        (void)Cy_SMIF_Set_DelayTapSel(base, (uint8_t)tapNum);
-         (void)memset(dataRead, 0,CY_SMIF_HB_CALIBRATION_DATA_PATTERN_LENGTH * 2U);
-        SMIF_Status = Cy_SMIF_HyperBus_Read(base,
-                                             memConfig,
-                                             CY_SMIF_HB_CONTINUOUS_BURST,
-                                             calibrationDataOffsetAddress,                    // address
-                                             CY_SMIF_HB_CALIBRATION_DATA_PATTERN_LENGTH / 2U,  // size in half word
-                                             (uint16_t*)dataRead,
-                                             dummyCycles,
-                                             false,                                           // single initial latency
-                                             true,                                            // blocking mode
-                                             context
-                                            );
-        if(SMIF_Status == CY_SMIF_SUCCESS)
-        {
-            // Record whether the current tap read data matches the reference data
-            isMatch[tapNum] = (memcmp((uint8_t*)&dataRead, Cy_SMIF_HB_CalibrationDataPattern, CY_SMIF_HB_CALIBRATION_DATA_PATTERN_LENGTH) == 0) ? true : false;
-        }
-    }
-
-    uint16_t bestTapNum             = 0xffffu;
-    uint16_t consecutiveMatchNum    = 0u;
-    uint16_t maxConsecutiveMatchNum = 0u;
-
-    // Determine the longest consecutive match
-    for(tapNum = 0u; tapNum < delayTapNum; tapNum++)
-    {
-        if(isMatch[tapNum] == true)
-        {
-            consecutiveMatchNum += 1u;
-        }
-        else
-        {
-            if(maxConsecutiveMatchNum < consecutiveMatchNum)
-            {
-                // Sequence of matches ended and it is a new longest sequence -> update the best tap number and prepare vars for next run
-                maxConsecutiveMatchNum = consecutiveMatchNum;
-                bestTapNum             = tapNum - ((maxConsecutiveMatchNum + 1u) / 2u);
-                consecutiveMatchNum    = 0u;
-            }
-        }
-    }
-
-    // Special case: All taps had a match -> use the center tap of the total taps number
-    if(maxConsecutiveMatchNum < consecutiveMatchNum)
-    {
-        bestTapNum = (uint16_t)(delayTapNum - ((consecutiveMatchNum + 1u) / 2u));
-    }
-    // If a match has been found, apply the best tap
-    if(bestTapNum != 0xffffu)
-    {
-        (void)Cy_SMIF_Set_DelayTapSel(base,(uint8_t)bestTapNum);
-    }
-    else
-    {
-        // No match has been found
-        SMIF_Status = CY_SMIF_GENERAL_ERROR;
-    }
-     Cy_SMIF_SetMode(base, smifModeBackup);
-    (void)bestTapNum;
-    return SMIF_Status;
+    CY_UNUSED_PARAM(base);
+    CY_UNUSED_PARAM(memConfig);
+    CY_UNUSED_PARAM(dummyCycles);
+    CY_UNUSED_PARAM(calibrationDataOffsetAddress);
+    CY_UNUSED_PARAM(context);
+    return CY_SMIF_GENERAL_ERROR;
 }
-
 
 /*******************************************************************************
 * Function Cy_SMIF_HyperBus_Read
@@ -1115,4 +1007,3 @@ cy_en_smif_status_t Cy_SMIF_HyperBus_MMIO_Write(SMIF_Type *base,
 #if defined(__cplusplus)
 }
 #endif
-

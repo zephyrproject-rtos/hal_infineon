@@ -2,12 +2,13 @@
 * \file cy_pdl.h
 * \version 1.10
 *
+* \brief
 * Include this file in all of your source files that access PDL.
 *
 ********************************************************************************
 * \copyright
-* (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
 *
 * SPDX-License-Identifier: Apache-2.0
 *
@@ -24,55 +25,10 @@
 * limitations under the License.
 *******************************************************************************/
 
+
 #ifndef CY_PDL_H
 #define CY_PDL_H
 
-#include "cy_device.h"
-#include "cy_device_headers.h"
-
-#include "cy_dma.h"
-#include "cy_canfd.h"
-#include "cy_axidmac.h"
-#include "cy_gpio.h"
-#include "cy_scb_ezi2c.h"
-#include "cy_scb_i2c.h"
-#include "cy_scb_spi.h"
-#include "cy_scb_uart.h"
-#include "cy_sd_host.h"
-#include "cy_sysclk.h"
-#include "cy_syslib.h"
-#include "cy_syspm.h"
-#include "cy_systick.h"
-#include "cy_trigmux.h"
-#include "cy_sysint.h"
-#include "cy_smartio.h"
-#include "cy_smif.h"
-#include "cy_smif_memslot.h"
-#include "cy_smif_memnum.h"
-#include "cy_tcpwm.h"
-#include "cy_tcpwm_pwm.h"
-#include "cy_tcpwm_counter.h"
-#include "cy_tcpwm_quaddec.h"
-#include "cy_tcpwm_shiftreg.h"
-#include "cy_tdm.h"
-#include "cy_pdm_pcm_v2.h"
-#include "cy_rtc.h"
-#include "cy_ephy.h"
-#include "cy_ethif.h"
-#include "cy_crypto.h"
-#include "cy_crypto_core.h"
-#include "cy_crypto_server.h"
-#include "cy_ipc_drv.h"
-#include "cy_ipc_pipe.h"
-#include "cy_ipc_sema.h"
-#include "cy_wdt.h"
-#include "cy_mcwdt.h"
-#include "cy_lvd.h"
-#include "cy_lpcomp.h"
-#include "cy_autanalog.h"
-#include "cy_nnlite.h"
-#include "cy_rram.h"
-#include "cy_i3c.h"
-#include "cy_sysfault.h"
+#include "mtb_device_drivers.h"
 
 #endif /* CY_PDL_H */

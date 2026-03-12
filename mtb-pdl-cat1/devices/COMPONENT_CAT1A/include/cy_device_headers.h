@@ -541,6 +541,20 @@
     #include "cyt2b65cas.h"
 #elif defined (CYT2B65CAE)
     #include "cyt2b65cae.h"
+#elif defined (XMC5100_F64K576AA)
+    #include "xmc5100_f64k576aa.h"
+#elif defined (XMC5100_F100K576AA)
+    #include "xmc5100_f100k576aa.h"
+#elif defined (XMC5200_F64K1088AA)
+    #include "xmc5200_f64k1088aa.h"
+#elif defined (XMC5200_F100K1088AA)
+    #include "xmc5200_f100k1088aa.h"
+#elif defined (XMC5200_F144K1088AA)
+    #include "xmc5200_f144k1088aa.h"
+#elif defined (XMC5300_F100K2112AA)
+    #include "xmc5300_f100k2112aa.h"
+#elif defined (XMC5300_F144K2112AA)
+    #include "xmc5300_f144k2112aa.h"
 #elif defined (CYUSB4024_BZXI)
     #include "cyusb4024_bzxi.h"
 #elif defined (CYUSB4014_FCAXI)

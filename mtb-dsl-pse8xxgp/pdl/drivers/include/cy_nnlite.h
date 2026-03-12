@@ -22,17 +22,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-*
-* \section group_nnlite_changelog Changelog
-*
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-
 *******************************************************************************/
 
 /*****************************************************************************/

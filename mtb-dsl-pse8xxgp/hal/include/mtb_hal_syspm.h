@@ -33,13 +33,18 @@
  * \{
  * Interface for changing power states and restricting when they are allowed.
  *
- * There are three supported MCU Power States:
+ * Supported MCU Power States:
  * * Active - This is the normal operating state of the MCU
  * * Sleep - In this state the MCU is no longer running. It can be woken up again
  * from an interrupt. This state is reached by calling \ref mtb_hal_syspm_sleep.
  * * Deep Sleep - In this state the MCU is no longer running. It can only be woken
  * up by select interrupts. This state is reached by calling \ref
  * mtb_hal_syspm_deepsleep.
+ * * Hibernate-Ram - This is intended to further reduce the power consumption from
+ * deepsleep while maintaining SRAM retention. This state is reached by calling \ref
+ * mtb_hal_syspm_hibernate_ram. The device can only be woken up by select interrupts
+ * and these can specified when entering the hibernate-ram using wakeup source
+ * parameter available in \ref mtb_hal_syspm_hibernate_ram
  *
  * Some devices support multiple modes for the DeepSleep power state. The currently
  * selected DeepSleep mode, which will be entered by \ref mtb_hal_syspm_deepsleep,
@@ -72,7 +77,7 @@
  * This driver provides control over multiple different types of power management
  * and when those transitions are allowed:
  * * Change CPU Power State: APIs to allow changing the current CPU state into
- * one of the lower power CPU states (SLEEP, DEEPSLEEP)
+ * one of the lower power CPU states (SLEEP, DEEPSLEEP,HIBERNATE-RAM)
  * * General Purpose Power State Transition Callback: APIs allow for
  * registering/unregistering a callback function to be notified when various power
  * state transitions happen. If registered, the application can do anything necessary
@@ -136,6 +141,9 @@ extern "C" {
 /** Deepsleep has been locked */
 #define MTB_HAL_SYSPM_RSLT_DEEPSLEEP_LOCKED           \
     (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, MTB_HAL_RSLT_MODULE_SYSPM, 2))
+/** The requested operation is not supported on the current hardware */
+#define MTB_HAL_SYSPM_RSLT_ERR_NOT_SUPPORTED           \
+    (CY_RSLT_CREATE_EX(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_ABSTRACTION_HAL, MTB_HAL_RSLT_MODULE_SYSPM, 3))
 
 /**
  * \}
@@ -177,7 +185,9 @@ typedef enum
     /** Flag for Low power mode callback. */
     MTB_HAL_SYSPM_CB_SYSTEM_LOW            = MTB_HAL_MAP_SYSPM_CB_LOW,
     /** Flag for High Performance mode callback. */
-    MTB_HAL_SYSPM_CB_SYSTEM_HIGH           = MTB_HAL_MAP_SYSPM_CB_HIGH
+    MTB_HAL_SYSPM_CB_SYSTEM_HIGH           = MTB_HAL_MAP_SYSPM_CB_HIGH,
+    /** Flag for MCU Hibernate Ram callback. */
+    MTB_HAL_SYSPM_CB_CPU_HIBERNATE_RAM     = MTB_HAL_MAP_SYSPM_CB_HIBERNATE_RAM
 } mtb_hal_syspm_callback_state_t;
 
 /** Enumeration of the transition modes in custom callback. The general sequence
@@ -291,7 +301,43 @@ void mtb_hal_syspm_lock_deepsleep(void);
  */
 void mtb_hal_syspm_unlock_deepsleep(void);
 
+/** Set CPU to hibernate-ram mode.
+ *
+ * @param[in] wakeup_source Wakeup source(s) to wake the device from hibernate-ram mode
+ *
+ * @return  Returns CY_RSLT_SUCCESS if the processor successfully entered the hibernate-ram mode,
+ * otherwise error.
+ *
+ * @note  Hibernate Ram Mode shall be setup using the driver API Cy_SysPm_SetHibernateRamMode
+ * before invoking this. Also make sure that wakeup source is configured to wakeup the device
+ * from hibernate-ram
+ */
+cy_rslt_t mtb_hal_syspm_hibernate_ram(mtb_hal_syspm_hibernate_wakeup_source_t wakeup_source);
+
 #if (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0)
+
+/** Timed hibernate-ram sleep without system timer.
+ *
+ * Provides a way to do hibernate-ram sleep for a desired number of milliseconds(ms) with the system
+ * timer
+ * disabled.
+ * The system timer is disabled before sleeping and a low power timer is setup to wake
+ * the device from hib-ram after the desired number of ms have elapsed.
+ *
+ * @note The actual ms in the best case will be 1 ms less than the desired time to
+ * prevent the device from over-sleeping due to low clock accuracy.
+ *
+ * @param[in]   lptimer_obj Pre-Initialized LPTimer object.
+ * @param[in]   wakeup_source Wakeup source(s) to wake the device from hibernate-ram mode
+ * @param[in]   desired_ms  Desired number of ms to perform hib-ram sleep.
+ * @param[out]  actual_ms   Actual number of ms in which systick timer was disabled.
+ *                          This value can range from 0 to desired_ms - 1
+ *                          depending on how long the device was able to  perform hib-ram sleep.
+ * @return The status of the hib-ram sleep request.
+ */
+cy_rslt_t mtb_hal_syspm_tickless_hibernate_ram(mtb_hal_lptimer_t* lptimer_obj,
+                                               mtb_hal_syspm_hibernate_wakeup_source_t wakeup_source,
+                                               uint32_t desired_ms, uint32_t* actual_ms);
 
 /** Timed deep-sleep without system timer.
  *

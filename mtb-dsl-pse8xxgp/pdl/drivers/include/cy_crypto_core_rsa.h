@@ -82,7 +82,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_Rsa_Verify_Ext(CRYPTO_Type *base,
                             uint32_t digestLength,
                             uint8_t const *decryptedSignature,
                             uint32_t decryptedSignatureLength);
-                            
+
 #endif /* defined(CY_CRYPTO_CFG_RSA_VERIFY_ENABLED) */
 
 

@@ -7,7 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_mpc
@@ -63,21 +66,6 @@
 *
 * \section group_mpc_MISRA MISRA-C Compliance
 * The mpc driver does not have any specific deviations.
-*
-* \section group_mpc_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.1</td>
-*     <td>Updated APIs: \ref Cy_Mpc_ConfigRotMpcStruct, \ref Cy_Mpc_ConfigMpcStruct, \ref Cy_Mpc_GetRotBlockAttr, \ref Cy_Mpc_GetBlockAttr, \ref Cy_Mpc_SetViolationResponse.</td>
-*     <td>Code enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_mpc_macros Macros
 * \defgroup group_mpc_functions Functions

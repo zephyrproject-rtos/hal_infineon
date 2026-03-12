@@ -89,6 +89,16 @@ extern "C" {
  * \}
  */
 
+/** Enum of ADC filter types that get applied to the acquired ADC data */
+typedef enum
+{
+    MTB_HAL_ADC_FILTER_MEDIAN  = 0, /**< Median filter */
+    MTB_HAL_ADC_FILTER_LIF     = 1, /**< Linear interpolation filter */
+    MTB_HAL_ADC_FILTER_AVG     = 2, /**< Average filter */
+    MTB_HAL_ADC_FILTER_CIC     = 3, /**< Cascaded integrated comb filter */
+    MTB_HAL_ADC_FILTER_LPF     = 4  /**< Low pass filter */
+} mtb_hal_adc_filter_t;
+
 /**
  * Sets up a HAL instance to use the specified hardware resource. This hardware
  * resource must have already been configured via the PDL.
@@ -165,6 +175,37 @@ cy_rslt_t mtb_hal_adc_read_multiple(mtb_hal_adc_channel_t** channels, uint32_t n
  * @return The status of the conversion request
  */
 cy_rslt_t mtb_hal_adc_start_convert(mtb_hal_adc_t* obj);
+
+/** Enable/disable the ADC.
+ *
+ * The function returns without waiting for the enable to complete.
+ * Check the ADC status using mtb_hal_adc_is_ready.
+ *
+ * @param[in] obj          The ADC object
+ * @param[in] enable       Enable/disable
+ * @return The status of the enable request
+ */
+cy_rslt_t mtb_hal_adc_enable(mtb_hal_adc_t* obj, bool enable);
+
+/** Check if ADC is ready to be used.
+ *
+ * @param[in] obj          The ADC object
+ * @return The status of the ADC ready state
+ */
+bool mtb_hal_adc_is_ready(mtb_hal_adc_t* obj);
+
+/** Reads the filtered result of the most recent scan for the specified channel and
+ * writes it to the given `result` location.
+ *
+ * This function will return the latest available value.
+ *
+ * @param[in] obj          The ADC object
+ * @param[in] filter       Filter type
+ * @param[out] result      Scanned result
+ * @return The status of the read operation
+ */
+cy_rslt_t mtb_hal_adc_read_filtered(const mtb_hal_adc_channel_t* obj, mtb_hal_adc_filter_t filter,
+                                    int32_t* result);
 
 #if defined(__cplusplus)
 }

@@ -1,12 +1,13 @@
 /***************************************************************************//**
 * \file cy_ethif.c
-* \version 1.30
+* \version 1.50
 *
 * Provides an API implementation of the ETHIF driver
 *
 ********************************************************************************
 * \copyright
-* Copyright 2021-2024 Cypress Semiconductor Corporation
+** Copyright (c) (2021-2025), Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -855,7 +856,7 @@ cy_en_ethif_status_t Cy_ETHIF_PhyRegWrite(ETH_Type *base, uint8_t u8RegNo, uint1
 
 
 /*******************************************************************************
-* Function Name: Cy_ETHIF_GetTimerValue
+* Function Name: Cy_ETHIF_Get1588TimerValue
 ****************************************************************************//**
 *
 * \brief Returns the current timer value from TSU register
@@ -865,6 +866,7 @@ cy_en_ethif_status_t Cy_ETHIF_PhyRegWrite(ETH_Type *base, uint8_t u8RegNo, uint1
 *
 * \return CY_ETHIF_SUCCESS Timer value is successfully retrieved
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
+* \return CY_ETHIF_NOT_INITIALIZED Ethernet Interface not initialized
 *
 *******************************************************************************/
 cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_1588_timer_val_t *stcRetTmrValue)
@@ -895,7 +897,7 @@ cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_158
 }
 
 /*******************************************************************************
-* Function Name: Cy_ETHIF_SetTimerValue
+* Function Name: Cy_ETHIF_Set1588TimerValue
 ****************************************************************************//**
 *
 * \brief Setting the current timer value in TSU register
@@ -905,6 +907,7 @@ cy_en_ethif_status_t Cy_ETHIF_Get1588TimerValue(ETH_Type *base, cy_stc_ethif_158
 *
 * \return CY_ETHIF_SUCCESS Timer value is set
 * \return CY_ETHIF_BAD_PARAM Parameter passed contains invalid values
+* \return CY_ETHIF_NOT_INITIALIZED Ethernet Interface not initialized
 *
 *******************************************************************************/
 cy_en_ethif_status_t Cy_ETHIF_Set1588TimerValue(ETH_Type *base, cy_stc_ethif_1588_timer_val_t *pstcTmrValue)
@@ -992,6 +995,32 @@ void Cy_ETHIF_DiscardNonVLANFrames(ETH_Type *base, bool enable)
         cyp_ethif_gemgxlobj->setVlanOnly((void *)cyp_ethif_pd[u8EthIfInstance], (uint8_t)(enable ? 1 : 0));
     }
 
+}
+
+/*******************************************************************************
+* Function Name: Cy_ETHIF_GetPrivateData
+****************************************************************************//**
+*
+* \brief Get pointer to private data
+*
+* \param base Pointer to register area of Ethernet MAC
+*
+* \return Pointer to private data or NULL in case wrong parameter
+*
+*******************************************************************************/
+void * Cy_ETHIF_GetPrivateData(ETH_Type *base)
+{
+    uint8_t u8EthIfInstance;
+
+    /* check for arguments */
+    if (!CY_ETHIF_IS_IP_INSTANCE_VALID(base))
+    {
+        return NULL;
+    }
+
+    u8EthIfInstance = CY_ETHIF_IP_INSTANCE(base);
+
+    return (void *)cy_ethif_privatedata[u8EthIfInstance];
 }
 
 

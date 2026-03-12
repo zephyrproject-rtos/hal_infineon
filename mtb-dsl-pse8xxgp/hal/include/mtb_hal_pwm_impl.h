@@ -69,6 +69,52 @@ __STATIC_INLINE cy_rslt_t mtb_hal_pwm_get_killed_state(mtb_hal_pwm_t* obj, bool*
 }
 
 
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_pwm_enable
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_pwm_enable(mtb_hal_pwm_t* obj, bool enable)
+{
+    enable ? Cy_TCPWM_PWM_Enable(obj->tcpwm.base, obj->tcpwm.cntnum) : Cy_TCPWM_PWM_Disable(
+        obj->tcpwm.base, obj->tcpwm.cntnum);
+    return CY_RSLT_SUCCESS;
+}
+
+
+#define mtb_hal_pwm_enable _mtb_hal_pwm_enable
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_pwm_trigger_start
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE void _mtb_hal_pwm_trigger_start(mtb_hal_pwm_t* obj)
+{
+    Cy_TCPWM_TriggerStart_Single(obj->tcpwm.base, obj->tcpwm.cntnum);
+}
+
+
+#define mtb_hal_pwm_resume _mtb_hal_pwm_trigger_start
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_pwm_trigger_stop
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE void _mtb_hal_pwm_trigger_stop(mtb_hal_pwm_t* obj)
+{
+    Cy_TCPWM_TriggerStopOrKill_Single(obj->tcpwm.base, obj->tcpwm.cntnum);
+}
+
+
+#define mtb_hal_pwm_pause _mtb_hal_pwm_trigger_stop
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_pwm_trigger_reload
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE void _mtb_hal_pwm_trigger_reload(mtb_hal_pwm_t* obj)
+{
+    Cy_TCPWM_TriggerReloadOrIndex_Single(obj->tcpwm.base, obj->tcpwm.cntnum);
+}
+
+
+#define mtb_hal_pwm_reload _mtb_hal_pwm_trigger_reload
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */

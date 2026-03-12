@@ -2,11 +2,14 @@
 * \file cy_autanalog_ac.h
 * \version 2.0
 *
+* \brief
 * Header file for the Autonomous Controller (AC) subsystem of the Autonomous Analog.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2023-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2023-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_autanalog_ac

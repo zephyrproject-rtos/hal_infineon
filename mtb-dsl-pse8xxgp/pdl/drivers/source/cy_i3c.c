@@ -668,7 +668,6 @@ cy_en_i3c_status_t Cy_I3C_ControllerDetachI3CDevice(I3C_CORE_Type *base, cy_stc_
 
     RearrangeAddrTable(base, (uint8_t)devIndex, context);
 
-    context->i3cController.devCount--;
     SetAddrslotStatus((i3cDevice->dynamicAddress), CY_I3C_ADDR_SLOT_FREE, context);
 
     return CY_I3C_SUCCESS;
@@ -867,7 +866,9 @@ uint32_t Cy_I3C_GetI3CDeviceCount(I3C_CORE_Type *base, cy_stc_i3c_context_t *con
 * The pointer to the I3C instance.
 *
 * \param i2cDeviceList
-* The pointer to the I2C device list array.
+* The pointer to the I2C device list array. This will be updated with information about all of the I2C devices on the
+* bus. This array must be at least \ref Cy_I3C_GetI2CDeviceCount entries long
+* \note Only the first \ref Cy_I3C_GetI2CDeviceCount elements will be updated; the remaining elements will be left uninitialized.
 *
 * \param context
 * The pointer to the context structure \ref cy_stc_i3c_context_t allocated
@@ -913,7 +914,9 @@ cy_en_i3c_status_t Cy_I3C_ControllerGetI2CDevices(I3C_CORE_Type *base, cy_stc_i2
 * The pointer to the I3C instance.
 *
 * \param i3cDeviceList
-* The pointer to the I3C device list array.
+* The pointer to the I3C device list array. This will be updated with information about all of the I3C devices on the
+* bus. This array must be at least \ref Cy_I3C_GetI3CDeviceCount entries long.
+* \note Only the first \ref Cy_I3C_GetI3CDeviceCount elements will be updated; the remaining elements will be left uninitialized.
 *
 * \param context
 * The pointer to the context structure \ref cy_stc_i3c_context_t allocated

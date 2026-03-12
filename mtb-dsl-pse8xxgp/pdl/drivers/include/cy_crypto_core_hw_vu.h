@@ -504,7 +504,7 @@ __STATIC_INLINE cy_en_crypto_status_t CY_CRYPTO_VU_COND_ALLOC_MEM (CRYPTO_Type *
          ((uint32_t)cc   << CY_CRYPTO_RSRC20_SHIFT) |
          ((uint32_t)rdst << ((CY_CRYPTO_V1) ? CY_CRYPTO_RSRC12_SHIFT : CY_CRYPTO_RSRC16_SHIFT)) |
         (((uint32_t)size - 1u)  << CY_CRYPTO_RSRC0_SHIFT));
-    
+
     return CY_CRYPTO_SUCCESS;
 }
 
@@ -607,7 +607,7 @@ __STATIC_INLINE void CY_CRYPTO_VU_LSL1_WITH_CARRY (CRYPTO_Type *base, uint32_t r
 
 __STATIC_INLINE void CY_CRYPTO_VU_COND_LSR (CRYPTO_Type *base, uint32_t cc, uint32_t rdst, uint32_t rsrc1, uint32_t rsrc0)
 {
-  
+
     if ((CY_CRYPTO_V1) && (0u == REG_CRYPTO_VU_RF_DATA(base, rsrc0)))
     {
         CY_CRYPTO_VU_COND_XOR_REG(base, cc, rdst, rsrc1, rsrc0);

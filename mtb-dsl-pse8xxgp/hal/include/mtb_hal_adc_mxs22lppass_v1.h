@@ -225,6 +225,46 @@ __STATIC_INLINE uint16_t _mtb_hal_adc_counts_to_u16(const mtb_hal_adc_channel_t*
 }
 
 
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_adc_enable
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_adc_enable(mtb_hal_adc_t* obj, bool enable)
+{
+    CY_UNUSED_PARAMETER(obj);
+    enable ? Cy_AutAnalog_Enable() : Cy_AutAnalog_Disable();
+    return CY_RSLT_SUCCESS;
+}
+
+
+#define mtb_hal_adc_enable  _mtb_hal_adc_enable
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_adc_is_ready
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE bool _mtb_hal_adc_is_ready(mtb_hal_adc_t* obj)
+{
+    CY_UNUSED_PARAMETER(obj);
+    return Cy_AutAnalog_IsBusy();
+}
+
+
+#define mtb_hal_adc_is_ready _mtb_hal_adc_is_ready
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_adc_read_filtered
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_adc_read_filtered(const mtb_hal_adc_channel_t* obj,
+                                                     mtb_hal_adc_filter_t filter, int32_t* result)
+{
+    CY_UNUSED_PARAMETER(obj);
+    CY_UNUSED_PARAMETER(filter);
+    CY_UNUSED_PARAMETER(result);
+    return MTB_HAL_ADC_RSLT_ERR_NOT_SUPPORTED;
+}
+
+
+#define mtb_hal_adc_read_filtered _mtb_hal_adc_read_filtered
+
 #if defined(__cplusplus)
 }
 #endif /* defined(__cplusplus) */

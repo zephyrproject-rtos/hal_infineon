@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass.h
-* \version 1.30.1
+* \version 1.30.2
 *
 * Header file for the High Performance Programmable Analog Sub-System driver.
 *
@@ -61,6 +61,11 @@
 *******************************************************************************
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td rowspan="1">1.30.2</td>
+*     <td>Updated SAR and CSG documentation.</td>
+*     <td>Documentation enhancement.</td>
+*   </tr>
 *   <tr>
 *     <td rowspan="1">1.30.1</td>
 *     <td>Updated CSG documentation.</td>

@@ -200,6 +200,17 @@ typedef void (* mtb_hal_uart_event_callback_t)(void* callback_arg, mtb_hal_uart_
 /*******************************************************************************
 *                        Public Function Prototypes
 *******************************************************************************/
+
+/** Enable/disable the UART.
+ *
+ * The function returns without waiting for the enable to complete.
+ *
+ * @param[in] obj          The UART object
+ * @param[in] enable       Enable/disable
+ * @return The status of the enable request
+ */
+cy_rslt_t mtb_hal_uart_enable(mtb_hal_uart_t* obj, bool enable);
+
 /** Configure the baud rate
  *
  * @param[in,out] obj           The UART object
@@ -452,6 +463,14 @@ bool mtb_hal_uart_is_async_tx_available(mtb_hal_uart_t* obj);
  * @return CY_RSLT_SUCCESS if the interrupt was processed successfully; otherwise an error
  */
 cy_rslt_t mtb_hal_uart_process_interrupt(mtb_hal_uart_t* obj);
+
+/** Begin synchronous TX transfer of string
+ *
+ * @param[in]     obj           The UART object
+ * @param[in]     tx            The null-terminated string to transfer
+ * @return The status of the tx request
+ */
+cy_rslt_t mtb_hal_uart_write_string(mtb_hal_uart_t* obj, const char* tx);
 
 #if defined(__cplusplus)
 }

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_ecc_ec25519.c
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  This file provides constant and parameters for the API for the ECC EC25519

@@ -30,7 +30,10 @@
 #pragma once
 
 //! IP-specific implementation header for LPTimer
-#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)) || ((SRSS_NUM_MCWDT_B) > 0)
+#if defined(CY_IP_MXS22SRSS) && (CY_IP_MXS22SRSS_VERSION >= 2) && defined(SRSS_NUM_WDT_A) && \
+    (SRSS_NUM_WDT_A > 1)
+#include "mtb_hal_lptimer_mxwdt.h"
+#elif (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 2)) || ((SRSS_NUM_MCWDT_B) > 0)
 #include "mtb_hal_lptimer_mcwdt_b.h"
 #elif defined(CY_IP_MXS40SRSS) || defined(CY_IP_MXS40SSRSS) || defined(CY_IP_MXS28SRSS) || \
     defined(CY_IP_MXS22SRSS)

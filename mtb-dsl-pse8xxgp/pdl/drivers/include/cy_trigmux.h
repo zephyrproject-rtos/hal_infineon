@@ -1,13 +1,16 @@
-/*******************************************************************************
+/***************************************************************************//**
 * \file cy_trigmux.h
 * \version 1.70
 *
-*  This file provides constants and parameter values for the Trigger multiplexer driver.
+* \brief
+* This file provides constants and parameter values for the Trigger multiplexer driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
+* SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -21,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_trigmux
@@ -98,100 +102,6 @@
 *
 * \section group_trigmux_more_information More Information
 * For more information on the TrigMux peripheral, refer to the technical reference manual (TRM).
-*
-* \section group_trigmux_Changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.70</td>
-*     <td>Updated \ref Cy_TrigMux_SwTrigger and \ref Cy_TrigMux_Connect APIs.</td>
-*     <td>Performance enhancement and bug fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>1.60.1</td>
-*     <td>Updated \ref Cy_TrigMux_SwTrigger API.</td>
-*     <td>Coverity error fixes.</td>
-*   </tr>
-*   <tr>
-*     <td>1.60</td>
-*     <td>Updated Cy_TrigMux_SwTrigger API and added CY_TRIGMUX_INTRIG_MASK macro.</td>
-*     <td>Support for PSE8 Devices added.</td>
-*   </tr>
-*   <tr>
-*     <td>1.50</td>
-*     <td>Updated driver to support the CAT1C family of devices.</td>
-*     <td>Added new family of devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>Fixed MISRA violation.</td>
-*     <td>MISRA compliance.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.30</td>
-*     <td>Minor bug fixes.</td>
-*     <td>Keep device specific changes under a compile time device flag.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new device support.</td>
-*     <td>Added new family of device.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20.3</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Removed MISRA 2004 compliance details and verified MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20.2</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20.1</td>
-*     <td>Documentation is extended/improved.</td>
-*     <td>Enhancement based on usability feedback.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="3">1.20</td>
-*     <td>Flattened the organization of the driver source code into the single source directory and the single include directory.</td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added new API functions:
-*         - \ref Cy_TrigMux_Select
-*         - \ref Cy_TrigMux_Deselect
-*         - \ref Cy_TrigMux_SetDebugFreeze
-*
-*         Modified the \ref Cy_TrigMux_SwTrigger API function logic.
-*     </td>
-*     <td>New devices support.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.10.1</td>
-*     <td>Renamed the internal macro in Cy_TrigMux_Connect()
-*          function to CY_TRIGMUX_IS_TRIGTYPE_VALID.</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>The input/output bit in the trigLine parameter of the
-*         Cy_TrigMux_SwTrigger() function is changed to 30.<br>
-*         The invert parameter type is changed to bool.<br>
-*         Added input parameter validation to the API functions.</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_trigmux_macros Macros
 * \defgroup group_trigmux_functions Functions
@@ -285,7 +195,7 @@ extern "C" {
                                                  (0UL != ((oneTrg) & PERI_V2_TR_CMD_OUT_SEL_Msk)) && \
                                                  (0UL != (_FLD2VAL(PERI_V2_TR_CMD_GROUP_SEL, oneTrg) & (uint32_t)CY_TRIGMUX_ONETRIG_GR_START)))
 #endif
- 
+
 # if defined (CY_IP_MXSPERI) && (CY_IP_MXSPERI_INSTANCES == 2U)
 #define CY_TRIGMUX_TRIGLINE_MASK                (PERI_TR_CMD_OUT_SEL_Msk | CY_PERI_TR_CMD_GROUP_SEL_Msk | CY_PERI_TR_CTL_SEL_Msk | PERI_INSTANCE_1_IDENT_Msk)
 #else

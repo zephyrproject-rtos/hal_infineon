@@ -132,18 +132,6 @@
 *   </tr>
 * </table>
 *
-* \section group_tdm_changelog Changelog
-*
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-* </table>
-*
-
 * \defgroup group_tdm_i2s_macros_interrupt_masks Interrupt Masks
 * \defgroup group_tdm_data_structures Data Structures
 * \defgroup group_tdm_enums Enumerated Types

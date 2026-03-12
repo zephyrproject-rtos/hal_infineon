@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file startup_cat1b_cm33.c
-* \version 1.2
+* \version 1.3
 *
 * The CAT1B CM33 startup source.
 *
@@ -40,7 +40,9 @@
 #include "cy_efuse.h"
 #endif
 
-
+#if defined(__cplusplus)
+extern "C" {
+#endif
 /*----------------------------------------------------------------------------
   External References
  *----------------------------------------------------------------------------*/
@@ -78,11 +80,7 @@ cy_israddress_cat1b __ns_vector_table_rw[VECTORTABLE_SIZE] __attribute__( ( sect
 /*----------------------------------------------------------------------------
   Internal References
  *----------------------------------------------------------------------------*/
-#if (defined(__ICCARM__) && defined(CY_DEVICE_PSC3))
-__NO_RETURN void __iar_program_start (void);
-#else
 __NO_RETURN void Reset_Handler (void);
-#endif
 void SysLib_FaultHandler(uint32_t const *faultStackAddr);
 void Default_Handler(void);
 void FpuEnable_S(void);
@@ -202,8 +200,6 @@ void Interrupt9_Handler     (void) __attribute__ ((weak, alias("InterruptHandler
   Exception / Interrupt Vector table
  *----------------------------------------------------------------------------*/
 
-const cy_israddress __Vectors[VECTORTABLE_SIZE];
-
 #if defined ( __GNUC__ )
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -211,11 +207,7 @@ const cy_israddress __Vectors[VECTORTABLE_SIZE];
 
 const cy_israddress __Vectors[VECTORTABLE_SIZE] __VECTOR_TABLE_ATTRIBUTE  = {
   (cy_israddress)(&__INITIAL_SP),                          /*     Initial Stack Pointer */
-#if (defined(__ICCARM__) && defined(CY_DEVICE_PSC3))
-  (cy_israddress)__iar_program_start,
-#else
   (cy_israddress)Reset_Handler,                            /*     Reset Handler */
-#endif
   (cy_israddress)NMIException_Handler,                     /* -14 NMI Handler */
   (cy_israddress)HardFault_Handler,                        /* -13 Hard Fault Handler */
   (cy_israddress)MemManage_Handler,                        /* -12 MPU Fault Handler */
@@ -279,8 +271,7 @@ void __iar_dynamic_initialization(void);
 int __low_level_init(void);
 int __low_level_init(void)
 {
-    return 0;
-
+    return 0;    
 }
 #else
 /**/
@@ -289,11 +280,7 @@ int __low_level_init(void)
 /*----------------------------------------------------------------------------
   Reset Handler called on controller reset
  *----------------------------------------------------------------------------*/
-#if (defined(__ICCARM__) && defined(CY_DEVICE_PSC3))
-__NO_RETURN void __iar_program_start(void)
-#else
 __NO_RETURN void Reset_Handler (void)
-#endif
 {
 #if (!defined(__SAUREGION_PRESENT)) || (defined(__SAUREGION_PRESENT) && (__SAUREGION_PRESENT==0u)) || (defined(__SAUREGION_PRESENT) && defined(CY_PDL_TZ_ENABLED))
     /* Disable I cache */
@@ -341,11 +328,6 @@ __NO_RETURN void Reset_Handler (void)
 
     /* Call the constructors of all global objects */
     __iar_dynamic_initialization();
-
-    #if defined(CY_DEVICE_PSC3)
-        /* main() entry */
-        main();
-    #endif
 #endif
 
    __PROGRAM_START();
@@ -360,6 +342,10 @@ __NO_RETURN void Reset_Handler (void)
 
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
   #pragma clang diagnostic pop
+#endif
+
+#if defined(__cplusplus)
+}
 #endif
 
 #endif /* CY_IP_M33SYSCPUSS */

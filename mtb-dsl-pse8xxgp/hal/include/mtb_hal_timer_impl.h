@@ -51,6 +51,19 @@ extern "C" {
 *       Functions
 *******************************************************************************/
 
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_timer_enable
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_timer_enable(mtb_hal_timer_t* obj, bool enable)
+{
+    enable ? Cy_TCPWM_Counter_Enable(obj->tcpwm.base, obj->tcpwm.cntnum) : Cy_TCPWM_Counter_Disable(
+        obj->tcpwm.base, obj->tcpwm.cntnum);
+    return CY_RSLT_SUCCESS;
+}
+
+
+#define mtb_hal_timer_enable _mtb_hal_timer_enable
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */

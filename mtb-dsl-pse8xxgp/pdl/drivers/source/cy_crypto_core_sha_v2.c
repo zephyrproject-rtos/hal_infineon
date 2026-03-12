@@ -533,14 +533,14 @@ static cy_en_crypto_status_t Cy_Crypto_Sha3_Finish(CRYPTO_Type *base,
 {
     cy_en_crypto_status_t tmpResult = CY_CRYPTO_BAD_PARAMS;
     uint8_t *hashRemap;
-    
+
     if ((hashState != NULL) && (digest != NULL))
     {
 #if (((CY_CPU_CORTEX_M7) && defined (ENABLE_CM7_DATA_CACHE)) || CY_CPU_CORTEX_M55)
         /* Flush the cache */
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
         SCB_InvalidateDCache_by_Addr((volatile void *)hashState->hash,(int32_t)(CY_CRYPTO_SHA_MAX_HASH_SIZE));
-#endif  
+#endif
 
         uint32_t hashBlockSize   = hashState->blockSize;
         uint32_t hashBlockIdx    = hashState->blockIdx;
@@ -553,7 +553,7 @@ static cy_en_crypto_status_t Cy_Crypto_Sha3_Finish(CRYPTO_Type *base,
         /* Flush the cache */
         CY_MISRA_DEVIATE_LINE('MISRA C-2012 Rule 10.8','Intentional typecast to int32_t.');
         SCB_CleanDCache_by_Addr((volatile void *)hashState->hash,(int32_t)(CY_CRYPTO_SHA_MAX_HASH_SIZE));
-#endif    
+#endif
         /* Load the calculated hash state from the context buffer */
         Cy_Crypto_Core_V2_RBClear(base);
         Cy_Crypto_Core_V2_Sync(base);
@@ -575,9 +575,9 @@ static cy_en_crypto_status_t Cy_Crypto_Sha3_Finish(CRYPTO_Type *base,
         Cy_Crypto_Core_V2_FFStoreSync(base);
 
         tmpResult = CY_CRYPTO_SUCCESS;
-        
+
     }
-  
+
     return (tmpResult);
 }
 #endif
@@ -720,7 +720,7 @@ static cy_en_crypto_status_t Cy_Crypto_Sha1_Sha2_Finish(CRYPTO_Type *base,
 
     hashRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(hashState->hash);
     blockRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(hashState->block);
-    
+
     if (CY_CRYPTO_SHA512_BLOCK_SIZE == hashBlockSize)
     {
         padSize = CY_CRYPTO_SHA512_PAD_SIZE; /* Pad size = 112 */
@@ -872,7 +872,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Sha_Update(CRYPTO_Type *base,
                     tmpResult = CY_CRYPTO_BAD_PARAMS;
                 break;
             }
-            
+
         }
     }
 
@@ -991,7 +991,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Sha_Free(CRYPTO_Type *base, cy_stc_crypt
         blockRemap = (uint8_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(hashState->block);
         stateRemap = (cy_stc_crypto_sha_state_t *)CY_REMAP_ADDRESS_FOR_CRYPTO(hashState);
 
-        
+
         /* Clears the context buffers */
         tmpResult = CY_CRYPTO_SUCCESS;
 

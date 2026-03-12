@@ -2,11 +2,14 @@
 * \file cy_autanalog.h
 * \version 2.0
 *
+* \brief
 * Provides an API declaration of the Autonomous Analog driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2022-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2022-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_autanalog AUTONOMOUS ANALOG (Autonomous Analog Block)
@@ -118,41 +122,6 @@
 *
 * For more information on the Autonomous Analog,
 * refer to the device Architecture Technical Reference Manual (TRM).
-*
-* \section group_autanalog_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td rowspan="5">2.0</td>
-*     <td>Change interface and update \ref Cy_AutAnalog_SAR_CountsTo_degreeC;</td>
-*     <td>Remove the reference voltage from the parameter list.</td>
-*   </tr>
-*   <tr>
-*     <td>Extend type \ref cy_en_autanalog_dac_ref_buf_pwr_t with new option.</td>
-*     <td>Introduce new operational mode for CT DAC reference buffer.</td>
-*   </tr>
-*   <tr>
-*     <td>
-*        Add new APIs \ref Cy_AutAnalog_FIFO_SetInterruptMask and \ref Cy_AutAnalog_ClearInterruptMask;\n
-*        Add new API \ref Cy_AutAnalog_FIFO_ReadAllData based on existing \ref Cy_AutAnalog_FIFO_ReadData;\n
-*        Extend interface for \ref Cy_AutAnalog_FIFO_ReadData with an extra parameter that reads the given number of words;\n
-*     </td>
-*     <td>Improve FIFO API usability.</td>
-*   </tr>
-*   <tr>
-*     <td>Renaming the CTB macros.</td>
-*     <td>API enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-* </table>
 *
 * \defgroup group_autanalog_ac     AC      (Autonomous Controller)
 * \defgroup group_autanalog_ctb    CTB     (Continuous Time Block)

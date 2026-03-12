@@ -7,7 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2018-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_axidmac
@@ -92,18 +95,6 @@
 *
 * \section group_axidmac_more_information More Information.
 * See the AXIDMAC chapter of the device technical reference manual (TRM).
-*
-* \section group_axidmac_changelog Changelog
-*
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>The initial version.</td>
-*     <td></td>
-*   </tr>
-* </table>
-
 *
 * \defgroup group_axidmac_macros Macros
 * \defgroup group_axidmac_macros_interrupt_masks Interrupt Masks

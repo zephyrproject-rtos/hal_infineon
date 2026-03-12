@@ -29,6 +29,7 @@
 #include "cy_result.h"
 #include "cybsp_types.h"
 #include "cybsp_hw_config.h"
+#include "cy_ipc_sema.h"
 #if defined(COMPONENT_WICED_BLE) || defined(COMPONENT_WICED_DUALMODE)
 #include "cybsp_bt_config.h"
 #endif
@@ -64,6 +65,9 @@ extern "C" {
  * \{
  * Global structures exposed by the BSP
  */
+#if (CY_SYSTEM_CPU_M33) && !defined(COMPONENT_SECURE_DEVICE)
+extern cy_stc_ipc_sema_t cybsp_ipc_sema;
+#endif
 #if defined(COMPONENT_MW_MTB_SRF) && !defined(CYBSP_DISABLE_SRF_INIT)
 #if defined(COMPONENT_SECURE_DEVICE)
 extern mtb_srf_context_s_t cybsp_srf_context;

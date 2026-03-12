@@ -42,7 +42,8 @@
 #endif /* CY_SYS_DEFAULT_VECTOR_ADDRESS */
 
 #if (defined(CY_IP_MXS22SRSS_VERSION) && (CY_IP_MXS22SRSS_VERSION == 1))
-#define WA__DRIVERS_21925
+/* This forces the DPLL LP trim values to be updated in the personality */
+#define UPDATE_DPLL_LP_TRIM_VALUES
 #endif /* (defined(CY_IP_MXS22SRSS_VERSION) && (CY_IP_MXS22SRSS_VERSION == 1)) */
 
 /* DIE_ID and REV_ID registers located in the NS_SFLASH sub-region
@@ -77,7 +78,7 @@
 CY_MISRA_FP_BLOCK_START('MISRA C-2012 Rule 8.6', 1, \
 'Checked manually. The definition is a part of linker script.')
 
-/* Device descriptor type */
+/** Device descriptor type */
 typedef struct
 {
     /* Base HW addresses */
@@ -2675,7 +2676,12 @@ extern const uint32_t IPC_BASE_PTR[CY_IPC_INSTANCES];
 
 #define CY_IPC_PIPE_IS_CHANNEL_INTR_COMBINATION_VALID(ipcChannel, ipcIntrIndex)  ((((ipcChannel) < CY_IPC_CHANNELS_PER_INSTANCE) && ((ipcIntrIndex) < CY_IPC_INTERRUPTS_PER_INSTANCE)) || \
                                                                                   (((ipcChannel) >= CY_IPC_CHANNELS_PER_INSTANCE) && ((ipcIntrIndex) >= CY_IPC_INTERRUPTS_PER_INSTANCE)))
-#define CY_IPC_STRUCT_PTR(ipcIndex)                                              CY_IPC_STRUCT_PTR_FOR_IP(((ipcIndex)%CY_IPC_CHANNELS_PER_INSTANCE), IPC_BASE_PTR[((ipcIndex)-((ipcIndex)%CY_IPC_CHANNELS_PER_INSTANCE))/CY_IPC_CHANNELS_PER_INSTANCE])
+#define CY_IPC_STRUCT_PTR(ipcIndex)                                              (((ipcIndex < (CY_IPC_CHANNELS_PER_INSTANCE * CY_IPC_INSTANCES)) && (ipcIndex > 0 )) ? \
+                                                                                    CY_IPC_STRUCT_PTR_FOR_IP(((ipcIndex)%CY_IPC_CHANNELS_PER_INSTANCE), \
+                                                                                    IPC_BASE_PTR[((ipcIndex)-((ipcIndex)%CY_IPC_CHANNELS_PER_INSTANCE))/CY_IPC_CHANNELS_PER_INSTANCE]) : \
+                                                                                    ( (ipcIndex == 0) ? (CY_IPC_STRUCT_PTR_FOR_IP(0,IPC_BASE_PTR[0])) : \
+                                                                                    ((ipcIndex == (CY_IPC_CHANNELS_PER_INSTANCE * CY_IPC_INSTANCES)) ? \
+                                                                                    (CY_IPC_STRUCT_PTR_FOR_IP(((ipcIndex)%CY_IPC_CHANNELS_PER_INSTANCE),IPC_BASE_PTR[CY_IPC_INSTANCES -1])) : NULL   ) ))
 #define CY_IPC_INTR_STRUCT_PTR(ipcIntrIndex)                                     CY_IPC_INTR_STRUCT_PTR_FOR_IP(((ipcIntrIndex)%CY_IPC_INTERRUPTS_PER_INSTANCE), IPC_BASE_PTR[((ipcIntrIndex)-((ipcIntrIndex)%CY_IPC_INTERRUPTS_PER_INSTANCE))/CY_IPC_INTERRUPTS_PER_INSTANCE])
 /* ipcChannel comprises of total number of channels present in all IPC IP instances */
 #define CY_IPC_PIPE_COMPUTE_INTR_MASK(ipcChannel, ipcIntrmask)                   (((ipcChannel)<CY_IPC_CHANNELS_PER_INSTANCE)?(ipcIntrmask):((((ipcIntrmask)&0xFFFF0000U) != 0x0U)?((ipcIntrmask)>>CY_IPC_CHANNELS_PER_INSTANCE):(ipcIntrmask)))
@@ -2709,22 +2715,29 @@ extern const uint32_t IPC_BASE_PTR[CY_IPC_INSTANCES];
 /* Secure Service IPC client */
 #define CY_IPC_MSG_SECURE_SERVICES      (2UL)
 
-
-/** Following IPC resources are for user:
-* IPC0 CH  - 3 to 7 and 11 to 15
-* IPC0 INT - 3 to 5
-* IPC1 CH  - 17 to 31
-* IPC1 INT - 9 to 15
+/**
+* \addtogroup group_ipc_macros
+* \{
+* * IPC0 CH  - 3 to 7 and 11 to 15
+* * IPC0 INT - 3 to 5
+* * IPC1 CH  - 17 to 31
+* * IPC1 INT - 9 to 15
+*
+* \note If there are high level middleware libraries used such as MTB-IPC/MTB-SRF, please refer to BSP documentation
+        for reservations under the section - MTB IPC Configuration
 */
-/* user IPC channel */
-#define CY_IPC0_CHAN_USER                (4u)   /** User ipc channel index of IPC0 instance */
-/* user IPC interrupt */
-#define CY_IPC0_INTR_USER                (2u)   /** First ipc interrupt index of IPC0 instance */
 
 /* user IPC channel */
-#define CY_IPC_CHAN_USER                 (1u + IPC0_IPC_NR)   /** First ipc channel index of IPC1 instance meant for CM33 <-> CM55 */
+#define CY_IPC0_CHAN_USER                (4u)   /**< User ipc channel index of IPC0 instance */
 /* user IPC interrupt */
-#define CY_IPC_INTR_USER                 (1u + IPC0_IPC_IRQ_NR)   /** First ipc interrupt index of IPC1 instance meant for CM33 <-> CM55 */
+#define CY_IPC0_INTR_USER                (2u)   /**< First ipc interrupt index of IPC0 instance */
+
+/* user IPC channel */
+#define CY_IPC_CHAN_USER                 (1u + IPC0_IPC_NR)   /**< First ipc channel index of IPC1 instance meant for CM33 <-> CM55 */
+/* user IPC interrupt */
+#define CY_IPC_INTR_USER                 (1u + IPC0_IPC_IRQ_NR)   /**< First ipc interrupt index of IPC1 instance meant for CM33 <-> CM55 */
+
+/** \} group_ipc_macros */
 
 /* These definitions will be removed in the next release */
 /* IPC0 channel-2 and interrupt-2 also reserved for secure domain */

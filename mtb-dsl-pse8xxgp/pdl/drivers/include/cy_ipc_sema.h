@@ -3,12 +3,13 @@
 * \version 1.140
 *
 * \brief
-* Header file for IPC SEM functions
+* Header file for IPC semaphore functions.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2020-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2020-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 #ifndef CY_IPC_SEMA_H
 #define CY_IPC_SEMA_H
@@ -120,12 +122,15 @@ typedef enum
 /** IPC semaphore control data structure. */
 typedef struct
 {
-    /** Maximum semaphores in system */
+    /** Maximum semaphores in system. Must be a multiple of 32.
+      * This count applies to both secure and non-secure semaphores */
     uint32_t maxSema;
-    /** Pointer to semaphores array  */
+    /** Pointer to semaphores array. Must have length maxSema / 32.
+      * This must be located in memory which is accessible to all
+      * processing environments which will interact with semaphores. */
     uint32_t *arrayPtr;
 #if defined (CY_IP_MXIPC) && (CY_IPC_INSTANCES > 1U)
-    /** Pointer to secure semaphores array  */
+    /** Pointer to secure semaphores array. Must have length maxSema / 32 */
     uint32_t *arrayPtr_sec;
 #endif
 } cy_stc_ipc_sema_t;

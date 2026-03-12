@@ -2,12 +2,14 @@
 * \file cy_lvd.h
 * \version 1.80
 *
+* \brief
 * The header file of the LVD driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2017-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2017-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_lvd
@@ -62,84 +65,6 @@
 * \section group_lvd_more_information More Information
 * See the LVD chapter of the device technical reference manual (TRM).
 *
-* \section group_lvd_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason of Change</th></tr>
-*   <tr>
-*     <td>1.80</td>
-*     <td>Added new APIs \ref Cy_LVD_SetActionConfig, \ref Cy_LVD_GetActionConfig
-*       - Added enum \ref cy_en_lvd_action_config_t.</td>
-*     <td>LVD set and get config APIs added.</td>
-*   </tr>
-*   <tr>
-*     <td>1.70</td>
-*     <td>Added support for TRAVEO&trade; II Body Entry devices.<br>
-*       Changed pre-processor logic so SRSS version 2 is grouped with version 3 instead of version 1.</td>
-*     <td>Code enhancement and support for new devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.60</td>
-*     <td>Added PSE84 device support.</td>
-*     <td>Added support for PSE84 family of devices.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.50</td>
-*     <td>Added CAT1B device support.</td>
-*     <td>Added support for CAT1B family of devices.</td>
-*   </tr>
-*   <tr>
-*     <td>New APIs Added
-*         * Cy_LVD_GetSourceVoltage()
-*         * Cy_LVD_SetSourceVoltage()
-*     </td>
-*     <td>Added new APIs to set and get the source voltage.</td>
-*   </tr>
-*   <tr>
-*     <td>1.40</td>
-*     <td>Added new device support.</td>
-*     <td>Added new family of devices.</td>
-*   </tr>
-*   <tr>
-*     <td>1.30</td>
-*     <td>Fixed/documented MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.20</td>
-*     <td>
-            Updated the following functions for the PSoC 64 devices:
-            \ref Cy_LVD_Enable, \ref Cy_LVD_Disable, \ref Cy_LVD_SetThreshold,
-            \ref Cy_LVD_ClearInterrupt, \ref Cy_LVD_SetInterrupt,
-            \ref Cy_LVD_SetInterruptMask, \ref Cy_LVD_ClearInterruptMask, and
-            \ref Cy_LVD_SetInterruptConfig.
-      </td>
-*     <td>Added PSoC 64 device support.</td>
-*   </tr>
-*   <tr>
-*     <td rowspan="2">1.10</td>
-*     <td>Flattened the organization of the driver source code into the single
-*         source directory and the single include directory.
-*     </td>
-*     <td>Driver library directory-structure simplification.</td>
-*   </tr>
-*   <tr>
-*     <td>Added register access layer. Use register access macros instead
-*         of direct register access using dereferenced pointers.</td>
-*     <td>Makes register access device-independent, so that the PDL does
-*         not need to be recompiled for each supported part number.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0.1</td>
-*     <td>Added Low Power Callback section</td>
-*     <td>Documentation update and clarification</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial Version</td>
-*     <td></td>
-*   </tr>
-* </table>
-*
 * \defgroup group_lvd_macros Macros
 * \defgroup group_lvd_functions Functions
 *   \{
@@ -175,8 +100,8 @@ extern "C" {
 /** The LVD driver identifier */
 #define CY_LVD_ID                      (CY_PDL_DRV_ID(0x39U))
 
- 
- 
+
+
 #if defined (CY_IP_MXS22SRSS)
 /** Interrupt mask for \ref Cy_LVD_GetInterruptStatus(),
                        \ref Cy_LVD_ClearInterrupt() */
@@ -196,7 +121,7 @@ extern "C" {
 /** Enable mask for \ref Cy_LVD_Enable() and /ref Cy_LVD_Disable() */
 #define CY_LVD_SRSS_PWR_LVD_CTL_HVLVD_EN_Msk   (SRSS_PWR_LVD_CTL_HVLVD_EN_Msk)
 #endif
- 
+
 
 /** \} group_lvd_macros */
 
@@ -301,7 +226,7 @@ __STATIC_INLINE void Cy_LVD_SetInterruptMask(void);
 __STATIC_INLINE void Cy_LVD_ClearInterruptMask(void);
 __STATIC_INLINE uint32_t Cy_LVD_GetInterruptStatusMasked(void);
 __STATIC_INLINE void Cy_LVD_SetInterruptConfig(cy_en_lvd_intr_config_t lvdInterruptConfig);
- 
+
 /** \addtogroup group_lvd_functions_syspm_callback
 * The driver supports SysPm callback for Deep Sleep transition.
 * \{
@@ -496,12 +421,12 @@ __STATIC_INLINE void Cy_LVD_SetInterruptConfig(cy_en_lvd_intr_config_t lvdInterr
 {
     CY_ASSERT_L3(CY_LVD_CHECK_INTR_CFG(lvdInterruptConfig));
 
- 
- 
+
+
 #if defined (CY_IP_MXS22SRSS)
         SRSS_PWR_LVD_CTL = _CLR_SET_FLD32U(SRSS_PWR_LVD_CTL, SRSS_PWR_LVD_CTL_HVLVD_EDGE_SEL, lvdInterruptConfig);
 #endif
- 
+
     /* This dummy reading is necessary here. It provides a guarantee that interrupt is cleared at returning from this function. */
     (void) lvdInterruptConfig;
 }
@@ -537,8 +462,8 @@ __STATIC_INLINE cy_en_lvd_action_config_t Cy_LVD_GetActionConfig(void)
     return (((SRSS_PWR_LVD_CTL & SRSS_PWR_LVD_CTL_HVLVD_ACTION_Msk) != 0UL) ? CY_LVD_ACTION_FAULT : CY_LVD_ACTION_INTERRUPT);
 }
 #endif
- 
- 
+
+
 /** \} group_lvd_functions */
 
 #ifdef __cplusplus

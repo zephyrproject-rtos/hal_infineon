@@ -2,13 +2,14 @@
 * \file cy_syspm_srf.h
 * \version 2.100
 *
-* This file provides macros and exposes operations for the APIs for the Secure
-* Aware SYSPM.
+* \brief
+* This file provides macros and exposes operations for the APIs for the Secure Aware SYSPM.
 *
 ********************************************************************************
 * \copyright
-* Copyright (c) (2016-2025), Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.
+* Copyright(c) 2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +23,8 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-*
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_syspm_srf
@@ -55,9 +56,9 @@
  * CY_PDL_SYSPM_OP_GETPROGRAMMEDPWRMODE: CYCFG_PPC_SECURED_PWRMODE_PWRMODE
  * CY_PDL_SYSPM_OP_SETPWRMODE: CYCFG_PPC_SECURED_PWRMODE_PWRMODE/CYCFG_PPC_SECURED_M55APPCPUSS
  * CY_PDL_SYSPM_OP_ISLPMREADY: CYCFG_PPC_SECURED_SRSS_MAIN
- * CY_PDL_SYSPM_OP_SYSENABLECM55: CYCFG_PPC_SECURED_PWRMODE_PWRMODE/CYCFG_PPC_SECURED_M55APPCPUSS/CYCFG_PPC_SECURED_MXCM55_CM55/CYCFG_PPC_SECURED_MXCM55_CM55_NS
- * CY_PDL_SYSPM_OP_SYSRESETCM55: CYCFG_PPC_SECURED_MXCM55_CM55/CYCFG_PPC_SECURED_MXCM55_CM55_NS
- * CY_PDL_SYSPM_OP_SYSDISABLECM55: CYCFG_PPC_SECURED_M55APPCPUSS
+ * CY_PDL_SYSPM_OP_SYSCM55ENABLE: CYCFG_PPC_SECURED_APPCPUSS_AP/CYCFG_PPC_SECURED_PWRMODE_PWRMODE/CYCFG_PPC_SECURED_M55APPCPUSS/CYCFG_PPC_SECURED_MXCM55_CM55/CYCFG_PPC_SECURED_MXCM55_CM55_NS
+ * CY_PDL_SYSPM_OP_SYSCM55RESET: CYCFG_PPC_SECURED_MXCM55_CM55/CYCFG_PPC_SECURED_MXCM55_CM55_NS
+ * CY_PDL_SYSPM_OP_SYSCM55DISABLE: CYCFG_PPC_SECURED_M55APPCPUSS
  */
 #define _CY_PDL_SYSPM_PPC_SECURED               (CYCFG_PPC_SECURED_SRSS_MAIN || CYCFG_PPC_SECURED_SRSS_HIB_DATA || CYCFG_PPC_SECURED_PWRMODE_PWRMODE || CYCFG_PPC_SECURED_M55APPCPUSS)
 #endif /* !defined(_CY_PDL_SYSPM_PPC_SECURED) */
@@ -72,8 +73,9 @@
 #endif
 
 #if defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
-#if !((CYCFG_PPC_SECURED_SRSS_MAIN && CYCFG_PPC_SECURED_SRSS_HIB_DATA && CYCFG_PPC_SECURED_PWRMODE_PWRMODE && CYCFG_PPC_SECURED_M55APPCPUSS) || (!CYCFG_PPC_SECURED_SRSS_MAIN && !CYCFG_PPC_SECURED_SRSS_HIB_DATA && !CYCFG_PPC_SECURED_PWRMODE_PWRMODE && !CYCFG_PPC_SECURED_M55APPCPUSS))
-    #error "Unsupported PPC regions' security state: SRSS_MAIN, SRSS_HIB_DATA, PWRMODE_PWRMODE, and M55APPCPUSS PPC regions must all be configured to the same security state"
+#if !((CYCFG_PPC_SECURED_SRSS_MAIN && CYCFG_PPC_SECURED_SRSS_HIB_DATA && CYCFG_PPC_SECURED_PWRMODE_PWRMODE && CYCFG_PPC_SECURED_M55APPCPUSS && CYCFG_PPC_SECURED_APPCPUSS_AP) || \
+      (!CYCFG_PPC_SECURED_SRSS_MAIN && !CYCFG_PPC_SECURED_SRSS_HIB_DATA && !CYCFG_PPC_SECURED_PWRMODE_PWRMODE && !CYCFG_PPC_SECURED_M55APPCPUSS && !CYCFG_PPC_SECURED_APPCPUSS_AP))
+    #error "Unsupported PPC regions' security state: SRSS_MAIN, SRSS_HIB_DATA, PWRMODE_PWRMODE, APPCPUSS_AP and M55APPCPUSS PPC regions must all be configured to the same security state"
 #endif
 
 #if !((CYCFG_PPC_SECURED_MXCM55_CM55 && CYCFG_PPC_SECURED_MXCM55_CM55_NS) || (!CYCFG_PPC_SECURED_MXCM55_CM55 && !CYCFG_PPC_SECURED_MXCM55_CM55_NS))
@@ -99,9 +101,9 @@ typedef enum
     CY_PDL_SYSPM_OP_GETPROGRAMMEDPWRMODE,   /**< Cy_SYSPM_GetProgrammedPwrMode */
     CY_PDL_SYSPM_OP_SETPWRMODE,             /**< Cy_SYSPM_SetPwrMode */
     CY_PDL_SYSPM_OP_ISLPMREADY,             /**< Cy_SYSPM_IsLpmReady */
-    CY_PDL_SYSPM_OP_SYSENABLECM55,          /**< Cy_SYSPM_SysEnableCM55 */
-    CY_PDL_SYSPM_OP_SYSRESETCM55,           /**< Cy_SYSPM_SysResetCM55 */
-    CY_PDL_SYSPM_OP_SYSDISABLECM55,         /**< Cy_SYSPM_SysDisableCM55 */
+    CY_PDL_SYSPM_OP_SYSCM55ENABLE,          /**< Cy_SYSPM_SysCM55Enable */
+    CY_PDL_SYSPM_OP_SYSCM55RESET,           /**< Cy_SYSPM_SysCM55Reset */
+    CY_PDL_SYSPM_OP_SYSCM55DISABLE,         /**< Cy_SYSPM_SysCM55Disable */
     CY_PDL_SYSPM_OP_MAX,                    /**< Maximum operation ID for bounds checking */
 } cy_syspm_srf_op_id_t;
 

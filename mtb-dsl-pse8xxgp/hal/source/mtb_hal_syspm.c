@@ -363,6 +363,40 @@ cy_rslt_t mtb_hal_syspm_deepsleep(void)
 
 
 #if (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0)
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_syspm_tickless_timer_presleep
+//--------------------------------------------------------------------------------------------------
+void _mtb_hal_syspm_tickless_timer_presleep(mtb_hal_lptimer_t* obj, uint32_t desired_ms,
+                                            uint32_t* initial_ticks)
+{
+    _mtb_hal_syspm_tickless_setup(obj, desired_ms);
+    _mtb_hal_syspm_disable_systick();
+    *initial_ticks = mtb_hal_lptimer_read(obj);
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_syspm_tickless_timer_postsleep
+//--------------------------------------------------------------------------------------------------
+void _mtb_hal_syspm_tickless_timer_postsleep(mtb_hal_lptimer_t* obj, uint32_t* initial_ticks,
+                                             uint32_t* actual_ms)
+{
+    /* We need to do the following steps whether or not the DeepSleep entry succeeded */
+    uint32_t final_ticks = mtb_hal_lptimer_read(obj);
+    _mtb_hal_syspm_enable_systick();
+    uint32_t lptimer_frequency_hz = obj->lfclk_freqhz;
+    /* Total Idle ticks, handling rollover */
+    uint32_t idle_ticks = (final_ticks < *initial_ticks)
+                    ? (_MTB_HAL_LPTIMER_MAX_DELAY_TICKS - *initial_ticks) + final_ticks
+                    : final_ticks - *initial_ticks;
+    /* To avoid precision loss due to truncation, convert the idle ticks to hz first, then
+        divide */
+    uint64_t idle_ticks_hz = _MTB_HAL_UTILS_KHZ_TO_HZ(idle_ticks);
+    *actual_ms = (uint32_t)(idle_ticks_hz / lptimer_frequency_hz);
+}
+
+
+#endif /* (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0) */
 
 //--------------------------------------------------------------------------------------------------
 // _mtb_hal_syspm_tickless_sleep_deepsleep
@@ -380,32 +414,17 @@ cy_rslt_t _mtb_hal_syspm_tickless_sleep_deepsleep(mtb_hal_lptimer_t* obj, uint32
     #if (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0)
     CY_ASSERT(obj != NULL);
     *actual_ms = 0;
+    uint32_t initial_ticks = 0;
 
     if (desired_ms > 1)
     {
-        _mtb_hal_syspm_tickless_setup(obj, desired_ms);
-        _mtb_hal_syspm_disable_systick();
-        uint32_t initial_ticks = mtb_hal_lptimer_read(obj);
-
+        _mtb_hal_syspm_tickless_timer_presleep(obj, desired_ms, &initial_ticks);
         if (result == CY_RSLT_SUCCESS)
         {
             result = deep_sleep ? _mtb_hal_syspm_deepsleep_internal() : mtb_hal_syspm_sleep();
         }
-
-        /* We need to do the following steps whether or not the DeepSleep entry succeeded */
-        uint32_t final_ticks = mtb_hal_lptimer_read(obj);
-        _mtb_hal_syspm_enable_systick();
-        uint32_t lptimer_frequency_hz = obj->lfclk_freqhz;
-        /* Total Idle ticks, handling rollover */
-        uint32_t idle_ticks = (final_ticks < initial_ticks)
-                        ? (_MTB_HAL_LPTIMER_MAX_DELAY_TICKS - initial_ticks) + final_ticks
-                        : final_ticks - initial_ticks;
-        /* To avoid precision loss due to truncation, convert the idle ticks to hz first, then
-           divide */
-        uint64_t idle_ticks_hz = _MTB_HAL_UTILS_KHZ_TO_HZ(idle_ticks);
-        *actual_ms = (uint32_t)(idle_ticks_hz / lptimer_frequency_hz);
+        _mtb_hal_syspm_tickless_timer_postsleep(obj, &initial_ticks, actual_ms);
     }
-
     #else // if (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0)
     /* no lptimer available on currently selected device */
     result = MTB_HAL_SYSPM_RSLT_ERR_NOT_SUPPORTED;
@@ -417,9 +436,6 @@ cy_rslt_t _mtb_hal_syspm_tickless_sleep_deepsleep(mtb_hal_lptimer_t* obj, uint32
 
     return result;
 }
-
-
-#endif /* (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0) */
 
 
 //--------------------------------------------------------------------------------------------------
@@ -455,6 +471,56 @@ mtb_hal_syspm_system_deep_sleep_mode_t mtb_hal_syspm_get_deepsleep_mode(void)
     #endif // defined(_MTB_HAL_SYSPM_SUPPORTS_DS_MODES)
 
     return deep_sleep_mode;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// mtb_hal_syspm_hibernate_ram
+//--------------------------------------------------------------------------------------------------
+cy_rslt_t mtb_hal_syspm_hibernate_ram(mtb_hal_syspm_hibernate_wakeup_source_t wakeup_source)
+{
+    #if defined(_MTB_HAL_SYSPM_SUPPORTS_HIB_RAM_MODE)
+    Cy_SysPm_SetHibernateWakeupSource(wakeup_source);
+    return Cy_SysPm_SystemEnterHibernateRam(CY_SYSPM_WAIT_FOR_INTERRUPT);
+    #else
+    CY_UNUSED_PARAMETER(wakeup_source);
+    return MTB_HAL_SYSPM_RSLT_ERR_NOT_SUPPORTED;
+    #endif // defined(_MTB_HAL_SYSPM_SUPPORTS_HIB_RAM_MODE)
+}
+
+
+//--------------------------------------------------------------------------------------------------
+// mtb_hal_syspm_tickless_hibernate_ram
+//--------------------------------------------------------------------------------------------------
+cy_rslt_t mtb_hal_syspm_tickless_hibernate_ram(mtb_hal_lptimer_t* lptimer_obj,
+                                               mtb_hal_syspm_hibernate_wakeup_source_t wakeup_source,
+                                               uint32_t desired_ms, uint32_t* actual_ms)
+{
+    cy_rslt_t result = CY_RSLT_SUCCESS;
+
+    #if defined(_MTB_HAL_SYSPM_SUPPORTS_HIB_RAM_MODE) && (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0)
+    CY_ASSERT(lptimer_obj != NULL);
+    *actual_ms = 0;
+    uint32_t initial_ticks = 0;
+
+    if (desired_ms > 1)
+    {
+        _mtb_hal_syspm_tickless_timer_presleep(lptimer_obj, desired_ms, &initial_ticks);
+        result = mtb_hal_syspm_hibernate_ram(wakeup_source);
+        _mtb_hal_syspm_tickless_timer_postsleep(lptimer_obj, &initial_ticks, actual_ms);
+    }
+    #else \
+    // defined(_MTB_HAL_SYSPM_SUPPORTS_HIB_RAM_MODE) && (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0)
+    /* hibernate ram support and/or lptimer not available on currently selected device */
+    result = MTB_HAL_SYSPM_RSLT_ERR_NOT_SUPPORTED;
+    CY_UNUSED_PARAMETER(lptimer_obj);
+    CY_UNUSED_PARAMETER(wakeup_source);
+    CY_UNUSED_PARAMETER(desired_ms);
+    CY_UNUSED_PARAMETER(actual_ms);
+    #endif \
+    /* defined(_MTB_HAL_SYSPM_SUPPORTS_HIB_RAM_MODE) && (MTB_HAL_DRIVER_AVAILABLE_LPTIMER != 0) */
+
+    return result;
 }
 
 

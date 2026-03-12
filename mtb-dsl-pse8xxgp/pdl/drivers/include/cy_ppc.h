@@ -7,7 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_ppc
@@ -64,21 +67,6 @@
 *
 * \section group_ppc_MISRA MISRA-C Compliance
 * The PPC driver does not have any specific MISRA-C deviations.
-*
-* \section group_ppc_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>1.10</td>
-*     <td>New devices support added</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_ppc_macros Macros
 * \defgroup group_ppc_functions Functions
@@ -154,19 +142,13 @@ typedef enum
     CY_PPC_NON_SECURE = 1  /**< PPC region is Non-secure */
 } cy_en_ppc_sec_attribute_t;
 
-/** PPC Non-secure privilege attributes */
-typedef enum
-{
-    CY_PPC_NON_SEC_PRIV     = 0, /**< Privilege access to non-secure region */
-    CY_PPC_NON_SEC_NONPRIV  = 1  /**< Privilege and non-privilege access to non-secure region  */
-} cy_en_ppc_nspriv_attribute_t;
 
 /** PPC Secure privilege attributes */
 typedef enum
 {
-    CY_PPC_SEC_PRIV     = 0, /**< Privilege access to secure region */
-    CY_PPC_SEC_NONPRIV  = 1  /**< Privilege and non-privilege access to secure region  */
-} cy_en_ppc_secpriv_attribute_t;
+    CY_PPC_PRIV       = 0,    /**< Privilege access to secure/non-secure region */
+    CY_PPC_NONPRIV    = 1,    /**< Privilege/non-privilege access to secure/non-secure region  */
+} cy_en_ppc_priv_attribute_t;
 
 /** \} group_ppc_enums */
 
@@ -181,8 +163,7 @@ typedef struct
 {
     uint32_t pcMask;                                /**< Protection Context mask */
     cy_en_ppc_sec_attribute_t secAttribute;         /**< Security attribute */
-    cy_en_ppc_secpriv_attribute_t secPrivAttribute; /**< Secure Privilege attribute */
-    cy_en_ppc_nspriv_attribute_t nsPrivAttribute;   /**< Non-secure Privilege attribute */
+    cy_en_ppc_priv_attribute_t privAttribute;       /**< Privilege attribute */
 } cy_stc_ppc_attribute_t;
 
 /** PPC domains configuration structure */

@@ -1,7 +1,4 @@
 /***************************************************************************//**
-* \file pse846gps2dbzc4a_s.h
-*
-* \brief
 * PSE846GPS2DBZC4A device header with secure MMIO offsets
 *
 ********************************************************************************
@@ -561,14 +558,14 @@ typedef enum {
 #define CY_CAN0MRAM_S_CBUS_BASE         0x52850000UL
 #define CY_CM55_ITCM_BASE               0x58000000UL
 #define CY_CM55_ITCM_CBUS_BASE          0x78000000UL
-#define CY_CM55_ITCM_SIZE               0x00010000UL
+#define CY_CM55_ITCM_SIZE               0x00040000UL
 #define CY_CM55_ITCM_NS_SBUS_BASE       0x48000000UL
 #define CY_CM55_ITCM_NS_CBUS_BASE       0x68000000UL
 #define CY_CM55_ITCM_S_SBUS_BASE        0x58000000UL
 #define CY_CM55_ITCM_S_CBUS_BASE        0x78000000UL
 #define CY_CM55_DTCM_BASE               0x58040000UL
 #define CY_CM55_DTCM_CBUS_BASE          0x78040000UL
-#define CY_CM55_DTCM_SIZE               0x00010000UL
+#define CY_CM55_DTCM_SIZE               0x00040000UL
 #define CY_CM55_DTCM_NS_SBUS_BASE       0x48040000UL
 #define CY_CM55_DTCM_NS_CBUS_BASE       0x68040000UL
 #define CY_CM55_DTCM_S_SBUS_BASE        0x58040000UL

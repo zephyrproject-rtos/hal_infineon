@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_cryptolite_aes_ccm.c
-* \version 2.80
+* \version 2.90
 *
 * \brief
 *  Provides API implementation of the Cryptolite AES CCM PDL driver.

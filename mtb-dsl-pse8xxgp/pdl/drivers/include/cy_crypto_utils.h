@@ -35,21 +35,14 @@ extern "C" {
 
 
 /**
-* \addtogroup group_crypto_cli_functions
+* \addtogroup group_crypto_lld_mem_functions
 * \{
 */
-
 /*******************************************************************************
 * Function Name: Cy_Crypto_InvertEndianness
 ****************************************************************************//**
 *
-* This function reverts byte-array memory block, like:<br>
-* inArr[0] <---> inArr[n]<br>
-* inArr[1] <---> inArr[n-1]<br>
-* inArr[2] <---> inArr[n-2]<br>
-* ........................<br>
-* inArr[n/2] <---> inArr[n/2-1]<br>
-*
+* This function inverts endianness of the byte-array.
 * Odd or even byteSize are acceptable.
 *
 * \param inArrPtr
@@ -66,7 +59,7 @@ void Cy_Crypto_InvertEndianness(void *inArrPtr, uint32_t byteSize);
 #define Cy_Crypto_Rsa_InvertEndianness(p, s) Cy_Crypto_InvertEndianness((p), (s))
 /** \endcond */
 
-/** \} group_crypto_cli_functions */
+/** \} group_crypto_lld_mem_functions */
 
 
 #if defined(__cplusplus)

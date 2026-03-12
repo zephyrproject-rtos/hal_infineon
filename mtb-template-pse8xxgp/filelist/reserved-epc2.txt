@@ -1,0 +1,1 @@
+files/cyreservedresources.epc2:config/cyreservedresources.list

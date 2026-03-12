@@ -104,6 +104,34 @@ extern "C" {
  * \}
  */
 
+/** PWM event types */
+typedef enum
+{
+    MTB_HAL_PWM_EVENT_NONE            =  0,             /**< No event */
+    MTB_HAL_PWM_EVENT_TERMINAL_COUNT  =  1 << 0,        /**< Event on terminal count match event */
+    MTB_HAL_PWM_EVENT_COMPARE         =  1 << 1,        /**< Event on compare match event */
+    MTB_HAL_PWM_EVENT_ALL             = (1 << 2) - 1    /**< Event on any events */
+} mtb_hal_pwm_event_t;
+
+/** PWM output source */
+typedef enum
+{
+    /* Can map to cy_en_line_select_config_t */
+    MTB_HAL_PWM_OUTPUT_CONSTANT_0           = 0, /**< Output signal is 0. */
+    MTB_HAL_PWM_OUTPUT_CONSTANT_1           = 1, /**< Output signal is 1. */
+    MTB_HAL_PWM_OUTPUT_PWM_SIGNAL           = 2, /**< Output signal is PWM Signal. */
+    MTB_HAL_PWM_OUTPUT_INVERTED_PWM_SIGNAL  = 3, /**< Output signal is inverted PWM Signal. */
+    MTB_HAL_PWM_OUTPUT_PORT_DEFAULT         = 4, /**< Output is not driven by the TCPWM. Instead the
+                                                    port default level configuration applies, e.g.
+                                                    "Z" (high impedance). */
+    MTB_HAL_PWM_OUTPUT_SOURCE_MOTIF         = 5  /**< Source for PWM signal conditioning comes from
+                                                    MOTIF modulation output control signals. It can
+                                                    be set to '0' , '1' or PWM. */
+} mtb_hal_pwm_output_t;
+
+/** Handler for PWM events */
+typedef void(* mtb_hal_pwm_event_callback_t)(void* callback_arg, mtb_hal_pwm_event_t event);
+
 /**
  * Sets up a HAL instance to use the specified hardware resource. This hardware
  * resource must have already been configured via the PDL.
@@ -127,6 +155,16 @@ cy_rslt_t mtb_hal_pwm_setup(mtb_hal_pwm_t* obj, const mtb_hal_pwm_configurator_t
  */
 cy_rslt_t mtb_hal_pwm_set_period(mtb_hal_pwm_t* obj, uint32_t period_us, uint32_t pulse_width_us);
 
+/** Enable/disable the PWM.
+ *
+ * The function returns without waiting for the enable to complete.
+ *
+ * @param[in] obj          The PWM object
+ * @param[in] enable       Enable/disable
+ * @return The status of the enable request
+ */
+cy_rslt_t mtb_hal_pwm_enable(mtb_hal_pwm_t* obj, bool enable);
+
 /** Starts the PWM generation and outputs on <b>pin</b> and <b>compl_pin</b>.
  *
  * @param[in] obj           The PWM object
@@ -141,6 +179,135 @@ cy_rslt_t mtb_hal_pwm_start(mtb_hal_pwm_t* obj);
  */
 cy_rslt_t mtb_hal_pwm_stop(mtb_hal_pwm_t* obj);
 
+/** Sets the period count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The period value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_period_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Sets the alternative period count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The period value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_period_alt_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Sets the compare count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The compare value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_compare_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Sets the shadow compare count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The compare value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_compare_shadow_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Sets the alternative compare count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The compare value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_compare_alt_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Sets the alternative shadow compare count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The compare value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_compare_alt_shadow_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Sets the deadtime count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The deadtime value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_deadtime_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Sets the shadow deadtime count value
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] count          The deadtime value in counts
+ * @return The status of the count set request
+ */
+cy_rslt_t mtb_hal_pwm_set_deadtime_shadow_count(mtb_hal_pwm_t* obj, uint32_t count);
+
+/** Configures the source of the output pins
+ *
+ * @param[in] obj            The PWM object
+ * @param[in] out            Output source for pwm pin
+ * @param[in] out_compl      Output source for the complementary pwm pin
+ * @return The status of the output source configuration request
+ */
+cy_rslt_t mtb_hal_pwm_configure_output(mtb_hal_pwm_t* obj, mtb_hal_pwm_output_t out,
+                                       mtb_hal_pwm_output_t out_compl);
+
+/** Resume the PWM counter
+ *
+ * This function is intented for starting an already enabled PWM.
+ * For enabling the PWM, use mtb_hal_pwm_start
+ *
+ * @param[in] obj            The PWM object
+ */
+void mtb_hal_pwm_resume(mtb_hal_pwm_t* obj);
+
+/** Pause the PWM counter
+ *
+ * This function is intented for temporarily stopping the PWM.
+ * For disabling the PWM, use mtb_hal_pwm_stop
+ *
+ * @param[in] obj            The PWM object
+ */
+void mtb_hal_pwm_pause(mtb_hal_pwm_t* obj);
+
+/** Reload the PWM counter
+ *
+ * This function resets the counter to its initial value at configuration.
+ *
+ * @param[in] obj            The PWM object
+ */
+void mtb_hal_pwm_reload(mtb_hal_pwm_t* obj);
+
+/** Register/clear a callback handler for PWM events
+ *
+ * The referenced function will be called when one of the events enabled by
+ * mtb_hal_pwm_enable_event occurs.
+ *
+ * @param[in] obj           The PWM object
+ * @param[in] callback      The callback handler which will be invoked when the event occurs
+ * @param[in] callback_arg  Generic argument that will be provided to the callback when called
+ */
+void mtb_hal_pwm_register_callback(mtb_hal_pwm_t* obj, mtb_hal_pwm_event_callback_t callback,
+                                   void* callback_arg);
+
+/** Enable or Disable the specified PWM event
+ *
+ * When an enabled event occurs, the function specified by mtb_hal_pwm_register_callback will
+ * be called.
+ *
+ * @param[in] obj           The PWM object
+ * @param[in] event         The PWM event
+ * @param[in] enable        True to turn on interrupts, False to turn off
+ */
+void mtb_hal_pwm_enable_event(mtb_hal_pwm_t* obj, mtb_hal_pwm_event_t event, bool enable);
+
+/** Process interrupts related related to a PWM instance.
+ *
+ * @param obj HAL object for which the interrupt should be processed
+ * @return CY_RSLT_SUCCESS if the interrupt was processed successfully; otherwise an error
+ */
+cy_rslt_t mtb_hal_pwm_process_interrupt(mtb_hal_pwm_t* obj);
 
 #if defined(__cplusplus)
 }

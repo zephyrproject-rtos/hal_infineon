@@ -265,7 +265,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hmac_Start(CRYPTO_Type *base, cy_stc_cry
     /* Input parameters verification */
     if ((NULL == base) || (NULL == hmacState) || (NULL == message))
     {
-        return CY_CRYPTO_BAD_PARAMS;  
+        return CY_CRYPTO_BAD_PARAMS;
     }
 
     return Cy_Crypto_Core_V2_Sha_Update(base, &hmacState->hashState, message, messageSize);
@@ -317,7 +317,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hmac_Finish(CRYPTO_Type *base, cy_stc_cr
     opadPtrTmp = (uint8_t*)hmacState->opad;
 
     status = Cy_Crypto_Core_V2_Sha_Finish(base, &hmacState->hashState, ipadPtrTmp);
-        
+
     /* Here is the ready part of HASH: Hash((Key^ipad)||text) */
 
     if (CY_CRYPTO_SUCCESS == status)
@@ -346,7 +346,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hmac_Finish(CRYPTO_Type *base, cy_stc_cr
             status = Cy_Crypto_Core_V2_Sha_Free(base, &hmacState->hashState);
         }
     }
-    
+
     return status;
 
 }

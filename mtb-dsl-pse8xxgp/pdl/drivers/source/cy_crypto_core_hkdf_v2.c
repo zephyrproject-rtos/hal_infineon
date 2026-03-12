@@ -116,7 +116,7 @@ static uint32_t Cy_Crypto_Core_sha_hashSize(cy_en_crypto_sha_mode_t mode)
 * \ref cy_en_crypto_status_t
 *
 *******************************************************************************/
-cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Extract(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Extract(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t const *salt,
                                           uint32_t saltLength,
                                           uint8_t const  *ikm,
@@ -187,7 +187,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Extract(CRYPTO_Type *base, cy_en_cr
 * \ref cy_en_crypto_status_t
 *
 *******************************************************************************/
-cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Expand(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Expand(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t const *prk,
                                           uint32_t prkLength,
                                           uint8_t const *info,
@@ -277,7 +277,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Expand(CRYPTO_Type *base, cy_en_cry
         if(status != CY_CRYPTO_SUCCESS)
         {
             break;
-        } 
+        }
 
         if(i != n)
         {
@@ -341,7 +341,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf_Expand(CRYPTO_Type *base, cy_en_cry
 * \ref cy_en_crypto_status_t
 *
 *******************************************************************************/
-cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,         
+cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf(CRYPTO_Type *base, cy_en_crypto_sha_mode_t mode,
                                           uint8_t const *salt,
                                           uint32_t saltLength,
                                           uint8_t const *ikm,
@@ -374,7 +374,7 @@ cy_en_crypto_status_t Cy_Crypto_Core_V2_Hkdf(CRYPTO_Type *base, cy_en_crypto_sha
     Cy_Crypto_Core_V2_MemSet(base, prk, 0u, CY_CRYPTO_SHA_MAX_HASH_SIZE);
 
     return status;
-}   
+}
 
 #endif /* (CPUSS_CRYPTO_SHA == 1) && defined(CY_CRYPTO_CFG_HKDF_C) */
 

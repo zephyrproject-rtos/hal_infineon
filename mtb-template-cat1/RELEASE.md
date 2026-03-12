@@ -1,6 +1,8 @@
 # ModusToolbox CAT1 BSP Template Library Release Notes
 
 ### What Changed?
+#### v1.7.6
+* Fixed the compatibility issues encountered when building projects in EWARM using the "C++ only" option.
 #### v1.7.5
 * Fixed an issue related to timeout error during erase flash operation on XMC7x00.
 #### v1.7.4

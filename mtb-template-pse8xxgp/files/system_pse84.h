@@ -27,7 +27,7 @@
 #define _SYSTEM_PSE84_H_
 
 /**
-* \addtogroup group_system_config_psoc_edge
+* \addtogroup group_system_config_psoc_edge Startup/System
 * \{
 * Provides device startup, system configuration, and linker script files.
 * The system startup provides the followings features:
@@ -57,7 +57,7 @@
 * \note If the start of the Cortex-M55 application image is changed, the value
 * of the \ref CY_CORTEX_M55_APPL_ADDR should also be changed. The
 * \ref CY_CORTEX_M55_APPL_ADDR macro should be used as the parameter for the
-* Cy_SysEnableCM55() function call.
+* Cy_SysCM55Enable() function call.
 *
 *
 * \subsection group_system_config_device_initialization_edge Device Initialization
@@ -98,7 +98,7 @@
 *
 * \subsubsection group_system_config_heap_stack_config_gcc_edge ARM GCC
 * The stack and heap sizes are defined in the linker script file: 'pse84_s_cm33.ld', 'pse84_ns_cm33.ld' and 'pse84_ns_cm55.ld'
-* To set stack size in application add makefile ldflags: -Wl,--defsym=APP_MSP_STACK_SIZE=<CUSTOM_VALUE>
+* To set stack size in application add makefile ldflags: -Wl,--defsym=APP_MSP_STACK_SIZE=< CUSTOM_VALUE >
 * Remaining free RAM is used as heap.
 *
 * \note Correct operation of malloc and related functions depends on the working
@@ -107,7 +107,21 @@
 * doesn't check for heap and stack collisions during excessive memory allocations.
 * To ensure the heap always remains within the range defined by __HeapBase and
 * __HeapLimit linker symbols, provide a strong override for the 'sbrk' function:
-* \snippet startup/snippet/main.c snippet_sbrk_cm33
+* ```C
+* void * _sbrk(uint32_t incr)
+* {
+*     extern uint8_t __HeapBase, __HeapLimit;
+*     static uint8_t *heapBrk = &__HeapBase;
+*     uint8_t *prevBrk = heapBrk;
+*     if (incr > (uint32_t)(&__HeapLimit - heapBrk))
+*     {
+*         errno = ENOMEM;
+*         CY_HALT();
+*     }
+*     heapBrk += incr;
+*     return prevBrk;
+* }
+* ```
 * For FreeRTOS-enabled multi-threaded applications, it is sufficient to include
 * clib-support library that provides newlib-compatible implementations of
 * 'sbrk', '__malloc_lock' and '__malloc_unlock':
@@ -116,17 +130,17 @@
 *
 * \subsubsection group_system_config_heap_stack_config_arm_edge ARM Compiler
 * The stack and heap sizes are defined in the linker script file: 'pse84_s_cm33.sct', 'pse84_ns_cm33.sct' and 'pse84_ns_cm55.sct'
-* To set stack size in application add makefile ldflags: --predefine="-DAPP_MSP_STACK_SIZE=<CUSTOM_VALUE>"
+* To set stack size in application add makefile ldflags: --predefine="-DAPP_MSP_STACK_SIZE=< CUSTOM_VALUE >"
 * Remaining free RAM is used as heap.
 *
 * \subsubsection group_system_config_heap_stack_config_iar_edge IAR
 * The stack and heap sizes are defined in the linker script file: 'pse84_s_cm33.icf', 'pse84_ns_cm33.icf' and 'pse84_ns_cm55.icf'
-* To set stack size in application add makefile ldflags: --config_def APP_MSP_STACK_SIZE=<CUSTOM_VALUE>
+* To set stack size in application add makefile ldflags: --config_def APP_MSP_STACK_SIZE=< CUSTOM_VALUE >
 * Remaining free RAM is used as heap.
 *
 * \subsubsection group_system_config_heap_stack_config_llvm_edge LLVM ARM
 * The stack and heap sizes are defined in the linker script file: 'pse84_s_cm33.ld', 'pse84_ns_cm33.ld' and 'pse84_ns_cm55.ld'
-* To set stack size in application add makefile ldflags: -Wl,--defsym=APP_MSP_STACK_SIZE=<CUSTOM_VALUE>
+* To set stack size in application add makefile ldflags: -Wl,--defsym=APP_MSP_STACK_SIZE=< CUSTOM_VALUE >
 * Remaining free RAM is used as heap.
 *
 * \subsection group_system_config_default_handlers_edge Default Interrupt Handlers Definition
@@ -169,8 +183,6 @@
 *   \defgroup group_system_config_cm55_functions_edge Cortex-M55 Control Functions
 * \}
 * \defgroup group_system_config_globals_edge Global Variables
-*
-* \}
 */
 
 #ifdef __cplusplus
@@ -191,57 +203,99 @@ extern "C" {
 * \addtogroup group_system_config_system_macro_edge
 * \{
 */
-#if (CY_SYSTEM_CPU_CM33 == 1UL) || defined(CY_DOXYGEN)
-    /** The Cortex-M33 startup driver identifier */
-    #define CY_STARTUP_M33_ID               ((uint32_t)((uint32_t)((0x10U) & 0x3FFFU) << 18U))
-#endif /* (CY_SYSTEM_CPU_CM33 == 1UL) */
 
+/** The Cortex-M33 startup driver identifier */
+#define CY_STARTUP_M33_ID               ((uint32_t)((uint32_t)((0x10U) & 0x3FFFU) << 18U))
 
-#if (CY_SYSTEM_CPU_CM55 == 1UL) || defined(CY_DOXYGEN)
-    /** The Cortex-M55 startup driver identifier */
-    #define CY_STARTUP_M55_ID               ((uint32_t)((uint32_t)((0x11U) & 0x3FFFU) << 18U))
-#endif /* (CY_SYSTEM_CPU_CM55 == 1UL) */
+/** The Cortex-M55 startup driver identifier */
+#define CY_STARTUP_M55_ID               ((uint32_t)((uint32_t)((0x11U) & 0x3FFFU) << 18U))
+
 /** \} group_system_config_system_macro_edge */
 
+/**
+* \addtogroup group_system_config_functions_edge
+* \{
+*/
 
-
+/** Initializes the system.
+  *
+  * Custom steps can be added to this process by overrding the weak Cy_SystemInit() function.
+  */
 extern void SystemInit(void);
 
+/** Update information about system clocks.
+ *
+ * Gets core clock frequency and updates \ref SystemCoreClock,
+ * and \ref cy_AhbFreqHz.
+ *
+ * Updates global variables used by the Cy_SysLib_Delay(),
+ * Cy_SysLib_DelayUs(), and Cy_SysLib_DelayCycles().
+ */
 extern void SystemCoreClockUpdate(void);
 
+/** Populates system clock frequency variables with the provided values.
+ * Sets the startup clock frequencies of \ref SystemCoreClock,
+ * and \ref cy_AhbFreqHz variables.
+ *
+ * \param systemCoreClk_freq_hz
+ * Frequency in Hz for the System Core Clock (e.g. Cortex-M33)
+ *
+ * \param ahb_freq_hz
+ * Frequency in Hz of the AHB source
+ *
+ * \note This API does not take into account any run-time clock frequency updates.
+ * Should any updates occur, \ref SystemCoreClockUpdate must be called afterwards
+ * on the CM33_NS and CM55.
+ */
 extern void SystemCoreClockSetup (uint32_t systemCoreClk_freq_hz, uint32_t ahb_freq_hz);
 
+/** Performs custom system initialization.
+  * 
+  * The function is called during device startup. This is a weak function that
+  * by default does nothing. It can be overridden to add custom steps to SystemInit
+  */
 extern void Cy_SystemInit(void);
 
+/** \} group_system_config_functions_edge */
+
+/** \cond INTERNAL */
 extern uint32_t cy_delayFreqHz;
 extern uint32_t cy_delayFreqKhz;
 extern uint32_t cy_delayFreqMhz;
+/** \endcond */
 
 
-#if (CY_SYSTEM_CPU_CM33 == 1UL) || defined(CY_DOXYGEN)
 /** \addtogroup group_system_config_globals_edge
 * \{
 */
-#elif (CY_SYSTEM_CPU_CM55 == 1UL) || defined(CY_DOXYGEN)
-/** \addtogroup group_system_config_globals_edge
-* \{
-*/
-#endif
+/**
+* Holds the system core clock, which is the system clock frequency supplied
+* to the SysTick timer and the processor core clock.
+* This variable implements the CMSIS Core global variable.
+* Refer to the [CMSIS documentation]
+* (http://www.keil.com/pack/doc/CMSIS/Core/html/group__system__init__gr.html "System and Clock Configuration")
+* for more details.
+* This variable can be used by debuggers to query the frequency
+* of the debug timer or to configure the trace clock speed.
+*
+* \attention Compilers must be configured to avoid removing this variable in case
+* the application program is not using it. Debugging systems require the variable
+* to be physically present in memory so that it can be examined to configure the debugger. */
 extern uint32_t SystemCoreClock;
+
+/** Holds the AHB frequency. Updated by \ref SystemCoreClockUpdate(). */
 extern uint32_t cy_AhbFreqHz;
+
+/** Holds the flag to indicate if the System woke up from Warm Boot or not */
 extern bool cy_WakeupFromWarmBootStatus;
 
-#if (CY_SYSTEM_CPU_CM33 == 1UL) || defined(CY_DOXYGEN)
 /** \} group_system_config_globals_edge */
-#elif (CY_SYSTEM_CPU_CM55 == 1UL) || defined(CY_DOXYGEN)
-/** \} group_system_config_globals_edge */
-#endif
+
+/** \} group_system_config_psoc_edge */
 
 #ifdef __cplusplus
 }
 #endif
-
-/** \endcond */
 
 #endif /* _SYSTEM_PSE84_H_ */
 

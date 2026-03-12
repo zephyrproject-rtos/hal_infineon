@@ -38,11 +38,7 @@
 extern "C" {
 #endif
 
-/**
-* \addtogroup group_crypto_srv_functions
-* \{
-*/
-
+/** \cond INTERNAL */
 /*******************************************************************************
 * Function Name: Cy_Crypto_Server_Start
 ****************************************************************************//**
@@ -128,8 +124,7 @@ void Cy_Crypto_Server_GetDataHandler(void);
 *
 *******************************************************************************/
 void Cy_Crypto_Server_ErrorHandler(void);
-
-/** \} group_crypto_srv_functions */
+/** \endcond */
 
 /** Backward compatibility macro for the Server Start_xx functions -
     it starts the Server with common functionality configuration */

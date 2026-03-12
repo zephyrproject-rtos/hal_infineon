@@ -2,11 +2,14 @@
 * \file cy_scb_ezi2c.h
 * \version 3.30
 *
+* \brief
 * Provides EZI2C API declarations of the SCB driver.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2016-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_scb_ezi2c
@@ -224,12 +228,6 @@
 *   Four addresses are treated as matching by the hardware: 0x24, 0x34, 0x20
 *   and 0x30. Firmware is required to ACK only the primary and secondary
 *   addresses 0x24 and 0x30 and NAK all others 0x20 and 0x34.
-*
-* \note
-* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
-* For proper operation, when the EZI2C slave is configured to be a wakeup
-* source from Deep Sleep mode, the \ref Cy_SCB_EZI2C_DeepSleepCallback must
-* be copied and modified. Refer to the function description to get the details.
 *
 * \defgroup group_scb_ezi2c_macros Macros
 * \defgroup group_scb_ezi2c_functions Functions

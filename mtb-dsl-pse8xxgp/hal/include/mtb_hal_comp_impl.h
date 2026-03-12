@@ -31,10 +31,8 @@
 
 #if (MTB_HAL_DRIVER_AVAILABLE_COMP)
 
-#if ((CY_IP_MXS40LPCOMP_INSTANCES) > 0)
-#include "mtb_hal_comp_mxs40lpcomp_v2.h"
-#elif ((CY_IP_MXS22LPCOMP_INSTANCES) > 0)
-#include "mtb_hal_comp_mxs22lpcomp_v1.h"
+#if ((CY_IP_MXS40LPCOMP_INSTANCES) > 0) || ((CY_IP_MXS22LPCOMP_INSTANCES) > 0)
+#include "mtb_hal_comp_lpcomp_common.h"
 #endif
 
 #if ((CY_IP_MXS40PPSS_INSTANCES) > 0) && defined (_MTB_HAL_DRIVER_AVAILABLE_COMP_DCSG)
@@ -178,6 +176,35 @@ __STATIC_INLINE cy_rslt_t _mtb_hal_comp_set_ref(mtb_hal_comp_t* obj, uint16_t re
 
 #define mtb_hal_comp_set_ref(obj, ref_mv) _mtb_hal_comp_set_ref(obj, ref_mv)
 
+//--------------------------------------------------------------------------------------------------
+// _mtb_hal_comp_enable
+//--------------------------------------------------------------------------------------------------
+__STATIC_INLINE cy_rslt_t _mtb_hal_comp_enable(mtb_hal_comp_t* obj, bool enable)
+{
+    #if (_MTB_HAL_DRIVER_AVAILABLE_COMP_DCSG)
+    if (obj->comp_type == MTB_HAL_COMP_DCSG)
+    {
+        return _mtb_hal_comp_dcsg_enable(obj, enable);
+    }
+    #endif
+    #if (_MTB_HAL_DRIVER_AVAILABLE_COMP_CSG)
+    if (obj->comp_type == MTB_HAL_COMP_CSG)
+    {
+        return _mtb_hal_comp_csg_enable(obj, enable);
+    }
+    #endif
+    #if (_MTB_HAL_DRIVER_AVAILABLE_COMP_LP)
+    CY_UNUSED_PARAMETER(enable);
+    if (obj->comp_type == MTB_HAL_COMP_LP)
+    {
+        return MTB_HAL_COMP_RSLT_ERR_NOT_SUPPORTED;
+    }
+    #endif
+    return MTB_HAL_COMP_RSLT_ERR_NOT_SUPPORTED;
+}
+
+
+#define mtb_hal_comp_enable _mtb_hal_comp_enable
 
 #if defined(__cplusplus)
 }

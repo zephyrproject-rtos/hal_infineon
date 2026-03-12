@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_ethif.h
-* \version 1.40
+* \version 1.50
 *
 * Provides an API declaration of the Ethernet Interface driver
 *
@@ -81,6 +81,11 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td>1.50</td>
+*     <td>Added new \ref Cy_ETHIF_GetPrivateData API getter.</td>
+*     <td>Code enhancement.</td>
+*   </tr>
+*   <tr>
 *     <td>1.40</td>
 *     <td>Added initialization checks for \ref Cy_ETHIF_Get1588TimerValue and
 *         \ref Cy_ETHIF_Set1588TimerValue functions, added new
@@ -142,7 +147,7 @@ extern "C" {
 #define CY_ETHIF_DRV_VERSION_MAJOR        1
 
 /** Driver minor version */
-#define CY_ETHIF_DRV_VERSION_MINOR        40
+#define CY_ETHIF_DRV_VERSION_MINOR        50
 
 /** Eth driver ID */
 #define CY_ETHIF_ID                     CY_PDL_DRV_ID(0x71U)
@@ -759,6 +764,7 @@ cy_en_ethif_status_t Cy_ETHIF_SetFilterAddress(ETH_Type *base, cy_en_ethif_filte
 void Cy_ETHIF_SetPromiscuousMode(ETH_Type *base, bool toBeEnabled);
 void Cy_ETHIF_SetNoBroadCast(ETH_Type *base, bool rejectBC);
 void Cy_ETHIF_DiscardNonVLANFrames(ETH_Type *base, bool enable);
+void * Cy_ETHIF_GetPrivateData(ETH_Type *base);
 
 /** \} group_ethif_functions */
 

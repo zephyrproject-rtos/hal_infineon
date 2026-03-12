@@ -7,7 +7,9 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2018-2025 Cypress Semiconductor Corporation
+* Copyright(c) 2018-2025 Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG
+*
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 
 /**
 * \addtogroup group_smartio
@@ -161,36 +164,6 @@
 * \section group_smartio_more_information More Information
 *
 * Refer to the technical reference manual (TRM) and the device datasheet.
-*
-* \section group_smartio_changelog Changelog
-* <table class="doxtable">
-*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
-*   <tr>
-*     <td>1.0.4</td>
-*     <td>Updated driver guards.</td>
-*     <td>Driver disabled on devices that do not support SMARTIO.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0.3</td>
-*     <td>Updated driver guards.</td>
-*     <td>Support Added for future devices of the CAT1B.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0.2</td>
-*     <td>Documented MISRA 2012 violations.</td>
-*     <td>MISRA 2012 compliance.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0.1</td>
-*     <td>Minor documentation updates.</td>
-*     <td>Documentation enhancement.</td>
-*   </tr>
-*   <tr>
-*     <td>1.0</td>
-*     <td>The initial version.</td>
-*     <td></td>
-*   </tr>
-* </table>
 *
 * \defgroup group_smartio_macros Macros
 * \defgroup group_smartio_functions Functions

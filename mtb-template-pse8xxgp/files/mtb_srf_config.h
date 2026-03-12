@@ -48,7 +48,7 @@ extern "C" {
 #define MTB_SRF_MAX_ARG_IN_SIZE                 (5U * sizeof(uint32_t))
 
 /** Maximum output argument count in bytes, adjusting the default BSP-generated pool */
-#define MTB_SRF_MAX_ARG_OUT_SIZE                (1U * sizeof(uint32_t))
+#define MTB_SRF_MAX_ARG_OUT_SIZE                (2U * sizeof(uint32_t))
 
 /** Size in bytes of the secure scratch buffer into which secure request inputs are copied
  * before processing.

@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_hppass_sar.h
-* \version 1.30.1
+* \version 1.30.2
 *
 * Header file for the SAR ADC subsystem of the High Power Programmable Analog Sub-System.
 *
@@ -55,6 +55,68 @@
 /**
 * \addtogroup group_hppass_sar
 * \{
+* HPPASS SAR key features:
+* - 12-bit resolution
+* - 12 Msps maximum sampling rate
+* - 16 samplers (12 direct and 4 muxed) with ability to be triggered simultaneously
+* - Built-in sampler gain (1, 3, 6, 12)
+* - Result post-processing: pseudo differential conversion, averaging, FIR filtering, FIFO buffering
+* - 8 limit detectors
+* - Self-calibration support (offset, linearity, and gain)
+* - SAR Sequencer with 8 independent groups and programmable sample time for each group
+*
+* The internal structure of the HPPASS SAR ADC is shown below.
+*
+* \image html hppass_sar.png width=60%
+*
+* HPPASS SAR consists of SAR Sequencer, samplers, SAR ADC core and post-processing blocks.
+* There are two types of samplers: direct and muxed.
+* First 12 samplers are direct samplers, each connected to its own dedicated analog input,
+* forming first 12 SAR channels.
+* Last 4 samplers are muxed samplers, each can be connected to one of 4 shared analog inputs
+* through the analog multiplexer, forming last 16 SAR channels.
+* Although HPPASS supports 28 SAR channels in total, some channels may not be available on certain
+* devices or be reserved.
+* Refer to the device datasheet and reference manual for HPPASS SAR analog input pins mapping.
+*
+* \note When a muxed sampler is used, the analog multiplexer reconfiguration requires additional
+*       sample time. Refer to the device datasheet for details.
+*
+* \section group_hppass_sar_seq SAR Sequencer
+* The internal structure of the HPPASS SAR sequencer is shown below.
+*
+* \image html hppass_sar_sequencer.png width=60%
+*
+* Operation of the SAR sequencer is controlled by the \ref cy_stc_hppass_sar_grp_t configuration structures.
+* HPPASS supports up to 8 SAR sequencer groups, each group can be configured to perform
+* measurements on any combination of direct and muxed samplers with selected input trigger, sample time and priority.
+*
+* In SAR sequencer group, direct samplers can be enabled by setting corresponding bit in
+* \ref cy_stc_hppass_sar_grp_t::dirSampMsk field, while muxed samplers are enabled by setting
+* \ref cy_stc_hppass_sar_grp_t::muxSampMsk field.
+*
+* The SAR sequencer group can be triggered by HPPASS Input Trigger or AC (\ref cy_stc_hppass_sar_grp_t::trig).
+* To trigger selected group from the firmware, set \ref cy_stc_hppass_sar_grp_t::trig to one of 8 HPPASS input triggers
+* (\ref cy_en_hppass_sar_trig_t) and configure selected input trigger in firmware mode by setting
+* \ref cy_stc_hppass_sar_grp_t::trig to \ref CY_HPPASS_TR_FW_PULSE or \ref CY_HPPASS_TR_FW_LEVEL.
+* To start the group conversion, call \ref Cy_HPPASS_SetFwTrigger function with the same trigger in the mask parameter.
+*
+* The SAR sequencer group can perform immediate input sampling or include addition sample time for all enabled
+* samplers. HPPASS SAR supports 3 different sample time settings, which are configured in
+* \ref cy_stc_hppass_sar_t::sampTime and selected for each SAR sequencer group in
+* \ref cy_stc_hppass_sar_grp_t::sampTime field.
+*
+* SAR sequencer group can be configured to be put in high or low priority conversion queue.
+* High-priority groups are always converted before low-priority groups and are guaranteed
+* to be converted before sampler leakage renders the sample invalid. However, low-priority groups may be in
+* the hold state for too long. Check the \ref Cy_HPPASS_SAR_GetHoldViolationStatus function status
+* to ensure that low-priority groups were converted before they expired.
+*
+* Additionally, the SAR sequencer group can be configured in Continuous mode, where the group is
+* retriggered automatically after the previous conversion is complete. This mode is configured in
+* \ref cy_stc_hppass_sar_grp_t::continuous field. In Continuous mode, the group can be stopped by
+* calling \ref Cy_HPPASS_SAR_DisableGroupContConvert function.
+*
 * \section group_hppass_sar_initialization HW Initialization and Enable
 * Configuration snippet for one shot SAR application.
 * Startup SAR state enables SAR.

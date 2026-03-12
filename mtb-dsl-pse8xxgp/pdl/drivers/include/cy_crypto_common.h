@@ -110,7 +110,7 @@ extern "C" {
 /** \endcond */
 
 /**
-* \addtogroup group_crypto_cli_srv_macros
+* \addtogroup group_crypto_macros
 * \{
 */
 
@@ -290,6 +290,7 @@ extern "C" {
 /** Processed message size for the RSA 4096Bit mode (in bytes) */
 #define CY_CRYPTO_RSA4096_MESSAGE_SIZE      CY_CRYPTO_BYTE_SIZE_OF_BITS(4096u)
 /** \endcond */
+/** \} group_crypto_macros */
 
 /**
 * \addtogroup group_crypto_data_structures
@@ -311,7 +312,7 @@ extern "C" {
 *  - e - exponent part of the key.
 *
 * Other fields are accelerating coefficients and can be calculated by
-* \ref Cy_Crypto_Rsa_CalcCoefs.
+* Cy_Crypto_Rsa_CalcCoefs.
 *
 * \note The <b>modulus</b> and <b>exponent</b> values in the
 * \ref cy_stc_crypto_rsa_pub_key_t must also be in little-endian order.<br>
@@ -352,12 +353,10 @@ typedef struct
 /** Crypto Driver PDL ID */
 #define CY_CRYPTO_ID                        CY_PDL_DRV_ID(0x0Cu)
 
-/** \} group_crypto_cli_srv_macros */
+/** \} group_crypto_macros */
 
-/**
-* \addtogroup group_crypto_config_structure
-* \{
-    The Crypto initialization configuration.
+/** \cond INTERNAL */
+/*  The Crypto initialization configuration.
 *   \note Should be the same for the Crypto Server and Crypto Client initialization.
 */
 
@@ -394,10 +393,10 @@ typedef struct
           to get data.
         - If this field is not NULL, server will call this interrupt handler.
           This interrupt handler must call the
-          \ref Cy_Crypto_Server_GetDataHandler to get data to process.
+          Cy_Crypto_Server_GetDataHandler to get data to process.
 
           Note: In the second case user should process data separately and
-          clear interrupt by calling \ref Cy_Crypto_Server_Process.
+          clear interrupt by calling Cy_Crypto_Server_Process.
           This model is used in the
           multitasking environment. */
     cy_israddress userGetDataHandler;
@@ -408,7 +407,7 @@ typedef struct
           for error processing.
         - If this field is not NULL - server will call this interrupt handler.
           This interrupt handler must call the
-          \ref Cy_Crypto_Server_ErrorHandler to clear the interrupt. */
+          Cy_Crypto_Server_ErrorHandler to clear the interrupt. */
     cy_israddress userErrorHandler;
 
     /** Specifies the prepared data notifier interrupt configuration. It used
@@ -420,14 +419,10 @@ typedef struct
     cy_stc_sysint_t cryptoErrorIntrConfig;
 
 } cy_stc_crypto_config_t;
+/** \endcond */
 
-/** \} group_crypto_config_structure */
 
-/**
-* \addtogroup group_crypto_cli_data_structures
-* \{
-*/
-
+/** \cond INTERNAL */
 /** Structure for storing a description of a Crypto hardware error  */
 typedef struct
 {
@@ -454,8 +449,7 @@ typedef struct
      */
     uint32_t errorStatus1;
 } cy_stc_crypto_hw_error_t;
-
-/** \} group_crypto_cli_data_structures */
+/** \endcond */
 
 
 /** The Crypto library functionality level. */
@@ -1011,12 +1005,7 @@ typedef struct {
 /*************************************************************
 *  Structures used for communication between Client and Server
 ***************************************************************/
-
-/**
-* \addtogroup group_crypto_srv_data_structures
-* \{
-*/
-
+/** \cond INTERNAL */
 /** The structure for storing the crypto server context.
 * All fields for the context structure are internal. Firmware never reads or
 * writes these values. Firmware allocates the structure and provides the
@@ -1045,13 +1034,9 @@ typedef struct
     cy_stc_crypto_hw_error_t hwErrorStatus;
     /** \endcond */
 } cy_stc_crypto_server_context_t;
+/** \endcond */
 
-/** \} group_crypto_srv_data_structures */
-
-/**
-* \addtogroup group_crypto_cli_data_structures
-* \{
-*/
+/** \cond INTERNAL */
 
 /** The structure for storing the crypto client context.
 * All fields for the context structure are internal. Firmware never reads or
@@ -1212,22 +1197,30 @@ typedef enum
 /******************************************
  * Configuration structure
  ******************************************/
-/** \cond INTERNAL */
+/**
+* \addtogroup group_crypto_enums
+* \{
+*/
+
+/** Selection of the bitstream. */
 typedef enum
 {
-    /** "Selection of the bitstream: */
     CY_CRYPTO_TRMON_BS_DAS = 0, /**< "0": DAS bitstream. */
     CY_CRYPTO_TRMON_BS_RED,     /**< "1": RED bitstream. */
     CY_CRYPTO_TRMON_BS_TR,      /**< "2": TR bitstream.  */
     CY_CRYPTO_TRMON_BS_UNDEF    /**< "3": Undefined.     */
 } cy_en_crypto_trng_bs_sel_t;
-/** \endcond */
+/** \} group_crypto_enums */
+
+/**
+* \addtogroup group_crypto_data_structures
+* \{
+*/
 
 /** The structure for storing the TRNG configuration.
 */
 typedef struct
 {
-    /** \cond INTERNAL */
     /**
      * "Specifies the clock divider that is used to sample oscillator data.
      * This clock divider is wrt. "clk_sys".
@@ -1364,8 +1357,9 @@ typedef struct
      * ...
      * "65535": 65536 bits. */
     uint16_t monWindowSize;
-    /** \endcond */
 } cy_stc_crypto_trng_config_t;
+
+/** \} group_crypto_data_structures */
 
 /** The structure for storing the TRNG context.
 * All fields for the context structure are internal. Firmware never reads or
@@ -1480,7 +1474,7 @@ typedef struct
 typedef struct
 {
     /** \cond INTERNAL */
-    /** Pointer to verification result /ref cy_en_crypto_rsa_ver_result_t */
+    /** Pointer to verification result cy_en_crypto_rsa_ver_result_t */
     cy_en_crypto_rsa_ver_result_t *verResult;
     /** SHA digest type, used with SHA calculation of the message */
     cy_en_crypto_sha_mode_t digestType;
@@ -1612,7 +1606,8 @@ typedef enum
 
 #endif
 
-/** \} group_crypto_cli_data_structures */
+/** \endcond */
+
 
 #if defined(__cplusplus)
 }
