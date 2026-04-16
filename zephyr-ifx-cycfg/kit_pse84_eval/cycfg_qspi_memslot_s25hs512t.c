@@ -1,15 +1,15 @@
 /*
- * (c) 2025 Infineon Technologies AG, or an affiliate of Infineon Technologies AG.
- * All rights reserved.
+ * Copyright (c) 2026 Infineon Technologies AG,
+ * or an affiliate of Infineon Technologies AG.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "cycfg_qspi_memslot.h"
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_readCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
-	.command = 0xEBU,
+	.command = 0xECU,
 	/* The width of the command transfer. */
 	.cmdWidth = CY_SMIF_WIDTH_SINGLE,
 	/* The width of the address transfer. */
@@ -29,8 +29,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readCmd = {
 	.dummyCyclesPresence = CY_SMIF_PRESENT_1BYTE,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -38,15 +37,14 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeEnCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_writeEnCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
 	.command = 0x06U,
 	/* The width of the command transfer. */
@@ -68,8 +66,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeEnCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -77,15 +74,14 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeEnCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeDisCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_writeDisCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
 	.command = 0x04U,
 	/* The width of the command transfer. */
@@ -107,8 +103,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeDisCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -116,17 +111,16 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeDisCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_eraseCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_eraseCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
-	.command = 0xD8U,
+	.command = 0xDCU,
 	/* The width of the command transfer. */
 	.cmdWidth = CY_SMIF_WIDTH_SINGLE,
 	/* The width of the address transfer. */
@@ -146,8 +140,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_eraseCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -155,15 +148,14 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_eraseCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_chipEraseCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_chipEraseCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
 	.command = 0x60U,
 	/* The width of the command transfer. */
@@ -185,8 +177,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_chipEraseCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -194,17 +185,16 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_chipEraseCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_programCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_programCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
-	.command = 0x02U,
+	.command = 0x12U,
 	/* The width of the command transfer. */
 	.cmdWidth = CY_SMIF_WIDTH_SINGLE,
 	/* The width of the address transfer. */
@@ -224,8 +214,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_programCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -233,15 +222,14 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_programCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readStsRegQeCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_readStsRegQeCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
 	.command = 0x35U,
 	/* The width of the command transfer. */
@@ -263,8 +251,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readStsRegQeCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -272,15 +259,14 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readStsRegQeCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readStsRegWipCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_readStsRegWipCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
 	.command = 0x05U,
 	/* The width of the command transfer. */
@@ -302,8 +288,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readStsRegWipCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -311,15 +296,14 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_readStsRegWipCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
 #endif /* CY_IP_MXSMIF_VERSION */
 };
 
-cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeStsRegQeCmd = {
+cy_stc_smif_mem_cmd_t S25HS512T_SMIF0_SlaveSlot_1_writeStsRegQeCmd = {
 	/* The 8-bit command. 1 x I/O read command. */
 	.command = 0x01U,
 	/* The width of the command transfer. */
@@ -341,8 +325,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeStsRegQeCmd = {
 	.dummyCyclesPresence = CY_SMIF_NOT_PRESENT,
 	/* This specifies the presence of the mode field */
 	.modePresence = CY_SMIF_NOT_PRESENT,
-	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode
-	   present */
+	/* The high byte of a 16-bit mode. This value is 0x0 when there is no higher byte mode present */
 	.modeH = 0x00,
 	/* The Data rate of mode */
 	.modeRate = CY_SMIF_SDR,
@@ -350,8 +333,7 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeStsRegQeCmd = {
 	.addrRate = CY_SMIF_SDR,
 	/* This specifies the width of the command field */
 	.cmdPresence = CY_SMIF_PRESENT_1BYTE,
-	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command
-	   present */
+	/* The high byte of a 16-bit command. This value is 0x0 when there is no higher byte command present */
 	.commandH = 0x00,
 	/* The Data rate of command */
 	.cmdRate = CY_SMIF_SDR,
@@ -359,92 +341,93 @@ cy_stc_smif_mem_cmd_t S25FS128S_SMIF0_SlaveSlot_1_writeStsRegQeCmd = {
 };
 
 #if (CY_SMIF_DRV_VERSION_MAJOR > 1) || (CY_SMIF_DRV_VERSION_MINOR >= 50)
-static cy_stc_smif_hybrid_region_info_t S25FS128S_SMIF0_SlaveSlot_1_region0 = {
+static cy_stc_smif_hybrid_region_info_t S25HS512T_SMIF0_SlaveSlot_1_region0 = {
 	/* The region start address. */
 	.regionAddress = 0x0U,
 	/* The number of sectors in this region. */
-	.sectorsCount = 8U,
+	.sectorsCount = 32U,
 	/* The erase command to use for erasing sectors in this region. */
-	.eraseCmd = 0x20U,
+	.eraseCmd = 0x21U,
 	/* The sector size in bytes. */
 	.eraseSize = 0x1000U,
 	/* The erase time for these sectors in ms. */
-	.eraseTime = 725U,
+	.eraseTime = 335U,
 };
 
-static cy_stc_smif_hybrid_region_info_t S25FS128S_SMIF0_SlaveSlot_1_region1 = {
+static cy_stc_smif_hybrid_region_info_t S25HS512T_SMIF0_SlaveSlot_1_region1 = {
 	/* The region start address. */
-	.regionAddress = 0x8000U,
+	.regionAddress = 0x20000U,
 	/* The number of sectors in this region. */
 	.sectorsCount = 1U,
 	/* The erase command to use for erasing sectors in this region. */
-	.eraseCmd = 0xD8U,
+	.eraseCmd = 0xDCU,
 	/* The sector size in bytes. */
-	.eraseSize = 0x8000U,
+	.eraseSize = 0x20000U,
 	/* The erase time for these sectors in ms. */
-	.eraseTime = 725U,
+	.eraseTime = 5869U,
 };
 
-static cy_stc_smif_hybrid_region_info_t S25FS128S_SMIF0_SlaveSlot_1_region2 = {
+static cy_stc_smif_hybrid_region_info_t S25HS512T_SMIF0_SlaveSlot_1_region2 = {
 	/* The region start address. */
-	.regionAddress = 0x10000U,
+	.regionAddress = 0x40000U,
 	/* The number of sectors in this region. */
 	.sectorsCount = 255U,
 	/* The erase command to use for erasing sectors in this region. */
-	.eraseCmd = 0xD8U,
+	.eraseCmd = 0xDCU,
 	/* The sector size in bytes. */
-	.eraseSize = 0x10000U,
+	.eraseSize = 0x40000U,
 	/* The erase time for these sectors in ms. */
-	.eraseTime = 725U,
+	.eraseTime = 5869U,
 };
 
-static cy_stc_smif_hybrid_region_info_t *S25FS128S_SMIF0_SlaveSlot_1_regionInfo[3] = {
-	&S25FS128S_SMIF0_SlaveSlot_1_region0, &S25FS128S_SMIF0_SlaveSlot_1_region1,
-	&S25FS128S_SMIF0_SlaveSlot_1_region2};
+static cy_stc_smif_hybrid_region_info_t *S25HS512T_SMIF0_SlaveSlot_1_regionInfo[3] = {
+	&S25HS512T_SMIF0_SlaveSlot_1_region0,
+	&S25HS512T_SMIF0_SlaveSlot_1_region1,
+	&S25HS512T_SMIF0_SlaveSlot_1_region2};
 
 #endif
 
-cy_stc_smif_mem_device_cfg_t deviceCfg_S25FS128S_SMIF0_SlaveSlot_1 = {
+cy_stc_smif_mem_device_cfg_t deviceCfg_S25HS512T_SMIF0_SlaveSlot_1 = {
 	/* Specifies the number of address bytes used by the memory slave device. */
-	.numOfAddrBytes = 0x03U,
+	.numOfAddrBytes = 0x04U,
 	/* The size of the memory. */
-	.memSize = 0x1000000U,
+	.memSize = 0x04000000U,
 	/* Specifies the Read command. */
-	.readCmd = &S25FS128S_SMIF0_SlaveSlot_1_readCmd,
+	.readCmd = &S25HS512T_SMIF0_SlaveSlot_1_readCmd,
 	/* Specifies the Write Enable command. */
-	.writeEnCmd = &S25FS128S_SMIF0_SlaveSlot_1_writeEnCmd,
+	.writeEnCmd = &S25HS512T_SMIF0_SlaveSlot_1_writeEnCmd,
 	/* Specifies the Write Disable command. */
-	.writeDisCmd = &S25FS128S_SMIF0_SlaveSlot_1_writeDisCmd,
+	.writeDisCmd = &S25HS512T_SMIF0_SlaveSlot_1_writeDisCmd,
 	/* Specifies the Erase command. */
-	.eraseCmd = &S25FS128S_SMIF0_SlaveSlot_1_eraseCmd,
+	.eraseCmd = &S25HS512T_SMIF0_SlaveSlot_1_eraseCmd,
 	/* Specifies the sector size of each erase. */
-	.eraseSize = 0x0010000U,
+	.eraseSize = 0x0040000U,
 	/* Specifies the Chip Erase command. */
-	.chipEraseCmd = &S25FS128S_SMIF0_SlaveSlot_1_chipEraseCmd,
+	.chipEraseCmd = &S25HS512T_SMIF0_SlaveSlot_1_chipEraseCmd,
 	/* Specifies the Program command. */
-	.programCmd = &S25FS128S_SMIF0_SlaveSlot_1_programCmd,
+	.programCmd = &S25HS512T_SMIF0_SlaveSlot_1_programCmd,
 	/* Specifies the page size for programming. */
 	.programSize = 0x0000100U,
 	/* Specifies the command to read the QE-containing status register. */
-	.readStsRegQeCmd = &S25FS128S_SMIF0_SlaveSlot_1_readStsRegQeCmd,
+	.readStsRegQeCmd = &S25HS512T_SMIF0_SlaveSlot_1_readStsRegQeCmd,
 	/* Specifies the command to read the WIP-containing status register. */
-	.readStsRegWipCmd = &S25FS128S_SMIF0_SlaveSlot_1_readStsRegWipCmd,
+	.readStsRegWipCmd = &S25HS512T_SMIF0_SlaveSlot_1_readStsRegWipCmd,
 	/* Specifies the command to write into the QE-containing status register. */
-	.writeStsRegQeCmd = &S25FS128S_SMIF0_SlaveSlot_1_writeStsRegQeCmd,
+	.writeStsRegQeCmd = &S25HS512T_SMIF0_SlaveSlot_1_writeStsRegQeCmd,
 	/* The mask for the status register. */
 	.stsRegBusyMask = 0x01U,
 	/* The mask for the status register. */
 	.stsRegQuadEnableMask = 0x02U,
 	/* The max time for the erase type-1 cycle-time in ms. */
-	.eraseTime = 725U,
+	.eraseTime = 5869U,
 	/* The max time for the chip-erase cycle-time in ms. */
-	.chipEraseTime = 180000U,
+	.chipEraseTime = 696000U,
 	/* The max time for the page-program cycle-time in us. */
-	.programTime = 2000U,
+	.programTime = 2175U,
 #if (CY_SMIF_DRV_VERSION_MAJOR > 1) || (CY_SMIF_DRV_VERSION_MINOR >= 50)
 	/* Points to NULL or to structure with info about sectors for hybrid memory. */
 	.hybridRegionCount = 3U,
-	.hybridRegionInfo = S25FS128S_SMIF0_SlaveSlot_1_regionInfo,
+	.hybridRegionInfo = S25HS512T_SMIF0_SlaveSlot_1_regionInfo,
 #else
 #error Hybrid erase sectors require SMIF driver 1.50 or greater.
 #endif
@@ -472,13 +455,12 @@ cy_stc_smif_mem_device_cfg_t deviceCfg_S25FS128S_SMIF0_SlaveSlot_1 = {
 #endif
 };
 
-cy_stc_smif_mem_config_t S25FS128S_SMIF0_SlaveSlot_1 = {
+cy_stc_smif_mem_config_t S25HS512T_SMIF0_SlaveSlot_1 = {
 	/* Determines the slot number where the memory device is placed. */
 	.slaveSelect = CY_SMIF_SLAVE_SELECT_1,
 /* Flags. */
 #if (CY_IP_MXSMIF_VERSION >= 2)
-	.flags = CY_SMIF_FLAG_SMIF_REV_3 | CY_SMIF_FLAG_MEMORY_MAPPED | CY_SMIF_FLAG_WR_EN |
-		 CY_SMIF_FLAG_MERGE_ENABLE,
+	.flags = CY_SMIF_FLAG_SMIF_REV_3 | CY_SMIF_FLAG_MEMORY_MAPPED | CY_SMIF_FLAG_WR_EN | CY_SMIF_FLAG_MERGE_ENABLE,
 #else
 	.flags = CY_SMIF_FLAG_MEMORY_MAPPED | CY_SMIF_FLAG_WR_EN | CY_SMIF_FLAG_MERGE_ENABLE,
 #endif /* CY_IP_MXSMIF_VERSION */
@@ -488,19 +470,18 @@ cy_stc_smif_mem_config_t S25FS128S_SMIF0_SlaveSlot_1 = {
 	Valid when the memory-mapped mode is enabled. */
 	.baseAddress = 0x60000000U,
 	/* The size allocated in the PSoC memory map, for the memory slave device.
-	The size is allocated from the base address. Valid when the memory mapped mode is enabled.
-      */
-	.memMappedSize = 0x1000000U,
+	The size is allocated from the base address. Valid when the memory mapped mode is enabled. */
+	.memMappedSize = 0x4000000U,
 	/* If this memory device is one of the devices in the dual quad SPI configuration.
 	Valid when the memory mapped mode is enabled. */
 	.dualQuadSlots = 0,
 	/* The configuration of the device. */
-	.deviceCfg = &deviceCfg_S25FS128S_SMIF0_SlaveSlot_1,
+	.deviceCfg = &deviceCfg_S25HS512T_SMIF0_SlaveSlot_1,
 #if (CY_IP_MXSMIF_VERSION >= 2)
 	/** Continous transfer merge timeout.
 	 * After this period the memory device is deselected. A later transfer, even from a
-	 * continuous address, starts with the overhead phases (command, address, mode, dummy
-	 * cycles). This configuration parameter is available for CAT1B devices. */
+	 * continuous address, starts with the overhead phases (command, address, mode, dummy cycles).
+	 * This configuration parameter is available for CAT1B devices. */
 	.mergeTimeout = CY_SMIF_MERGE_TIMEOUT_256_CYCLES,
 #else
 #error Features used by this file require CY_IP_MXSMIF_VERSION >= 2.
@@ -508,7 +489,7 @@ cy_stc_smif_mem_config_t S25FS128S_SMIF0_SlaveSlot_1 = {
 };
 
 cy_stc_smif_mem_config_t *smif0MemConfigs[CY_SMIF_DEVICE_NUM0] = {
-	&S25FS128S_SMIF0_SlaveSlot_1,
+	&S25HS512T_SMIF0_SlaveSlot_1,
 };
 
 cy_stc_smif_block_config_t smif0BlockConfig = {
