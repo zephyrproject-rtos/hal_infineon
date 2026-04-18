@@ -27,10 +27,14 @@
 
 #pragma once
 
-#if defined (COMPONENT_SECURE_DEVICE)
-#include "cy_device_headers_s.h"
+#if defined(PSE846GPS2DBZC4A)
+    #if defined(COMPONENT_SECURE_DEVICE)
+        #include "pse846gps2dbzc4a_s.h"
+    #else
+        #include "pse846gps2dbzc4a.h"
+    #endif
 #else
-#include "cy_device_headers_ns.h"
+    #error "Unsupported PSE84 device."
 #endif
 
 /* [] END OF FILE */
