@@ -1,6 +1,8 @@
 license:
   main: apache-2.0
   report_missing: true
+  additional:
+    - boost-1.0
   category: Permissive
 copyright:
   check: true
