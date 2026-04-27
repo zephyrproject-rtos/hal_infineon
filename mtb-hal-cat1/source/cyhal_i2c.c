@@ -858,6 +858,7 @@ cy_rslt_t cyhal_i2c_master_transfer_async(cyhal_i2c_t *obj, uint16_t address, co
             obj->pending = (rx_size)
                 ? _CYHAL_I2C_PENDING_TX_RX
                 : _CYHAL_I2C_PENDING_TX;
+			obj->tx_config.xferPending = (rx_size != 0u);
             Cy_SCB_I2C_MasterWrite(obj->base, &obj->tx_config, &obj->context);
             /* Receive covered by interrupt handler - _cyhal_i2c_irq_handler() */
         }
