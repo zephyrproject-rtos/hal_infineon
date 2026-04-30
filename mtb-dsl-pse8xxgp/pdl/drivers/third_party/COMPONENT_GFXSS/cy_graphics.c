@@ -529,7 +529,7 @@ cy_en_syspm_status_t  Cy_GFXSS_DeepSleepCallback(cy_stc_syspm_callback_params_t 
     }
 
     cy_en_syspm_status_t retStatus = CY_SYSPM_SUCCESS;
-    int32_t ts_width, ts_height, intr_mask;
+    int32_t intr_mask;
     GFXSS_Type *locBase = (GFXSS_Type *) callbackParams->base;
     cy_stc_gfx_context_t *locContext = (cy_stc_gfx_context_t *) callbackParams->context;
 
@@ -711,9 +711,6 @@ cy_en_syspm_status_t  Cy_GFXSS_DeepSleepCallback(cy_stc_syspm_callback_params_t 
             if(locContext->dc_context.ovl1_layer_config.layer_enable){
 		Cy_GFXSS_Set_Overlay1(locBase, (uint32_t *)(locContext->dc_context.ovl1_layer_config.buffer_address), locContext);
             }
-            if(locContext->gpu_context.enabled && locContext->gpu_context.vg_lite_initialised){
-                vg_lite_init(locContext->gpu_context.ts_width, locContext->gpu_context.ts_height);
-            }
 
             retStatus = CY_SYSPM_SUCCESS;
 
@@ -722,15 +719,6 @@ cy_en_syspm_status_t  Cy_GFXSS_DeepSleepCallback(cy_stc_syspm_callback_params_t 
 
         case CY_SYSPM_BEFORE_TRANSITION:
         {
-            if( vg_lite_get_tessellation_parameters( &ts_width, &ts_height) == VG_LITE_SUCCESS){
-                locContext->gpu_context.vg_lite_initialised = true;
-                locContext->gpu_context.ts_width = (uint32_t)ts_width;
-                locContext->gpu_context.ts_height = (uint32_t)ts_height;
-                vg_lite_close();
-            }else{
-                locContext->gpu_context.vg_lite_initialised = false;
-            }
-
             viv_dc_deinit();
 
             retStatus = CY_SYSPM_SUCCESS;

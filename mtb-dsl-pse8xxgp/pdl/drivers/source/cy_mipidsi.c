@@ -499,13 +499,13 @@ static cy_en_mipidsi_status_t cy_mipi_dsi_dcs_cmd(GFXSS_MIPIDSI_Type *mipi_dsi,
 
     switch (cmd)
     {
-    case MIPI_DCS_EXIT_SLEEP_MODE:
-    case MIPI_DCS_ENTER_SLEEP_MODE:
-    case MIPI_DCS_SET_DISPLAY_ON:
-    case MIPI_DCS_SET_DISPLAY_OFF:
-    case MIPI_DCS_SOFT_RESET:
+    case CY_MIPI_DCS_EXIT_SLEEP_MODE:
+    case CY_MIPI_DCS_ENTER_SLEEP_MODE:
+    case CY_MIPI_DCS_SET_DISPLAY_ON:
+    case CY_MIPI_DCS_SET_DISPLAY_OFF:
+    case CY_MIPI_DCS_SOFT_RESET:
         buf[0] = (uint8_t)cmd;
-        err    = cy_mipi_dsi_pkt_write(mipi_dsi, (uint8_t)MIPI_DSI_DCS_SHORT_WRITE, buf, 1UL);
+        err    = cy_mipi_dsi_pkt_write(mipi_dsi, (uint8_t)CY_MIPI_DSI_DCS_SHORT_WRITE, buf, 1UL);
         break;
 
     default:
@@ -826,15 +826,15 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_WritePacket(GFXSS_MIPIDSI_Type *base, const ui
     }
     else if (1UL == length)
     {
-        packet_type = MIPI_DSI_DCS_SHORT_WRITE;
+        packet_type = CY_MIPI_DSI_DCS_SHORT_WRITE;
     }
     else if (2UL == length)
     {
-        packet_type = MIPI_DSI_DCS_SHORT_WRITE_PARAM;
+        packet_type = CY_MIPI_DSI_DCS_SHORT_WRITE_PARAM;
     }
     else
     {
-        packet_type = MIPI_DSI_DCS_LONG_WRITE;
+        packet_type = CY_MIPI_DSI_DCS_LONG_WRITE;
     }
 
     return cy_mipi_dsi_pkt_write(base, (uint8_t)packet_type, buf, length);
@@ -854,19 +854,19 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_GenericWritePacket(GFXSS_MIPIDSI_Type *base, c
     }
     else if (1UL == length)
     {
-        packet_type = MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM;
+        packet_type = CY_MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM;
     }
     else if (2UL == length)
     {
-        packet_type = MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM;
+        packet_type = CY_MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM;
     }
     else if (3UL == length)
     {
-        packet_type = MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM;
+        packet_type = CY_MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM;
     }
     else
     {
-        packet_type = MIPI_DSI_GENERIC_LONG_WRITE;
+        packet_type = CY_MIPI_DSI_GENERIC_LONG_WRITE;
     }
 
     return cy_mipi_dsi_pkt_write(base, (uint8_t)packet_type, buf, length);
@@ -895,7 +895,7 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_EnterSleep(GFXSS_MIPIDSI_Type *base)
     {
         return CY_MIPIDSI_BAD_PARAM;
     }
-    result = cy_mipi_dsi_dcs_cmd(base, MIPI_DCS_ENTER_SLEEP_MODE, NULL, 0);
+    result = cy_mipi_dsi_dcs_cmd(base, CY_MIPI_DCS_ENTER_SLEEP_MODE, NULL, 0);
     if (result != CY_MIPIDSI_SUCCESS)
     {
         return result;
@@ -911,7 +911,7 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_ExitSleep(GFXSS_MIPIDSI_Type *base)
         return CY_MIPIDSI_BAD_PARAM;
     }
 
-    result = cy_mipi_dsi_dcs_cmd(base, MIPI_DCS_EXIT_SLEEP_MODE, NULL, 0);
+    result = cy_mipi_dsi_dcs_cmd(base, CY_MIPI_DCS_EXIT_SLEEP_MODE, NULL, 0);
     if (result != CY_MIPIDSI_SUCCESS)
     {
         return result;
@@ -927,7 +927,7 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_SoftReset(GFXSS_MIPIDSI_Type *base)
         return CY_MIPIDSI_BAD_PARAM;
     }
 
-    result = cy_mipi_dsi_dcs_cmd(base, MIPI_DCS_SOFT_RESET, NULL, 0);
+    result = cy_mipi_dsi_dcs_cmd(base, CY_MIPI_DCS_SOFT_RESET, NULL, 0);
     if (result != CY_MIPIDSI_SUCCESS)
     {
         return result;
@@ -943,7 +943,7 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_DisplayON(GFXSS_MIPIDSI_Type *base)
         return CY_MIPIDSI_BAD_PARAM;
     }
 
-    result = cy_mipi_dsi_dcs_cmd(base, MIPI_DCS_SET_DISPLAY_ON, NULL, 0);
+    result = cy_mipi_dsi_dcs_cmd(base, CY_MIPI_DCS_SET_DISPLAY_ON, NULL, 0);
     if (result != CY_MIPIDSI_SUCCESS)
     {
         return result;
@@ -959,7 +959,7 @@ cy_en_mipidsi_status_t Cy_MIPIDSI_DisplayOFF(GFXSS_MIPIDSI_Type *base)
         return CY_MIPIDSI_BAD_PARAM;
     }
 
-    result = cy_mipi_dsi_dcs_cmd(base, MIPI_DCS_SET_DISPLAY_OFF, NULL, 0);
+    result = cy_mipi_dsi_dcs_cmd(base, CY_MIPI_DCS_SET_DISPLAY_OFF, NULL, 0);
     if (result != CY_MIPIDSI_SUCCESS)
     {
         return result;

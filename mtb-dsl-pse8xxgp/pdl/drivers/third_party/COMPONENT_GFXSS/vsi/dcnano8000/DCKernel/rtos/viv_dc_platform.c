@@ -31,7 +31,7 @@
 #include "viv_dc_interface.h"
 #include "viv_dc_hardware.h"
 #if !_BAREMETAL
-#include "FreeRTOS.h"
+#include "zephyr/kernel.h"
 #else
 #include <stdlib.h>
 #endif
@@ -104,9 +104,9 @@ vivSTATUS dev_init()
         return vivSTATUS_OK;
 
 #if !_BAREMETAL
-    dcOs = (viv_dc_os*)pvPortMalloc(sizeof(viv_dc_os));
-    dcHardware = (viv_dc_hardware*)pvPortMalloc(sizeof(viv_dc_hardware));
-    dcCore = (viv_dc_core*)pvPortMalloc(sizeof(viv_dc_core));
+    dcOs = (viv_dc_os*)k_malloc(sizeof(viv_dc_os));
+    dcHardware = (viv_dc_hardware*)k_malloc(sizeof(viv_dc_hardware));
+    dcCore = (viv_dc_core*)k_malloc(sizeof(viv_dc_core));
 #else
     dcOs = (viv_dc_os*)malloc(sizeof(viv_dc_os));
     dcHardware = (viv_dc_hardware*)malloc(sizeof(viv_dc_hardware));
@@ -160,9 +160,9 @@ vivSTATUS dev_deinit()
     viv_conf_interrupt_enable(dcCore, SET_DISABLE);
     unregister_dc_irq_handler(dcIRQLine);
 #if !_BAREMETAL
-    vPortFree((void*)dcOs);
-    vPortFree((void*)dcHardware);
-    vPortFree((void*)dcCore);
+    k_free((void*)dcOs);
+    k_free((void*)dcHardware);
+    k_free((void*)dcCore);
 #else
    free((void*)dcOs);
    free((void*)dcHardware);
