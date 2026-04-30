@@ -209,7 +209,7 @@ gctPOINTER viv_os_mem_alloc(
     else
     {
 #if !_BAREMETAL
-        return (gctPOINTER)pvPortMalloc(size);
+        return (gctPOINTER)k_malloc(size);
 #else
         return (gctPOINTER)malloc(size);
 #endif
@@ -229,7 +229,7 @@ gctVOID viv_os_mem_free(
 #if _BAREMETAL
         free((void*)addr);
 #else
-        vPortFree((void*)addr);
+        k_free((void*)addr);
 #endif
     }
 }
@@ -419,7 +419,7 @@ vivSTATUS viv_os_alloc_memory(
     }
 
 #if !_BAREMETAL
-    mem = (gctPOINTER)pvPortMalloc(bytes);
+    mem = (gctPOINTER)k_malloc(bytes);
 #else
     mem = (gctPOINTER)malloc(bytes);
 #endif
@@ -451,7 +451,7 @@ vivSTATUS viv_os_free_memory(
     }
 
 #if !_BAREMETAL
-    vPortFree((void*)memory);
+    k_free((void*)memory);
 #else
     free((void*)memory);
 #endif
@@ -478,7 +478,7 @@ vivSTATUS viv_os_alloc_buffer(
     }
 
 #if !_BAREMETAL
-    pointer = (gctPOINTER)pvPortMalloc(Size);
+    pointer = (gctPOINTER)k_malloc(Size);
 #else
     pointer = (gctPOINTER)malloc(Size);
 #endif
@@ -507,7 +507,7 @@ vivSTATUS viv_os_free_buffer(
         return vivSTATUS_INVALID_ARGUMENTS;
     }
 #if !_BAREMETAL
-    vPortFree((void*)Handle);
+    k_free((void*)Handle);
 #else
     free((void*)Handle);
 #endif

@@ -101,7 +101,6 @@
 #include "cy_mipidsi.h"
 #include "cy_syslib.h"
 #include "viv_dc_hardware.h"
-#include "vg_lite.h"
 
 #if defined(__cplusplus)
 extern "C" {

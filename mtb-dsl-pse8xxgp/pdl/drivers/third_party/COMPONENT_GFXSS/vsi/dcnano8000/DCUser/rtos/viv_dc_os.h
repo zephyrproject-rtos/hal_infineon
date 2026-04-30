@@ -30,8 +30,7 @@
 
 #include "viv_dc_type.h"
 #if !_BAREMETAL
-#include "FreeRTOS.h"
-#include "task.h"
+#include "zephyr/kernel.h"
 #endif
 typedef struct _viv_dc_os {
     gctUINT irq;
