@@ -1,7 +1,6 @@
 #if !defined(TVIIC_PARTITION_H)
 #define TVIIC_PARTITION_H
 
-#define STACK_SIZE                      0x1000
 #define RAMVECTORS_ALIGNMENT            128
 
 #define SRAM_START_RESERVE              0
