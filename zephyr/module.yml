@@ -2,6 +2,8 @@ name: hal_infineon
 build:
   cmake-ext: True
   kconfig-ext: True
+  settings:
+    dts_root: .
 blobs:
 #cat1cm0p
   #COMPONENT_CM0P_SLEEP
