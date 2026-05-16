@@ -639,6 +639,17 @@ blobs:
     description: "Bluetooth Controller FW for MURATA-1YN Module"
     doc-url: https://github.com/Infineon/btstack-integration
 
+    #CYW43438 Device
+    #AW-CU427-P module
+  - path: img/bluetooth/firmware/COMPONENT_43438/COMPONENT_AW-CU427-P/bt_firmware.hcd
+    sha256: bfa4d94fa82e44ce4e449b3781350986595f6075f16b63bf51693d431e221011
+    type: img
+    version: '4.1.1'
+    license-path: zephyr/blobs/license.txt
+    url: https://raw.githubusercontent.com/Infineon/btstack-integration/release-v4.1.1/COMPONENT_HCI-UART/firmware/COMPONENT_43438/COMPONENT_AW-CU427-P/BCM4343A1_001.002.009.0153.0000_Generic_UART_26MHz_wlbga_eLG_lite_AnyCloud.hcd
+    description: "Bluetooth Controller FW for AW-CU427-P Module"
+    doc-url: https://github.com/Infineon/btstack-integration
+
     #CYW43439 Device
     #MURATA-1YN module
   - path: img/bluetooth/firmware/COMPONENT_43439/COMPONENT_MURATA-1YN/bt_firmware.hcd
