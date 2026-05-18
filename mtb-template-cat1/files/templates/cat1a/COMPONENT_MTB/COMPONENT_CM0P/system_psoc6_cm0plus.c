@@ -328,8 +328,6 @@ void CyMain(void)
     /* Call the constructors of all global objects */
     __iar_dynamic_initialization();
 #endif
-
-    __PROGRAM_START();
 }
 
 
