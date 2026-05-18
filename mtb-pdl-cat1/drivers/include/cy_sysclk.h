@@ -1342,7 +1342,7 @@ typedef enum
 * \addtogroup group_sysclk_eco_funcs
 * \{
 */
-#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION < 2)) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)) || defined (CY_IP_MXS22SRSS) || \
+#if (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION <= 2)) || (defined (CY_IP_MXS40SRSS) && (CY_IP_MXS40SRSS_VERSION >= 3)) || defined (CY_IP_MXS22SRSS) || \
      (defined (CY_IP_MXS40SSRSS) && (SRSS_ECO_PRESENT == 1UL)) || defined (CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_SysClk_EcoSetFrequency
