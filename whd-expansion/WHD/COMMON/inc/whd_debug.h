@@ -19,9 +19,9 @@
 #include <string.h>
 #include "whd.h"
 #include "whd_utils.h"
-#if defined(WHD_CUSTOM_HAL) && defined(IMXRT)
+#if defined(IMXRT)
 #include "fsl_debug_console.h"
-#endif /* WHD_CUSTOM_HAL && IMXRT */
+#endif /* defined(IMXRT) */
 #ifndef INCLUDED_WHD_DEBUG_H
 #define INCLUDED_WHD_DEBUG_H
 
@@ -75,11 +75,11 @@ extern "C"
 #if defined(WHD_LOGGING_BUFFER_ENABLE)
 #define WPRINT_MACRO(args) do { cy_time_t time; cy_rtos_get_time(&time); printf("\n[%lu] " ,(unsigned long)time); printf args; } while (0 == 1)
 #else
-#if defined(WHD_CUSTOM_HAL) && defined(IMXRT)
+#if defined(IMXRT)
 #define WPRINT_MACRO(args) do { cy_time_t time; cy_rtos_get_time(&time); PRINTF("\n[%lu] " ,(unsigned long)time); PRINTF args; } while (0 == 1)
 #else
 #define WPRINT_MACRO(args) do { cy_time_t time; cy_rtos_get_time(&time); printf("\n[%lu] " ,(unsigned long)time); printf args; } while (0 == 1)
-#endif /* WHD_CUSTOM_HAL && IMXRT */
+#endif /* defined(IMXRT) */
 
 #endif
 #endif

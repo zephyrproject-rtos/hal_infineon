@@ -423,10 +423,6 @@ whd_result_t whd_wifi_on(whd_driver_t whd_driver, whd_interface_t *ifpp)
     whd_add_primary_interface(whd_driver, ifpp);
     ifp = *ifpp;
 
-#if defined(WHD_ZEPHYR) && defined(IMXRT)
-    cy_rtos_delay_milliseconds(15000);
-#endif
-
     /* Download blob file if exists */
     retval = whd_process_clm_data(ifp);
     if (retval != WHD_SUCCESS)

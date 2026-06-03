@@ -178,7 +178,7 @@ void whd_hal_sdio_enable_event(whd_sdio_t* sdio_obj, whd_bool_t enable)
     whd_custom_hal_sdio_irq_enable(sdio_obj, CYHAL_SDIO_CARD_INTERRUPT, enable);
 #else
     cyhal_sdio_irq_enable(sdio_obj, CYHAL_SDIO_CARD_INTERRUPT, enable);
-#endif /* WHD_CUSTOM_HAL && IMXRT */
+#endif /* WHD_CUSTOM_HAL */
 }
 #endif /* #if (CYBSP_WIFI_INTERFACE_TYPE == CYBSP_SDIO_INTERFACE) */
 
