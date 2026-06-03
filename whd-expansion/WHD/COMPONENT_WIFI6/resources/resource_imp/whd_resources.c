@@ -18,9 +18,9 @@
 /** @file
  * Defines WHD resource functions for BCM943340WCD1 platform
  */
-#ifndef WHD_FREERTOS
+#ifndef WHD_RTOS
 #include "cy_utils.h"
-#endif  /* WHD_FREERTOS */
+#endif  /* WHD_RTOS */
 #include "cmsis_compiler.h"
 #include "resources.h"
 #if !defined(NO_CLM_BLOB_FILE)
@@ -93,11 +93,11 @@ whd_result_t host_resource_read(whd_driver_t whd_drv, whd_resource_type_t type,
 extern const resource_hnd_t wifi_bootloader_image;
 #endif /* DOWNLOAD_RAM_BOOTLOADER */
 
-#ifndef WHD_FREERTOS
+#ifndef WHD_RTOS
 CY_ALIGN(4) unsigned char r_buffer[BLOCK_BUFFER_SIZE];
 #else
 unsigned char r_buffer[BLOCK_BUFFER_SIZE];
-#endif /* WHD_FREERTOS */
+#endif /* WHD_RTOS */
 
 #if defined(WHD_DYNAMIC_NVRAM)
 uint32_t dynamic_nvram_size = sizeof(wifi_nvram_image);
