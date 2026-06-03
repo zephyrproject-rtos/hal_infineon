@@ -56,11 +56,7 @@
 
 #define IOCTL_OFFSET (sizeof(whd_buffer_header_t) + 12 + 16)
 #define WHD_IOCTL_PACKET_TIMEOUT      (0xFFFFFFFF)
-#if (defined(WHD_CUSTOM_HAL) && defined(IMXRT))
-#define WHD_IOCTL_TIMEOUT_MS         (15000)
-#else
 #define WHD_IOCTL_TIMEOUT_MS         (5000)     /** Need to give enough time for coming out of Deep sleep (was 400) */
-#endif /* WHD_CUSTOM_HAL && IMXRT */
 #define WHD_IOCTL_MAX_TX_PKT_LEN     (1500)
 #define ALIGNED_ADDRESS            ( (uint32_t)0x3 )
 

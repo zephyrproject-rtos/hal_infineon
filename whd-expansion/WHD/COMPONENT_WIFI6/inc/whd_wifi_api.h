@@ -1807,6 +1807,15 @@ extern whd_result_t whd_wifi_icmp_echo_req_register_callback(whd_interface_t ifp
  */
 extern whd_result_t whd_set_wsec_info_algos(whd_interface_t ifp, uint32_t algos, uint32_t mask);
 
+/** Function to get assoc request and response ie information
+ *
+ *  @param ifp             Pointer to handle instance of whd interface
+ *  @param whd_assoc_info  Pointer to the whd_assoc_info_t that recording req/resp ie and length
+ *
+ *  @return WHD_SUCCESS or Error code
+ */
+extern whd_result_t whd_get_assoc_ie_info(whd_interface_t ifp, whd_assoc_info_t *whd_assoc_info);
+
 #if defined (COMPONENT_MTB_HAL)
 /** Process interrupts function for OOB gpio pin
  *  This API is a wrapper for GPIO HAL driver's "process interrupts" function
