@@ -802,3 +802,12 @@ blobs:
     url: https://github.com/npal-cy/TARGET_CYW920829M2EVK-02/raw/refs/heads/master/config/GeneratedSource/CYW208xx_SMIF.FLM
     description: "CYW20829 flashloader for openocd"
     doc-url: https://github.com/npal-cy/TARGET_CYW920829M2EVK-02/blob/master/README.md
+
+  - path: flashloader/KIT_PSE84_HMI/PSE84_SMIF.FLM
+    sha256: a10719c4077d8e1cafc160701870098abb02e3e373b83d18dcc67d5a6b001edc
+    type: img
+    version: '1.1.1.703'
+    license-path: ./LICENSE.txt
+    url: https://github.com/Infineon/TARGET_KIT_PSE84_HMI/raw/master/config/FlashLoaders/PSE84_SMIF.FLM
+    description: "PSE84 HMI flashloader for openocd"
+    doc-url: https://github.com/Infineon/TARGET_KIT_PSE84_HMI/blob/master/README.md
