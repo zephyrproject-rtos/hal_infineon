@@ -1,0 +1,34 @@
+name: No Binary Blobs
+
+on:
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  check-binary-blobs:
+    name: Check for binary blobs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect binary files added in PR
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          # --numstat outputs "-  -  <path>" for binary files
+          # --diff-filter=A limits to newly added files only
+          BINARY_FILES=$(git diff --diff-filter=A --numstat "$BASE" "$HEAD" \
+            | awk '$1 == "-" && $2 == "-" { print $3 }')
+
+          if [ -n "$BINARY_FILES" ]; then
+            echo "ERROR: The following binary files were added in this PR:"
+            echo "$BINARY_FILES" | sed 's/^/  /'
+            echo ""
+            echo "Binary blobs are not permitted. Commit only text files."
+            exit 1
+          fi
+
+          echo "OK: No binary files added in this PR."
