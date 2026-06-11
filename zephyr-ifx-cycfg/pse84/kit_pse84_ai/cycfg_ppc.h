@@ -23,7 +23,7 @@
 #ifndef CYCFG_PPC_H
 #define CYCFG_PPC_H
 
-#if defined(__ZEPHYR__)
+#if defined(__ZEPHYR__) && !( defined(CONFIG_BUILD_WITH_TFM) || defined(CONFIG_PSOC_EDGE_M55_SRF_SUPPORT))
 /* This file is empty. It is not needed to provide functionality, but it is needed
  * to prevent build errors in IFX assets that are expecting a file under the name
  * to exist.
