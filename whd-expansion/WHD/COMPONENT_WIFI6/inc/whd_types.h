@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "cybsp.h"
 #include "cy_result.h"
 
@@ -1554,6 +1555,14 @@ typedef struct {
     uint8_t *event_data;
     whd_event_header_t *event_header;
 } whd_event_data_t;
+
+typedef struct {
+    uint8_t *req_ies;
+    size_t req_ies_len;
+    uint8_t *resp_ies;
+    size_t resp_ies_len;
+} whd_assoc_info_t;
+
 #ifdef __cplusplus
 }     /* extern "C" */
 #endif

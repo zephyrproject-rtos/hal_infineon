@@ -1279,6 +1279,9 @@ typedef struct eventmsgs_ext
 #endif /* BUS_ENC */
 
 #define IOVAR_STR_ICMP_ECHO_REQ          "icmp_echo_req"
+#define IOVAR_STR_ASSOC_INFO             "assoc_info"
+#define IOVAR_STR_ASSOC_REQ_IES          "assoc_req_ies"
+#define IOVAR_STR_ASSOC_RESP_IES         "assoc_resp_ies"
 
 /* This value derived from the above strings, which appear maxed out in the 20s */
 #define IOVAR_NAME_STR_MAX_SIZE          32

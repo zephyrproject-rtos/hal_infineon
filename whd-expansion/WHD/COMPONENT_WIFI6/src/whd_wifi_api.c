@@ -106,6 +106,9 @@
 #define EVTLOG_PRINT_ONLY_MODE          0x40
 #define EVTLOG_LOG_ONLY_MODE            0x80
 
+#define WL_ASSOC_INFO_MAX               512
+#define WL_EXTRA_BUF_MAX                2048
+
 /** Buffer length check for ulp statistics
  *
  *  @param buflen              buffer length
@@ -489,6 +492,63 @@ whd_result_t whd_get_bt_info(whd_driver_t whd_driver, whd_bt_info_t bt_info)
         bt_info->wlan_buf_addr = addr;
     }
     return WHD_SUCCESS;
+}
+
+whd_result_t whd_get_assoc_ie_info(whd_interface_t ifp, whd_assoc_info_t *whd_assoc_info)
+{
+    whd_result_t result;
+    wl_assoc_info_t assoc_info;
+    uint8_t *extra_buf;
+
+    CHECK_IFP_NULL(ifp);
+
+    extra_buf = (uint8_t *)whd_mem_malloc(WL_EXTRA_BUF_MAX);
+    if (!extra_buf)
+        return WHD_BUFFER_ALLOC_FAIL;
+
+    whd_mem_memset(extra_buf, 0, WL_EXTRA_BUF_MAX);
+    result = whd_wifi_get_iovar_buffer(ifp, IOVAR_STR_ASSOC_INFO, extra_buf, WL_EXTRA_BUF_MAX);
+    if (result != WHD_SUCCESS)
+        goto out;
+
+    whd_mem_memcpy(&assoc_info, extra_buf, sizeof(wl_assoc_info_t));
+    assoc_info.req_len = dtoh32(assoc_info.req_len);
+    assoc_info.resp_len = dtoh32(assoc_info.resp_len);
+    assoc_info.flags = dtoh32(assoc_info.flags);
+
+    if (assoc_info.req_len) {
+        whd_mem_memset(extra_buf, 0, WL_EXTRA_BUF_MAX);
+
+        result = whd_wifi_get_iovar_buffer(ifp, IOVAR_STR_ASSOC_REQ_IES, extra_buf, WL_ASSOC_INFO_MAX);
+        if (result != WHD_SUCCESS)
+            goto out;
+
+        whd_assoc_info->req_ies_len = assoc_info.req_len - sizeof(struct wl_dot11_assoc_req);
+        if (assoc_info.flags & WLC_ASSOC_REQ_IS_REASSOC)
+            whd_assoc_info->req_ies_len -= WHD_ETHER_ADDR_LEN;
+        whd_mem_memcpy(whd_assoc_info->req_ies, extra_buf, whd_assoc_info->req_ies_len);
+    } else {
+        whd_assoc_info->req_ies_len = 0;
+    }
+
+    if (assoc_info.resp_len) {
+        whd_mem_memset(extra_buf, 0, WL_EXTRA_BUF_MAX);
+
+        result = whd_wifi_get_iovar_buffer(ifp, IOVAR_STR_ASSOC_RESP_IES, extra_buf, WL_ASSOC_INFO_MAX);
+        if (result != WHD_SUCCESS)
+            goto out;
+
+        whd_assoc_info->resp_ies_len = assoc_info.resp_len - sizeof(struct wl_dot11_assoc_resp);
+        whd_mem_memcpy(whd_assoc_info->resp_ies, extra_buf, whd_assoc_info->resp_ies_len);
+    } else {
+        whd_assoc_info->resp_ies_len = 0;
+    }
+
+out:
+    if (extra_buf)
+        whd_mem_free(extra_buf);
+
+    return result;
 }
 
 whd_bool_t whd_wifi_platform_supports_triband(whd_interface_t ifp)
@@ -2592,6 +2652,10 @@ static void *whd_wifi_scan_events_handler(whd_interface_t ifp, const whd_event_h
     {
         /* 11 a/b/g and 20MHz bandwidth only */
         record->channel = ( ( uint8_t )(chanspec & WL_CHANSPEC_CHAN_MASK) );
+#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
+	/* In this case, bss_info->ctl_ch will be 0. But bss_info will be used by Zephyr, so assign channel to bss_info */
+        bss_info->ctl_ch = record->channel;
+#endif
     }
 
     /*
