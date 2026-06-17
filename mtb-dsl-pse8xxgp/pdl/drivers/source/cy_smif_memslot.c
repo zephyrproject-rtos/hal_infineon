@@ -126,18 +126,6 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
 
                 context->flags = memCfg->flags;
 
-                /* Before SFDP Enumeration, configure SMIF dedicated Clock and RWDS lines */
-                SMIF_CLK_HSIOM(base) = ((uint32_t)(HSIOM_SEL_ACT_15)) | (((uint32_t)HSIOM_SEL_ACT_15) << 8U);
-                SMIF_RWDS_HSIOM(base) = (uint32_t)HSIOM_SEL_ACT_15;
-                SMIF_CLK_DRIVEMODE(base) = CY_GPIO_DM_STRONG | (CY_GPIO_DM_STRONG << 4U);
-                SMIF_RWDS_DRIVEMODE(base) = CY_GPIO_DM_PULLDOWN;
-
-                /* DRIVE Strength kept as full for initial bring up.
-                   In case of power consumption impact we have to optimize this setting */
-                SMIF_CLK_DRIVE_STRENGTH(base) = ((CY_GPIO_DRIVE_FULL) | (CY_GPIO_DRIVE_FULL << 8U));
-                SMIF_RWDS_DRIVE_STRENGTH(base) = CY_GPIO_DRIVE_FULL;
-                SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_NEG_SDL_TAP_SEL, 1U);
-                SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_POS_SDL_TAP_SEL, 1U);
 
                 /* SPI(deviceCfg) and Hyperbus(hbdeviceCfg) are mutually exclusive and if both are initialized, priority would be for SPI(deviceCfg) */
                 if(memCfg->deviceCfg != NULL)
@@ -154,6 +142,19 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
                         uint32_t sfdpRet = (uint32_t)CY_SMIF_SUCCESS;
                         if (0U != (memCfg->flags & CY_SMIF_FLAG_DETECT_SFDP))
                         {
+
+                            /* Before SFDP Enumeration, configure SMIF dedicated Clock and RWDS lines */
+                            SMIF_CLK_HSIOM(base) = ((uint32_t)(HSIOM_SEL_ACT_15)) | (((uint32_t)HSIOM_SEL_ACT_15) << 8U);
+                            SMIF_RWDS_HSIOM(base) = (uint32_t)HSIOM_SEL_ACT_15;
+                            SMIF_CLK_DRIVEMODE(base) = CY_GPIO_DM_STRONG | (CY_GPIO_DM_STRONG << 4U);
+                            SMIF_RWDS_DRIVEMODE(base) = CY_GPIO_DM_PULLDOWN;
+
+                            /* DRIVE Strength kept as full for initial bring up.
+                            In case of power consumption impact we have to optimize this setting */
+                            SMIF_CLK_DRIVE_STRENGTH(base) = ((CY_GPIO_DRIVE_FULL) | (CY_GPIO_DRIVE_FULL << 8U));
+                            SMIF_RWDS_DRIVE_STRENGTH(base) = CY_GPIO_DRIVE_FULL;
+                            SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_NEG_SDL_TAP_SEL, 1U);
+                            SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_POS_SDL_TAP_SEL, 1U);
                             sfdpRet = (uint32_t)Cy_SMIF_MemSfdpDetect(base,
                                                     memCfg->deviceCfg,
                                                     memCfg->slaveSelect,
