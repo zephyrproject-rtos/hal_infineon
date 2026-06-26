@@ -249,16 +249,6 @@ const cy_stc_mpc_regions_t M33S_mpc_regions[] =
 const cy_stc_mpc_regions_t M33_mpc_regions[] =
 {
     {
-        .base = (MPC_Type*)SMIF0_CACHE_BLOCK_CACHEBLK_AHB_MPC0,
-        .offset = 0x00340000,
-        .size = 0x00240000,
-    },
-    {
-        .base = (MPC_Type*)SMIF0_CORE_AXI_MPC0,
-        .offset = 0x00340000,
-        .size = 0x00240000,
-    },
-    {
         .base = (MPC_Type*)RAMC0_MPC0,
         .offset = 0x00058000,
         .size = 0x00028000,
@@ -272,16 +262,6 @@ const cy_stc_mpc_regions_t M33_mpc_regions[] =
 const cy_stc_mpc_regions_t M55_mpc_regions[] =
 {
     {
-        .base = (MPC_Type*)SMIF0_CACHE_BLOCK_CACHEBLK_AHB_MPC0,
-        .offset = 0x00580000,
-        .size = 0x00300000,
-    },
-    {
-        .base = (MPC_Type*)SMIF0_CORE_AXI_MPC0,
-        .offset = 0x00580000,
-        .size = 0x00300000,
-    },
-    {
         .base = (MPC_Type*)SOCMEM_SRAM_MPC0,
         .offset = 0x00000000,
         .size = 0x00040000,
@@ -294,6 +274,16 @@ const cy_stc_mpc_regions_t M33_M55_mpc_regions[] =
         .base = (MPC_Type*)RRAMC0_MPC0,
         .offset = 0x0003C000,
         .size = 0x00027000,
+    },
+    {
+        .base = (MPC_Type*)SMIF0_CACHE_BLOCK_CACHEBLK_AHB_MPC0,
+        .offset = 0x00340000,
+        .size = 0x03CC0000,
+    },
+    {
+        .base = (MPC_Type*)SMIF0_CORE_AXI_MPC0,
+        .offset = 0x00340000,
+        .size = 0x03CC0000,
     },
     {
         .base = (MPC_Type*)SOCMEM_SRAM_MPC0,
@@ -340,6 +330,10 @@ const cy_stc_mpc_regions_t TFM_SP_PS_mpc_regions[] =
 const cy_stc_mpc_resp_cfg_t cy_response_mpcs[] =
 {
     {
+        .base = (MPC_Type*)SMIF0_CACHE_BLOCK_CACHEBLK_AHB_MPC0,
+        .response = CY_MPC_BUS_ERR,
+    },
+    {
         .base = (MPC_Type*)SOCMEM_SRAM_MPC0,
         .response = CY_MPC_BUS_ERR,
     },
@@ -349,10 +343,6 @@ const cy_stc_mpc_resp_cfg_t cy_response_mpcs[] =
     },
     {
         .base = (MPC_Type*)RAMC1_MPC0,
-        .response = CY_MPC_BUS_ERR,
-    },
-    {
-        .base = (MPC_Type*)SMIF0_CACHE_BLOCK_CACHEBLK_AHB_MPC0,
         .response = CY_MPC_BUS_ERR,
     },
     {
@@ -427,32 +417,6 @@ const cy_stc_mpc_unified_t unified_mpc_domains[] =
 const size_t unified_mpc_domains_count = sizeof(unified_mpc_domains) / sizeof(cy_stc_mpc_unified_t);
 #endif /* defined (CY_PDL_TZ_ENABLED) */
 
-#if defined (COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF)
-const mtb_srf_memory_protection_s_t mtb_srf_memory_protection_s[] =
-{
-    {
-        .ranges = mxrramc_0_mpc_0_srf_protection_range_s,
-        .size = 7U,
-    },
-    {
-        .ranges = smif_0_mpc_0_srf_protection_range_s,
-        .size = 8U,
-    },
-    {
-        .ranges = socmem_0_mpc_0_srf_protection_range_s,
-        .size = 2U,
-    },
-    {
-        .ranges = mxsramc_0_mpc_0_srf_protection_range_s,
-        .size = 3U,
-    },
-    {
-        .ranges = mxsramc_1_mpc_0_srf_protection_range_s,
-        .size = 2U,
-    },
-};
-const uint8_t mtb_srf_protection_range_s_count = sizeof(mtb_srf_memory_protection_s) / sizeof(mtb_srf_memory_protection_s_t);
-#endif /* defined (COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) */
 
 const cy_en_prot_region_t M33S_ppc_0_regions[] =
 {
@@ -1082,12 +1046,7 @@ const mtb_srf_protection_range_s_t smif_0_mpc_0_srf_protection_range_s[smif_0_mp
     },
     {
         .start = (void *) 0x60340000 ,
-        .length = 0x240000U,
-        .is_secure = false,
-    },
-    {
-        .start = (void *) 0x60580000 ,
-        .length = 0x300000U,
+        .length = 0x3CC0000U,
         .is_secure = false,
     },
     {
@@ -1102,12 +1061,7 @@ const mtb_srf_protection_range_s_t smif_0_mpc_0_srf_protection_range_s[smif_0_mp
     },
     {
         .start = (void *) 0x60340000,
-        .length = 0x240000U,
-        .is_secure = false,
-    },
-    {
-        .start = (void *) 0x60580000,
-        .length = 0x300000U,
+        .length = 0x3CC0000U,
         .is_secure = false,
     },
 };

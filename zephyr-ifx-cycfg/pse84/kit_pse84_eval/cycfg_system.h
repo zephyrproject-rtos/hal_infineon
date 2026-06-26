@@ -142,12 +142,12 @@ extern "C" {
 #define mxrramc_0_mpc_0_RESPONSE CY_MPC_BUS_ERR
 #define mxrramc_0_mpc_0_REGION_COUNT 7U
 #define mxsramc_0_mpc_0_RESPONSE CY_MPC_BUS_ERR
-#define mxsramc_0_mpc_0_REGION_COUNT 3U
+#define mxsramc_0_mpc_0_REGION_COUNT 4U
 #define mxsramc_1_mpc_0_RESPONSE CY_MPC_BUS_ERR
 #define mxsramc_1_mpc_0_REGION_COUNT 2U
 #define smif_0_mpc_0_RESPONSE CY_MPC_BUS_ERR
-#define smif_0_mpc_0_REGION_COUNT 8U
-#define smif_1_mpc_0_RESPONSE CY_MPC_RZWI
+#define smif_0_mpc_0_REGION_COUNT 6U
+#define smif_1_mpc_0_RESPONSE CY_MPC_BUS_ERR
 #define smif_1_mpc_0_REGION_COUNT 0U
 #define socmem_0_mpc_0_RESPONSE CY_MPC_BUS_ERR
 #define socmem_0_mpc_0_REGION_COUNT 2U
@@ -178,11 +178,6 @@ extern const size_t cy_response_mpcs_count;
 extern const cy_stc_mpc_unified_t unified_mpc_domains[];
 extern const size_t unified_mpc_domains_count;
 #endif /* defined (CY_PDL_TZ_ENABLED) */
-
-#if defined (COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF)
-extern const mtb_srf_memory_protection_s_t mtb_srf_memory_protection_s[];
-extern const uint8_t mtb_srf_protection_range_s_count;
-#endif /* defined (COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) */
 
 extern const cy_en_prot_region_t M33S_ppc_0_regions[];
 extern const cy_en_prot_region_t M33_M55_ppc_0_regions[];
