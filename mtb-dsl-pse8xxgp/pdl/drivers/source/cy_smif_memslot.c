@@ -126,6 +126,7 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
 
                 context->flags = memCfg->flags;
 
+                #if defined(COMPONENT_SECURE_DEVICE) || defined(CY_PDL_TZ_ENABLED)
                 /* Before SFDP Enumeration, configure SMIF dedicated Clock and RWDS lines */
                 SMIF_CLK_HSIOM(base) = ((uint32_t)(HSIOM_SEL_ACT_15)) | (((uint32_t)HSIOM_SEL_ACT_15) << 8U);
                 SMIF_RWDS_HSIOM(base) = (uint32_t)HSIOM_SEL_ACT_15;
@@ -138,6 +139,7 @@ cy_en_smif_status_t Cy_SMIF_MemInit(SMIF_Type *base,
                 SMIF_RWDS_DRIVE_STRENGTH(base) = CY_GPIO_DRIVE_FULL;
                 SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_NEG_SDL_TAP_SEL, 1U);
                 SMIF_DEVICE_IDX_RX_CAPTURE_CONFIG(base, idx) |= _VAL2FLD(SMIF_CORE_DEVICE_RX_CAPTURE_CONFIG_POS_SDL_TAP_SEL, 1U);
+                #endif /* defined(COMPONENT_SECURE_DEVICE) || defined(CY_PDL_TZ_ENABLED)*/
 
                 /* SPI(deviceCfg) and Hyperbus(hbdeviceCfg) are mutually exclusive and if both are initialized, priority would be for SPI(deviceCfg) */
                 if(memCfg->deviceCfg != NULL)
