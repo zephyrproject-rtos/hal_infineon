@@ -31,6 +31,33 @@
 #include "cycfg_protection.h"
 #include "cycfg_system.h"
 
+#if defined (COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) && !defined(CY_SRF_DISABLE)
+const mtb_srf_memory_protection_s_t mtb_srf_memory_protection_s[] =
+{
+    {
+        .ranges = mxrramc_0_mpc_0_srf_protection_range_s,
+        .size = 7U,
+    },
+    {
+        .ranges = smif_0_mpc_0_srf_protection_range_s,
+        .size = 6U,
+    },
+    {
+        .ranges = socmem_0_mpc_0_srf_protection_range_s,
+        .size = 2U,
+    },
+    {
+        .ranges = mxsramc_0_mpc_0_srf_protection_range_s,
+        .size = 4U,
+    },
+    {
+        .ranges = mxsramc_1_mpc_0_srf_protection_range_s,
+        .size = 2U,
+    },
+};
+const uint8_t mtb_srf_protection_range_s_count = sizeof(mtb_srf_memory_protection_s) / sizeof(mtb_srf_memory_protection_s_t);
+#endif /* defined (COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) && !defined(CY_SRF_DISABLE) */
+
 void init_cycfg_protection(void)
 {
 #if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && !defined(CYBSP_SKIP_SAU_INIT)

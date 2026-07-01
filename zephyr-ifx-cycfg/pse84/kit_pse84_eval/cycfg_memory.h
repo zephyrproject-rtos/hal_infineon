@@ -65,9 +65,13 @@ extern "C" {
 #define vres_0_memory_region_data_25_ENABLED 1U
 #define vres_0_memory_region_data_26_ENABLED 1U
 #define vres_0_memory_region_data_27_ENABLED 1U
+#define vres_0_memory_region_data_28_ENABLED 1U
+#define vres_0_memory_region_data_29_ENABLED 1U
+#define vres_0_memory_region_data_30_ENABLED 1U
 #define vres_0_reserved_memory_region_0_ENABLED 1U
 #define vres_0_reserved_memory_region_1_ENABLED 1U
 #define vres_0_reserved_memory_region_2_ENABLED 1U
+#define vres_0_reserved_memory_region_3_ENABLED 1U
 #define vres_0_memory_0_ENABLED 1U
 
 #if defined(__cplusplus)
