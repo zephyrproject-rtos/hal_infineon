@@ -1,0 +1,51 @@
+{
+    "core": {
+        "id": "f869bcba-3b01-57d1-ab0b-80c7e7571265",
+        "name": "mtb-template-psc3m6",
+        "version": "1.0.4.2692"
+    },
+    "opt": {
+        "props": {
+            "TemplateData": {
+                "udd_key": "DeviceDie",
+                "PSC3M6": {
+                    "files": [
+                        "filelist/psc3m6.txt"
+                    ],
+                    "deps": "psc3m6_dependencies",
+                    "components": "psc3m6_components",
+                    "defines": [
+                        "bsp_config_defines"
+                    ],
+                    "makefile_vars": "psc3m6_vars",
+                    "files_init": "filelist/init_psc3m6.txt"
+                }
+            },
+            "dependency_sets": {
+                "psc3m6_dependencies": [
+                    "deps/core-lib.mtbx",
+                    "deps/core-make.mtbx",
+                    "deps/mtb-dsl-psc3m6.mtbx"
+                ]
+            },
+            "component_sets": {
+                "psc3m6_components": []
+            },
+            "define_sets": {
+                "bsp_config_defines": []
+            },
+            "makefile_var_sets": {
+                "psc3m6_vars": [
+                    {
+                        "name": "RECIPE_DIR",
+                        "value": "$(SEARCH_mtb-dsl-psc3m6)/make"
+                    },
+                    {
+                        "name": "BSP_DEVICE_SUPPORT_LIB",
+                        "value": "mtb-dsl-psc3m6"
+                    }
+                ]
+            }
+        }
+    }
+}

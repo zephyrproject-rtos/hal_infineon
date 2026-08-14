@@ -1,0 +1,3 @@
+files_init/props.json:props.json
+files_init/psc3m6.mk:bsp.mk
+files_init/psc3m6.modus:config/design.modus

@@ -3,6 +3,7 @@ license:
   report_missing: true
   additional:
     - boost-1.0
+    - bsd-new
   category: Permissive
 copyright:
   check: true

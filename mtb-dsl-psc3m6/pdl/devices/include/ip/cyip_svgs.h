@@ -1,0 +1,172 @@
+/***************************************************************************//**
+* SVGS IP definitions
+*
+********************************************************************************
+* \copyright
+* (c) 2016-2026, Infineon Technologies AG or an affiliate of
+* Infineon Technologies AG.
+* SPDX-License-Identifier: Apache-2.0
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************/
+
+#ifndef _CYIP_SVGS_H_
+#define _CYIP_SVGS_H_
+
+#include "cyip_headers.h"
+
+/*******************************************************************************
+*                                     SVGS
+*******************************************************************************/
+
+#define SVGS_SVGS_MAIN_SECTION_SIZE             0x00000040UL
+#define SVGS_SECTION_SIZE                       0x00000100UL
+
+/**
+  * \brief SVGS Protected Runtime Registers (non-privileged SW accessible) (SVGS_SVGS_MAIN)
+  */
+typedef struct {
+  __IOM uint32_t SVGS_CTL;                      /*!< 0x00000000 SVGS Control Register */
+   __IM uint32_t SVGS_STATUS;                   /*!< 0x00000004 SVGS Status Register */
+   __IM uint32_t SVGS_CMP_CFG_RO;               /*!< 0x00000008 SVGS Comparator Configuration */
+   __IM uint32_t SVGS_CMP_TRIP_RO;              /*!< 0x0000000C SVGS Comparator trip-point configuration */
+   __IM uint32_t SVGS_TRIM_RO;                  /*!< 0x00000010 SVGS Trim Register */
+   __IM uint32_t RESERVED[3];
+  __IOM uint32_t SVGS_INTR;                     /*!< 0x00000020 SVGS Interrupt Register */
+  __IOM uint32_t SVGS_INTR_SET;                 /*!< 0x00000024 SVGS Interrupt Set Register */
+  __IOM uint32_t SVGS_INTR_MASK;                /*!< 0x00000028 SVGS Interrupt Mask Register */
+   __IM uint32_t SVGS_INTR_MASKED;              /*!< 0x0000002C SVGS Interrupt Masked Register */
+   __IM uint32_t RESERVED1[4];
+} SVGS_SVGS_MAIN_Type;                          /*!< Size = 64 (0x40) */
+
+/**
+  * \brief SVGS Registers (SVGS)
+  */
+typedef struct {
+        SVGS_SVGS_MAIN_Type SVGS_MAIN;          /*!< 0x00000000 SVGS Protected Runtime Registers (non-privileged SW accessible) */
+} SVGS_Type;                                    /*!< Size = 64 (0x40) */
+
+
+/* SVGS_SVGS_MAIN.SVGS_CTL */
+#define SVGS_SVGS_MAIN_SVGS_CTL_ENABLE_Pos      0UL
+#define SVGS_SVGS_MAIN_SVGS_CTL_ENABLE_Msk      0xFUL
+#define SVGS_SVGS_MAIN_SVGS_CTL_FAULT_EN_Pos    8UL
+#define SVGS_SVGS_MAIN_SVGS_CTL_FAULT_EN_Msk    0x100UL
+/* SVGS_SVGS_MAIN.SVGS_STATUS */
+#define SVGS_SVGS_MAIN_SVGS_STATUS_UVC_CAPTURED_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_UVC_CAPTURED_Msk 0x1UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_OVC_CAPTURED_Pos 1UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_OVC_CAPTURED_Msk 0x2UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_UVFC_CAPTURED_Pos 2UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_UVFC_CAPTURED_Msk 0x4UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_NVC_CAPTURED_Pos 3UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_NVC_CAPTURED_Msk 0x8UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_HVC_CAPTURED_Pos 4UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_HVC_CAPTURED_Msk 0x10UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_EN_SEQ_ACTIVE_Pos 8UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_EN_SEQ_ACTIVE_Msk 0x100UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_SVGS_ENABLED_Pos 9UL
+#define SVGS_SVGS_MAIN_SVGS_STATUS_SVGS_ENABLED_Msk 0x200UL
+/* SVGS_SVGS_MAIN.SVGS_CMP_CFG_RO */
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVC_EN_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVC_EN_Msk 0x1UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_OVC_EN_Pos 1UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_OVC_EN_Msk 0x2UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVFC_EN_Pos 2UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVFC_EN_Msk 0x4UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_NVC_EN_Pos 3UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_NVC_EN_Msk 0x8UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVC_PWR_Pos 8UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVC_PWR_Msk 0x100UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_OVC_PWR_Pos 9UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_OVC_PWR_Msk 0x200UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVFC_PWR_Pos 10UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVFC_PWR_Msk 0x400UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_NVC_PWR_Pos 11UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_NVC_PWR_Msk 0x800UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVC_MASK_Pos 16UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVC_MASK_Msk 0x10000UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_OVC_MASK_Pos 17UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_OVC_MASK_Msk 0x20000UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVFC_MASK_Pos 18UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_UVFC_MASK_Msk 0x40000UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_NVC_MASK_Pos 19UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_NVC_MASK_Msk 0x80000UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_HVC_MASK_Pos 20UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_HVC_MASK_Msk 0x100000UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_SVGS_UVFC_TC_Pos 24UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_CFG_RO_SVGS_UVFC_TC_Msk 0xF000000UL
+/* SVGS_SVGS_MAIN.SVGS_CMP_TRIP_RO */
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_UVC_TRIP_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_UVC_TRIP_Msk 0x3FUL
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_OVC_TRIP_Pos 8UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_OVC_TRIP_Msk 0x300UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_UVFC_TRIP_Pos 16UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_UVFC_TRIP_Msk 0x3F0000UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_NVC_TRIP_Pos 24UL
+#define SVGS_SVGS_MAIN_SVGS_CMP_TRIP_RO_SVGS_NVC_TRIP_Msk 0xF000000UL
+/* SVGS_SVGS_MAIN.SVGS_TRIM_RO */
+#define SVGS_SVGS_MAIN_SVGS_TRIM_RO_SVGS_VREG_TRIM_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_TRIM_RO_SVGS_VREG_TRIM_Msk 0xFUL
+#define SVGS_SVGS_MAIN_SVGS_TRIM_RO_SVGS_IBIAS_TRIM_Pos 8UL
+#define SVGS_SVGS_MAIN_SVGS_TRIM_RO_SVGS_IBIAS_TRIM_Msk 0xF00UL
+/* SVGS_SVGS_MAIN.SVGS_INTR */
+#define SVGS_SVGS_MAIN_SVGS_INTR_UVC_GLITCH_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_UVC_GLITCH_Msk 0x1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_OVC_GLITCH_Pos 1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_OVC_GLITCH_Msk 0x2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_UVFC_GLITCH_Pos 2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_UVFC_GLITCH_Msk 0x4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_NVC_GLITCH_Pos 3UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_NVC_GLITCH_Msk 0x8UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_HVC_GLITCH_Pos 4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_HVC_GLITCH_Msk 0x10UL
+/* SVGS_SVGS_MAIN.SVGS_INTR_SET */
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_UVC_GLITCH_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_UVC_GLITCH_Msk 0x1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_OVC_GLITCH_Pos 1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_OVC_GLITCH_Msk 0x2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_UVFC_GLITCH_Pos 2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_UVFC_GLITCH_Msk 0x4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_NVC_GLITCH_Pos 3UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_NVC_GLITCH_Msk 0x8UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_HVC_GLITCH_Pos 4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_SET_HVC_GLITCH_Msk 0x10UL
+/* SVGS_SVGS_MAIN.SVGS_INTR_MASK */
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_UVC_GLITCH_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_UVC_GLITCH_Msk 0x1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_OVC_GLITCH_Pos 1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_OVC_GLITCH_Msk 0x2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_UVFC_GLITCH_Pos 2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_UVFC_GLITCH_Msk 0x4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_NVC_GLITCH_Pos 3UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_NVC_GLITCH_Msk 0x8UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_HVC_GLITCH_Pos 4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASK_HVC_GLITCH_Msk 0x10UL
+/* SVGS_SVGS_MAIN.SVGS_INTR_MASKED */
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_UVC_GLITCH_Pos 0UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_UVC_GLITCH_Msk 0x1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_OVC_GLITCH_Pos 1UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_OVC_GLITCH_Msk 0x2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_UVFC_GLITCH_Pos 2UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_UVFC_GLITCH_Msk 0x4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_NVC_GLITCH_Pos 3UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_NVC_GLITCH_Msk 0x8UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_HVC_GLITCH_Pos 4UL
+#define SVGS_SVGS_MAIN_SVGS_INTR_MASKED_HVC_GLITCH_Msk 0x10UL
+
+
+#endif /* _CYIP_SVGS_H_ */
+
+
+/* [] END OF FILE */
