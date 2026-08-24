@@ -138,6 +138,42 @@ const cy_stc_gpio_pin_config_t CYBSP_QSPI_SS_config =
     .pullUpRes = CY_GPIO_PULLUP_RES_DISABLE,
     .nonSec = 1,
 };
+const cy_stc_gpio_pin_config_t CYBSP_I3C_SCL_config =
+{
+    .outVal = 1,
+    .driveMode = CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ,
+    .hsiom = CYBSP_I3C_SCL_HSIOM,
+    .intEdge = CY_GPIO_INTR_DISABLE,
+    .intMask = 0UL,
+    .vtrip = CY_GPIO_VTRIP_CMOS,
+    .slewRate = CY_GPIO_SLEW_FAST,
+    .driveSel = CY_GPIO_DRIVE_1_2,
+    .vregEn = 0UL,
+    .ibufMode = 0UL,
+    .vtripSel = 0UL,
+    .vrefSel = 0UL,
+    .vohSel = 0UL,
+    .pullUpRes = CY_GPIO_PULLUP_RES_DISABLE,
+    .nonSec = 1,
+};
+const cy_stc_gpio_pin_config_t CYBSP_I3C_SDA_config =
+{
+    .outVal = 1,
+    .driveMode = CY_GPIO_DM_CFGOUT3_STRONG_PULLUP_HIGHZ,
+    .hsiom = CYBSP_I3C_SDA_HSIOM,
+    .intEdge = CY_GPIO_INTR_DISABLE,
+    .intMask = 0UL,
+    .vtrip = CY_GPIO_VTRIP_CMOS,
+    .slewRate = CY_GPIO_SLEW_FAST,
+    .driveSel = CY_GPIO_DRIVE_1_2,
+    .vregEn = 0UL,
+    .ibufMode = 0UL,
+    .vtripSel = 0UL,
+    .vrefSel = 0UL,
+    .vohSel = 0UL,
+    .pullUpRes = CY_GPIO_PULLUP_RES_DISABLE,
+    .nonSec = 1,
+};
 const cy_stc_gpio_pin_config_t CYBSP_OSPI_RAM_D0_config =
 {
     .outVal = 1,
@@ -375,7 +411,7 @@ const cy_stc_gpio_pin_config_t CYBSP_SDHC_IO0_config =
 const cy_stc_gpio_pin_config_t CYBSP_EXT_CLK_config =
 {
     .outVal = 1,
-    .driveMode = CY_GPIO_DM_ANALOG,
+    .driveMode = CY_GPIO_DM_HIGHZ,
     .hsiom = CYBSP_EXT_CLK_HSIOM,
     .intEdge = CY_GPIO_INTR_DISABLE,
     .intMask = 0UL,
@@ -1286,6 +1322,8 @@ void init_cycfg_pins(void)
     Cy_GPIO_Pin_Init(CYBSP_OSPI_D2_PORT, CYBSP_OSPI_D2_PIN, &CYBSP_OSPI_D2_config);
     Cy_GPIO_Pin_Init(CYBSP_OSPI_D3_PORT, CYBSP_OSPI_D3_PIN, &CYBSP_OSPI_D3_config);
     Cy_GPIO_Pin_Init(CYBSP_QSPI_SS_PORT, CYBSP_QSPI_SS_PIN, &CYBSP_QSPI_SS_config);
+    Cy_GPIO_Pin_Init(CYBSP_I3C_SCL_PORT, CYBSP_I3C_SCL_PIN, &CYBSP_I3C_SCL_config);
+    Cy_GPIO_Pin_Init(CYBSP_I3C_SDA_PORT, CYBSP_I3C_SDA_PIN, &CYBSP_I3C_SDA_config);
     Cy_GPIO_Pin_Init(CYBSP_OSPI_RAM_D0_PORT, CYBSP_OSPI_RAM_D0_PIN, &CYBSP_OSPI_RAM_D0_config);
     Cy_GPIO_Pin_Init(CYBSP_OSPI_RAM_D1_PORT, CYBSP_OSPI_RAM_D1_PIN, &CYBSP_OSPI_RAM_D1_config);
     Cy_GPIO_Pin_Init(CYBSP_OSPI_RAM_D2_PORT, CYBSP_OSPI_RAM_D2_PIN, &CYBSP_OSPI_RAM_D2_config);
