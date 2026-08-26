@@ -4,15 +4,15 @@
  * Description:
  * Memory configuration
  * This file was automatically generated and should not be modified.
- * Configurator Backend 3.70.0
- * device-db 4.34.0.9502
- * ifx-mcuboot-pse84 1.1.0.349
- * ifx-tf-m 2.1.400.14138
- * mtb-dsl-pse8xxgp 1.2.0.895
+ * Configurator Backend 3.80.0
+ * device-db 4.39.0.10988
+ * ifx-mcuboot-pse84 1.4.0.518
+ * ifx-tf-m 2.1.600.18307
+ * mtb-dsl-pse8xxgp 1.6.0.1310
  *
  *******************************************************************************
- * Copyright 2026 Cypress Semiconductor Corporation (an Infineon company) or
- * an affiliate of Cypress Semiconductor Corporation.
+ * Copyright 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,18 @@
 #define CYCFG_MEMORY_H
 
 #include "cycfg_notices.h"
+
+#if defined(COMPONENT_CM33_0) && defined(COMPONENT_SECURE_DEVICE)
+#include "cymem_CM33_0_S.h"
+#endif /* defined(COMPONENT_CM33_0) && defined(COMPONENT_SECURE_DEVICE) */
+
+#if defined(COMPONENT_CM33_0) && defined(COMPONENT_NON_SECURE_DEVICE)
+#include "cymem_CM33_0.h"
+#endif /* defined(COMPONENT_CM33_0) && defined(COMPONENT_NON_SECURE_DEVICE) */
+
+#if defined(COMPONENT_CM55_0)
+#include "cymem_CM55_0.h"
+#endif /* defined(COMPONENT_CM55_0) */
 
 #if defined(__cplusplus)
 extern "C" {
@@ -66,12 +78,9 @@ extern "C" {
 #define vres_0_memory_region_data_26_ENABLED 1U
 #define vres_0_memory_region_data_27_ENABLED 1U
 #define vres_0_memory_region_data_28_ENABLED 1U
-#define vres_0_memory_region_data_29_ENABLED 1U
-#define vres_0_memory_region_data_30_ENABLED 1U
 #define vres_0_reserved_memory_region_0_ENABLED 1U
 #define vres_0_reserved_memory_region_1_ENABLED 1U
 #define vres_0_reserved_memory_region_2_ENABLED 1U
-#define vres_0_reserved_memory_region_3_ENABLED 1U
 #define vres_0_memory_0_ENABLED 1U
 
 #if defined(__cplusplus)
