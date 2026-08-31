@@ -91,7 +91,7 @@ static enum post_result mtb_stl_gpio_wrapper(const struct post_context *ctx)
 		0x00u, /* PORT0 mask */
 		0x00u, /* PORT1 mask */
 		0x00u, /* PORT2 mask */
-		0x30u, /* PORT3 mask */
+		0x03u, /* PORT3 mask */
 		0x00u, /* PORT4 mask */
 		0x00u, /* PORT5 mask */
 		0x00u, /* PORT6 mask */
@@ -328,69 +328,34 @@ static enum post_result mtb_stl_flash_wrapper(const struct post_context *ctx)
 	uint32_t flash_size;
 	uint32_t flash_start_addr;
 	uint32_t flash_end_addr;
-	uint32_t checksum_addr_rel;
 	uint32_t checksum_addr;
 	uint8_t flash_CheckSum_temp;
-	uint32_t dt_flash_base;
 
-	dt_flash_base = DEVICE_FLASH_BASE;
+	flash_base = DEVICE_FLASH_BASE;
 	flash_size = DEVICE_FLASH_SIZE;
 
-	/* Get the actual address where checksum is stored
-	 * On PSoC4, linker uses ORIGIN=0x0, so addresses are relative
-	 */
-	checksum_addr_rel = (uint32_t)(uintptr_t)&flash_StoredCheckSum;
+	checksum_addr = (uint32_t)(uintptr_t)&flash_StoredCheckSum;
 
-	/* MTB-STL library has PSoC4-specific memory mapping code that handles
-	 * address translation. Since linker uses ORIGIN=0x0, use relative addresses
-	 * (0x0 base) for the MTB-STL library calls.
-	 */
-	flash_base = 0x0UL;
-
-	if (dt_flash_base == 0) {
-		checksum_addr = 0x10000000UL + checksum_addr_rel;
-	} else {
-		checksum_addr = dt_flash_base + checksum_addr_rel;
-	}
-
-	/* Calculate checksum range - exclude the checksum section
-	 * The checksum section might not be at the exact end, so we need to
-	 * exclude it based on its actual address
-	 */
 	flash_start_addr = flash_base;
 
-	uint32_t checksum_offset = checksum_addr_rel;
-
-	/* Exclude the checksum section from calculation */
-	if (checksum_offset >= 8 && checksum_offset < flash_size) {
-		/* Checksum is within flash - checksum up to it (exclude it) */
-		flash_end_addr = checksum_offset; /* Relative address */
+	/* Exclude the checksum word itself from the checked range. */
+	if ((checksum_addr >= flash_base + FLASH_RESERVED_CHECKSUM_SIZE) &&
+	    (checksum_addr < flash_base + flash_size)) {
+		flash_end_addr = checksum_addr;
 	} else {
-		/* Fallback: exclude last 8 bytes if checksum is at end or outside */
-		flash_end_addr = flash_size - FLASH_RESERVED_CHECKSUM_SIZE;
-		if (checksum_offset >= flash_size) {
-			LOG_WRN("Checksum offset 0x%08lX is outside flash size 0x%08lX,"
-					"using end-8", (unsigned long)checksum_offset,
-					(unsigned long)flash_size);
-		}
+		flash_end_addr = flash_base + flash_size - FLASH_RESERVED_CHECKSUM_SIZE;
+		LOG_WRN("Checksum at 0x%08lX outside flash [0x%08lX, 0x%08lX), using end-8",
+				(unsigned long)checksum_addr, (unsigned long)flash_base,
+				(unsigned long)(flash_base + flash_size));
 	}
 
-	LOG_INF("Flash: DT_base=0x%08lX, HW_base=0x%08lX, size=0x%08lX",
-			(unsigned long)DEVICE_FLASH_BASE, (unsigned long)flash_base,
+	LOG_INF("Flash: base=0x%08lX, size=0x%08lX", (unsigned long)flash_base,
 			(unsigned long)flash_size);
-	LOG_INF("Checksum range: start=0x%08lX, end=0x%08lX (excludes checksum at "
-			"0x%08lX)",
+	LOG_INF("Checksum range: start=0x%08lX, end=0x%08lX (checksum at 0x%08lX, "
+			"value=0x%016llX)",
 			(unsigned long)flash_start_addr, (unsigned long)flash_end_addr,
-			(unsigned long)checksum_addr_rel);
-	LOG_INF("Checksum stored at: rel=0x%08lX, abs=0x%08lX, value=0x%016llX",
-			(unsigned long)checksum_addr_rel, (unsigned long)checksum_addr,
+			(unsigned long)checksum_addr,
 			(unsigned long long)flash_StoredCheckSum);
-
-	if (flash_end_addr == 0) {
-		LOG_ERR("Invalid flash end address: 0x%08lX",
-				(unsigned long)flash_end_addr);
-		return POST_RESULT_FAIL;
-	}
 
 	if (flash_start_addr >= flash_end_addr) {
 		LOG_ERR("Invalid flash range: start=0x%08lX >= end=0x%08lX",
@@ -398,10 +363,10 @@ static enum post_result mtb_stl_flash_wrapper(const struct post_context *ctx)
 		return POST_RESULT_FAIL;
 	}
 
-	/* For relative addresses (base=0x0), check against flash_size */
-	if (flash_end_addr > flash_size) {
-		LOG_ERR("Flash end address exceeds flash size: end=0x%08lX > size=0x%08lX",
-				(unsigned long)flash_end_addr, (unsigned long)flash_size);
+	if (flash_end_addr > flash_base + flash_size) {
+		LOG_ERR("Flash end address exceeds flash: end=0x%08lX > 0x%08lX",
+				(unsigned long)flash_end_addr,
+				(unsigned long)(flash_base + flash_size));
 		return POST_RESULT_FAIL;
 	}
 
@@ -492,7 +457,7 @@ POST_VENDOR_TEST_WRAP(mtb_stl_fpu,
  */
 #ifdef CONFIG_POST_MTB_STL_DMA
 
-#define DMA_TEST_NODE DT_NODELABEL(dma_test)
+#if defined(CY_IP_M0S8CPUSSV3_DMAC)
 
 static enum post_result mtb_stl_dmac_wrapper(const struct post_context *ctx)
 {
@@ -508,6 +473,85 @@ POST_TEST_DEFINE(mtb_stl_dmac,
 		50, 0,
 		mtb_stl_dmac_wrapper,
 		"MTB-STL DMAC Test");
+
+#elif defined(CY_IP_MXDW)
+
+static cy_stc_dma_descriptor_t ifx_dma_dw_descriptor_0;
+static cy_stc_dma_descriptor_t ifx_dma_dw_descriptor_1;
+
+static const cy_stc_dma_descriptor_config_t ifx_dma_dw_descriptor_0_config = {
+	.retrigger = CY_DMA_RETRIG_IM,
+	.interruptType = CY_DMA_DESCR_CHAIN,
+	.triggerOutType = CY_DMA_DESCR_CHAIN,
+	.channelState = CY_DMA_CHANNEL_ENABLED,
+	.triggerInType = CY_DMA_DESCR_CHAIN,
+	.dataSize = CY_DMA_WORD,
+	.srcTransferSize = CY_DMA_TRANSFER_SIZE_WORD,
+	.dstTransferSize = CY_DMA_TRANSFER_SIZE_WORD,
+	.descriptorType = CY_DMA_1D_TRANSFER,
+	.srcAddress = NULL,
+	.dstAddress = NULL,
+	.srcXincrement = 1,
+	.dstXincrement = 1,
+	.xCount = 16,
+	.srcYincrement = 1,
+	.dstYincrement = 1,
+	.yCount = 1,
+	.nextDescriptor = &ifx_dma_dw_descriptor_1,
+};
+
+static const cy_stc_dma_descriptor_config_t ifx_dma_dw_descriptor_1_config = {
+	.retrigger = CY_DMA_RETRIG_IM,
+	.interruptType = CY_DMA_DESCR_CHAIN,
+	.triggerOutType = CY_DMA_DESCR_CHAIN,
+	.channelState = CY_DMA_CHANNEL_ENABLED,
+	.triggerInType = CY_DMA_DESCR,
+	.dataSize = CY_DMA_BYTE,
+	.srcTransferSize = CY_DMA_TRANSFER_SIZE_DATA,
+	.dstTransferSize = CY_DMA_TRANSFER_SIZE_DATA,
+	.descriptorType = CY_DMA_2D_TRANSFER,
+	.srcAddress = NULL,
+	.dstAddress = NULL,
+	.srcXincrement = 1,
+	.dstXincrement = 1,
+	.xCount = 3,
+	.srcYincrement = 3,
+	.dstYincrement = 3,
+	.yCount = 22,
+	.nextDescriptor = NULL,
+};
+
+static const cy_stc_dma_channel_config_t ifx_dma_dw_channel_config = {
+	.descriptor = &ifx_dma_dw_descriptor_0,
+	.preemptable = DT_PROP(DMA_TEST_NODE, dma_preemptable),
+	.priority = DT_PROP(DMA_TEST_NODE, dma_priority),
+	.enable = false,
+	.bufferable = DT_PROP(DMA_TEST_NODE, dma_bufferable),
+};
+
+static enum post_result mtb_stl_dma_dw_wrapper(const struct post_context *ctx)
+{
+	ARG_UNUSED(ctx);
+	uint32_t channel = DT_PROP(DMA_TEST_NODE, channel);
+
+	return (SelfTest_DMA_DW(DW0, channel,
+				&ifx_dma_dw_descriptor_0, &ifx_dma_dw_descriptor_1,
+				&ifx_dma_dw_descriptor_0_config,
+				&ifx_dma_dw_descriptor_1_config,
+				&ifx_dma_dw_channel_config,
+				TRIG_OUT_MUX_0_PDMA0_TR_IN0 + channel) == OK_STATUS)
+		? POST_RESULT_PASS : POST_RESULT_FAIL;
+}
+
+POST_TEST_DEFINE(mtb_stl_dma_dw,
+		POST_CAT_DMA,
+		POST_LEVEL_APPLICATION,
+		50, 0,
+		mtb_stl_dma_dw_wrapper,
+		"MTB-STL DMA DW Test");
+#else
+#warning "CONFIG_POST_MTB_STL_DMA has no effect: MTB-STL provides no DMA self-test for this SoC's DMA IP"
+#endif /* CY_IP_M0S8CPUSSV3_DMAC / CY_IP_MXDW */
 #endif /* CONFIG_POST_MTB_STL_DMA */
 
 #ifdef CONFIG_POST_MTB_STL_UART_LOOPBACK
@@ -588,7 +632,6 @@ static enum post_result mtb_stl_interrupt_wrapper(const struct post_context *ctx
 
 	/* Configure counter with POST test parameters */
 	infineon_stl_config_post_parameter(base, cnt_num, period, compare0, compare1);
-
 	Cy_TCPWM_Counter_Enable(base, cnt_num);
 	Cy_TCPWM_SetInterruptMask(base, cnt_num, intr_src);
 
@@ -615,6 +658,10 @@ static void clock_test_init(uint32_t cnt_num, TCPWM_Type *base)
 	uint32_t intr_src = DT_PROP(CLOCK_TEST_NODE, interrupt_sources);
 	uint32_t ignore_bits = DT_PROP(CLOCK_TEST_NODE, wdt_ignore_bits);
 
+#if defined(CONFIG_SOC_FAMILY_INFINEON_CAT1)
+	Cy_WDT_Unlock();
+#endif
+
 	Cy_WDT_SetIgnoreBits(ignore_bits);
 
 	if (Cy_WDT_GetIgnoreBits() != ignore_bits) {
@@ -627,6 +674,10 @@ static void clock_test_init(uint32_t cnt_num, TCPWM_Type *base)
 	if (Cy_WDT_IsEnabled() == false) {
 		LOG_ERR("WDT IS NOT ENABLED!!!");
 	}
+
+#if defined(CONFIG_SOC_FAMILY_INFINEON_CAT1)
+	Cy_WDT_Lock();
+#endif
 
 	Cy_TCPWM_Counter_Enable(base, cnt_num);
 	Cy_TCPWM_SetInterruptMask(base, cnt_num, intr_src);
@@ -659,6 +710,9 @@ static enum post_result mtb_stl_clock_wrapper(const struct post_context *ctx)
 		res = SelfTest_Clock(base, cnt_num);
 		if ((k_cycle_get_32() - start) > timeout_cycles) {
 			infineon_stl_stop_running_cnt(base, cnt_num);
+#if defined(CONFIG_SOC_FAMILY_INFINEON_CAT1)
+			Cy_WDT_Unlock();
+#endif
 			Cy_WDT_ClearInterrupt();
 			Cy_WDT_Disable();
 			return POST_RESULT_FAIL;
@@ -666,6 +720,9 @@ static enum post_result mtb_stl_clock_wrapper(const struct post_context *ctx)
 	} while (res == 2);
 
 	infineon_stl_stop_running_cnt(base, cnt_num);
+#if defined(CONFIG_SOC_FAMILY_INFINEON_CAT1)
+	Cy_WDT_Unlock();
+#endif
 	Cy_WDT_ClearInterrupt();
 	Cy_WDT_Disable();
 

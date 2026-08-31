@@ -15,11 +15,13 @@ if POST_VENDOR_MTB_STL
 
 config POST_MTB_STL_STARTUP_CFGREG
 	bool "MTB-STL Start-Up Registers Test"
+	select USE_INFINEON_FLASH
 	help
 	  Enable MTB-STL Start-Up Registers tests.
 
 config POST_MTB_STL_SAVE_STARTUP_CFGREG
 	bool "MTB-STL Save Start-Up Registers Test"
+	select USE_INFINEON_FLASH
 	help
 	  Enable MTB-STL Save Start-Up Registers tests.
 

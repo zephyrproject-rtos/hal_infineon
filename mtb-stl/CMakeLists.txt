@@ -32,6 +32,7 @@ zephyr_include_directories(${MTB_STL_BASE}/stl/regs)
 zephyr_include_directories(${MTB_STL_BASE}/stl/crc)
 zephyr_include_directories(${MTB_STL_BASE}/stl/io)
 zephyr_include_directories(${MTB_STL_BASE}/stl/dmac)
+zephyr_include_directories(${MTB_STL_BASE}/stl/dma_dw)
 zephyr_include_directories(${MTB_STL_BASE}/stl/intr)
 zephyr_include_directories(${MTB_STL_BASE}/stl/pwm)
 zephyr_include_directories(${MTB_STL_BASE}/stl/pwm_gatekill)
@@ -90,10 +91,12 @@ zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_WDT
 
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_FPU
   ${MTB_STL_BASE}/stl/fpu/SelfTest_FPU_Regs.c
+  ${MTB_STL_BASE}/stl/TOOLCHAIN_GCC_ARM/SelfTest_FPU_Regs_GCC.S
 )
 
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_DMA
   ${MTB_STL_BASE}/stl/dmac/SelfTest_DMAC.c
+  ${MTB_STL_BASE}/stl/dma_dw/SelfTest_DMA_DW.c
 )
 
 zephyr_library_sources_ifdef(CONFIG_POST_MTB_STL_INTERRUPT

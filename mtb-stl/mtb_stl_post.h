@@ -46,6 +46,7 @@
 #if defined(CONFIG_POST_MTB_STL_DMA)
 #define DMA_TEST_NODE DT_NODELABEL(dma_test)
 #include "SelfTest_DMAC.h"
+#include "SelfTest_DMA_DW.h"
 #endif
 
 #if defined(CONFIG_POST_MTB_STL_INTERRUPT)
@@ -137,21 +138,16 @@ typedef struct {
  * Helper Macros
  */
 
-/*
- * Derive the TCPWM counter instance number (cnt_num) from the DTS register
- * addresses of the counter node and its ancestors.
- *
- * PSoC4 TCPWM layout: the first counter block starts at TCPWM_base + 0x100
- * and each subsequent counter is offset by 0x40.  Both constants come from
- * the hardware register map and are reflected in the DTS reg properties.
- *
- * cnt_node: a counter or PWM child node (e.g. counter0_1, pwm0_4).
- *   DT_PARENT(cnt_node)         > tcpwm0_N  (individual channel block)
- *   DT_PARENT(DT_PARENT(...))   > tcpwm0    (TCPWM peripheral block)
- */
+#if defined(CONFIG_SOC_FAMILY_INFINEON_PSOC4)
 #define IFX_TCPWM_CNT_NUM(cnt_node) \
 	((DT_REG_ADDR(DT_PARENT(cnt_node)) - \
 	  DT_REG_ADDR(DT_PARENT(DT_PARENT(cnt_node))) - 0x100UL) / 0x40UL)
+#else
+#define IFX_TCPWM_CNT_NUM(cnt_node) \
+	((DT_REG_ADDR(DT_PARENT(cnt_node)) - \
+	  DT_REG_ADDR(DT_PARENT(DT_PARENT(cnt_node)))) / \
+	 DT_REG_SIZE(DT_PARENT(cnt_node)))
+#endif
 
 /*
  * Stack and Flash
