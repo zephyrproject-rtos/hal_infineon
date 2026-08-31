@@ -936,7 +936,7 @@ static enum post_result mtb_stl_communication_wrapper(const struct post_context 
 	TCPWM_Type *cnt_base;
 	CySCB_Type *scb_uart_master = (CySCB_Type *)DT_REG_ADDR(UART_COMM_MASTER_TEST_NODE);
 	CySCB_Type *scb_uart_slave = (CySCB_Type *)DT_REG_ADDR(UART_COMM_SLAVE_TEST_NODE);
-	uint32_t cnt_num = DT_PROP(CNT_CLOCK_COMM_TEST_NODE, resource_channel);
+	uint32_t cnt_num = IFX_TCPWM_CNT_NUM(COUNTER_COMM_TEST_NODE);
 	const uint32_t irq_num_cnt = DT_IRQN(DT_PARENT(COUNTER_COMM_TEST_NODE));
 	const uint32_t irq_num_master = DT_IRQN(UART_COMM_MASTER_TEST_NODE);
 	const uint32_t irq_num_slave = DT_IRQN(UART_COMM_SLAVE_TEST_NODE);
