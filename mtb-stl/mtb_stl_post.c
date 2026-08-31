@@ -1039,8 +1039,13 @@ const cy_stc_scb_spi_config_t spi_config_stl =
         .enableMisoLateSample       = true,
         .enableTransferSeperation   = false,
         .ssPolarity 		    = CY_SCB_SPI_ACTIVE_LOW,
+#if defined(CY_IP_M0S8SCB)
         .ssSetupDelay               = CY_SCB_SPI_SS_SETUP_DELAY_0_75_CYCLES,
         .ssHoldDelay                = CY_SCB_SPI_SS_HOLD_DELAY_0_75_CYCLES,
+#else
+        .ssSetupDelay               = false,
+        .ssHoldDelay                = false,
+#endif
         .enableWakeFromSleep        = false,
         .rxFifoTriggerLevel         = 0UL,
         .rxFifoIntEnableMask        = 0UL,
