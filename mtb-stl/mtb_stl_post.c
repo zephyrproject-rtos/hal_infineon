@@ -836,6 +836,7 @@ static enum post_result mtb_stl_pwm_wrapper(const struct post_context *ctx)
         const uint32_t irq_num = DT_IRQN(DT_PARENT(TCPWM_PWM_TEST_NODE));
         uint32_t cnt_num = IFX_TCPWM_CNT_NUM(TCPWM_PWM_TEST_NODE);
 
+#if !(defined(CY_IP_MXTCPWM) && (CY_IP_MXTCPWM_VERSION >= 2U))
         if (!gpio_is_ready_dt(&pwm_in_spec)) {
                 LOG_ERR("GPIO-IN dev not ready for PWM test!!!");
         }
@@ -844,14 +845,31 @@ static enum post_result mtb_stl_pwm_wrapper(const struct post_context *ctx)
         if (ret != 0) {
                 LOG_ERR("Pin not configured for pwm-in pin");
         }
+#else
+        ARG_UNUSED(ret);
+#endif
 
         /* Initialize PWM  */
         base = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(TCPWM_PWM_TEST_NODE))));
+
         if (SelfTest_PWM_init(base, cnt_num, &ifx_pwm_config, irq_num) != OK_STATUS) {
                 LOG_ERR("PWM_TEST INIT FAILED");
         }
 
-        /* Run vendor PWM self-test and also connect the p2.2 and p2.3 with jumper */
+#if defined(CY_IP_MXTCPWM) && (CY_IP_MXTCPWM_VERSION >= 2U)
+        /* On MXTCPWM v2 the line-output source defaults to CONSTANT_0; route it
+         * to the PWM comparator so SelfTest_PWM() can observe the toggling line
+         * via the STATUS register (no external pin/jumper on v2). */
+        Cy_TCPWM_PWM_Configure_LineSelect(base, cnt_num, CY_TCPWM_OUTPUT_PWM_SIGNAL,
+                                          CY_TCPWM_OUTPUT_INVERTED_PWM_SIGNAL);
+#endif
+
+        /*
+         * Run the vendor PWM self-test. On v1 (PSoC4/M0S8) it reads the PWM
+         * output back through the physical pin, so a loopback jumper between
+         * p2.2 and p2.3 is required; on v2 (PSC3) it reads the internal
+         * line-out status register and ignores the pin/base arguments.
+         */
         result = SelfTest_PWM((GPIO_PRT_Type *)GPIO_CTRL_BASE_IN, pwm_in_spec.pin);
 
         return (result == OK_STATUS) ? POST_RESULT_PASS : POST_RESULT_FAIL;
@@ -879,8 +897,13 @@ static enum post_result mtb_stl_pwm_gatekill_wrapper(const struct post_context *
 	base_gk_cnt = (TCPWM_Type *)(DT_REG_ADDR(DT_PARENT(DT_PARENT(COUNTER_PWM_GK_TEST_NODE))));
 
 	Cy_TCPWM_PWM_Enable(base_gk_cnt, cnt_num);
+#if defined(CY_IP_M0S8TCPWM)
 	Cy_TCPWM_TriggerReloadOrIndex(base_gk_cnt, (1UL << cnt_num));
 	Cy_TCPWM_TriggerStopOrKill(base_gk_cnt, (1UL << cnt_num));
+#else
+	Cy_TCPWM_TriggerReloadOrIndex_Single(base_gk_cnt, cnt_num);
+	Cy_TCPWM_TriggerStopOrKill_Single(base_gk_cnt, cnt_num);
+#endif
 
 	result = SelfTest_PWM_GateKill(base_gk_cnt, cnt_num);
 
