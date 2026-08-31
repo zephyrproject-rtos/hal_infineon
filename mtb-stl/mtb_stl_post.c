@@ -1174,7 +1174,11 @@ static void SelfTest_I2C_SCB_Init(CySCB_Type *i2c_master, CySCB_Type *i2c_slave)
         i2c_res = Cy_SCB_I2C_Init(i2c_master, &i2c_master_config, &i2c_master_context);
         __ASSERT(i2c_res == CY_SCB_I2C_SUCCESS, "Master init failed");
 
+#if defined(CY_IP_M0S8SCB)
         Cy_SCB_I2C_Enable(i2c_master, &i2c_master_context);
+#else
+        Cy_SCB_I2C_Enable(i2c_master);
+#endif
 
         /* Slave Init */
         i2c_res = Cy_SCB_I2C_Init(i2c_slave, &i2c_slave_config, &i2c_slave_context);
@@ -1185,7 +1189,11 @@ static void SelfTest_I2C_SCB_Init(CySCB_Type *i2c_master, CySCB_Type *i2c_slave)
         Cy_SCB_I2C_SlaveConfigWriteBuf(i2c_slave, i2c_slave_write_buf, PACKET_SIZE,
 									&i2c_slave_context);
 
+#if defined(CY_IP_M0S8SCB)
         Cy_SCB_I2C_Enable(i2c_slave, &i2c_slave_context);
+#else
+        Cy_SCB_I2C_Enable(i2c_slave);
+#endif
 }
 
 static enum post_result mtb_stl_i2c_wrapper(const struct post_context *ctx)
