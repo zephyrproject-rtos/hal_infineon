@@ -1414,3 +1414,42 @@ POST_TEST_DEFINE(mtb_stl_analog,
 		mtb_stl_analog_wrapper,
 		"MTB-STL Analog Self Test");
 #endif
+
+#ifdef CONFIG_POST_MTB_STL_COMPARATOR
+
+#include <zephyr/drivers/comparator.h>
+
+#ifdef CONFIG_POST_COMP_EXPECT_HIGH
+#define COMP_STL_EXPECTED ANALOG_COMP_RESULT1
+#else
+#define COMP_STL_EXPECTED ANALOG_COMP_RESULT2
+#endif
+
+static enum post_result mtb_stl_comparator_wrapper(const struct post_context *ctx)
+{
+	ARG_UNUSED(ctx);
+
+	const struct device *comp_dev = DEVICE_DT_GET(COMP_TEST_NODE);
+	LPCOMP_Type *base = (LPCOMP_Type *)DT_REG_ADDR(DT_PARENT(COMP_TEST_NODE));
+	cy_en_lpcomp_channel_t channel =
+		(cy_en_lpcomp_channel_t)(DT_PROP(COMP_TEST_NODE, channel) + 1);
+
+	if (!device_is_ready(comp_dev)) {
+		LOG_ERR("LPCOMP device not ready");
+		return POST_RESULT_FAIL;
+	}
+
+	if (SelfTests_Comparator(base, channel, COMP_STL_EXPECTED) != OK_STATUS) {
+		return POST_RESULT_FAIL;
+	}
+
+	return POST_RESULT_PASS;
+}
+
+POST_TEST_DEFINE(mtb_stl_comparator,
+		POST_CAT_COMPARATOR,
+		POST_LEVEL_APPLICATION,
+		50, 0,
+		mtb_stl_comparator_wrapper,
+		"MTB-STL Comparator Self Test");
+#endif

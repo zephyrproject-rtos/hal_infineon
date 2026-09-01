@@ -116,6 +116,11 @@
 #define ADC_CHAN0_NODE DT_CHILD(ADC_TEST_NODE, channel_0)
 #endif
 
+#ifdef CONFIG_POST_MTB_STL_COMPARATOR
+#include "SelfTest_Analog.h"
+#define COMP_TEST_NODE DT_NODELABEL(lpcomp0_0)
+#endif
+
 /*
  * Helper symbols
  */

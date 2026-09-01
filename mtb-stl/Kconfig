@@ -164,6 +164,13 @@ config POST_MTB_STL_ANALOG
 	help
 	  Enable MTB-STL Analog tests (ADC, OpAmp, etc.)
 
+config POST_MTB_STL_COMPARATOR
+	bool "MTB-STL Comparator Test"
+	depends on SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_LPCOMP
+	help
+	  Enable MTB-STL Comparator (LPCOMP) self test.
+
 # Test tuning parameters
 menu "MTB-STL test tuning"
 	depends on POST_VENDOR_MTB_STL
@@ -229,6 +236,16 @@ config POST_ADC_REF_VOLTAGE2
 	help
 	  Enable ADC SelfTest for 2/3 VDD signal test
 	  Only when disabled falls to 1/3 VDD signal test
+
+config POST_COMP_EXPECT_HIGH
+	bool "MTB-STL comparator expects high output"
+	default y
+	depends on POST_MTB_STL_COMPARATOR
+	help
+	  When enabled the comparator self-test expects a high output
+	  (positive input voltage higher than the negative input).
+	  When disabled it expects a low output (positive input lower
+	  than the negative input).
 
 endmenu
 
