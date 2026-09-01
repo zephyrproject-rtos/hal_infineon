@@ -1453,3 +1453,114 @@ POST_TEST_DEFINE(mtb_stl_comparator,
 		mtb_stl_comparator_wrapper,
 		"MTB-STL Comparator Self Test");
 #endif
+
+#ifdef CONFIG_POST_MTB_STL_DAC
+
+#include <zephyr/drivers/adc.h>
+#include <infineon_hppass_csg.h>
+
+#define DAC_STL_SAR_CHANNEL  13U
+#define DAC_STL_ACCURACY     50
+#define DAC_STL_ADC_TRIG_MSK CY_HPPASS_TRIG_0_MSK
+#define DAC_STL_DAC_TRIG_MSK CY_HPPASS_TRIG_1_MSK
+
+struct dac_stl_vector {
+	uint32_t dac_val;
+	int16_t  adc_val;
+};
+
+static const struct dac_stl_vector dac_stl_vectors[] = {
+	{ 0U,    0 },
+	{ 511U,  2047 },
+	{ 1023U, 4095 },
+};
+
+static const struct adc_dt_spec dac_adc_spec = ADC_DT_SPEC_GET(DT_PATH(zephyr_user));
+
+static enum post_result mtb_stl_dac_wrapper(const struct post_context *ctx)
+{
+	ARG_UNUSED(ctx);
+
+	const struct device *csg_dev = DEVICE_DT_GET(DAC_STL_CSG_NODE);
+	int16_t sample = 0;
+	uint32_t dac_cfg;
+	int err;
+
+	if (!adc_is_ready_dt(&dac_adc_spec)) {
+		LOG_ERR("HPPASS ADC device not ready");
+		return POST_RESULT_FAIL;
+	}
+
+	if (!device_is_ready(csg_dev)) {
+		LOG_ERR("HPPASS CSG device not ready");
+		return POST_RESULT_FAIL;
+	}
+
+	/* Route the DAC slice output to the SAR AROUTE MUX0 (internal loopback). */
+	err = mfd_infineon_hppass_csg_route_dac_to_adc(csg_dev, DAC_STL_SLICE);
+	if (err) {
+		LOG_ERR("HPPASS DAC->ADC route failed (%d)", err);
+		return POST_RESULT_FAIL;
+	}
+
+	/* Prime the SAR: program sequence group 0 / FW trigger 0 for the muxed
+	 * sampler channel.
+	 */
+	err = adc_channel_setup_dt(&dac_adc_spec);
+	if (err) {
+		LOG_ERR("HPPASS ADC channel setup failed (%d)", err);
+		return POST_RESULT_FAIL;
+	}
+
+	struct adc_sequence seq = {
+		.buffer = &sample,
+		.buffer_size = sizeof(sample),
+	};
+
+	err = adc_sequence_init_dt(&dac_adc_spec, &seq);
+	if (err) {
+		LOG_ERR("HPPASS ADC sequence init failed (%d)", err);
+		return POST_RESULT_FAIL;
+	}
+
+	err = adc_read_dt(&dac_adc_spec, &seq);
+	if (err) {
+		LOG_ERR("HPPASS ADC prime read failed (%d)", err);
+		return POST_RESULT_FAIL;
+	}
+
+	/* Select FW trigger 1 (buffered mode) as the DAC slice start source so the
+	 * STL's Cy_HPPASS_SetFwTrigger() starts each conversion.
+	 */
+	dac_cfg = HPPASS_CSG_SLICE_DAC_CFG(HPPASS_BASE, DAC_STL_SLICE);
+	dac_cfg &= ~(HPPASS_CSG_SLICE_DAC_CFG_DAC_TR_START_SEL_Msk |
+		     HPPASS_CSG_SLICE_DAC_CFG_DAC_MODE_Msk);
+	dac_cfg |= _VAL2FLD(HPPASS_CSG_SLICE_DAC_CFG_DAC_TR_START_SEL,
+			    CY_HPPASS_DAC_START_TRIG_1);
+	dac_cfg |= _VAL2FLD(HPPASS_CSG_SLICE_DAC_CFG_DAC_MODE,
+			    CY_HPPASS_DAC_MODE_BUFFERED);
+	HPPASS_CSG_SLICE_DAC_CFG(HPPASS_BASE, DAC_STL_SLICE) = dac_cfg;
+
+	for (size_t i = 0; i < ARRAY_SIZE(dac_stl_vectors); i++) {
+		if (SelfTests_DAC_TrigIn(DAC_STL_SAR_CHANNEL, DAC_STL_SLICE,
+					 dac_stl_vectors[i].dac_val,
+					 dac_stl_vectors[i].adc_val,
+					 DAC_STL_ACCURACY, DAC_STL_ADC_TRIG_MSK,
+					 DAC_STL_DAC_TRIG_MSK) != OK_STATUS) {
+			LOG_ERR("DAC self-test vector %u (in=%u exp=%d) failed",
+				(unsigned int)i, dac_stl_vectors[i].dac_val,
+				dac_stl_vectors[i].adc_val);
+			return POST_RESULT_FAIL;
+		}
+	}
+
+	return POST_RESULT_PASS;
+}
+
+POST_TEST_DEFINE(mtb_stl_dac,
+		POST_CAT_DAC,
+		POST_LEVEL_APPLICATION,
+		50, 0,
+		mtb_stl_dac_wrapper,
+		"MTB-STL DAC Self Test");
+#endif

@@ -171,6 +171,14 @@ config POST_MTB_STL_COMPARATOR
 	help
 	  Enable MTB-STL Comparator (LPCOMP) self test.
 
+config POST_MTB_STL_DAC
+	bool "MTB-STL DAC Test"
+	depends on SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_ADC
+	help
+	  Enable MTB-STL DAC self test (internal DAC to SAR ADC loopback).
+	  Requires CONFIG_ADC and CONFIG_DAC for the HPPASS SAR/CSG drivers.
+
 # Test tuning parameters
 menu "MTB-STL test tuning"
 	depends on POST_VENDOR_MTB_STL

@@ -121,6 +121,13 @@
 #define COMP_TEST_NODE DT_NODELABEL(lpcomp0_0)
 #endif
 
+#ifdef CONFIG_POST_MTB_STL_DAC
+#include "SelfTest_Analog.h"
+#define DAC_TEST_NODE DT_NODELABEL(dac_test)
+#define DAC_STL_CSG_NODE DT_PHANDLE(DAC_TEST_NODE, csg)
+#define DAC_STL_SLICE DT_PROP(DAC_TEST_NODE, slice)
+#endif
+
 /*
  * Helper symbols
  */
