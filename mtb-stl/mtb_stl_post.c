@@ -1255,6 +1255,66 @@ POST_TEST_DEFINE(mtb_stl_i2c,
 
 #include <zephyr/drivers/adc.h>
 
+#if defined(CY_IP_MXS40MCPASS)
+
+#define ADC_STL_GROUP      0U
+#define ADC_STL_TRIG_MSK   CY_HPPASS_TRIG_0_MSK
+#define ADC_STL_FULL_SCALE 4095
+
+#ifdef CONFIG_POST_ADC_REF_VOLTAGE2
+#define ADC_STL_EXPECTED ((ADC_STL_FULL_SCALE * 2) / 3)
+#else
+#define ADC_STL_EXPECTED (ADC_STL_FULL_SCALE / 3)
+#endif
+#define ADC_STL_ACCURACY ANALOG_ADC_ACCURACY
+
+static const struct adc_dt_spec adc_stl_spec = ADC_DT_SPEC_GET(DT_PATH(zephyr_user));
+
+static enum post_result mtb_stl_analog_wrapper(const struct post_context *ctx)
+{
+	ARG_UNUSED(ctx);
+
+	int16_t sample = 0;
+	int err;
+
+	if (!adc_is_ready_dt(&adc_stl_spec)) {
+		LOG_ERR("HPPASS ADC device not ready");
+		return POST_RESULT_FAIL;
+	}
+
+	err = adc_channel_setup_dt(&adc_stl_spec);
+	if (err) {
+		LOG_ERR("HPPASS ADC channel setup failed (%d)", err);
+		return POST_RESULT_FAIL;
+	}
+
+	struct adc_sequence seq = {
+		.buffer = &sample,
+		.buffer_size = sizeof(sample),
+	};
+
+	err = adc_sequence_init_dt(&adc_stl_spec, &seq);
+	if (err) {
+		LOG_ERR("HPPASS ADC sequence init failed (%d)", err);
+		return POST_RESULT_FAIL;
+	}
+
+	err = adc_read_dt(&adc_stl_spec, &seq);
+	if (err) {
+		LOG_ERR("HPPASS ADC prime read failed (%d)", err);
+		return POST_RESULT_FAIL;
+	}
+
+	if (SelfTests_ADC_TrigIn(ADC_STL_GROUP, adc_stl_spec.channel_id, ADC_STL_EXPECTED,
+				 ADC_STL_ACCURACY, ADC_STL_TRIG_MSK) != OK_STATUS) {
+		return POST_RESULT_FAIL;
+	}
+
+	return POST_RESULT_PASS;
+}
+
+#else
+
 extern void ifx_sar_set_stl_bypass(const struct device *dev, bool bypass);
 
 const cy_stc_sar_channel_config_t ifx_dut_sar_adc_ch_cfg =
@@ -1344,6 +1404,8 @@ static enum post_result mtb_stl_analog_wrapper(const struct post_context *ctx)
 
 	return result;
 }
+
+#endif /* CY_IP_MXS40MCPASS */
 
 POST_TEST_DEFINE(mtb_stl_analog,
 		POST_CAT_ADC,
