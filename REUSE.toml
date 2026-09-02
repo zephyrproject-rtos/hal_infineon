@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: Copyright The Zephyr Project Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# REUSE.toml — REUSE Specification 3.3 bulk annotations for binary blobs
+# https://reuse.software/spec-3.3/
+#
+# This file provides SPDX license and copyright metadata for west-fetched
+# binary blobs (zephyr/blobs/), which cannot carry in-file SPDX tags.
+# License text is taken from the blob license-path in zephyr/module.yml,
+# except where that path is ambiguous: Infineon module.yml uses
+# "./LICENSE.txt" for cat1cm0p, BLESS, and flashloader blobs, but the
+# tracked file at the module root is License.txt (BSD-3-Clause). The
+# licenses below follow the upstream blob repositories instead:
+#   - Infineon/cat1cm0p LICENSE — Apache-2.0
+#   - npal-cy/TARGET_CYW920829M2EVK-02 LICENSE — Apache-2.0
+#   - Infineon/bless LICENSE — Cypress EULA (same family as
+#     zephyr/blobs/license.txt)
+# Paths below do not overlap (REUSE combines overlapping annotations with AND).
+# In-file tags always take precedence over entries below (REUSE spec §3.3).
+#
+# Licenses referenced here must have their full text under LICENSES/.
+
+version = 1
+
+# ---------------------------------------------------------------------------
+# Binary blobs — Apache-2.0 (cat1cm0p CM0+ images; CYW20829 flashloader)
+# ---------------------------------------------------------------------------
+[[annotations]]
+path = [
+  "zephyr/blobs/img/cat1cm0p/**",
+  "zephyr/blobs/flashloader/**",
+]
+SPDX-FileCopyrightText = "Copyright (c) Cypress Semiconductor Corporation (an Infineon company)"
+SPDX-License-Identifier = "Apache-2.0"
+
+# ---------------------------------------------------------------------------
+# Binary blobs — Cypress (an Infineon company) EULA
+# (WHD Wi-Fi firmware/CLM, BT controller firmware, BLESS controller)
+# ---------------------------------------------------------------------------
+[[annotations]]
+path = [
+  "zephyr/blobs/img/whd/**",
+  "zephyr/blobs/img/bluetooth/**",
+  "zephyr/blobs/license.txt",
+]
+SPDX-FileCopyrightText = "Copyright (c) Cypress Semiconductor Corporation (an Infineon company)"
+SPDX-License-Identifier = "LicenseRef-Cypress-EULA"
