@@ -14,6 +14,10 @@ endif()
 
 zephyr_library()
 
+if(CONFIG_SOC_SERIES_PSC3M6)
+  target_include_directories(${ZEPHYR_CURRENT_LIBRARY} BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
 zephyr_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 zephyr_include_directories(${MTB_STL_BASE}/stl)
 zephyr_include_directories(${MTB_STL_BASE}/export)
