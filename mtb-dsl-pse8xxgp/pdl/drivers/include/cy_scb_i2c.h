@@ -637,6 +637,14 @@ typedef struct cy_stc_scb_i2c_master_xfer_config
     * transfer ends.
     */
     bool     xferPending;
+
+    /**
+    * When true, append the buffer to the transaction already in progress
+    * without emitting a repeated START or re-sending the slave address.
+    * Only valid when the bus is held from a previous call with xferPending
+    * set to true.  Ignored when the bus is idle.
+    */
+    bool     continueXfer;
 } cy_stc_scb_i2c_master_xfer_config_t;
 /** \} group_scb_i2c_data_structures */
 

@@ -1258,13 +1258,8 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterRead(CySCB_Type *base,
     {
         uint32_t intrState;
 
-        /* Set address byte (bit0 = 1, read direction) */
-        uint32_t address = _VAL2FLD(CY_SCB_I2C_ADDRESS, xferConfig->slaveAddress) |
-                         (uint32_t) CY_SCB_I2C_READ_XFER;
-
         /* Setup context */
         context->masterStatus     = CY_SCB_I2C_MASTER_BUSY;
-
         context->masterBuffer     = xferConfig->buffer;
         context->masterBufferSize = xferConfig->bufferSize;
         context->masterBufferIdx  = 0UL;
@@ -1272,30 +1267,37 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterRead(CySCB_Type *base,
         context->masterPause      = xferConfig->xferPending;
         context->masterRdDir      = true;
 
-        /* Clean-up hardware before transfer. Note RX FIFO is empty at here. */
-        Cy_SCB_ClearMasterInterrupt(base, CY_SCB_I2C_MASTER_INTR_ALL);
-        Cy_SCB_ClearTxFifo(base);
-
-        if (CY_SCB_I2C_IDLE == context->state)
+        if (!((xferConfig->continueXfer) && (CY_SCB_I2C_MASTER_WAIT == context->state)))
         {
-            /* Put the address in the TX FIFO, then generate a Start condition.
-            * This sequence ensures that after the Start condition generation
-            * the address is available to be sent onto the bus.
-            */
-            Cy_SCB_WriteTxFifo(base, address);
-            SCB_I2C_M_CMD(base) = SCB_I2C_M_CMD_M_START_ON_IDLE_Msk;
-        }
-        else
-        {
-            /* Generate a ReStart condition.
-            * If the previous transfer was read, NACK is generated before
-            * ReStart to complete the previous transfer.
-            */
-            SCB_I2C_M_CMD(base) = (SCB_I2C_M_CMD_M_START_Msk | (_FLD2BOOL(SCB_I2C_STATUS_M_READ, SCB_I2C_STATUS(base)) ?
-                                  SCB_I2C_M_CMD_M_NACK_Msk : 0UL));
+            /* Set address byte (bit0 = 1, read direction) */
+            uint32_t address = _VAL2FLD(CY_SCB_I2C_ADDRESS, xferConfig->slaveAddress) |
+                             (uint32_t) CY_SCB_I2C_READ_XFER;
 
-            /* Put address in TX FIFO */
-            Cy_SCB_WriteTxFifo(base, address);
+            /* Clean-up hardware before transfer. Note RX FIFO is empty at here. */
+            Cy_SCB_ClearMasterInterrupt(base, CY_SCB_I2C_MASTER_INTR_ALL);
+            Cy_SCB_ClearTxFifo(base);
+
+            if (CY_SCB_I2C_IDLE == context->state)
+            {
+                /* Put the address in the TX FIFO, then generate a Start condition.
+                * This sequence ensures that after the Start condition generation
+                * the address is available to be sent onto the bus.
+                */
+                Cy_SCB_WriteTxFifo(base, address);
+                SCB_I2C_M_CMD(base) = SCB_I2C_M_CMD_M_START_ON_IDLE_Msk;
+            }
+            else
+            {
+                /* Generate a ReStart condition.
+                * If the previous transfer was read, NACK is generated before
+                * ReStart to complete the previous transfer.
+                */
+                SCB_I2C_M_CMD(base) = (SCB_I2C_M_CMD_M_START_Msk | (_FLD2BOOL(SCB_I2C_STATUS_M_READ, SCB_I2C_STATUS(base)) ?
+                                      SCB_I2C_M_CMD_M_NACK_Msk : 0UL));
+
+                /* Put address in TX FIFO */
+                Cy_SCB_WriteTxFifo(base, address);
+            }
         }
 
         /* Configure interrupt for data reception */
@@ -1486,12 +1488,8 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWrite(CySCB_Type *base,
     {
         uint32_t intrState;
 
-        /* Set address byte (bit0 = 0, write direction) */
-        uint32_t address = _VAL2FLD(CY_SCB_I2C_ADDRESS, xferConfig->slaveAddress);
-
         /* Setup context */
         context->masterStatus     = CY_SCB_I2C_MASTER_BUSY;
-
         context->masterBuffer     = xferConfig->buffer;
         context->masterBufferSize = xferConfig->bufferSize;
         context->masterBufferIdx  = 0UL;
@@ -1499,49 +1497,55 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWrite(CySCB_Type *base,
         context->masterPause      = xferConfig->xferPending;
         context->masterRdDir      = false;
 
-        /* Clean-up hardware before transfer. Note RX FIFO is empty at here. */
-        Cy_SCB_ClearMasterInterrupt(base, CY_SCB_I2C_MASTER_INTR_ALL);
-        Cy_SCB_ClearTxFifo(base);
-
-        if (CY_SCB_I2C_IDLE == context->state)
+        if (!((xferConfig->continueXfer) && (CY_SCB_I2C_MASTER_WAIT == context->state)))
         {
-            /* Put the address in the TX FIFO, then generate a Start condition.
-            * This sequence ensures that after the Start condition generation
-            * the address is available to be sent onto the bus.
-            */
-            Cy_SCB_WriteTxFifo     (base, address);
-            Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UNDERFLOW);
-            SCB_I2C_M_CMD(base) = SCB_I2C_M_CMD_M_START_ON_IDLE_Msk;
-        }
-        else
-        {
-            /* Generate a ReStart condition.
-            * If the previous transfer was read, NACK is generated before
-            * ReStart to complete the previous transfer.
-            */
-            SCB_I2C_M_CMD(base) = (SCB_I2C_M_CMD_M_START_Msk | (_FLD2BOOL(SCB_I2C_STATUS_M_READ, SCB_I2C_STATUS(base)) ?
-                               SCB_I2C_M_CMD_M_NACK_Msk : 0UL));
+            /* Set address byte (bit0 = 0, write direction) */
+            uint32_t address = _VAL2FLD(CY_SCB_I2C_ADDRESS, xferConfig->slaveAddress);
 
-            if (0U == context->masterBufferSize)
+            /* Clean-up hardware before transfer. Note RX FIFO is empty at here. */
+            Cy_SCB_ClearMasterInterrupt(base, CY_SCB_I2C_MASTER_INTR_ALL);
+            Cy_SCB_ClearTxFifo(base);
+
+            if (CY_SCB_I2C_IDLE == context->state)
             {
-                /* The address is the last byte to transfer.
-                * Put the address byte in the TX FIFO and clear the TX
-                * Underflow interrupt source inside the critical section
-                * to ensure that the TX Underflow interrupt will trigger
-                * after the address byte is sent onto the bus.
+                /* Put the address in the TX FIFO, then generate a Start condition.
+                * This sequence ensures that after the Start condition generation
+                * the address is available to be sent onto the bus.
                 */
-                intrState = Cy_SysLib_EnterCriticalSection();
-
-                /* Put address in TX FIFO */
                 Cy_SCB_WriteTxFifo     (base, address);
                 Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UNDERFLOW);
-
-                Cy_SysLib_ExitCriticalSection(intrState);
+                SCB_I2C_M_CMD(base) = SCB_I2C_M_CMD_M_START_ON_IDLE_Msk;
             }
             else
             {
-                /* Put address in TX FIFO */
-                Cy_SCB_WriteTxFifo(base, address);
+                /* Generate a ReStart condition.
+                * If the previous transfer was read, NACK is generated before
+                * ReStart to complete the previous transfer.
+                */
+                SCB_I2C_M_CMD(base) = (SCB_I2C_M_CMD_M_START_Msk | (_FLD2BOOL(SCB_I2C_STATUS_M_READ, SCB_I2C_STATUS(base)) ?
+                                   SCB_I2C_M_CMD_M_NACK_Msk : 0UL));
+
+                if (0U == context->masterBufferSize)
+                {
+                    /* The address is the last byte to transfer.
+                    * Put the address byte in the TX FIFO and clear the TX
+                    * Underflow interrupt source inside the critical section
+                    * to ensure that the TX Underflow interrupt will trigger
+                    * after the address byte is sent onto the bus.
+                    */
+                    intrState = Cy_SysLib_EnterCriticalSection();
+
+                    /* Put address in TX FIFO */
+                    Cy_SCB_WriteTxFifo     (base, address);
+                    Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UNDERFLOW);
+
+                    Cy_SysLib_ExitCriticalSection(intrState);
+                }
+                else
+                {
+                    /* Put address in TX FIFO */
+                    Cy_SCB_WriteTxFifo(base, address);
+                }
             }
         }
 
