@@ -570,7 +570,7 @@ whd_result_t whd_wifi_off(whd_interface_t ifp)
     }
 
     /* Set wlc down before turning off the device */
-    CHECK_RETURN(whd_wifi_set_ioctl_buffer(ifp, WLC_DOWN, NULL, 0) );
+    whd_wifi_set_ioctl_buffer(ifp, WLC_DOWN, NULL, 0);
     whd_driver->internal_info.whd_wlan_status.state = WLAN_DOWN;
 
     /* Disable SDIO/SPI interrupt */

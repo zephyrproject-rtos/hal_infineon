@@ -2248,7 +2248,7 @@ whd_result_t whd_wifi_leave(whd_interface_t ifp)
     }
 
 
-    return WHD_SUCCESS;
+    return result;
 }
 
 /** Handles scan result events
