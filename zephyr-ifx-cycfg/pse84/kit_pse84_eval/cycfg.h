@@ -34,6 +34,11 @@
 
 #include "cycfg_notices.h"
 #include "cycfg_memory.h"
+#include "cymem_memory_types.h"
+#include "cymem_memory_locations.h"
+#include "cymem_CM33_0.h"
+#include "cymem_CM33_0_S.h"
+#include "cymem_CM55_0.h"
 #include "cycfg_clocks.h"
 #include "cycfg_clock_types.h"
 #include "cycfg_peripheral_clocks.h"
@@ -46,6 +51,8 @@
 #include "cycfg_protection.h"
 #include "cycfg_solutions.h"
 #include "ifx_tfm_image_config.h"
+#include "memorymap.h"
+#include "mcuboot_config.h"
 #include "cycfg_connectivity_wifi.h"
 #include "cycfg_connectivity_bt.h"
 

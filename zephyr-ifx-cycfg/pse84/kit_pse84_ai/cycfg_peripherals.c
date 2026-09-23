@@ -4,15 +4,15 @@
  * Description:
  * Analog configuration
  * This file was automatically generated and should not be modified.
- * Configurator Backend 3.70.0
- * device-db 4.34.0.9502
- * ifx-mcuboot-pse84 1.1.0.349
- * ifx-tf-m 2.1.400.14138
- * mtb-dsl-pse8xxgp 1.2.0.895
+ * Configurator Backend 3.80.0
+ * device-db 4.39.0.10988
+ * ifx-mcuboot-pse84 1.4.0.518
+ * ifx-tf-m 2.1.600.18307
+ * mtb-dsl-pse8xxgp 1.6.0.1310
  *
  *******************************************************************************
- * Copyright 2026 Cypress Semiconductor Corporation (an Infineon company) or
- * an affiliate of Cypress Semiconductor Corporation.
+ * Copyright 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -660,10 +660,10 @@ const cy_stc_smif_config_t CYBSP_SMIF_CORE_0_XSPI_FLASH_config =
     .dll_divider_value = CY_SMIF_DLL_DIVIDE_BY_2,
     .rx_capture_mode = CY_SMIF_SEL_NORMAL_SPI,
     .mdl_tap = CY_SMIF_MDL_8_TAP_DELAY,
-    .device0_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
-    .device1_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
-    .device2_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
-    .device3_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
+    .device0_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
+    .device1_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
+    .device2_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
+    .device3_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
     .tx_sdr_extra = CY_SMIF_TX_TWO_PERIOD_AHEAD,
 };
 
@@ -686,7 +686,7 @@ const mtb_hal_memoryspi_configurator_t CYBSP_SMIF_CORE_0_XSPI_FLASH_hal_config =
     .clock = &CYBSP_SMIF_CORE_0_XSPI_FLASH_hal_clock,
     .config = &CYBSP_SMIF_CORE_0_XSPI_FLASH_config,
     .csel = {false, true, false, false},
-    .irqs = CYBSP_SMIF_CORE_0_XSPI_FLASH_MEMORY_MODE_ALIGMENT_ERROR << 5 | CYBSP_SMIF_CORE_0_XSPI_FLASH_RX_DATA_FIFO_UNDERFLOW << 4 | CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_COMMAND_FIFO_OVERFLOW << 3 | CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_DATA_FIFO_OVERFLOW << 2 | (uint8_t)(CYBSP_SMIF_CORE_0_XSPI_FLASH_RX_FIFO_TRIGGER_LEVEL != 0) << 1 | (uint8_t)(CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_FIFO_TRIGGER_LEVEL != 0) << 0,
+    .irqs = CYBSP_SMIF_CORE_0_XSPI_FLASH_MEMORY_MODE_ALIGNMENT_ERROR << 5 | CYBSP_SMIF_CORE_0_XSPI_FLASH_RX_DATA_FIFO_UNDERFLOW << 4 | CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_COMMAND_FIFO_OVERFLOW << 3 | CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_DATA_FIFO_OVERFLOW << 2 | (uint8_t)(CYBSP_SMIF_CORE_0_XSPI_FLASH_RX_FIFO_TRIGGER_LEVEL != 0) << 1 | (uint8_t)(CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_FIFO_TRIGGER_LEVEL != 0) << 0,
     .dmas = CYBSP_SMIF_CORE_0_XSPI_FLASH_RX_DMA_TRIGGER_OUT_USED << 1 | CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_DMA_TRIGGER_OUT_USED << 0,
 };
 #endif /* defined (COMPONENT_MTB_HAL) && (MTB_HAL_DRIVER_AVAILABLE_MEMORYSPI) */
@@ -696,15 +696,15 @@ const cy_stc_smif_config_t CYBSP_SMIF_CORE_1_PSRAM_config =
     .mode = (uint32_t)CY_SMIF_NORMAL,
     .deselectDelay = CYBSP_SMIF_CORE_1_PSRAM_DESELECT_DELAY,
     .blockEvent = (uint32_t)CY_SMIF_BUS_ERROR,
-    .inputFrequencyMHz = 399,
+    .inputFrequencyMHz = 400,
     .enable_internal_dll = false,
     .dll_divider_value = CY_SMIF_DLL_DIVIDE_BY_2,
     .rx_capture_mode = CY_SMIF_SEL_NORMAL_SPI,
     .mdl_tap = CY_SMIF_MDL_8_TAP_DELAY,
-    .device0_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
-    .device1_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
-    .device2_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
-    .device3_sdl_tap = CY_SMIF_SDL_8_TAP_DELAY,
+    .device0_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
+    .device1_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
+    .device2_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
+    .device3_sdl_tap = CY_SMIF_SDL_1_TAP_DELAY,
     .tx_sdr_extra = CY_SMIF_TX_TWO_PERIOD_AHEAD,
 };
 
@@ -727,7 +727,7 @@ const mtb_hal_memoryspi_configurator_t CYBSP_SMIF_CORE_1_PSRAM_hal_config =
     .clock = &CYBSP_SMIF_CORE_1_PSRAM_hal_clock,
     .config = &CYBSP_SMIF_CORE_1_PSRAM_config,
     .csel = {false, false, true, false},
-    .irqs = CYBSP_SMIF_CORE_1_PSRAM_MEMORY_MODE_ALIGMENT_ERROR << 5 | CYBSP_SMIF_CORE_1_PSRAM_RX_DATA_FIFO_UNDERFLOW << 4 | CYBSP_SMIF_CORE_1_PSRAM_TX_COMMAND_FIFO_OVERFLOW << 3 | CYBSP_SMIF_CORE_1_PSRAM_TX_DATA_FIFO_OVERFLOW << 2 | (uint8_t)(CYBSP_SMIF_CORE_1_PSRAM_RX_FIFO_TRIGGER_LEVEL != 0) << 1 | (uint8_t)(CYBSP_SMIF_CORE_1_PSRAM_TX_FIFO_TRIGGER_LEVEL != 0) << 0,
+    .irqs = CYBSP_SMIF_CORE_1_PSRAM_MEMORY_MODE_ALIGNMENT_ERROR << 5 | CYBSP_SMIF_CORE_1_PSRAM_RX_DATA_FIFO_UNDERFLOW << 4 | CYBSP_SMIF_CORE_1_PSRAM_TX_COMMAND_FIFO_OVERFLOW << 3 | CYBSP_SMIF_CORE_1_PSRAM_TX_DATA_FIFO_OVERFLOW << 2 | (uint8_t)(CYBSP_SMIF_CORE_1_PSRAM_RX_FIFO_TRIGGER_LEVEL != 0) << 1 | (uint8_t)(CYBSP_SMIF_CORE_1_PSRAM_TX_FIFO_TRIGGER_LEVEL != 0) << 0,
     .dmas = CYBSP_SMIF_CORE_1_PSRAM_RX_DMA_TRIGGER_OUT_USED << 1 | CYBSP_SMIF_CORE_1_PSRAM_TX_DMA_TRIGGER_OUT_USED << 0,
 };
 #endif /* defined (COMPONENT_MTB_HAL) && (MTB_HAL_DRIVER_AVAILABLE_MEMORYSPI) */

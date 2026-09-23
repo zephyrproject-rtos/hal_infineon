@@ -4,15 +4,15 @@
  * Description:
  * Clock configuration
  * This file was automatically generated and should not be modified.
- * Configurator Backend 3.70.0
- * device-db 4.34.0.9502
- * ifx-mcuboot-pse84 1.1.0.349
- * ifx-tf-m 2.1.400.14138
- * mtb-dsl-pse8xxgp 1.2.0.895
+ * Configurator Backend 3.80.0
+ * device-db 4.39.0.10988
+ * ifx-mcuboot-pse84 1.4.0.518
+ * ifx-tf-m 2.1.600.18307
+ * mtb-dsl-pse8xxgp 1.6.0.1310
  *
  *******************************************************************************
- * Copyright 2026 Cypress Semiconductor Corporation (an Infineon company) or
- * an affiliate of Cypress Semiconductor Corporation.
+ * Copyright 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -431,6 +431,10 @@ void init_cycfg_ns_clocks(void)
     #endif /* CY_CFG_SYSCLK_CLKHF1_FREQ_MHZ */
     SystemCoreClockSetup((CY_SYSCLK_CLK_CORE_HF_PATH_NUM == 0 ? clk_hf0_freq_hz : clk_hf1_freq_hz), clk_hf0_freq_hz);
     
+    #ifdef CY_CFG_SYSCLK_CLKALTSYSTICK_ENABLED
+        Cy_SysClk_ClkAltSysTickInit();
+    #endif
+    
     #endif /* (!defined(COMPONENT_SECURE_DEVICE)) */
 }
 __STATIC_INLINE void Cy_SysClk_EcoInit(void)
@@ -485,6 +489,11 @@ __STATIC_INLINE void Cy_SysClk_Dpll_Lp0_Init(void)
         return;
     #endif
     
+    #if defined(CY_IP_MXS22SRSS) && (CY_IP_MXS22SRSS_VERSION >= 2)
+    Cy_SysPm_PDResourceMapEnable(CY_PD_PDCM_SYSCPUSS, CY_SYSPM_PD_RESOURCE_DPLL_0, true);
+    Cy_SysPm_PDResourceMapEnable(CY_PD_PDCM_RRAM, CY_SYSPM_PD_RESOURCE_DPLL_0, true);
+    #endif /* defined(CY_IP_MXS22SRSS) && (CY_IP_MXS22SRSS_VERSION >= 2) */
+    
     Cy_SysClk_PllDisable(SRSS_DPLL_LP_0_PATH_NUM);
     if (CY_SYSCLK_SUCCESS != Cy_SysClk_PllManualConfigure(SRSS_DPLL_LP_0_PATH_NUM, &srss_0_clock_0_pll250m_0_pllConfig))
     {
@@ -521,6 +530,11 @@ __STATIC_INLINE void Cy_SysClk_Dpll_Lp1_Init(void)
     if (Cy_SysClk_PllIsEnabled(SRSS_DPLL_LP_1_PATH_NUM))
         return;
     #endif
+    
+    #if defined(CY_IP_MXS22SRSS) && (CY_IP_MXS22SRSS_VERSION >= 2)
+    Cy_SysPm_PDResourceMapEnable(CY_PD_PDCM_SYSCPUSS, CY_SYSPM_PD_RESOURCE_DPLL_1, true);
+    Cy_SysPm_PDResourceMapEnable(CY_PD_PDCM_RRAM, CY_SYSPM_PD_RESOURCE_DPLL_1, true);
+    #endif /* defined(CY_IP_MXS22SRSS) && (CY_IP_MXS22SRSS_VERSION >= 2) */
     
     Cy_SysClk_PllDisable(SRSS_DPLL_LP_1_PATH_NUM);
     if (CY_SYSCLK_SUCCESS != Cy_SysClk_PllManualConfigure(SRSS_DPLL_LP_1_PATH_NUM, &srss_0_clock_0_pll250m_1_pllConfig))
@@ -570,12 +584,14 @@ __STATIC_INLINE void Cy_SysClk_Dpll_Hp0_Init(void)
 }
 void init_cycfg_clocks(void)
 {
-    #if (CY_CFG_PWR_VBACKUP_USING_VDDD)
-        if (0u == Cy_SysLib_GetResetReason() /* POR, XRES, or BOD */)
-        {
-            Cy_SysLib_ResetBackupDomain();
-        }
-    #endif /* CY_CFG_PWR_VBACKUP_USING_VDDD */
+    #if defined(CY_CFG_PWR_ENABLED) && defined(CORE_NAME_CM33_0)
+        #if (defined(CY_CFG_PWR_VBACKUP_USING_VDDD) && (CY_CFG_PWR_VBACKUP_USING_VDDD))
+            if (0u == Cy_SysLib_GetResetReason() /* POR, XRES, or BOD */)
+            {
+                Cy_SysLib_ResetBackupDomain();
+            }
+        #endif /* (defined(CY_CFG_PWR_VBACKUP_USING_VDDD) && (CY_CFG_PWR_VBACKUP_USING_VDDD)) */
+    #endif /* CY_CFG_PWR_ENABLED && defined(CORE_NAME_CM33_0) */
     
     /* Set up a temporary fail-safe bypass for the IHO/IMO to the active core */
     Cy_SysClk_IhoInit();
@@ -584,10 +600,11 @@ void init_cycfg_clocks(void)
     Cy_SysClk_ClkHfSetDivider(CY_CFG_SYSCLK_ACTIVE_CORE_HF, CY_SYSCLK_CLKHF_NO_DIVIDE);
     /* Reset and configure platform clocks */
     Cy_WDT_Unlock(); /* Unlock WDT to be able to modify LFCLK registers */
-    for (uint32_t pll = (CY_SRSS_NUM_PLL - 1); pll > 0UL; --pll) /* PLL 1 is the first PLL. 0 is invalid. */
+    for (uint32_t pll = 0; pll < (CY_SRSS_NUM_PLL); ++pll) /* PLL 0 is the first PLL. */
     {
         (void)Cy_SysClk_PllDisable(pll);
     }
+    /* Explicitly disable unused DPLLs not re-enabled below */
     
     /* Enable all source clocks */
     Cy_SysClk_PiloInit();

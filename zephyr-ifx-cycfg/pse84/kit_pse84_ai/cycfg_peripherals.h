@@ -4,15 +4,15 @@
  * Description:
  * Analog configuration
  * This file was automatically generated and should not be modified.
- * Configurator Backend 3.70.0
- * device-db 4.34.0.9502
- * ifx-mcuboot-pse84 1.1.0.349
- * ifx-tf-m 2.1.400.14138
- * mtb-dsl-pse8xxgp 1.2.0.895
+ * Configurator Backend 3.80.0
+ * device-db 4.39.0.10988
+ * ifx-mcuboot-pse84 1.4.0.518
+ * ifx-tf-m 2.1.600.18307
+ * mtb-dsl-pse8xxgp 1.6.0.1310
  *
  *******************************************************************************
- * Copyright 2026 Cypress Semiconductor Corporation (an Infineon company) or
- * an affiliate of Cypress Semiconductor Corporation.
+ * Copyright 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,7 +100,7 @@ extern "C" {
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_ENABLED 1U
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_HW SMIF0_CORE
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_IRQ smif_0_smif0_interrupt_nsec_IRQn
-#define CYBSP_SMIF_CORE_0_XSPI_FLASH_MEMORY_MODE_ALIGMENT_ERROR (0UL)
+#define CYBSP_SMIF_CORE_0_XSPI_FLASH_MEMORY_MODE_ALIGNMENT_ERROR (0UL)
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_RX_DATA_FIFO_UNDERFLOW (0UL)
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_COMMAND_FIFO_OVERFLOW (0UL)
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_DATA_FIFO_OVERFLOW (0UL)
@@ -120,7 +120,7 @@ extern "C" {
 #define CYBSP_SMIF_CORE_1_PSRAM_ENABLED 1U
 #define CYBSP_SMIF_CORE_1_PSRAM_HW SMIF1_CORE
 #define CYBSP_SMIF_CORE_1_PSRAM_IRQ smif_1_smif0_interrupt_nsec_IRQn
-#define CYBSP_SMIF_CORE_1_PSRAM_MEMORY_MODE_ALIGMENT_ERROR (0UL)
+#define CYBSP_SMIF_CORE_1_PSRAM_MEMORY_MODE_ALIGNMENT_ERROR (0UL)
 #define CYBSP_SMIF_CORE_1_PSRAM_RX_DATA_FIFO_UNDERFLOW (0UL)
 #define CYBSP_SMIF_CORE_1_PSRAM_TX_COMMAND_FIFO_OVERFLOW (0UL)
 #define CYBSP_SMIF_CORE_1_PSRAM_TX_DATA_FIFO_OVERFLOW (0UL)

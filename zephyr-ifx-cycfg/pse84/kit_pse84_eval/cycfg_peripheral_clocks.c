@@ -39,7 +39,7 @@ void init_cycfg_peripheral_clocks(void)
     Cy_SysClk_PeriPclkSetDivider((en_clk_dst_t)CYBSP_EZ_I2C_TARGET_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 0U, 6U);
     Cy_SysClk_PeriPclkEnableDivider((en_clk_dst_t)CYBSP_EZ_I2C_TARGET_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 0U);
     Cy_SysClk_PeriPclkDisableDivider((en_clk_dst_t)CYBSP_SPI_CONTROLLER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 1U);
-    Cy_SysClk_PeriPclkSetDivider((en_clk_dst_t)CYBSP_SPI_CONTROLLER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 1U, 5U);
+    Cy_SysClk_PeriPclkSetDivider((en_clk_dst_t)CYBSP_SPI_CONTROLLER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 1U, 9U);
     Cy_SysClk_PeriPclkEnableDivider((en_clk_dst_t)CYBSP_SPI_CONTROLLER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 1U);
     Cy_SysClk_PeriPclkDisableDivider((en_clk_dst_t)CYBSP_USB_OS_TIMER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 2U);
     Cy_SysClk_PeriPclkSetDivider((en_clk_dst_t)CYBSP_USB_OS_TIMER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 2U, 0U);
@@ -71,6 +71,9 @@ void init_cycfg_peripheral_clocks(void)
     Cy_SysClk_PeriPclkDisableDivider((en_clk_dst_t)CYBSP_TRACE_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_16_5_BIT, 0U);
     Cy_SysClk_PeriPclkSetFracDivider((en_clk_dst_t)CYBSP_TRACE_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_16_5_BIT, 0U, 0U, 0U);
     Cy_SysClk_PeriPclkEnableDivider((en_clk_dst_t)CYBSP_TRACE_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_16_5_BIT, 0U);
+    Cy_SysClk_PeriPclkDisableDivider((en_clk_dst_t)CYBSP_I3C_CONTROLLER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 0U);
+    Cy_SysClk_PeriPclkSetDivider((en_clk_dst_t)CYBSP_I3C_CONTROLLER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 0U, 7U);
+    Cy_SysClk_PeriPclkEnableDivider((en_clk_dst_t)CYBSP_I3C_CONTROLLER_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_8_BIT, 0U);
     Cy_SysClk_PeriPclkDisableDivider((en_clk_dst_t)CYBSP_TDM_CONTROLLER_0_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_16_5_BIT, 0U);
     Cy_SysClk_PeriPclkSetFracDivider((en_clk_dst_t)CYBSP_TDM_CONTROLLER_0_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_16_5_BIT, 0U, 23U, 0U);
     Cy_SysClk_PeriPclkEnableDivider((en_clk_dst_t)CYBSP_TDM_CONTROLLER_0_CLK_DIV_GRP_NUM, CY_SYSCLK_DIV_16_5_BIT, 0U);
