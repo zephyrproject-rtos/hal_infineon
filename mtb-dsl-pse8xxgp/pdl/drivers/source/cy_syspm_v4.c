@@ -30,6 +30,7 @@
 
 #include "cy_syspm.h"
 #include "cy_syspm_ppu.h"
+#include "cy_syspm_pdcm.h"
 #include "cy_rram.h"
 #include "cy_ipc_sema.h"
 #include "mtb_srf.h"
@@ -187,6 +188,15 @@ typedef struct {
 typedef struct {
     bool retVal;
 } cy_pdl_syspm_srf_islpmready_out_t;
+
+typedef struct {
+    uint32_t deepSleepMode;
+    bool     restore;
+} cy_pdl_syspm_srf_dsofftoken_in_t;
+
+typedef struct {
+    uint32_t wakeupSource;
+} cy_pdl_syspm_srf_hibwakeprep_in_t;
 #endif
 
 #if defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
@@ -204,7 +214,22 @@ __WEAK mtb_srf_permission_s_t mtb_pdl_syspm_srf_pwrmode_permissions[] =
     {
         .base = (void*)CY_PPU_MAIN_BASE,
         .sub_block = 0,
-        .write_allowed = false,
+        .write_allowed = true,
+    },
+    {
+        .base = (void*)CY_PPU_SRAM0_BASE,
+        .sub_block = 0,
+        .write_allowed = true,
+    },
+    {
+        .base = (void*)CY_PPU_SRAM1_BASE,
+        .sub_block = 0,
+        .write_allowed = true,
+    },
+    {
+        .base = (void*)CY_PPU_SYSCPU_BASE,
+        .sub_block = 0,
+        .write_allowed = true,
     },
     {
         .base = (void*)CY_PPU_PD1_BASE,
@@ -273,6 +298,108 @@ cy_rslt_t cy_pdl_syspm_srf_cpuenterdeepsleep_impl_s(mtb_srf_input_ns_t* inputs_n
 }
 
 
+/* Dedicated secure operation that arms the DS-OFF retention token and tears
+ * down / restores the SOCMEM and APPCPU power dependencies around a DS-RAM or
+ * DS-OFF entry.  These writes target secured SRSS/PDCM registers and hardfault
+ * from a non-secure core (see the TODO in Cy_SysPm_CpuEnterDeepSleep()), so the
+ * work is relayed here rather than carried by the generic CpuEnterDeepSleep
+ * operation, which runs on every regular DeepSleep relay.
+ */
+cy_rslt_t cy_pdl_syspm_srf_setdsofftoken_impl_s(mtb_srf_input_ns_t* inputs_ns,
+                                            mtb_srf_output_ns_t* outputs_ns,
+                                            mtb_srf_invec_ns_t* inputs_ptr_ns,
+                                            uint8_t inputs_ptr_cnt_ns,
+                                            mtb_srf_outvec_ns_t* outputs_ptr_ns,
+                                            uint8_t outputs_ptr_cnt_ns)
+{
+    CY_UNUSED_PARAMETER(inputs_ptr_ns);
+    CY_UNUSED_PARAMETER(inputs_ptr_cnt_ns);
+    CY_UNUSED_PARAMETER(outputs_ptr_ns);
+    CY_UNUSED_PARAMETER(outputs_ptr_cnt_ns);
+
+    /* Saved rail dependencies, preserved between the prepare relay and a later
+     * restore relay so a refused DeepSleep entry can be fully undone.
+     */
+    static cy_pd_pdcm_dep_t appcpu_dep = CY_PD_PDCM_DEP_NONE;
+    static cy_pd_pdcm_dep_t socmem_dep = CY_PD_PDCM_DEP_NONE;
+
+    cy_rslt_t status;
+    cy_pdl_syspm_srf_dsofftoken_in_t input;
+    cy_pdl_syspm_srf_status_out_t output;
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+        return status;
+
+    output.retVal = CY_SYSPM_SUCCESS;
+
+    if (!input.restore)
+    {
+        /* SOCMEM must only be torn down for a genuine DS-RAM/DS-OFF request.
+         * Doing it unconditionally also runs on the CM33-NS core's frequent
+         * *regular* DeepSleep relays: that drops the SOCMEM SYSCPU vote while the
+         * CM55 application core is still live in SOCMEM, so CM55 bus-faults ->
+         * double-faults -> the garbled boot/reset loop.
+         */
+        if ((input.deepSleepMode == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM) ||
+            (input.deepSleepMode == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF))
+        {
+            /* Do NOT clear the APPCPUSS->SYSCPU dependency, exactly as the LPCOMP
+            * reference proj_cm33_s/main.c leaves it (that line is commented out at
+            * ref L199).  The MXCM55 CM55-status register block lives in the APPCPUSS
+            * power domain; clearing this dependency lets APPCPUSS collapse when the
+            * CM55 parks in DeepSleep, after which any Cy_SysGetCM55Status(MXCM55) read
+            * from another core (e.g. the CM33 poll) hits an unpowered aperture and
+            * bus-faults.  Only APPCPU (and, for DS-RAM/OFF, SOCMEM) are released.
+            */
+            appcpu_dep = cy_pd_pdcm_get_dependency(CY_PD_PDCM_APPCPU, CY_PD_PDCM_SYSCPU);
+            socmem_dep = cy_pd_pdcm_get_dependency(CY_PD_PDCM_SOCMEM, CY_PD_PDCM_SYSCPU);
+            (void)cy_pd_pdcm_clear_dependency(CY_PD_PDCM_SOCMEM, CY_PD_PDCM_SYSCPU);
+            (void)cy_pd_pdcm_clear_dependency(CY_PD_PDCM_APPCPU, CY_PD_PDCM_SYSCPU);
+
+            if (input.deepSleepMode == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF)
+            {
+                /* Preserve the token retained through the DS-OFF wakeup so that
+                 * Cy_SysLib_GetResetReason() can tell wakeup from a reset event.
+                 */
+                SRSS_PWR_HIBERNATE = (SRSS_PWR_HIBERNATE  | DS_OFF_TOKEN);
+            }
+        }
+        else
+        {
+            SRSS_PWR_HIBERNATE = (SRSS_PWR_HIBERNATE & ~DS_OFF_TOKEN);
+        }
+        __DSB();
+    }
+    else
+    {
+        /* Entry refused (still executing): restore the rail dependencies and, for
+         * DS-OFF, clear the retention token so a still-running session is not
+         * later mistaken for a DS-OFF wakeup. */
+        if ((input.deepSleepMode == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM) ||
+            (input.deepSleepMode == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF))
+        {
+            if (appcpu_dep != CY_PD_PDCM_DEP_NONE)
+            {
+                (void)cy_pd_pdcm_set_dependency(CY_PD_PDCM_APPCPU, CY_PD_PDCM_SYSCPU);
+            }
+            if (socmem_dep != CY_PD_PDCM_DEP_NONE)
+            {
+                (void)cy_pd_pdcm_set_dependency(CY_PD_PDCM_SOCMEM, CY_PD_PDCM_SYSCPU);
+            }
+            if (input.deepSleepMode == (uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF)
+            {
+                SRSS_PWR_HIBERNATE = (SRSS_PWR_HIBERNATE & ~DS_OFF_TOKEN);
+            }
+            __DSB();
+        }
+    }
+
+    status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
+
+    return status;
+}
+
+
 cy_rslt_t cy_pdl_syspm_srf_systementerhibernate_impl_s(mtb_srf_input_ns_t* inputs_ns,
                                             mtb_srf_output_ns_t* outputs_ns,
                                             mtb_srf_invec_ns_t* inputs_ptr_ns,
@@ -288,8 +415,43 @@ cy_rslt_t cy_pdl_syspm_srf_systementerhibernate_impl_s(mtb_srf_input_ns_t* input
 
     cy_rslt_t status;
     cy_pdl_syspm_srf_status_out_t output;
+
     output.retVal = Cy_SysPm_SystemEnterHibernate();
     status = mtb_srf_copy_output_value(outputs_ns, &output, sizeof(output));
+
+    return status;
+}
+
+cy_rslt_t cy_pdl_syspm_srf_hibwakeprep_impl_s(mtb_srf_input_ns_t* inputs_ns,
+                                            mtb_srf_output_ns_t* outputs_ns,
+                                            mtb_srf_invec_ns_t* inputs_ptr_ns,
+                                            uint8_t inputs_ptr_cnt_ns,
+                                            mtb_srf_outvec_ns_t* outputs_ptr_ns,
+                                            uint8_t outputs_ptr_cnt_ns)
+{
+    CY_UNUSED_PARAMETER(outputs_ns);
+    CY_UNUSED_PARAMETER(inputs_ptr_ns);
+    CY_UNUSED_PARAMETER(inputs_ptr_cnt_ns);
+    CY_UNUSED_PARAMETER(outputs_ptr_ns);
+    CY_UNUSED_PARAMETER(outputs_ptr_cnt_ns);
+
+    cy_rslt_t status;
+    cy_pdl_syspm_srf_hibwakeprep_in_t input;
+
+    status = mtb_srf_copy_input_value(&input, sizeof(input), inputs_ns);
+    if (status != CY_RSLT_SUCCESS)
+    {
+        return status;
+    }
+
+    /* Release the Hibernate I/O freeze latched on the previous wakeup, then
+     * arm the requested Hibernate wakeup source.  Both operate on secure-only
+     * SRSS registers (PWR_HIBERNATE / PWR_HIB_WAKE_CTL) that have no dedicated
+     * SRF relay of their own, so they are serviced together here on the secure
+     * side.
+     */
+    Cy_SysPm_IoUnfreeze();
+    Cy_SysPm_SetHibernateWakeupSource(input.wakeupSource);
 
     return status;
 }
@@ -567,6 +729,34 @@ mtb_srf_op_s_t _cy_pdl_syspm_srf_operations[] =
         .allowed_rsc = NULL,
         .num_allowed = 0UL,
     },
+    {
+        .module_id = MTB_SRF_MODULE_PDL,
+        .submodule_id = CY_PDL_SECURE_SUBMODULE_SYSPM,
+        .op_id = CY_PDL_SYSPM_OP_SETDSOFFTOKEN,
+        .write_required = false,
+        .impl = cy_pdl_syspm_srf_setdsofftoken_impl_s,
+        .input_values_len = sizeof(cy_pdl_syspm_srf_dsofftoken_in_t),
+        .output_values_len = sizeof(cy_pdl_syspm_srf_status_out_t),
+        .input_len ={ 0UL, 0UL, 0UL },
+        .needs_copy = { false, false, false },
+        .output_len ={ 0UL, 0UL, 0UL },
+        .allowed_rsc = NULL,
+        .num_allowed = 0UL,
+    },
+    {
+        .module_id = MTB_SRF_MODULE_PDL,
+        .submodule_id = CY_PDL_SECURE_SUBMODULE_SYSPM,
+        .op_id = CY_PDL_SYSPM_OP_HIBWAKEPREP,
+        .write_required = false,
+        .impl = cy_pdl_syspm_srf_hibwakeprep_impl_s,
+        .input_values_len = sizeof(cy_pdl_syspm_srf_hibwakeprep_in_t),
+        .output_values_len = 0UL,
+        .input_len ={ 0UL, 0UL, 0UL },
+        .needs_copy = { false, false, false },
+        .output_len ={ 0UL, 0UL, 0UL },
+        .allowed_rsc = NULL,
+        .num_allowed = 0UL,
+    },
 };
 
 #endif /* defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG) */
@@ -716,14 +906,63 @@ cy_en_syspm_status_t Cy_SysPm_SetSysDeepSleepMode(cy_en_syspm_deep_sleep_mode_t 
 {
     cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
 
+    #if !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
+    cy_rslt_t result = CY_RSLT_SUCCESS;
+    mtb_srf_invec_ns_t* inVec = NULL;
+    mtb_srf_outvec_ns_t* outVec = NULL;
+
+    result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, CY_PDL_SYSPM_SRF_POOL_TIMEOUT);
+    CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+
+    mtb_srf_output_ns_t* output = NULL;
+    cy_pdl_syspm_srf_setpwrmode_in_t input_args;
+    cy_pdl_invoke_srf_args invoke_args =
+    {
+        .inVec = inVec,
+        .outVec = outVec,
+        .output_ptr = &output,
+        .op_id = CY_PDL_SYSPM_OP_SETPWRMODE,
+        .submodule_id = CY_PDL_SECURE_SUBMODULE_SYSPM,
+        .base = NULL,
+        .sub_block = 0UL,
+        .input_base = (uint8_t*)&input_args,
+        .input_len = sizeof(input_args),
+        .output_base = NULL,
+        .output_len = 0UL,
+        .invec_bases = NULL,
+        .invec_sizes = 0UL,
+        .outvec_bases = NULL,
+        .outvec_sizes = 0UL
+    };
+    #endif
+
     switch(deepSleepMode)
     {
         case CY_SYSPM_MODE_DEEPSLEEP:
         {
+            #if !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
+            input_args.mode = CY_SYSTEM_MAIN_PPU_DEEPSLEEP_MODE;
+            invoke_args.base = (void*)CY_PPU_MAIN_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SRAM0_PPU_DEEPSLEEP_MODE;
+            invoke_args.base = (void*)CY_PPU_SRAM0_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SRAM1_PPU_DEEPSLEEP_MODE;
+            invoke_args.base = (void*)CY_PPU_SRAM1_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SYSCPU_PPU_DEEPSLEEP_MODE;
+            invoke_args.base = (void*)CY_PPU_SYSCPU_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            #else
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_MAIN_BASE, (uint32_t)CY_SYSTEM_MAIN_PPU_DEEPSLEEP_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SRAM0_BASE, (uint32_t)CY_SYSTEM_SRAM0_PPU_DEEPSLEEP_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SRAM1_BASE, (uint32_t)CY_SYSTEM_SRAM1_PPU_DEEPSLEEP_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SYSCPU_BASE, (uint32_t)CY_SYSTEM_SYSCPU_PPU_DEEPSLEEP_MODE); /* Suppress a compiler warning about unused return value */
+            #endif
 
             retVal = CY_SYSPM_SUCCESS;
         }
@@ -731,12 +970,34 @@ cy_en_syspm_status_t Cy_SysPm_SetSysDeepSleepMode(cy_en_syspm_deep_sleep_mode_t 
 
         case CY_SYSPM_MODE_DEEPSLEEP_RAM:
         {
+            #if !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
+            input_args.mode = CY_SYSTEM_MAIN_PPU_DEEPSLEEP_RAM_MODE;
+            invoke_args.base = (void*)CY_PPU_MAIN_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SRAM0_PPU_DEEPSLEEP_RAM_MODE;
+            invoke_args.base = (void*)CY_PPU_SRAM0_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SRAM1_PPU_DEEPSLEEP_RAM_MODE;
+            invoke_args.base = (void*)CY_PPU_SRAM1_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SYSCPU_PPU_DEEPSLEEP_RAM_MODE;
+            invoke_args.base = (void*)CY_PPU_SYSCPU_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            #else
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_MAIN_BASE, (uint32_t)CY_SYSTEM_MAIN_PPU_DEEPSLEEP_RAM_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SRAM0_BASE, (uint32_t)CY_SYSTEM_SRAM0_PPU_DEEPSLEEP_RAM_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SRAM1_BASE, (uint32_t)CY_SYSTEM_SRAM1_PPU_DEEPSLEEP_RAM_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SYSCPU_BASE, (uint32_t)CY_SYSTEM_SYSCPU_PPU_DEEPSLEEP_RAM_MODE); /* Suppress a compiler warning about unused return value */
+            #endif
 
-#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55)
+#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55) && (defined(COMPONENT_SECURE_DEVICE) || !defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG))
+            /* MEMSYSCTL and EWIC are Secure-only, CPU-private PPB resources that
+             * cannot be reached from a non-secure CM55 nor relayed through SRF.
+             * Only touch them on the local/direct (secure or non-SRF) path. */
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_ICACTIVE_Msk);
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_DCACTIVE_Msk);
             EWIC_EWCI_ASCR &= ~(EWIC_EWIC_ASCR_ASPU_Msk);
@@ -749,12 +1010,34 @@ cy_en_syspm_status_t Cy_SysPm_SetSysDeepSleepMode(cy_en_syspm_deep_sleep_mode_t 
 
         case CY_SYSPM_MODE_DEEPSLEEP_OFF:
         {
+            #if !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
+            input_args.mode = CY_SYSTEM_MAIN_PPU_DEEPSLEEP_OFF_MODE;
+            invoke_args.base = (void*)CY_PPU_MAIN_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SRAM0_PPU_DEEPSLEEP_OFF_MODE;
+            invoke_args.base = (void*)CY_PPU_SRAM0_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SRAM1_PPU_DEEPSLEEP_OFF_MODE;
+            invoke_args.base = (void*)CY_PPU_SRAM1_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            input_args.mode = CY_SYSTEM_SYSCPU_PPU_DEEPSLEEP_OFF_MODE;
+            invoke_args.base = (void*)CY_PPU_SYSCPU_BASE;
+            result = _Cy_PDL_Invoke_SRF(&invoke_args);
+            CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+            #else
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_MAIN_BASE, (uint32_t)CY_SYSTEM_MAIN_PPU_DEEPSLEEP_OFF_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SRAM0_BASE, (uint32_t)CY_SYSTEM_SRAM0_PPU_DEEPSLEEP_OFF_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SRAM1_BASE, (uint32_t)CY_SYSTEM_SRAM1_PPU_DEEPSLEEP_OFF_MODE); /* Suppress a compiler warning about unused return value */
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_SYSCPU_BASE, (uint32_t)CY_SYSTEM_SYSCPU_PPU_DEEPSLEEP_OFF_MODE); /* Suppress a compiler warning about unused return value */
+            #endif
 
-#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55)
+#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55) && (defined(COMPONENT_SECURE_DEVICE) || !defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG))
+            /* MEMSYSCTL and EWIC are Secure-only, CPU-private PPB resources that
+             * cannot be reached from a non-secure CM55 nor relayed through SRF.
+             * Only touch them on the local/direct (secure or non-SRF) path. */
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_ICACTIVE_Msk);
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_DCACTIVE_Msk);
             EWIC_EWCI_ASCR &= ~(EWIC_EWIC_ASCR_ASPU_Msk);
@@ -768,6 +1051,13 @@ cy_en_syspm_status_t Cy_SysPm_SetSysDeepSleepMode(cy_en_syspm_deep_sleep_mode_t 
             retVal = CY_SYSPM_BAD_PARAM;
         break;
     }
+
+    #if !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)
+    result = mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
+    CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
+    CY_UNUSED_PARAMETER(result);
+    #endif
+
     return retVal;
 }
 
@@ -928,7 +1218,10 @@ cy_en_syspm_status_t Cy_SysPm_SetAppDeepSleepMode(cy_en_syspm_deep_sleep_mode_t 
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_APPCPUSS_BASE, (uint32_t)CY_SYSTEM_APPCPUSS_PPU_DEEPSLEEP_RAM_MODE); /* Suppress a compiler warning about unused return value */
             #endif
 
-#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55)
+#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55) && (defined(COMPONENT_SECURE_DEVICE) || !defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG))
+            /* MEMSYSCTL and EWIC are Secure-only, CPU-private PPB resources that
+             * cannot be reached from a non-secure CM55 nor relayed through SRF.
+             * Only touch them on the local/direct (secure or non-SRF) path. */
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_ICACTIVE_Msk);
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_DCACTIVE_Msk);
             EWIC_EWCI_ASCR &= ~(EWIC_EWIC_ASCR_ASPU_Msk);
@@ -959,7 +1252,10 @@ cy_en_syspm_status_t Cy_SysPm_SetAppDeepSleepMode(cy_en_syspm_deep_sleep_mode_t 
             (void)cy_pd_ppu_set_power_mode((struct ppu_v1_reg *)CY_PPU_APPCPUSS_BASE, (uint32_t)CY_SYSTEM_APPCPUSS_PPU_DEEPSLEEP_OFF_MODE); /* Suppress a compiler warning about unused return value */
             #endif
 
-#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55)
+#if (defined (CY_CPU_CORTEX_M55) && CY_CPU_CORTEX_M55) && (defined(COMPONENT_SECURE_DEVICE) || !defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG))
+            /* MEMSYSCTL and EWIC are Secure-only, CPU-private PPB resources that
+             * cannot be reached from a non-secure CM55 nor relayed through SRF.
+             * Only touch them on the local/direct (secure or non-SRF) path. */
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_ICACTIVE_Msk);
             MEM_CTL_MSCR &= ~(MEMSYSCTL_MSCR_DCACTIVE_Msk);
             EWIC_EWCI_ASCR &= ~(EWIC_EWIC_ASCR_ASPU_Msk);
@@ -1259,6 +1555,64 @@ cy_en_syspm_boot_mode_t Cy_SysPm_GetBootMode(void)
     return ((cy_en_syspm_boot_mode_t)deepSleepWakeMode);
 }
 
+#if !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG) && !(CY_CPU_CORTEX_M55)
+/* Arm (or restore) the DS-OFF retention token and the SOCMEM/APPCPU power
+ * dependencies over the dedicated secure operation.  The token and PDCM writes
+ * target secured registers that fault from a non-secure core, so a non-secure
+ * caller must relay them here instead of writing the registers directly.  Must
+ * be issued from a context where the SRF/IPC round-trip can complete (not from
+ * a fully interrupt-masked path).
+ */
+static cy_en_syspm_status_t cy_pdl_syspm_setdsofftoken_srf(uint32_t deepSleepMode, bool restore)
+{
+    cy_en_syspm_status_t retVal = CY_SYSPM_FAIL;
+    cy_rslt_t result;
+    mtb_srf_invec_ns_t* inVec = NULL;
+    mtb_srf_outvec_ns_t* outVec = NULL;
+    mtb_srf_output_ns_t* output = NULL;
+    cy_pdl_syspm_srf_dsofftoken_in_t input_args;
+    cy_pdl_syspm_srf_status_out_t output_args;
+
+    input_args.deepSleepMode = deepSleepMode;
+    input_args.restore = restore;
+
+    result = mtb_srf_pool_allocate(&cy_pdl_srf_default_pool, &inVec, &outVec, CY_PDL_SYSPM_SRF_POOL_TIMEOUT);
+    if (result != CY_RSLT_SUCCESS)
+    {
+        return CY_SYSPM_FAIL;
+    }
+
+    cy_pdl_invoke_srf_args invoke_args =
+    {
+        .inVec = inVec,
+        .outVec = outVec,
+        .output_ptr = &output,
+        .op_id = CY_PDL_SYSPM_OP_SETDSOFFTOKEN,
+        .submodule_id = CY_PDL_SECURE_SUBMODULE_SYSPM,
+        .base = NULL,
+        .sub_block = 0UL,
+        .input_base = (uint8_t*)&input_args,
+        .input_len = sizeof(input_args),
+        .output_base = (uint8_t*)&output_args,
+        .output_len = sizeof(output_args),
+        .invec_bases = NULL,
+        .invec_sizes = 0UL,
+        .outvec_bases = NULL,
+        .outvec_sizes = 0UL
+    };
+    result = _Cy_PDL_Invoke_SRF(&invoke_args);
+    if ((result == CY_RSLT_SUCCESS) && (output != NULL))
+    {
+        memcpy(&output_args, &(output->output_values[0]), sizeof(output_args));
+        retVal = output_args.retVal;
+    }
+
+    (void)mtb_srf_pool_free(&cy_pdl_srf_default_pool, inVec, outVec);
+
+    return retVal;
+}
+#endif /* !defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG) && !(CY_CPU_CORTEX_M55) */
+
 cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
 {
     uint32_t interruptState;
@@ -1316,15 +1670,21 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
             }
 
             #if defined(COMPONENT_SECURE_DEVICE) || !defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG) || (CY_CPU_CORTEX_M55)
-            // TODO: CM55 may have to handle SRSS_PWR_HIBERNATE case via IPC-SRF
             /* Preserve the token that will be retained through a wakeup sequence.
             * This could be used by Cy_SysLib_GetResetReason() to differentiate
             * Wakeup from a general reset event.
+            *
+            * The SRSS_PWR_HIBERNATE write targets a secured register and hardfaults
+            * from a non-secure core (e.g. CM55), so it is only performed on the
+            * secure (CM33-S) or non-SRF path. A non-secure CM55 leaves the token
+            * (and the SOCMEM/APPCPU dependencies) entirely to the CM33 side.
             */
+            #if !((CY_CPU_CORTEX_M55) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG))
             if ((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF == cbDeepSleepRootIdx)
             {
                 SRSS_PWR_HIBERNATE = (SRSS_PWR_HIBERNATE  | DS_OFF_TOKEN);
             }
+            #endif /* !((CY_CPU_CORTEX_M55) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)) */
 
             /* The CPU enters Deep Sleep mode upon execution of WFI/WFE
              * use Cy_SysPm_SetDeepSleepMode to set various deepsleep modes */
@@ -1373,11 +1733,37 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
             /* Clear SCB_SCR_SLEEPDEEP flag */
             SCB_SCR &= (uint32_t) ~SCB_SCR_SLEEPDEEP_Msk;
 
+            /* A successful DS-OFF entry cold-boots the device and never returns
+             * here. Reaching this point means the DS-OFF entry was demoted (for
+             * example an active debug session), so clear the retention token that
+             * was armed above; otherwise Cy_SysLib_GetResetReason() would later
+             * mistake this still-running session for a DS-OFF wakeup.
+             */
+            #if !((CY_CPU_CORTEX_M55) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG))
+            if ((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF == cbDeepSleepRootIdx)
+            {
+                SRSS_PWR_HIBERNATE = (SRSS_PWR_HIBERNATE & ~DS_OFF_TOKEN);
+            }
+            #endif /* !((CY_CPU_CORTEX_M55) && defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG)) */
+
             #else
             mtb_srf_output_ns_t* output = NULL;
             cy_pdl_syspm_srf_cpuenterdeepsleep_in_t input_args;
             cy_pdl_syspm_srf_status_out_t output_args;
             input_args.waitFor = waitFor;
+
+            /* Arm the DS-OFF retention token and tear down the SOCMEM/APPCPU
+             * dependencies over the dedicated secure operation before relaying
+             * the DeepSleep entry: the generic CpuEnterDeepSleep relay no longer
+             * carries this DS-RAM/DS-OFF-specific work. The token is armed for
+             * DS-OFF only, but the dependency teardown covers DS-RAM and DS-OFF.
+             */
+            if (((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM == cbDeepSleepRootIdx) ||
+                ((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF == cbDeepSleepRootIdx))
+            {
+                (void)cy_pdl_syspm_setdsofftoken_srf(cbDeepSleepRootIdx, false);
+            }
+
             cy_pdl_invoke_srf_args invoke_args =
             {
                 .inVec = inVec,
@@ -1400,6 +1786,17 @@ cy_en_syspm_status_t Cy_SysPm_CpuEnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
             CY_ASSERT_L2(result == CY_RSLT_SUCCESS);
             memcpy(&output_args, &(output->output_values[0]), sizeof(output_args));
             retVal = output_args.retVal;
+
+            /* A successful DS-RAM/DS-OFF entry resets the device on the secure side
+             * and never returns here. Reaching this point means the entry was
+             * demoted, so restore the SOCMEM/APPCPU dependencies that were torn
+             * down before the entry attempt.
+             */
+            if (((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_RAM == cbDeepSleepRootIdx) ||
+                ((uint32_t)CY_SYSPM_MODE_DEEPSLEEP_OFF == cbDeepSleepRootIdx))
+            {
+                (void)cy_pdl_syspm_setdsofftoken_srf(cbDeepSleepRootIdx, true);
+            }
             #endif /* defined(COMPONENT_SECURE_DEVICE) || !defined(CY_PDL_SYSPM_ENABLE_SRF_INTEG) || (CY_CPU_CORTEX_M55) */
 
 
