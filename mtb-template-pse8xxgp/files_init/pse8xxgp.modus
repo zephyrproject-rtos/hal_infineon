@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration app="BACKEND" formatVersion="15" lastSavedWith="Configurator Backend" lastSavedWithVersion="3.60.0" toolsPackage="ModusToolbox 3.6.0" xmlns="http://cypress.com/xsd/cydesignfile_v6">
+    <Devices>
+        <Device mpn="PSE846GPS2DBZC4A">
+            <BlockConfig>
+                <Personality template="protection_sau" version="1.0" instance="KuXzqOfm0ZU">
+                    <Block location="m33syscpuss[0].cm33[0].sau[0]" locked="true"/>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="L_woPChxImk">
+                    <Block location="srss[0].clock[0].hfclk[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="7GbrFeAJT70">
+                    <Block location="srss[0].clock[0].hfclk[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="ecBaUn1_3iA">
+                    <Block location="srss[0].clock[0].hfclk[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="IH9boxY04UM">
+                    <Block location="srss[0].clock[0].hfclk[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="hfVa4vjui-M">
+                    <Block location="srss[0].clock[0].hfclk[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="wh0fR2LVubk">
+                    <Block location="srss[0].clock[0].hfclk[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="XAfYh4KbHq8">
+                    <Block location="srss[0].clock[0].hfclk[6]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="bkyaTSdd66I">
+                    <Block location="srss[0].clock[0].hfclk[7]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="SIvw69fBwn4">
+                    <Block location="srss[0].clock[0].hfclk[8]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="oZ8lqZyblSI">
+                    <Block location="srss[0].clock[0].hfclk[9]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="Q4pyN9ou96w">
+                    <Block location="srss[0].clock[0].hfclk[10]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="2"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="JKLviw75dEE">
+                    <Block location="srss[0].clock[0].hfclk[11]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="GeHIixhThK8">
+                    <Block location="srss[0].clock[0].hfclk[12]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk_v2" version="1.0" instance="RhrGc_lmoio">
+                    <Block location="srss[0].clock[0].hfclk[13]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="mxs40iho" version="1.0" instance="IDtKDBNpSzw">
+                    <Block location="srss[0].clock[0].iho[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="apply_trim" value="false"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="02SXcT-qcc4">
+                    <Block location="srss[0].clock[0].pathmux[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="ToxN072EyPU">
+                    <Block location="srss[0].clock[0].pathmux[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="X-ZUHIcDn5E">
+                    <Block location="srss[0].clock[0].pathmux[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="I5nqg21Rclw">
+                    <Block location="srss[0].clock[0].pathmux[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="DuegbJu3hls">
+                    <Block location="srss[0].clock[0].pathmux[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="_P3lRUDkQl4">
+                    <Block location="srss[0].clock[0].pathmux[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pilo" version="3.0" instance="OrogJQI4LyA">
+                    <Block location="srss[0].clock[0].pilo[0]" locked="true"/>
+                </Personality>
+                <Personality template="timerclk" version="3.0" instance="OPPU-xn3eqE">
+                    <Block location="srss[0].clock[0].timerclk[0]" locked="true"/>
+                </Personality>
+                <Personality template="power_v4" version="1.1" instance="lMGDNnoZghg">
+                    <Block location="srss[0].power[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="actPwrMode" value="POWER_PROFILE_LP"/>
+                        <Param id="deepsleepLatency" value="0"/>
+                        <Param id="idlePwrMode" value="CY_CFG_PWR_MODE_DEEPSLEEP"/>
+                        <Param id="pd1Enable" value="true"/>
+                        <Param id="vddaMv" value="1800"/>
+                        <Param id="vdddMv" value="1800"/>
+                        <Param id="vddio0Mv" value="1800"/>
+                        <Param id="vddio1Mv" value="1800"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory" version="2.0" instance="6N2tM2roWpA">
+                    <Block location="vres[0].memory[0]" locked="true"/>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="gK7uMQyE6U8">
+                    <Block location="vres[0].memory_region_data[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m55_data"/>
+                        <Param id="domain" value="P8kQl2DRYUQ"/>
+                        <Param id="memoryId" value="CM55_DTCM_INTERNAL"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="m55_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00040000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="6UdxrJqEEpY">
+                    <Block location="vres[0].memory_region_data[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m55_code"/>
+                        <Param id="domain" value="P8kQl2DRYUQ"/>
+                        <Param id="memoryId" value="CM55_ITCM_INTERNAL"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="m55_code"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00040000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="E4AA7qidweI">
+                    <Block location="vres[0].memory_region_data[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33s_nvm"/>
+                        <Param id="domain" value="7cPl230VJyc"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x00011000"/>
+                        <Param id="regionId" value="m33s_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x0001A000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="H3hGbFz8Y-0">
+                    <Block location="vres[0].memory_region_data[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33_nvm"/>
+                        <Param id="domain" value="Xo07Phg6oz8"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x0002D000"/>
+                        <Param id="regionId" value="m33_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x0001C000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="Qg-VSbBkSUE">
+                    <Block location="vres[0].memory_region_data[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m55_nvm"/>
+                        <Param id="domain" value="P8kQl2DRYUQ"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x0004B000"/>
+                        <Param id="regionId" value="m55_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x0001C000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="CehRmLIVyTc">
+                    <Block location="vres[0].memory_region_data[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m55_code_secondary"/>
+                        <Param id="domain" value="P8kQl2DRYUQ"/>
+                        <Param id="memoryId" value="SOCMEM_RAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="m55_code_secondary"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00080000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="TWsfKGTYGkQ">
+                    <Block location="vres[0].memory_region_data[6]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m55_data_secondary"/>
+                        <Param id="domain" value="P8kQl2DRYUQ"/>
+                        <Param id="memoryId" value="SOCMEM_RAM"/>
+                        <Param id="offset" value="0x00080000"/>
+                        <Param id="regionId" value="m55_data_secondary"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00100000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="0zJXEr6pka4">
+                    <Block location="vres[0].memory_region_data[7]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33_m55_shared"/>
+                        <Param id="domain" value="Rj_rAX1eb8U"/>
+                        <Param id="memoryId" value="SOCMEM_RAM"/>
+                        <Param id="offset" value="0x00180000"/>
+                        <Param id="regionId" value="m33_m55_shared"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00200000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="aC-gUJLSBI4">
+                    <Block location="vres[0].memory_region_data[8]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="gfx_mem"/>
+                        <Param id="domain" value="Rj_rAX1eb8U"/>
+                        <Param id="memoryId" value="SOCMEM_RAM"/>
+                        <Param id="offset" value="0x00380000"/>
+                        <Param id="regionId" value="gfx_mem"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00080000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="_Hf5ER1SoPM">
+                    <Block location="vres[0].memory_region_data[9]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33s_shared"/>
+                        <Param id="domain" value="7cPl230VJyc"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00002000"/>
+                        <Param id="regionId" value="m33s_shared"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00004000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="I4EcDdFsBYc">
+                    <Block location="vres[0].memory_region_data[10]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33s_code"/>
+                        <Param id="domain" value="7cPl230VJyc"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00006000"/>
+                        <Param id="regionId" value="m33s_code"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00031000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="ddkQGS-VO4I">
+                    <Block location="vres[0].memory_region_data[11]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33s_data"/>
+                        <Param id="domain" value="7cPl230VJyc"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00037000"/>
+                        <Param id="regionId" value="m33s_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00021000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="0-n6OQnErF0">
+                    <Block location="vres[0].memory_region_data[12]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33_code"/>
+                        <Param id="domain" value="Xo07Phg6oz8"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00058000"/>
+                        <Param id="regionId" value="m33_code"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00065000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="rF4o_hNHwc0">
+                    <Block location="vres[0].memory_region_data[13]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33_data"/>
+                        <Param id="domain" value="Rj_rAX1eb8U"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x000BD000"/>
+                        <Param id="regionId" value="m33_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00040000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="DhUV7mLaCmM">
+                    <Block location="vres[0].memory_region_data[14]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33s_allocatable_shared"/>
+                        <Param id="domain" value="Rj_rAX1eb8U"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x000FD000"/>
+                        <Param id="regionId" value="m33s_allocatable_shared"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="mBBWdCYdOhU">
+                    <Block location="vres[0].memory_region_data[15]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33_allocatable_shared"/>
+                        <Param id="domain" value="Rj_rAX1eb8U"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x000FE000"/>
+                        <Param id="regionId" value="m33_allocatable_shared"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="SSEo_lVrya4">
+                    <Block location="vres[0].memory_region_data[16]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m55_allocatable_shared"/>
+                        <Param id="domain" value="Rj_rAX1eb8U"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x000FF000"/>
+                        <Param id="regionId" value="m55_allocatable_shared"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="OY8D1E91BRo">
+                    <Block location="vres[0].memory_region_data[17]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33s_trailer"/>
+                        <Param id="domain" value="7cPl230VJyc"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x0002B000"/>
+                        <Param id="regionId" value="m33s_trailer"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00002000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="BwSwoRJ5h_8">
+                    <Block location="vres[0].memory_region_data[18]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m33_trailer"/>
+                        <Param id="domain" value="Xo07Phg6oz8"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x00049000"/>
+                        <Param id="regionId" value="m33_trailer"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00002000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="XRA65THTBM4">
+                    <Block location="vres[0].memory_region_data[19]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="m55_trailer"/>
+                        <Param id="domain" value="P8kQl2DRYUQ"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x00067000"/>
+                        <Param id="regionId" value="m55_trailer"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00002000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="CbT4WH07QQw">
+                    <Block location="vres[0].memory_region_data[20]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value="extended_boot_reserved"/>
+                        <Param id="domain" value="kTqxq_31FkI"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00001000"/>
+                        <Param id="regionId" value="extended_boot_reserved"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="hApHC-bEJs8">
+                    <Block location="vres[0].memory_region_data[21]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="kTqxq_31FkI"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="extended_boot_reserved"/>
+                        <Param id="reservedGuid" value="extended_boot_reserved"/>
+                        <Param id="size" value="0x00011000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="yCaN5C0uz-I">
+                    <Block location="vres[0].memory_region_data[22]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="kTqxq_31FkI"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="extended_boot_sram_reserved"/>
+                        <Param id="reservedGuid" value="extended_boot_sram_reserved"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="7eiktho3RMY">
+                    <Block location="vres[0].memory_region_data[23]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="kTqxq_31FkI"/>
+                        <Param id="memoryId" value="RRAM"/>
+                        <Param id="offset" value="0x0006A000"/>
+                        <Param id="regionId" value="reserved_region"/>
+                        <Param id="reservedGuid" value="reserved_region"/>
+                        <Param id="size" value="0x00016000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="protection" version="1.0" instance="lyICW4XqF-w">
+                    <Block location="vres[0].protection[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="pcSwitch" value="false"/>
+                        <Param id="secureDebuggerAccess" value="true"/>
+                        <Param id="type" value="NON_SECURE"/>
+                        <Param id="validation_security_boundary" value="SECURE"/>
+                    </Parameters>
+                    <Personality template="domain0" instance="7cPl230VJyc">
+                        <Block location="vres[0].protection[0].domain[0]" locked="false">
+                            <Aliases>
+                                <Alias value="M33S"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain1" instance="Xo07Phg6oz8">
+                        <Block location="vres[0].protection[0].domain[1]" locked="false">
+                            <Aliases>
+                                <Alias value="M33"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain2" instance="P8kQl2DRYUQ">
+                        <Block location="vres[0].protection[0].domain[2]" locked="false">
+                            <Aliases>
+                                <Alias value="M55"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain3" instance="GI9riTKd7DI">
+                        <Block location="vres[0].protection[0].domain[3]" locked="false">
+                            <Aliases>
+                                <Alias value="M33NSC"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain4" instance="Rj_rAX1eb8U">
+                        <Block location="vres[0].protection[0].domain[4]" locked="false">
+                            <Aliases>
+                                <Alias value="M33_M55"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                    <Personality template="domain5" instance="kTqxq_31FkI">
+                        <Block location="vres[0].protection[0].domain[5]" locked="false">
+                            <Aliases>
+                                <Alias value="reserved"/>
+                            </Aliases>
+                        </Block>
+                    </Personality>
+                </Personality>
+                <Personality template="protection_mpc" version="1.0" instance="VVG3pZNy_Zc">
+                    <Block location="vres[0].protection[0].mpc[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="response1" value="CY_MPC_RZWI"/>
+                        <Param id="response2" value="CY_MPC_RZWI"/>
+                        <Param id="response3" value="CY_MPC_RZWI"/>
+                    </Parameters>
+                </Personality>
+            </BlockConfig>
+            <Netlist/>
+        </Device>
+    </Devices>
+</Configuration>

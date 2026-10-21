@@ -1,0 +1,50 @@
+#! armclang -E  --target=arm-arm-none-eabi -x c -mcpu=cortex-m33
+
+; The size of the stack section at the end of CM33 SRAM
+#define STACK_SIZE              0x00001000
+
+/* VMA for App Text section */
+#define appText_vma 0x04004000
+/* App Text section size */
+#define appText_size 0x00017000
+/* LMA App Data section */
+#define appData_vma 0x2001B000
+/* App Data section size */
+#define appData_size 0x00025000
+
+LR_1 appText_vma
+{
+    appText appText_vma
+    {
+        ns_start_cyw20829.o (RESET,+FIRST)
+        .ANY (+RO)
+    }
+
+    appData_vector appData_vma UNINIT
+    {
+        * (.bss.noinit.RESET_RAM, +FIRST)
+    }
+
+    appData +0
+    {
+        .ANY (+RW, +ZI)
+    }
+
+    ; Place variables in the section that should not be initialized during the
+    ; device startup.
+    appData_noinit +0 UNINIT
+    {
+        * (.noinit)
+        * (.bss.noinit)
+    }
+
+    ; Application heap area (HEAP)
+    ARM_LIB_HEAP  +0 ALIGN 8 EMPTY ((appData_vma+appData_size)-AlignExpr(ImageLimit(appData_noinit), 8)-STACK_SIZE)
+    {
+    }
+
+    ; Stack region growing down
+    ARM_LIB_STACK (appData_vma+appData_size) ALIGN 32 EMPTY -STACK_SIZE
+    {
+    }
+}

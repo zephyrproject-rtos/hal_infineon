@@ -1,0 +1,9 @@
+files_init/cat1b/props.json:props.json
+files_init/cat1b/20829.mk:bsp.mk
+files_init/cat1b/cyw20829.modus:config/design.modus
+
+files/flashloader/cat1b/CYW208xx_SMIF.FLM:config/FlashLoaders/CYW208xx_SMIF.FLM
+files/flashloader/cat1b/FlashCYW208xx_SMIF.out:config/FlashLoaders/FlashCYW208xx_SMIF.out
+files/flashloader/cat1b/CYW208xx_SMIF.FLM:config/GeneratedSource/CYW208xx_SMIF.FLM
+files/flashloader/cat1b/FlashCYW208xx_SMIF.out:config/GeneratedSource/FlashCYW208xx_SMIF.out
+files/flashloader/cat1b/version.xml:config/FlashLoaders/version.xml

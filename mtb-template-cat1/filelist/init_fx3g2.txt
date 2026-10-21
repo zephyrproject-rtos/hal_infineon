@@ -1,0 +1,3 @@
+files_init/cat1a/props.json:props.json
+files_init/cat1a/bsp.mk:bsp.mk
+files_init/cat1a/fx3g2.modus:config/design.modus

@@ -1,0 +1,3 @@
+files_init/cat1a/props.json:props.json
+files_init/cat1a/bspsecure.mk:bsp.mk
+files_init/cat1a/psoc6a2m-secure.modus:config/design.modus

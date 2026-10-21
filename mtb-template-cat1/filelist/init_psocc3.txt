@@ -1,0 +1,3 @@
+files_init/cat1b/props.json:props.json
+files_init/cat1b/psc3.mk:bsp.mk
+files_init/cat1b/psc3.modus:config/design.modus

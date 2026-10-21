@@ -1,0 +1,129 @@
+#! armclang -E --target=arm-arm-none-eabi -x c -mcpu=cortex-m33
+; The first line specifies a preprocessor command that the linker invokes
+; to pass a scatter file through a C preprocessor.
+
+;*******************************************************************************
+;* \file psc3xxf_ns_flash.sct
+;* \version 1.000
+;*
+;* Linker file for the ARMCC.
+;*
+;* The main purpose of the linker script is to describe how the sections in the
+;* input files should be mapped into the output file, and to control the memory
+;* layout of the output file.
+;*
+;* \note The entry point location is fixed and starts at 0x02010000. The valid
+;* application image should be placed there.
+;*
+;* \note The linker files included with the PDL template projects must be generic
+;* and handle all common use cases. Your project may not use every section
+;* defined in the linker files. In that case you may see warnings during the
+;* build process. In your project, you can simply comment out or remove the
+;* relevant code in the linker file.
+;*******************************************************************************
+;* \copyright
+;* Copyright (c) (2024), Cypress Semiconductor Corporation (an Infineon company) or
+;* an affiliate of Cypress Semiconductor Corporation.
+;* SPDX-License-Identifier: Apache-2.0
+;*
+;* Licensed under the Apache License, Version 2.0 (the "License");
+;* you may not use this file except in compliance with the License.
+;* You may obtain a copy of the License at
+;*
+;*     http://www.apache.org/licenses/LICENSE-2.0
+;*
+;* Unless required by applicable law or agreed to in writing, software
+;* distributed under the License is distributed on an "AS IS" BASIS,
+;* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;* See the License for the specific language governing permissions and
+;* limitations under the License.
+;******************************************************************************/
+
+; The defines below describe the location and size of blocks of memory in the target.
+; Use these defines to specify the memory regions available for allocation.
+
+; The following defines control RAM and flash memory allocation for the CM33 core.
+; RAM
+#define RAM_NS_START               0x24000000
+#define RAM_SIZE                   0x00010000
+#ifdef _size_S_SRAM
+#define RAM_S_DATA_SIZE            _size_S_SRAM
+#else
+#define RAM_S_DATA_SIZE            0x00004000
+#endif
+#define SHARED_MEM_S_SIZE          0x00000800
+#define SHARED_MEM_NS_SIZE         0x00000800
+
+#define RAM_NS_DATA_START          RAM_NS_START + RAM_S_DATA_SIZE /* 0x24004000 */
+#define RAM_NS_DATA_SIZE           RAM_SIZE - RAM_S_DATA_SIZE - SHARED_MEM_S_SIZE - SHARED_MEM_NS_SIZE
+#define SHARED_MEM_NS_START        RAM_NS_START + RAM_S_DATA_SIZE + RAM_NS_DATA_SIZE
+
+; Flash
+#define FLASH_NS_BASE_LMA          0x22000000 /* sbus */
+#define FLASH_NS_BASE_VMA          0x02000000 /* cbus */
+#define FLASH_CODE_SIZE            0x00040000 /* 256k */
+#ifdef _size_S_FLASH
+#define FLASH_S_CODE_SIZE          _size_S_FLASH
+#else
+#define FLASH_S_CODE_SIZE          0x00010000
+#endif
+#define FLASH_NS_CODE_SIZE         FLASH_CODE_SIZE - FLASH_S_CODE_SIZE
+#define FLASH_NS_START_LMA         FLASH_NS_BASE_LMA + FLASH_S_CODE_SIZE
+#define FLASH_NS_START_VMA         FLASH_NS_BASE_VMA + FLASH_S_CODE_SIZE
+
+
+; The size of the stack section at the end of CM4 SRAM
+#define STACK_SIZE                 0x1000  /* 4K for stack */
+
+
+; Cortex-M33 application flash area
+LR_IROM1 FLASH_NS_START_VMA FLASH_NS_CODE_SIZE
+{
+    ER_FLASH_VECTORS +0
+    {
+        * (RESET, +FIRST)
+    }
+
+    ER_FLASH_CODE +0 FIXED
+    {
+        * (InRoot$$Sections)
+        * (+RO)
+    }
+
+    ER_RAM_VECTORS RAM_NS_DATA_START UNINIT
+    {
+        * (.bss.noinit.RESET_RAM, +FIRST)
+    }
+
+    RW_RAM_DATA +0
+    {
+        * (.cy_ramfunc)
+        * (+RW, +ZI)
+    }
+
+    ; Place variables in the section that should not be initialized during the
+    ; device startup.
+    RW_IRAM1 +0 UNINIT
+    {
+        * (.bss.noinit)
+    }
+
+    ; Application heap area (HEAP)
+    ARM_LIB_HEAP  +0 EMPTY ((RAM_NS_DATA_START+RAM_NS_DATA_SIZE)-AlignExpr(ImageLimit(RW_IRAM1), 8)-STACK_SIZE)
+    {
+    }
+
+    ; Stack region growing down
+    ARM_LIB_STACK (RAM_NS_DATA_START+RAM_NS_DATA_SIZE) EMPTY -STACK_SIZE
+    {
+    }
+
+    cy_sharedmem SHARED_MEM_NS_START SHARED_MEM_NS_SIZE
+    {
+        *(.cy_sharedmem)
+    }
+}
+
+
+
+/* [] END OF FILE */

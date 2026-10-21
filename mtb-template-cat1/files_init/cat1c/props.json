@@ -1,0 +1,11 @@
+{
+    "core":{
+        "version": "2.0.0"
+    },
+    "opt": {
+        "props": {
+            "capabilities": ["bsp_gen5"],
+            "flow_version": "2.0"
+        }
+    }
+}

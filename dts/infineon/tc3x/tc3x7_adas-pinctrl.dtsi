@@ -1,0 +1,55 @@
+/*
+* Copyright (c) 2024 Infineon Technologies AG
+* SPDX-License-Identifier: Apache-2.0
+*/
+
+&p00 {
+	ngpios = <13>;
+};
+&p02 {
+	ngpios = <9>;
+};
+&p10 {
+	ngpios = <9>;
+};
+&p11 {
+	ngpios = <16>;
+};
+&p12 {
+	ngpios = <2>;
+};
+&p14 {
+	ngpios = <11>;
+};
+&p15 {
+	ngpios = <9>;
+};
+&p20 {
+	ngpios = <15>;
+	gpio-reserved-ranges = <4 2>;
+};
+&p21 {
+	ngpios = <8>;
+};
+&p22 {
+	ngpios = <12>;
+};
+&p23 {
+	ngpios = <8>;
+};
+&p32 {
+	ngpios = <8>;
+};
+&p33 {
+	ngpios = <16>;
+};
+&p34 {
+	ngpios = <6>;
+};
+&p40 {
+	ngpios = <13>;
+	gpio-reserved-ranges = <2 4>;
+};
+&p50 {
+	ngpios = <12>;
+};

@@ -1,0 +1,11 @@
+files/templates/cat1a/COMPONENT_MTB/system_psoc6.h:system_psoc6.h
+
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/system_psoc6_cm4.c:COMPONENT_CM4/system_psoc6_cm4.c
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_A_Clang/startup_psoc6_01_cm4.S:COMPONENT_CM4/TOOLCHAIN_A_Clang/startup_psoc6_01_cm4.S
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_ARM/startup_psoc6_01_cm4.s:COMPONENT_CM4/TOOLCHAIN_ARM/startup_psoc6_01_cm4.s
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_GCC_ARM/startup_psoc6_01_cm4.S:COMPONENT_CM4/TOOLCHAIN_GCC_ARM/startup_psoc6_01_cm4.S
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_IAR/startup_psoc6_01_cm4.s:COMPONENT_CM4/TOOLCHAIN_IAR/startup_psoc6_01_cm4.s
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_A_Clang/cy8c6xx7_cm4.mk:COMPONENT_CM4/TOOLCHAIN_A_Clang/linker.mk
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_ARM/cy8c6xx7_cm4.sct:COMPONENT_CM4/TOOLCHAIN_ARM/linker.sct
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_GCC_ARM/cy8c6xx7_cm4.ld:COMPONENT_CM4/TOOLCHAIN_GCC_ARM/linker.ld
+files/templates/cat1a/COMPONENT_MTB/COMPONENT_CM4/TOOLCHAIN_IAR/cy8c6xx7_cm4.icf:COMPONENT_CM4/TOOLCHAIN_IAR/linker.icf

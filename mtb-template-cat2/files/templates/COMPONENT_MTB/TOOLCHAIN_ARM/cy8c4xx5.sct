@@ -1,0 +1,150 @@
+#! armclang -E --target=arm-arm-none-eabi -x c -mcpu=cortex-m0
+; The first line specifies a preprocessor command that the linker invokes
+; to pass a scatter file through a C preprocessor.
+
+;*******************************************************************************
+;* \file cy8c4xx5.sct
+;* \version 2.0.0
+;*
+;* Linker file for the ARMCC.
+;*
+;* The main purpose of the linker script is to describe how the sections in the
+;* input files should be mapped into the output file, and to control the memory
+;* layout of the output file.
+;*
+;* \note The entry point location is fixed and starts at 0x00000000. The valid
+;* application image should be placed there.
+;*
+;* \note The linker files included with the PDL template projects must be
+;* generic and handle all common use cases. Your project may not use every
+;* section defined in the linker files. In that case you may see the warnings
+;* during the build process: L6314W (no section matches pattern) and/or L6329W
+;* (pattern only matches removed unused sections). In your project, you can
+;* suppress the warning by passing the "--diag_suppress=L6314W,L6329W" option to
+;* the linker, simply comment out or remove the relevant code in the linker
+;* file.
+;*
+;*******************************************************************************
+;* \copyright
+;* (c) (2019-2024), Cypress Semiconductor Corporation (an Infineon company) or
+;* an affiliate of Cypress Semiconductor Corporation.
+;*
+;* SPDX-License-Identifier: Apache-2.0
+;*
+;* Licensed under the Apache License, Version 2.0 (the "License");
+;* you may not use this file except in compliance with the License.
+;* You may obtain a copy of the License at
+;*
+;*     http://www.apache.org/licenses/LICENSE-2.0
+;*
+;* Unless required by applicable law or agreed to in writing, software
+;* distributed under the License is distributed on an "AS IS" BASIS,
+;* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;* See the License for the specific language governing permissions and
+;* limitations under the License.
+;******************************************************************************/
+
+; The defines below describe the location and size of blocks of memory in the target.
+; Use these defines to specify the memory regions available for allocation.
+
+; The following defines control RAM and flash memory allocation.
+; You can change the memory allocation by editing the RAM and Flash defines.
+
+/*--------------------- Embedded RAM Configuration ---------------------------
+; <h> RAM Configuration
+;   <o0> RAM Base Address    <0x0-0xFFFFFFFF:8>
+;   <o1> RAM Size (in Bytes) <0x0-0xFFFFFFFF:8>
+; </h>
+ *----------------------------------------------------------------------------*/
+#define __RAM_START     0x20000000
+#define __RAM_SIZE      0x00001000
+
+/*--------------------- Flash Configuration ----------------------------------
+; <h> Flash Configuration
+;   <o0> Flash Base Address <0x0-0xFFFFFFFF:8>
+;   <o1> Flash Size (in Bytes) <0x0-0xFFFFFFFF:8>
+; </h>
+ *----------------------------------------------------------------------------*/
+#define __FLASH_START   0x00000000
+#define __FLASH_SIZE    0x00008000
+
+/*--------------------- Stack Configuration ---------------------------
+; <h> Stack Configuration
+;   <o0> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
+; </h>
+ *----------------------------------------------------------------------------*/
+#define __STACK_SIZE    0x00000400
+
+/*
+;------------- <<< end of configuration section >>> ---------------------------
+*/
+
+
+LR_ROM __FLASH_START __FLASH_SIZE
+{
+    .cy_app_header +0
+    {
+        * (.cy_app_header)
+    }
+
+    ER_ROM __FLASH_START __FLASH_SIZE
+    {
+        *.o (RESET, +First)
+        *(InRoot$$Sections)
+        .ANY (+RO)
+        .ANY (+XO)
+    }
+
+    ER_RAM_VECTORS __RAM_START UNINIT
+    {
+        * (.bss.RESET_RAM, +FIRST)
+    }
+
+    RW_RAM_DATA +0
+    {
+        * (+RW, +ZI)
+    }
+
+    ; Place variables in the section that should not be initialized during the
+    ; device startup.
+    RW_IRAM1 +0 UNINIT
+    {
+        * (.noinit)
+    }
+
+    ; Application heap area (HEAP)
+    ARM_LIB_HEAP  +0 EMPTY ((__RAM_START+__RAM_SIZE)-AlignExpr(ImageLimit(RW_IRAM1), 8)-__STACK_SIZE)
+    {
+    }
+
+    ; Stack region growing down
+    ARM_LIB_STACK (__RAM_START+__RAM_SIZE) EMPTY -__STACK_SIZE
+    {
+    }
+}
+
+
+; These sections are used for additional metadata (silicon revision, Silicon/JTAG ID, etc.) storage.
+CYFLASHPROTECT 0x90400000
+{
+    .cyflashprotect +0 { * (.cyflashprotect) }
+}
+
+CYMETA 0x90500000
+{
+    .cymeta +0 { * (.cymeta) }
+}
+
+CYCHIPPROTECT 0x90600000
+{
+    .cychipprotect +0 { * (.cychipprotect) }
+}
+
+/* The following symbols used by the cymcuelftool. */
+/* Flash */
+#define __cy_memory_0_start 0x00000000
+#define __cy_memory_0_length  0x00008000
+#define __cy_memory_0_row_size 0x80
+
+
+/* [] END OF FILE */

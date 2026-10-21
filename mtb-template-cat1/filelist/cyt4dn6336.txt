@@ -1,0 +1,32 @@
+# System files
+files/templates/cat1c/COMPONENT_MTB/system_cat1c.h:system_cat1c.h
+files/templates/cat1c/COMPONENT_MTB/startup_cat1c.h:startup_cat1c.h
+
+# Flash partition
+files/templates/cat1c/COMPONENT_MTB/HEADER_FILES/tviic_partition.h:tviic_partition.h
+
+# Startup files
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/startup_cm7.c:COMPONENT_CM7/startup_cm7.c
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/system_cm7.c:COMPONENT_CM7/system_cm7.c
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_ARM/startup_cm0plus.s:COMPONENT_CM0P/TOOLCHAIN_ARM/startup_cm0plus.s
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/startup_cm0plus.S:COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/startup_cm0plus.S
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_IAR/startup_cm0plus.s:COMPONENT_CM0P/TOOLCHAIN_IAR/startup_cm0plus.s
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/system_cm0plus.c:COMPONENT_CM0P/system_cm0plus.c
+
+# CM7 linkers for each compiler
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/TOOLCHAIN_ARM/tviic_x6336_cm7_d.sct:COMPONENT_CM7/TOOLCHAIN_ARM/linker_d.sct
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/TOOLCHAIN_GCC_ARM/tviic_x6336_cm7_d.ld:COMPONENT_CM7/TOOLCHAIN_GCC_ARM/linker_d.ld
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/TOOLCHAIN_IAR/tviic_x6336_cm7_d.icf:COMPONENT_CM7/TOOLCHAIN_IAR/linker_d.icf
+
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/TOOLCHAIN_ARM/tviic_x6336_cm7.sct:COMPONENT_CM7/TOOLCHAIN_ARM/linker.sct
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/TOOLCHAIN_GCC_ARM/tviic_x6336_cm7.ld:COMPONENT_CM7/TOOLCHAIN_GCC_ARM/linker.ld
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM7/TOOLCHAIN_IAR/tviic_x6336_cm7.icf:COMPONENT_CM7/TOOLCHAIN_IAR/linker.icf
+
+# CM0P linkers for each compiler
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_ARM/tviic_x6336_cm0plus.sct:COMPONENT_CM0P/TOOLCHAIN_ARM/linker_d.sct
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/tviic_x6336_cm0plus.ld:COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/linker_d.ld
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_IAR/tviic_x6336_cm0plus.icf:COMPONENT_CM0P/TOOLCHAIN_IAR/linker_d.icf
+
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_ARM/tviic_x6336_cm0plus.sct:COMPONENT_CM0P/TOOLCHAIN_ARM/linker.sct
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/tviic_x6336_cm0plus.ld:COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/linker.ld
+files/templates/cat1c/COMPONENT_MTB/COMPONENT_CM0P/TOOLCHAIN_IAR/tviic_x6336_cm0plus.icf:COMPONENT_CM0P/TOOLCHAIN_IAR/linker.icf

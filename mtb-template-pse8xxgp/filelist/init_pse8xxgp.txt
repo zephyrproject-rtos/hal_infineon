@@ -1,0 +1,6 @@
+files_init/props.json:props.json
+files_init/bsp.mk:bsp.mk
+files_init/pse8xxgp.modus:config/design.modus
+files/flashloader/PSE84_SMIF.FLM:config/GeneratedSource/PSE84_SMIF.FLM
+files/flashloader/FlashPSE84_SMIF.out:config/GeneratedSource/FlashPSE84_SMIF.out
+files/flashloader/version.xml:config/FlashLoaders/version.xml

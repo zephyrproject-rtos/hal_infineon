@@ -1,0 +1,24 @@
+{
+    "core": {
+        "name": "mtb-dsl-psc3m6",
+        "id": "445f2bee-e9f2-5294-a7d8-6b38843c0fe7",
+        "version": "1.0.0.335"
+    },
+    "configurator_support": true,
+    "opt": {
+        "documentation": [
+            {
+                "location": "docs/api_reference_manual.html",
+                "path": [
+                    "Reference Guides",
+                    "PSOC Control C3-M6"
+                ],
+                "title": "Device Support Library API reference manual",
+                "type": "api-guide"
+            }
+        ],
+        "svd": {
+            "COMPONENT_PSC3M6": "pdl/svd/psc3m6.svd"
+        }
+    }
+}

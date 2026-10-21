@@ -1,0 +1,3 @@
+files_init/cat1a/props.json:props.json
+files_init/cat1a/bsp.mk:bsp.mk
+files_init/cat1a/psoc6able2_psoc6a512k_psoc6a256k_50mhz.modus:config/design.modus
