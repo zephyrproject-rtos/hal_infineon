@@ -33,6 +33,17 @@
 
 #include "cycfg_notices.h"
 
+#if defined(COMPONENT_CM33_0) && defined(COMPONENT_SECURE_DEVICE)
+#include "cymem_CM33_0_S.h"
+#endif /* defined(COMPONENT_CM33_0) && defined(COMPONENT_SECURE_DEVICE) */
+
+#if defined(COMPONENT_CM33_0) && defined(COMPONENT_NON_SECURE_DEVICE)
+#include "cymem_CM33_0.h"
+#endif /* defined(COMPONENT_CM33_0) && defined(COMPONENT_NON_SECURE_DEVICE) */
+
+#if defined(COMPONENT_CM55_0)
+#include "cymem_CM55_0.h"
+#endif /* defined(COMPONENT_CM55_0) */
 #if defined(__cplusplus)
 extern "C" {
 #endif /* defined(__cplusplus) */
@@ -67,7 +78,6 @@ extern "C" {
 #define vres_0_memory_region_data_27_ENABLED 1U
 #define vres_0_memory_region_data_28_ENABLED 1U
 #define vres_0_memory_region_data_29_ENABLED 1U
-#define vres_0_memory_region_data_30_ENABLED 1U
 #define vres_0_reserved_memory_region_0_ENABLED 1U
 #define vres_0_reserved_memory_region_1_ENABLED 1U
 #define vres_0_reserved_memory_region_2_ENABLED 1U

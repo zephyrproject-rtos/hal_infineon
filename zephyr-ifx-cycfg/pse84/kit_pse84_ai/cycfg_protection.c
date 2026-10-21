@@ -4,15 +4,15 @@
  * Description:
  * System configuration
  * This file was automatically generated and should not be modified.
- * Configurator Backend 3.70.0
- * device-db 4.34.0.9502
- * ifx-mcuboot-pse84 1.1.0.349
- * ifx-tf-m 2.1.400.14138
- * mtb-dsl-pse8xxgp 1.2.0.895
+ * Configurator Backend 3.80.0
+ * device-db 4.39.0.10988
+ * ifx-mcuboot-pse84 1.4.0.518
+ * ifx-tf-m 2.1.600.18307
+ * mtb-dsl-pse8xxgp 1.6.0.1310
  *
  *******************************************************************************
- * Copyright 2026 Cypress Semiconductor Corporation (an Infineon company) or
- * an affiliate of Cypress Semiconductor Corporation.
+ * Copyright 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,11 +44,11 @@ const mtb_srf_memory_protection_s_t mtb_srf_memory_protection_s[] =
     },
     {
         .ranges = socmem_0_mpc_0_srf_protection_range_s,
-        .size = 2U,
+        .size = 1U,
     },
     {
         .ranges = mxsramc_0_mpc_0_srf_protection_range_s,
-        .size = 4U,
+        .size = 3U,
     },
     {
         .ranges = mxsramc_1_mpc_0_srf_protection_range_s,
@@ -66,11 +66,14 @@ void init_cycfg_protection(void)
 #if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && !defined(CYBSP_SKIP_MPU_INIT)
     Cy_MPU_Init(cycfg_mpu_cm33_s_0_config, sizeof(cycfg_mpu_cm33_s_0_config) / sizeof(cycfg_mpu_cm33_s_0_config[0]));
 #endif /*  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && !defined(CYBSP_SKIP_MPU_INIT) */
-#if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_MPC_INIT)
+#if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_MPC_INIT) && !defined(CY_DEVICE_FEATURE_MPC_LOCKED)
     init_cycfg_mpc();
-#endif /*  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_MPC_INIT) */
-#if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_PPC_INIT)
+#endif /*  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_MPC_INIT) && !defined(CY_DEVICE_FEATURE_MPC_LOCKED) */
+#if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_PPC_INIT)
     init_cycfg_ppc0();
     init_cycfg_ppc1();
-#endif /*  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_PPC_INIT) */
+#endif /* (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_PPC_INIT) */
+#if (CY_SYSTEM_CPU_M55) && !defined(CYBSP_SKIP_MPU_INIT)
+    Cy_MPU_Init(cycfg_mpu_cm55_ns_0_config, sizeof(cycfg_mpu_cm55_ns_0_config) / sizeof(cycfg_mpu_cm55_ns_0_config[0]));
+#endif /* (CY_SYSTEM_CPU_M55) && !defined(CYBSP_SKIP_MPU_INIT) */
 }

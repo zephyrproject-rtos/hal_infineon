@@ -34,6 +34,7 @@
 #include "cycfg_notices.h"
 #include "cy_autanalog.h"
 #include "cy_sysclk.h"
+#include "cy_i3c.h"
 #include "cy_pdm_pcm_v2.h"
 #include "cy_scb_i2c.h"
 #include "cy_scb_uart.h"
@@ -71,6 +72,9 @@ extern "C" {
 #define CYBSP_SAR_ADC_GPIO_CH_0_ENABLED 1U
 #define CYBSP_SAR_ADC_SCAN_GRP_0_ENABLED 1U
 #define CYBSP_SAR_ADC_SCAN_GRP_0_SCAN_0_ENABLED 1U
+#define CYBSP_I3C_CONTROLLER_ENABLED 1U
+#define CYBSP_I3C_CONTROLLER_HW I3C_CORE
+#define CYBSP_I3C_CONTROLLER_IRQ i3c_interrupt_IRQn
 #define CYBSP_PDM_ENABLED 1U
 #define CYBSP_PDM_HW PDM0
 #define CYBSP_PDM_CHANNEL_2_IRQ pdm_0_interrupts_2_IRQn
@@ -103,7 +107,7 @@ extern "C" {
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_ENABLED 1U
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_HW SMIF0_CORE
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_IRQ smif_0_smif0_interrupt_nsec_IRQn
-#define CYBSP_SMIF_CORE_0_XSPI_FLASH_MEMORY_MODE_ALIGMENT_ERROR (0UL)
+#define CYBSP_SMIF_CORE_0_XSPI_FLASH_MEMORY_MODE_ALIGNMENT_ERROR (0UL)
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_RX_DATA_FIFO_UNDERFLOW (0UL)
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_COMMAND_FIFO_OVERFLOW (0UL)
 #define CYBSP_SMIF_CORE_0_XSPI_FLASH_TX_DATA_FIFO_OVERFLOW (0UL)
@@ -123,7 +127,7 @@ extern "C" {
 #define CYBSP_SMIF_CORE_1_PSRAM_ENABLED 1U
 #define CYBSP_SMIF_CORE_1_PSRAM_HW SMIF1_CORE
 #define CYBSP_SMIF_CORE_1_PSRAM_IRQ smif_1_smif0_interrupt_nsec_IRQn
-#define CYBSP_SMIF_CORE_1_PSRAM_MEMORY_MODE_ALIGMENT_ERROR (0UL)
+#define CYBSP_SMIF_CORE_1_PSRAM_MEMORY_MODE_ALIGNMENT_ERROR (0UL)
 #define CYBSP_SMIF_CORE_1_PSRAM_RX_DATA_FIFO_UNDERFLOW (0UL)
 #define CYBSP_SMIF_CORE_1_PSRAM_TX_COMMAND_FIFO_OVERFLOW (0UL)
 #define CYBSP_SMIF_CORE_1_PSRAM_TX_DATA_FIFO_OVERFLOW (0UL)
@@ -187,6 +191,7 @@ extern cy_stc_autanalog_stt_sar_t CYBSP_SAR_ADC_stt[];
 extern mtb_hal_adc_configurator_t CYBSP_SAR_ADC_hal_config;
 #endif /* defined (COMPONENT_MTB_HAL) && (MTB_HAL_DRIVER_AVAILABLE_ADC) */
 
+extern const cy_stc_i3c_config_t CYBSP_I3C_CONTROLLER_config;
 extern const cy_stc_pdm_pcm_config_v2_t CYBSP_PDM_config;
 extern const cy_stc_pdm_pcm_channel_config_t channel_2_config;
 extern const cy_stc_pdm_pcm_channel_config_t channel_3_config;
