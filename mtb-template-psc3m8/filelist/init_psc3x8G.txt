@@ -1,0 +1,3 @@
+files_init/props_psc3m8.json:props.json
+files_init/psc3m8.mk:bsp.mk
+files_init/psc3x8G.modus:config/design.modus
