@@ -1,0 +1,106 @@
+name: Git Size Report
+
+on:
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+env:
+  # Growth above this many bytes fails the job. 0 disables the limit.
+  MAX_GROWTH_BYTES: 0
+  # Growth above this many bytes is called out as a warning.
+  WARN_GROWTH_BYTES: 1048576
+
+jobs:
+  git-size-report:
+    name: Report git repository growth
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Measure repository growth
+        run: |
+          set -euo pipefail
+
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          # Every object reachable from the PR head but not from the base
+          # branch is an object the repository would gain on merge.
+          git rev-list --objects --no-object-names "$HEAD" --not "$BASE" > new-objects.txt
+
+          if [ -s new-objects.txt ]; then
+            # Pack the new objects the same way git would store them, so the
+            # number reflects compressed on-disk bytes rather than raw content.
+            git pack-objects --stdout --delta-base-offset < new-objects.txt > growth.pack
+          else
+            : > growth.pack
+          fi
+
+          GROWTH=$(wc -c < growth.pack)
+          OBJECTS=$(wc -l < new-objects.txt)
+
+          # Size of the packed repository, for scale. A fresh checkout keeps
+          # everything in one pack, so size-pack is the whole history.
+          REPO_SIZE=$(git count-objects -v | awk '/^size-pack:/ { print $2 * 1024 }')
+
+          human() {
+            numfmt --to=iec-i --suffix=B --format='%.1f' "$1"
+          }
+
+          PERCENT="n/a"
+          if [ "$REPO_SIZE" -gt 0 ]; then
+            PERCENT=$(awk -v g="$GROWTH" -v r="$REPO_SIZE" 'BEGIN { printf "%.3f%%", 100 * g / r }')
+          fi
+
+          {
+            echo "## Git size report"
+            echo
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Repository size (packed) | $(human "$REPO_SIZE") |"
+            echo "| Growth if merged | $(human "$GROWTH") |"
+            echo "| Growth relative to repository | $PERCENT |"
+            echo "| New git objects | $OBJECTS |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # The ten largest blobs the PR adds, so a big number is traceable to
+          # a file. Paths come from rev-list, sizes from cat-file. These are
+          # uncompressed sizes, so they do not add up to the growth above.
+          git rev-list --objects "$HEAD" --not "$BASE" \
+            | awk 'NF > 1 { $1 = $1; print }' > new-paths.txt
+
+          if [ -s new-paths.txt ]; then
+            {
+              echo
+              echo "### Largest paths added or changed"
+              echo
+              echo "| Uncompressed size | Path |"
+              echo "| --- | --- |"
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            awk '{ print $1 }' new-paths.txt \
+              | git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize)' \
+              | awk '$2 == "blob" { print $1, $3 }' \
+              | sort -k2,2 -nr > blob-sizes.txt
+
+            head -n 10 blob-sizes.txt | while read -r sha size; do
+              path=$(awk -v s="$sha" '$1 == s { $1 = ""; sub(/^ /, ""); print; exit }' new-paths.txt)
+              echo "| $(human "$size") | \`$path\` |" >> "$GITHUB_STEP_SUMMARY"
+            done
+          fi
+
+          echo "Repository grows by $(human "$GROWTH") ($OBJECTS new objects) if this PR is merged."
+
+          if [ "$MAX_GROWTH_BYTES" -gt 0 ] && [ "$GROWTH" -gt "$MAX_GROWTH_BYTES" ]; then
+            echo "::error::Growth of $(human "$GROWTH") exceeds the limit of $(human "$MAX_GROWTH_BYTES")."
+            exit 1
+          fi
+
+          if [ "$GROWTH" -gt "$WARN_GROWTH_BYTES" ]; then
+            echo "::warning::Growth of $(human "$GROWTH") is above the warning threshold of $(human "$WARN_GROWTH_BYTES")."
+          fi
