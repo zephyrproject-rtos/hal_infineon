@@ -1,0 +1,260 @@
+# Copyright (c) 2026 Aerlync Labs Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+config POST_VENDOR_MTB_STL
+	bool "Infineon MTB-STL tests for POST"
+	depends on POST
+	depends on SOC_FAMILY_INFINEON_CAT1 || SOC_FAMILY_INFINEON_CAT1A || \
+		   SOC_FAMILY_INFINEON_CAT1B || SOC_FAMILY_INFINEON_PSOC4
+	help
+	  Register Infineon MTB-STL (ModusToolbox Self Test Library) tests
+	  with the Zephyr POST framework. This enables certified self-tests
+	  for Infineon PSoC and related devices.
+
+if POST_VENDOR_MTB_STL
+
+config POST_MTB_STL_STARTUP_CFGREG
+	bool "MTB-STL Start-Up Registers Test"
+	select USE_INFINEON_FLASH
+	help
+	  Enable MTB-STL Start-Up Registers tests.
+
+config POST_MTB_STL_SAVE_STARTUP_CFGREG
+	bool "MTB-STL Save Start-Up Registers Test"
+	select USE_INFINEON_FLASH
+	help
+	  Enable MTB-STL Save Start-Up Registers tests.
+
+config POST_MTB_STL_CPU_REGS
+	bool "CPU register checkerboard test"
+	help
+	  Enable MTB-STL CPU register checkerboard test.
+
+config POST_MTB_STL_CPU_PC
+	bool "Program counter test"
+	help
+	  Enable MTB-STL Program counter test.
+
+config POST_MTB_STL_PROGRAM_FLOW
+	bool "Program flow test"
+	help
+	  Enable MTB-STL Program flow test.
+
+config POST_MTB_STL_RAM_MARCH
+	bool "MTB-STL SRAM March test"
+	help
+	  Enable MTB-STL RAM March test.
+	  Note: This test is destructive and should only run at boot time.
+
+config POST_MTB_STL_STACK_MARCH
+	bool "MTB-STL Stack March test"
+	help
+	  Enable MTB-STL Stack March test.
+	  Note: This test is destructive and should only run at boot time.
+
+config POST_MTB_STL_STACK
+	bool "MTB-STL Stack overflow detection test"
+	help
+	  Enable MTB-STL stack overflow/underflow detection tests.
+
+config POST_MTB_STL_FLASH
+	bool "MTB-STL Flash checksum test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	help
+	  Enable MTB-STL Flash CRC tests.
+
+config POST_MTB_STL_GPIO
+	bool "MTB-STL GPIO test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	help
+	  Enable MTB-STL GPIO tests.
+
+config POST_MTB_STL_WDT
+	bool "MTB-STL Watchdog test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_WDT
+	help
+	  Enable MTB-STL Watchdog tests.
+
+config POST_MTB_STL_FPU
+	bool "MTB-STL FPU register test"
+	depends on (SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1) && CPU_HAS_FPU
+	help
+	  Enable MTB-STL FPU register tests.
+
+config POST_MTB_STL_DMA
+	bool "MTB-STL DMA test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_DMA
+	help
+	  Enable MTB-STL DMA tests.
+
+config POST_MTB_STL_INTERRUPT
+	bool "MTB-STL Interrupt test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_PWM
+	select USE_INFINEON_TIMER
+	help
+	  Enable MTB-STL Interrupt tests (requires TCPWM).
+
+config POST_MTB_STL_CLOCK
+	bool "MTB-STL Clock accuracy test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_TIMER
+	select USE_INFINEON_WDT
+	help
+	  Enable MTB-STL Clock accuracy tests. Uses a TCPWM counter
+	  cross-checked against the WDT/ILO to verify main clock
+	  frequency is within tolerance.
+
+config POST_MTB_STL_UART_LOOPBACK
+	bool "MTB-STL UART Loopback test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_UART
+	help
+	  Enable MTB-STL UART internal loopback test.
+
+config POST_MTB_STL_COUNTER
+	bool "MTB-STL Counter self test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_TIMER
+	help
+	  Enable MTB-STL TCPWM counter self test.
+
+config POST_MTB_STL_PWM
+        bool "MTB-STL PWM self test"
+        depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+        select USE_INFINEON_PWM
+        help
+          MTB-STL PWM duty cycle self test.
+
+config POST_MTB_STL_PWM_GATEKILL
+	bool "MTB-STL PWM Gate/Kill self test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_PWM
+	help
+	  Enable MTB-STL PWM gate/kill self test.
+
+config POST_MTB_STL_COMM
+	bool "MTB-STL Communications UART data transfer test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_UART
+	select USE_INFINEON_TIMER
+	help
+	  MTB-STL UART_Communication self test.
+
+config POST_MTB_STL_SPI_LOOPBACK
+        bool "MTB-STL SPI Loopback test"
+        depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+        select USE_INFINEON_SPI
+        help
+          MTB-STL SPI Loopback self test
+
+config POST_MTB_STL_I2C
+        bool "MTB-STL I2C Communication test"
+        depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+        select USE_INFINEON_I2C
+        help
+          MTB-STL I2C Communication self test.
+
+config POST_MTB_STL_ANALOG
+	bool "MTB-STL Analog Test"
+	depends on SOC_FAMILY_INFINEON_PSOC4 || SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_ADC
+	help
+	  Enable MTB-STL Analog tests (ADC, OpAmp, etc.)
+
+config POST_MTB_STL_COMPARATOR
+	bool "MTB-STL Comparator Test"
+	depends on SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_LPCOMP
+	help
+	  Enable MTB-STL Comparator (LPCOMP) self test.
+
+config POST_MTB_STL_DAC
+	bool "MTB-STL DAC Test"
+	depends on SOC_FAMILY_INFINEON_CAT1
+	select USE_INFINEON_ADC
+	help
+	  Enable MTB-STL DAC self test (internal DAC to SAR ADC loopback).
+	  Requires CONFIG_ADC and CONFIG_DAC for the HPPASS SAR/CSG drivers.
+
+# Test tuning parameters
+menu "MTB-STL test tuning"
+	depends on POST_VENDOR_MTB_STL
+
+config POST_MTB_STL_RAM_MARCH_BUFFER_SIZE
+	int "RAM March test buffer size (bytes)"
+	default 64
+	range 16 4096
+	depends on POST_MTB_STL_RAM_MARCH
+	help
+	  Size of the SRAM buffer used by the RAM March self-test.
+	  Larger values test more memory per invocation but increase
+	  BSS usage and test duration. Must be a multiple of 4.
+
+config POST_MTB_STL_STACK_PATTERN_BLOCK_SIZE
+	int "Stack overflow pattern block size (bytes)"
+	default 8
+	range 4 64
+	depends on POST_MTB_STL_STACK
+	help
+	  Size of the pattern block used for stack overflow/underflow
+	  detection. Smaller values give finer granularity but increase
+	  the chance of false positives from normal stack usage. Must
+	  be a multiple of 2 (pattern is 16-bit).
+
+config POST_MTB_STL_FLASH_CHUNK_SIZE
+	int "Flash checksum chunk size (double-words per call)"
+	default 512
+	range 64 4096
+	depends on POST_MTB_STL_FLASH
+	help
+	  Number of 64-bit double-words to checksum per invocation of
+	  SelfTest_FlashCheckSum(). The vendor library default is 512.
+	  Smaller values allow interleaving flash checks with other
+	  work (useful for runtime POST). Larger values complete the
+	  check faster but block longer.
+
+config POST_FLASH_TEST_FLETCHER64_CHECKSUM
+	hex "Pre-computed Fletcher-64 checksum of application flash"
+	default 0xD04F1F75AD2094E7 if POST_MTB_STL_FLASH
+	default 0x0
+	help
+	  The expected Fletcher-64 checksum of the application flash
+	  region (excluding the checksum section itself). This value
+	  must be recomputed whenever the flash contents change.
+	  Use the MTB-STL flash checksum utility or compute at build
+	  time and update this value.
+
+config POST_MTB_STL_CLOCK_TEST_TIMEOUT_MS
+	int "Clock test timeout (milliseconds)"
+	default 100
+	range 10 5000
+	depends on POST_MTB_STL_CLOCK
+	help
+	  Maximum time to wait for the clock accuracy test to complete.
+	  If the WDT or TCPWM counter does not produce results within
+	  this window, the test fails with a timeout. Increase this
+	  value if running on very slow clock configurations.
+
+config POST_ADC_REF_VOLTAGE2
+	bool "MTB-STL for 2/3 VDD signal"
+	depends on POST_MTB_STL_ANALOG
+	help
+	  Enable ADC SelfTest for 2/3 VDD signal test
+	  Only when disabled falls to 1/3 VDD signal test
+
+config POST_COMP_EXPECT_HIGH
+	bool "MTB-STL comparator expects high output"
+	default y
+	depends on POST_MTB_STL_COMPARATOR
+	help
+	  When enabled the comparator self-test expects a high output
+	  (positive input voltage higher than the negative input).
+	  When disabled it expects a low output (positive input lower
+	  than the negative input).
+
+endmenu
+
+endif # POST_VENDOR_MTB_STL
