@@ -800,7 +800,7 @@ blobs:
     type: img
     version: '3.60.0.725'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/bless/raw/latest-v3.X/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_controller.a
+    url: https://github.com/Infineon/bless/raw/release-v3.60.0/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_controller.a
     description: "BLESS Bluetooth Controller FW"
     doc-url: https://github.com/Infineon/bless
 
@@ -809,7 +809,7 @@ blobs:
     type: img
     version: '3.60.0.725'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/bless/raw/latest-v3.X/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_manager.a
+    url: https://github.com/Infineon/bless/raw/release-v3.60.0/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_manager.a
     description: "BLESS Bluetooth Controller FW"
     doc-url: https://github.com/Infineon/bless
 
