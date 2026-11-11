@@ -113,6 +113,12 @@ __STATIC_INLINE bool Cy_RRAM_AcquirePCLock(RRAMC_Type * base)
 
     RRAM_PC_MASK(base) |= _VAL2FLD(RRAMC_RRAMC_PC_MASK_PC_LOCK, CY_RRAM_PC_LOCK_ACQUIRE);
 
+    /* Force this write to land before reading it back below (CM55's
+     * AXI-to-AHB bridge to RRAMC0 posts writes; see architecture
+     * reference manual section 2.2.6.1).
+     */
+    __DSB();
+
     /* Get the value of active PC */
     #if (CY_CPU_CORTEX_M0P)
     activePC = ((uint32_t)_FLD2VAL(M0SECCPUSS_CM0_MS_PC_PC, M0SECCPUSS_CM0_MS_PC));
@@ -144,10 +150,23 @@ __STATIC_INLINE bool Cy_RRAM_AcquirePCLock(RRAMC_Type * base)
 *******************************************************************************/
 __STATIC_INLINE void Cy_RRAM_ReleasePCLock(RRAMC_Type * base)
 {
+    /* Matches AcquirePCLock()'s own critical section around its
+     * PC_MASK/IPC-lock sequence.
+     */
+    uint32_t savedIntrStatus = Cy_SysLib_EnterCriticalSection();
+
     RRAM_PC_MASK(base) &= ~RRAMC_RRAMC_PC_MASK_PC_LOCK_Msk;
+
+    /* Force this write to land before the IPC release below (posted-write
+     * bridge; see AcquirePCLock()).
+     */
+    __DSB();
+
 #ifdef WA__PM_0159902_6
     (void)Cy_IPC_Drv_LockRelease (Cy_IPC_Drv_GetIpcBaseAddress(CY_IPC_CHAN_RRAM_LOCK), CY_IPC_NO_NOTIFICATION);
 #endif
+
+    Cy_SysLib_ExitCriticalSection(savedIntrStatus);
 }
 
 
@@ -569,6 +588,11 @@ static cy_en_rram_status_t Cy_RRAM_UpdateBlock(cy_stc_rram_config_t * config, co
     /* Set the module-internal target address (physical address) */
     RRAM_NVM_ADDR(config->base) = phy_addr;
 
+    /* DSB: force the address select to land before polling BUSY below
+     * (posted-write bridge; see Cy_RRAM_AcquirePCLock()).
+     */
+    __DSB();
+
     timeout = CY_RRAM_OPERATION_TIMEOUT / CY_RRAM_STATUS_CHECK_DELAY;
 
     /* Wait until internal read operation is completed. As per RRAM IP team,
@@ -645,7 +669,15 @@ static cy_en_rram_status_t Cy_RRAM_UpdateBlock(cy_stc_rram_config_t * config, co
                 nvm_addr[wordCount] = blk.w[wordCount];
             }
 
+            /* DSB: force the staged data to land before StartOperation
+             * (posted-write bridge; see Cy_RRAM_AcquirePCLock()).
+             */
+            __DSB();
+
             Cy_RRAM_StartOperation(config->base);
+
+            /* DSB: force STARTOP itself to land before polling BUSY below. */
+            __DSB();
 
             timeout = CY_RRAM_OPERATION_TIMEOUT / CY_RRAM_STATUS_CHECK_DELAY;
 
@@ -697,7 +729,10 @@ static cy_en_rram_status_t Cy_RRAM_UpdateBlock(cy_stc_rram_config_t * config, co
         {
             nvm_addr[wordCount] = blk.w[wordCount];
         }
+        /* DSB: see the blockingWrite branch above for why. */
+        __DSB();
         Cy_RRAM_StartOperation(config->base);
+        __DSB();
         status = CY_RRAM_SUCCESS;
     }
 
