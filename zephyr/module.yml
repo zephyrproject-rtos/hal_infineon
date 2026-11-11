@@ -800,7 +800,7 @@ blobs:
     type: img
     version: '3.60.0.725'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/bless/raw/latest-v3.X/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_controller.a
+    url: https://github.com/Infineon/bless/raw/release-v3.60.0/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_controller.a
     description: "BLESS Bluetooth Controller FW"
     doc-url: https://github.com/Infineon/bless
 
@@ -809,7 +809,7 @@ blobs:
     type: img
     version: '3.60.0.725'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/bless/raw/latest-v3.X/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_manager.a
+    url: https://github.com/Infineon/bless/raw/release-v3.60.0/COMPONENT_BLESS_CONTROLLER/COMPONENT_CM4/COMPONENT_SOFTFP/TOOLCHAIN_GCC_ARM/cy_ble_stack_manager.a
     description: "BLESS Bluetooth Controller FW"
     doc-url: https://github.com/Infineon/bless
 
@@ -819,7 +819,7 @@ blobs:
     type: img
     version: '1.1.0.250'
     license-path: ./LICENSE.txt
-    url: https://github.com/npal-cy/TARGET_CYW920829M2EVK-02/raw/refs/heads/master/config/GeneratedSource/CYW208xx_SMIF.FLM
+    url: https://github.com/npal-cy/TARGET_CYW920829M2EVK-02/raw/561d43038a80e734a48427e0abbefee395d1dc96/config/GeneratedSource/CYW208xx_SMIF.FLM
     description: "CYW20829 flashloader for openocd"
     doc-url: https://github.com/npal-cy/TARGET_CYW920829M2EVK-02/blob/master/README.md
   - path: flashloader/PSE84/PSE84_SMIF.FLM
@@ -827,6 +827,6 @@ blobs:
     type: img
     version: '5.0.3.1019'
     license-path: ./LICENSE.txt
-    url: https://github.com/Infineon/TARGET_KIT_PSE84_EVAL_EPC2/raw/37e6368fdab0353d3f8542992135ecdc9ee6f619/config/FlashLoaders/PSE84_SMIF.FLM
+    url: https://github.com/Infineon/TARGET_KIT_PSE84_EVAL_EPC2/raw/release-v1.5.0/config/FlashLoaders/PSE84_SMIF.FLM
     description: "PSE84 SMIF external-flash flashloader for openocd (SFDP template)"
     doc-url: https://github.com/Infineon/TARGET_KIT_PSE84_EVAL_EPC2
