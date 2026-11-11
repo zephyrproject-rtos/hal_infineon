@@ -39,6 +39,8 @@ extern "C" {
 
 #define ioss_0_port_0_pin_1_HSIOM P0_1_SMIF1_SMIF0_SPIHB_SELECT2
 #define ioss_0_port_2_pin_0_HSIOM P2_0_SMIF0_SMIF0_SPIHB_SELECT1
+#define ioss_0_port_3_pin_0_HSIOM P3_0_I3C_I3C_SCL
+#define ioss_0_port_3_pin_1_HSIOM P3_1_I3C_I3C_SDA
 #define ioss_0_port_6_pin_5_HSIOM P6_5_SCB2_UART_RX
 #define ioss_0_port_6_pin_7_HSIOM P6_7_SCB2_UART_TX
 #define ioss_0_port_7_pin_0_HSIOM P7_0_SDHC1_CARD_CMD

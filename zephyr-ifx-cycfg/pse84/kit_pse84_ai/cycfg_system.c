@@ -4,15 +4,15 @@
  * Description:
  * System configuration
  * This file was automatically generated and should not be modified.
- * Configurator Backend 3.70.0
- * device-db 4.34.0.9502
- * ifx-mcuboot-pse84 1.1.0.349
- * ifx-tf-m 2.1.400.14138
- * mtb-dsl-pse8xxgp 1.2.0.895
+ * Configurator Backend 3.80.0
+ * device-db 4.39.0.10988
+ * ifx-mcuboot-pse84 1.4.0.518
+ * ifx-tf-m 2.1.600.18307
+ * mtb-dsl-pse8xxgp 1.6.0.1310
  *
  *******************************************************************************
- * Copyright 2026 Cypress Semiconductor Corporation (an Infineon company) or
- * an affiliate of Cypress Semiconductor Corporation.
+ * Copyright 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -218,6 +218,52 @@ const cy_stc_mpc_rot_cfg_t TFM_SP_PS_mpc_cfg[] =
         .access = CY_MPC_ACCESS_RW,
     },
 };
+#endif /* defined (CY_PDL_TZ_ENABLED) */
+
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED)
+const cy_stc_mpc_cfg_t M33S_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_SECURE,
+};
+const cy_stc_mpc_cfg_t M33_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_NON_SECURE,
+};
+const cy_stc_mpc_cfg_t M55_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_NON_SECURE,
+};
+const cy_stc_mpc_cfg_t M33NSC_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_SECURE,
+};
+const cy_stc_mpc_cfg_t M33_M55_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_NON_SECURE,
+};
+const cy_stc_mpc_cfg_t M33S_CODE_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_SECURE,
+};
+const cy_stc_mpc_cfg_t TFM_SP_INITIAL_ATTESTATION_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_SECURE,
+};
+const cy_stc_mpc_cfg_t TFM_SP_CRYPTO_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_SECURE,
+};
+const cy_stc_mpc_cfg_t TFM_SP_ITS_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_SECURE,
+};
+const cy_stc_mpc_cfg_t TFM_SP_PS_mpc_locked_rot_cfg =
+{
+    .secure = CY_MPC_SECURE,
+};
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED) */
+
+#if defined(CY_PDL_TZ_ENABLED)
 const cy_stc_mpc_regions_t M33S_mpc_regions[] =
 {
     {
@@ -259,14 +305,7 @@ const cy_stc_mpc_regions_t M33_mpc_regions[] =
         .size = 0x0003D000,
     },
 };
-const cy_stc_mpc_regions_t M55_mpc_regions[] =
-{
-    {
-        .base = (MPC_Type*)SOCMEM_SRAM_MPC0,
-        .offset = 0x00000000,
-        .size = 0x00040000,
-    },
-};
+const cy_stc_mpc_regions_t M55_mpc_regions[] = {0};
 const cy_stc_mpc_regions_t M33NSC_mpc_regions[] = {0};
 const cy_stc_mpc_regions_t M33_M55_mpc_regions[] =
 {
@@ -287,8 +326,8 @@ const cy_stc_mpc_regions_t M33_M55_mpc_regions[] =
     },
     {
         .base = (MPC_Type*)SOCMEM_SRAM_MPC0,
-        .offset = 0x00040000,
-        .size = 0x004C0000,
+        .offset = 0x00000000,
+        .size = 0x00500000,
     },
     {
         .base = (MPC_Type*)RAMC1_MPC0,
@@ -327,6 +366,22 @@ const cy_stc_mpc_regions_t TFM_SP_PS_mpc_regions[] =
         .size = 0x00004000,
     },
 };
+#endif /* defined(CY_PDL_TZ_ENABLED) */
+
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED)
+const cy_stc_mpc_regions_t M33S_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t M33_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t M55_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t M33NSC_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t M33_M55_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t M33S_CODE_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t TFM_SP_INITIAL_ATTESTATION_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t TFM_SP_CRYPTO_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t TFM_SP_ITS_mpc_locked_rot_regions[] = {0};
+const cy_stc_mpc_regions_t TFM_SP_PS_mpc_locked_rot_regions[] = {0};
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED) */
+
+#if defined (CY_PDL_TZ_ENABLED)
 const cy_stc_mpc_resp_cfg_t cy_response_mpcs[] =
 {
     {
@@ -351,6 +406,9 @@ const cy_stc_mpc_resp_cfg_t cy_response_mpcs[] =
     },
 };
 const size_t cy_response_mpcs_count = sizeof(cy_response_mpcs) / sizeof(cy_stc_mpc_resp_cfg_t);
+#endif /* defined (CY_PDL_TZ_ENABLED) */
+
+#if defined(CY_PDL_TZ_ENABLED)
 const cy_stc_mpc_unified_t unified_mpc_domains[] =
 {
     {
@@ -358,66 +416,119 @@ const cy_stc_mpc_unified_t unified_mpc_domains[] =
         .region_count = sizeof(M33S_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = M33S_mpc_cfg,
         .cfg_count = sizeof(M33S_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = M33S_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(M33S_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &M33S_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = M33_mpc_regions,
         .region_count = sizeof(M33_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = M33_mpc_cfg,
         .cfg_count = sizeof(M33_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = M33_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(M33_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &M33_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = M55_mpc_regions,
         .region_count = sizeof(M55_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = M55_mpc_cfg,
         .cfg_count = sizeof(M55_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = M55_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(M55_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &M55_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = M33NSC_mpc_regions,
         .region_count = sizeof(M33NSC_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = M33NSC_mpc_cfg,
         .cfg_count = sizeof(M33NSC_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = M33NSC_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(M33NSC_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &M33NSC_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = M33_M55_mpc_regions,
         .region_count = sizeof(M33_M55_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = M33_M55_mpc_cfg,
         .cfg_count = sizeof(M33_M55_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = M33_M55_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(M33_M55_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &M33_M55_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = M33S_CODE_mpc_regions,
         .region_count = sizeof(M33S_CODE_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = M33S_CODE_mpc_cfg,
         .cfg_count = sizeof(M33S_CODE_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = M33S_CODE_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(M33S_CODE_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &M33S_CODE_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = TFM_SP_INITIAL_ATTESTATION_mpc_regions,
         .region_count = sizeof(TFM_SP_INITIAL_ATTESTATION_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = TFM_SP_INITIAL_ATTESTATION_mpc_cfg,
         .cfg_count = sizeof(TFM_SP_INITIAL_ATTESTATION_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = TFM_SP_INITIAL_ATTESTATION_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(TFM_SP_INITIAL_ATTESTATION_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &TFM_SP_INITIAL_ATTESTATION_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = TFM_SP_CRYPTO_mpc_regions,
         .region_count = sizeof(TFM_SP_CRYPTO_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = TFM_SP_CRYPTO_mpc_cfg,
         .cfg_count = sizeof(TFM_SP_CRYPTO_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = TFM_SP_CRYPTO_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(TFM_SP_CRYPTO_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &TFM_SP_CRYPTO_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = TFM_SP_ITS_mpc_regions,
         .region_count = sizeof(TFM_SP_ITS_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = TFM_SP_ITS_mpc_cfg,
         .cfg_count = sizeof(TFM_SP_ITS_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = TFM_SP_ITS_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(TFM_SP_ITS_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &TFM_SP_ITS_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
     {
         .regions = TFM_SP_PS_mpc_regions,
         .region_count = sizeof(TFM_SP_PS_mpc_regions) / sizeof(cy_stc_mpc_regions_t),
         .cfg = TFM_SP_PS_mpc_cfg,
         .cfg_count = sizeof(TFM_SP_PS_mpc_cfg) / sizeof(cy_stc_mpc_rot_cfg_t),
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+        .locked_rot_regions = TFM_SP_PS_mpc_locked_rot_regions,
+        .locked_rot_region_count = sizeof(TFM_SP_PS_mpc_locked_rot_regions) / sizeof(cy_stc_mpc_regions_t),
+        .locked_rot_cfg = &TFM_SP_PS_mpc_locked_rot_cfg,
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
     },
 };
+#endif /* defined(CY_PDL_TZ_ENABLED) */
+
+#if defined (CY_PDL_TZ_ENABLED)
 const size_t unified_mpc_domains_count = sizeof(unified_mpc_domains) / sizeof(cy_stc_mpc_unified_t);
 #endif /* defined (CY_PDL_TZ_ENABLED) */
 
-
+#if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED)
 const cy_en_prot_region_t M33S_ppc_0_regions[] =
 {
     PROT_PERI0_M33SYSCPUSS,
@@ -946,6 +1057,7 @@ const cy_stc_ppc_cfg_t cycfg_ppc_1_domains_config[] =
     },
 };
 const size_t cycfg_ppc_1_domains_count = sizeof(cycfg_ppc_1_domains_config) / sizeof(cy_stc_ppc_cfg_t);
+#endif /* (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) */
 
 #if defined(CY_PDL_TZ_ENABLED)
 const cy_stc_sau_config_t SAU_config[4] =
@@ -977,7 +1089,47 @@ const cy_stc_sau_config_t SAU_config[4] =
 };
 #endif /* defined(CY_PDL_TZ_ENABLED) */
 
-#if defined(COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF)
+const cy_stc_mpu_config_t cycfg_mpu_cm55_ns_0_config[3] =
+{
+    {
+        .reg_num = 1U,
+        .base_addr = 0x240FD000,
+        .end_addr = 0x240FFFFF,
+        .writable = true,
+        .require_privileged = false,
+        .shareable = false,
+        .executable = false,
+        .cacheable = 4,
+        .is_device = false,
+        .device_attrs = 0,
+    },
+    {
+        .reg_num = 2U,
+        .base_addr = 0x262FC000,
+        .end_addr = 0x2633BFFF,
+        .writable = true,
+        .require_privileged = false,
+        .shareable = false,
+        .executable = false,
+        .cacheable = 4,
+        .is_device = false,
+        .device_attrs = 0,
+    },
+    {
+        .reg_num = 3U,
+        .base_addr = 0x2633C000,
+        .end_addr = 0x264FFFFF,
+        .writable = true,
+        .require_privileged = false,
+        .shareable = false,
+        .executable = false,
+        .cacheable = 4,
+        .is_device = false,
+        .device_attrs = 0,
+    },
+};
+
+#if defined(COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) && !defined(CY_SRF_DISABLE)
 const mtb_srf_protection_range_s_t mxrramc_0_mpc_0_srf_protection_range_s[mxrramc_0_mpc_0_REGION_COUNT] =
 {
     {
@@ -1069,21 +1221,20 @@ const mtb_srf_protection_range_s_t socmem_0_mpc_0_srf_protection_range_s[socmem_
 {
     {
         .start = (void *) 0x26000000 ,
-        .length = 0x40000U,
-        .is_secure = false,
-    },
-    {
-        .start = (void *) 0x26040000 ,
-        .length = 0x4C0000U,
+        .length = 0x500000U,
         .is_secure = false,
     },
 };
-#endif /* defined(COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) */
+#endif /* defined(COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) && !defined(CY_SRF_DISABLE) */
 
 #if defined(CY_PDL_TZ_ENABLED)
 cy_rslt_t _cycfg_mpc_init_regions_rram(const cy_stc_mpc_regions_t* region, const cy_stc_mpc_rot_cfg_t* cfg, uint8_t cfg_count);
 cy_rslt_t _cycfg_mpc_init_regions(const cy_stc_mpc_regions_t* region, const cy_stc_mpc_rot_cfg_t* config, uint8_t cfg_count);
 #endif /* defined(CY_PDL_TZ_ENABLED) */
+
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED)
+cy_rslt_t _cycfg_mpc_init_regions_nonrot(const cy_stc_mpc_regions_t* region, const cy_stc_mpc_cfg_t* cfg);
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED) */
 
 void init_cycfg_ns_power(void)
 {
@@ -1194,6 +1345,32 @@ cy_rslt_t _cycfg_mpc_init_regions(const cy_stc_mpc_regions_t* region, const cy_s
     
         return retResult;
 }
+#endif /* defined(CY_PDL_TZ_ENABLED) */
+
+#if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED)
+cy_rslt_t _cycfg_mpc_init_regions_nonrot(const cy_stc_mpc_regions_t* region, const cy_stc_mpc_cfg_t* cfg)
+{
+        cy_rslt_t result = CY_RSLT_SUCCESS;
+    
+        result = (cy_rslt_t)Cy_Mpc_ConfigMpcStruct(region->base, region->offset, region->size, cfg);
+    
+        return result;
+}
+#endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) && defined(CY_PDL_TZ_ENABLED) */
+
+#if defined(CY_PDL_TZ_ENABLED)
+bool Cy_Mpc_IsRotConfigurable(const MPC_Type* base)
+{
+        if (base == (MPC_Type*)(MPC_Type*)RRAMC0_MPC0) return true;
+        if (base == (MPC_Type*)(MPC_Type*)SMIF0_CACHE_BLOCK_CACHEBLK_AHB_MPC0) return true;
+        if (base == (MPC_Type*)(MPC_Type*)SMIF0_CORE_AXI_MPC0) return true;
+        if (base == (MPC_Type*)(MPC_Type*)SMIF1_CACHE_BLOCK_CACHEBLK_AHB_MPC0) return true;
+        if (base == (MPC_Type*)(MPC_Type*)SMIF1_CORE_AXI_MPC0) return true;
+        if (base == (MPC_Type*)(MPC_Type*)SOCMEM_SRAM_MPC0) return true;
+        if (base == (MPC_Type*)(MPC_Type*)RAMC0_MPC0) return true;
+        if (base == (MPC_Type*)(MPC_Type*)RAMC1_MPC0) return true;
+        return true;
+}
 cy_rslt_t init_cycfg_mpc(void)
 {
         // Will return an error if one occurs at all in the setup process
@@ -1285,6 +1462,24 @@ cy_rslt_t init_cycfg_mpc(void)
                     retResult = currentResult;
                 }
             }
+    
+    #if defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED)
+            /* Process locked ROT regions */
+            for (uint32_t region_idx = 0; region_idx < domain->locked_rot_region_count; ++region_idx)
+            {
+                const cy_stc_mpc_regions_t* region = &domain->locked_rot_regions[region_idx];
+    
+                if (region->base != NULL)
+                {
+                    currentResult = _cycfg_mpc_init_regions_nonrot(region, domain->locked_rot_cfg);
+                }
+    
+                if (CY_RSLT_SUCCESS != currentResult)
+                {
+                    retResult = currentResult;
+                }
+            }
+    #endif /* defined(CY_DEVICE_FEATURE_SOME_MPC_ROT_LOCKED) */
         }
     
     #if (smif_1_mpc_0_REGION_COUNT > 0U)

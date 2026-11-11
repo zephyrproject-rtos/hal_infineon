@@ -44,7 +44,7 @@ const mtb_srf_memory_protection_s_t mtb_srf_memory_protection_s[] =
     },
     {
         .ranges = socmem_0_mpc_0_srf_protection_range_s,
-        .size = 2U,
+        .size = 1U,
     },
     {
         .ranges = mxsramc_0_mpc_0_srf_protection_range_s,
@@ -52,7 +52,7 @@ const mtb_srf_memory_protection_s_t mtb_srf_memory_protection_s[] =
     },
     {
         .ranges = mxsramc_1_mpc_0_srf_protection_range_s,
-        .size = 2U,
+        .size = 1U,
     },
 };
 const uint8_t mtb_srf_protection_range_s_count = sizeof(mtb_srf_memory_protection_s) / sizeof(mtb_srf_memory_protection_s_t);
@@ -66,11 +66,14 @@ void init_cycfg_protection(void)
 #if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && !defined(CYBSP_SKIP_MPU_INIT)
     Cy_MPU_Init(cycfg_mpu_cm33_s_0_config, sizeof(cycfg_mpu_cm33_s_0_config) / sizeof(cycfg_mpu_cm33_s_0_config[0]));
 #endif /*  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && !defined(CYBSP_SKIP_MPU_INIT) */
-#if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_MPC_INIT)
+#if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_MPC_INIT) && !defined(CY_DEVICE_FEATURE_MPC_LOCKED)
     init_cycfg_mpc();
 #endif /*  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_MPC_INIT) */
 #if  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_PPC_INIT)
     init_cycfg_ppc0();
     init_cycfg_ppc1();
 #endif /*  (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED) && !defined(CYBSP_SKIP_PPC_INIT) */
+#if (CY_SYSTEM_CPU_M55) && !defined(CYBSP_SKIP_MPU_INIT)
+    Cy_MPU_Init(cycfg_mpu_cm55_ns_0_config, sizeof(cycfg_mpu_cm55_ns_0_config) / sizeof(cycfg_mpu_cm55_ns_0_config[0]));
+#endif /* (CY_SYSTEM_CPU_M55) && !defined(CYBSP_SKIP_MPU_INIT) */
 }

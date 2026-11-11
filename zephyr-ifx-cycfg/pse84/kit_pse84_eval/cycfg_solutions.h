@@ -38,6 +38,7 @@ extern "C" {
 #endif /* defined(__cplusplus) */
 
 #define vres_0_edge_protect_0_ENABLED 1U
+#define vres_0_edgeprotect_bootloader_cfg_0_ENABLED 1U
 
 #if defined(__cplusplus)
 }

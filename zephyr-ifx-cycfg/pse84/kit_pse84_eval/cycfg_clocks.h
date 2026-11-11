@@ -34,9 +34,11 @@
 #include "cycfg_notices.h"
 #include "cy_sysclk.h"
 #include "cy_wdt.h"
+#include "cycfg_system.h"
 #include "cycfg_clock_types.h"
 #include "cy_rtc.h"
 #include "cy_gpio.h"
+#include "cy_syspm_pdcm.h"
 
 #if defined(__cplusplus)
 extern "C" {
