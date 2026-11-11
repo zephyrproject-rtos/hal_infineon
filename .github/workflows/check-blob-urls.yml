@@ -1,0 +1,38 @@
+name: Blob URL check
+
+# Fail a pull request that adds or changes a blob URL in zephyr/module.yml which
+# is pinned to a mutable git ref (master/main, refs/heads/<branch>, or a
+# "latest" branch). Such refs silently invalidate the recorded sha256 when the
+# upstream branch moves. Immutable refs (a full commit SHA or a fixed release
+# tag) do not drift. Pre-existing mutable URLs are reported as warnings only, so
+# the check does not block unrelated pull requests.
+
+on:
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  check-blob-urls:
+    name: Check blob URLs for mutable refs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect blob URLs added or changed by this pull request
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git diff --unified=0 "$BASE" "$HEAD" -- zephyr/module.yml \
+            | sed -n 's/^+.*\(https:\/\/[^"'"'"' ]*\).*/\1/p' \
+            | sort -u > added_urls.txt
+          echo "Blob URLs added or changed by this PR:"
+          cat added_urls.txt
+
+      - name: Check for mutable blob refs
+        run: python3 scripts/check_blob_urls.py zephyr/module.yml --fail-only-urls-file added_urls.txt
